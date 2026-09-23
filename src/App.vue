@@ -64,6 +64,8 @@ const navOpen = ref(false)
 const narrow = ref(window.innerWidth <= 1100)
 window.addEventListener('resize', () => (narrow.value = window.innerWidth <= 1100))
 const navMode = computed(() => (narrow.value ? 'hidden' : state.settings.navMode || 'pinned'))
+// the button inside the menu: pinned -> hidden, hidden/auto -> pinned
+function pinNav() { state.settings.navMode = navMode.value === 'pinned' ? 'hidden' : 'pinned'; navOpen.value = false }
 function toggleNav() {
   if (narrow.value || navMode.value === 'auto') navOpen.value = !navOpen.value
   else { state.settings.navMode = navMode.value === 'pinned' ? 'hidden' : 'pinned'; navOpen.value = false }
@@ -80,8 +82,9 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
     <TopBar @exclude="state.showExclude = true" @menu="toggleNav" />
     <FavoritesBar />
     <div class="body">
-      <SideNav :open="navOpen" :mode="navMode" @close="navOpen = false" @mouseenter="navMode === 'auto' && peek(true)" @mouseleave="navMode === 'auto' && peek(false)" />
+      <SideNav :open="navOpen" :mode="navMode" @close="navOpen = false" @pin="pinNav" @mouseenter="navMode === 'auto' && peek(true)" @mouseleave="navMode === 'auto' && peek(false)" />
       <div v-if="navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
+      <button v-if="navMode !== 'pinned' && !navOpen && !narrow" class="navtab" :aria-label="t('Show / hide the side menu')" :data-tip="t('Menu')" @click="navOpen = true" @mouseenter="navMode === 'auto' && peek(true)"><Icon name="chevr2" :size="16" :stroke="2.4" /></button>
       <main class="main">
         <div v-if="!state.connected" class="banner"><Icon name="refresh" :size="20" class="spin" />
           <div class="grow"><b>{{ t('Connecting to Moonraker…') }}</b><span v-if="state.conn.attempts" class="mono" style="font-weight:400;font-size:12px;margin-left:10px;color:var(--mu)">{{ t('attempt {n}', { n: state.conn.attempts }) }}</span>
@@ -129,6 +132,8 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
 
 <style scoped>
 .shell { height: 100%; display: flex; flex-direction: column; }
+.navtab { position: fixed; left: 0; top: 152px; z-index: 86; width: 22px; height: 44px; border: 1px solid var(--bd); border-left: none; border-radius: 0 10px 10px 0; background: var(--s1); color: var(--mu); display: flex; align-items: center; justify-content: center; padding: 0; }
+.navtab:hover { color: var(--tx); width: 28px; }
 .edge { position: fixed; left: 0; top: 140px; bottom: 0; width: 12px; z-index: 85; }
 .body { flex: 1; min-height: 0; display: flex; }
 .main > * { flex-shrink: 0; }

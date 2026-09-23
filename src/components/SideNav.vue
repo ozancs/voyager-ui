@@ -8,7 +8,7 @@ import { api } from '../api/moonraker'
 import { t } from '../i18n'
 defineOptions({ inheritAttrs: false })
 defineProps({ open: Boolean, mode: { type: String, default: 'pinned' } })
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'pin'])
 const NAV = [
   ['dashboard', 'dash', 'Dashboard'], ['webcam', 'cam', 'Webcam'], ['console', 'term', 'Console'], ['heightmap', 'hmap', 'Heightmap'],
   ['files', 'file', 'G-code Files'], ['viewer', 'cube', 'G-code Viewer'], ['history', 'clock', 'History'], ['machine', 'cpu', 'Machine'], ['health', 'heart', 'Health'],
@@ -46,6 +46,7 @@ function toggleCfg(c) {
 </script>
 <template>
   <nav v-bind="$attrs" class="sn" :class="[{ open }, mode !== 'pinned' && 'float', mode]" :aria-label="t('Main')">
+    <div class="pinrow"><button class="pin" :aria-label="t('Show / hide the side menu')" :data-tip="mode === 'pinned' ? t('Hide menu') : t('Keep menu open')" @click="emit('pin')"><Icon :name="mode === 'pinned' ? 'chevl2' : 'sidebar'" :size="16" :stroke="2.4" /></button></div>
     <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span><span v-if="k === 'health' && hBadge" class="nb" :style="{ background: hBadge.c }">{{ hBadge.n }}</span></button>
     <div class="sep"></div>
     <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span></button>
@@ -72,6 +73,10 @@ function toggleCfg(c) {
 .it.on { background: rgba(255,107,26,.13); color: var(--tx); font-weight: 600; }
 .it.on :deep(svg) { color: var(--heat); }
 .nb { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; color: #111; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.pinrow { display: flex; justify-content: flex-end; margin: -8px -4px 2px 0; flex-shrink: 0; }
+.pin { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--bd); background: var(--s1); color: var(--mu); display: flex; align-items: center; justify-content: center; }
+.pin:hover { color: var(--tx); border-color: var(--mu2); }
+@media (max-width: 1100px) { .pinrow { display: none; } }
 .sep { height: 1px; background: var(--bd); margin: 6px 4px; flex-shrink: 0; }
 .hd { padding: 12px 4px 4px 12px; flex-shrink: 0; }
 .ed { width: 26px; height: 26px; }

@@ -1,4 +1,6 @@
 export const ICONS = {
+  chevl2: 'M11 17l-5-5 5-5M18 17l-5-5 5-5',
+  chevr2: 'M13 17l5-5-5-5M6 17l5-5-5-5',
   sidebar: 'M4 4h16v16H4zM9 4v16',
   heart: 'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',
   pulse: 'M3 12h4l2-5 4 10 2-5h6',

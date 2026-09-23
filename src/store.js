@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.7.1'
+export const VERSION = '0.7.2'
 export const APP = 'oznlab_klipperui'
 export const APP_NAME = 'OznLab Klipper UI'
 export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'

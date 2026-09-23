@@ -73,7 +73,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
 
 <template>
   <header class="tb">
-    <button class="menu btn clear ibtn" :class="{ on: state.settings.navMode === 'pinned' }" :aria-label="t('Menu')" :data-tip="t('Show / hide the side menu')" @click="emit('menu')"><Icon name="sidebar" :size="22" /></button>
+    <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')"><Icon name="menu" :size="22" /></button>
     <a class="brand" href="#/dashboard">
       <div class="logo"><Icon name="cube" :size="24" :stroke="2.4" /></div>
       <div class="col" style="gap:0"><b class="pn">{{ printerName }}</b><span class="mono mu" style="font-size:11px">{{ hostName }}</span></div>
@@ -159,8 +159,8 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
 .dd { position: absolute; right: 0; top: 52px; width: 380px; max-height: 420px; overflow: auto; z-index: 50; gap: 4px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
 .nt { display: flex; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--bd); font-size: 13px; font-family: var(--fm); word-break: break-word; }
 .estop { letter-spacing: .06em; font-size: 15px; }
-.menu { color: var(--mu); margin-left: -8px; }
-.menu:hover, .menu.on { color: var(--tx); }
+.menu { display: none; }
+@media (max-width: 1100px) { .menu { display: inline-flex; } }
 @media (max-width: 1100px) {
   .brand { width: auto; }
   .brand .col { display: none; }

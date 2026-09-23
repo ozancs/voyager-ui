@@ -804,5 +804,7 @@ export default {
  "Hidden": "Gizli",
  "Auto-hide": "Otomatik gizle",
  "Auto-hide: move the mouse to the left edge and the menu opens over the page.": "Otomatik gizle: fareyi sol kenara götürünce menü sayfanın üzerinde açılır.",
- "Show / hide the side menu": "Yan menüyü aç / kapat"
+ "Show / hide the side menu": "Yan menüyü aç / kapat",
+ "Hide menu": "Menüyü gizle",
+ "Keep menu open": "Menüyü sabitle"
 }
