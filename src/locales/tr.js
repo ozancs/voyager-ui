@@ -798,5 +798,11 @@ export default {
  "section not found in any .cfg": "bölüm hiçbir .cfg dosyasında bulunamadı",
  "Files": "Dosyalar",
  "select": "seç",
- "MCU load": "Yük"
+ "MCU load": "Yük",
+ "Side menu": "Yan menü",
+ "Always visible": "Hep açık",
+ "Hidden": "Gizli",
+ "Auto-hide": "Otomatik gizle",
+ "Auto-hide: move the mouse to the left edge and the menu opens over the page.": "Otomatik gizle: fareyi sol kenara götürünce menü sayfanın üzerinde açılır.",
+ "Show / hide the side menu": "Yan menüyü aç / kapat"
 }

@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.7.0'
+export const VERSION = '0.7.1'
 export const APP = 'oznlab_klipperui'
 export const APP_NAME = 'OznLab Klipper UI'
 export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'
@@ -68,6 +68,7 @@ export const DEFAULT_SETTINGS = () => ({
   customCards: {},
   layoutBackups: [],
   // layout used while printing (null = same as idle until edited)
+  navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
   layoutPrint: null,
   hiddenCardsPrint: [],

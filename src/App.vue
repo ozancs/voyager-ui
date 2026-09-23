@@ -60,6 +60,16 @@ watch([() => state.anchor, () => route.name], async () => {
 const view = computed(() => VIEWS[route.name] || Dashboard)
 const showExclude = ref(false)
 const navOpen = ref(false)
+// side menu: pinned (in the layout), hidden (button opens it over the page), auto (opens when the mouse reaches the left edge)
+const narrow = ref(window.innerWidth <= 1100)
+window.addEventListener('resize', () => (narrow.value = window.innerWidth <= 1100))
+const navMode = computed(() => (narrow.value ? 'hidden' : state.settings.navMode || 'pinned'))
+function toggleNav() {
+  if (narrow.value || navMode.value === 'auto') navOpen.value = !navOpen.value
+  else { state.settings.navMode = navMode.value === 'pinned' ? 'hidden' : 'pinned'; navOpen.value = false }
+}
+let navT
+function peek(on) { clearTimeout(navT); if (on) navOpen.value = true; else navT = setTimeout(() => (navOpen.value = false), 350) }
 const location = window.location
 const bootTask = computed(() => activeTasks.value[0]?.label || t('Loading printer'))
 const notReady = computed(() => state.connected && state.klippy !== 'ready')
@@ -67,10 +77,11 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
 
 <template>
   <div class="shell" :class="{ booting: state.connected && !state.booted }">
-    <TopBar @exclude="state.showExclude = true" @menu="navOpen = !navOpen" />
+    <TopBar @exclude="state.showExclude = true" @menu="toggleNav" />
     <FavoritesBar />
     <div class="body">
-      <SideNav :open="navOpen" @close="navOpen = false" />
+      <SideNav :open="navOpen" :mode="navMode" @close="navOpen = false" @mouseenter="navMode === 'auto' && peek(true)" @mouseleave="navMode === 'auto' && peek(false)" />
+      <div v-if="navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
       <main class="main">
         <div v-if="!state.connected" class="banner"><Icon name="refresh" :size="20" class="spin" />
           <div class="grow"><b>{{ t('Connecting to Moonraker…') }}</b><span v-if="state.conn.attempts" class="mono" style="font-weight:400;font-size:12px;margin-left:10px;color:var(--mu)">{{ t('attempt {n}', { n: state.conn.attempts }) }}</span>
@@ -118,6 +129,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
 
 <style scoped>
 .shell { height: 100%; display: flex; flex-direction: column; }
+.edge { position: fixed; left: 0; top: 140px; bottom: 0; width: 12px; z-index: 85; }
 .body { flex: 1; min-height: 0; display: flex; }
 .main > * { flex-shrink: 0; }
 .main { flex: 1; min-width: 0; overflow: auto; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }

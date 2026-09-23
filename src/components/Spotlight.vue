@@ -48,6 +48,7 @@ const ACTIONS = computed(() => [
   { t: 'Customize dashboard', s: 'layout cards edit move', icon: 'layout', run: () => { go('dashboard'); state.editDash = true }, dest: 'Dashboard' },
   { t: state.settings.sound?.enabled ? 'Turn sounds off' : 'Turn sounds on', s: 'audio alerts mute', icon: state.settings.sound?.enabled ? 'mute' : 'volume', run: () => { state.settings.sound.enabled = !state.settings.sound.enabled; if (state.settings.sound.enabled) playSound('heated') }, dest: 'Setting' },
   { t: 'Job queue', s: 'queue next print jobs', icon: 'queue', run: () => go('files'), dest: 'G-code Files' },
+  { t: 'Show / hide the side menu', s: 'sidebar navigation menu yan menü', icon: 'sidebar', run: () => { state.settings.navMode = state.settings.navMode === 'hidden' ? 'pinned' : 'hidden' }, dest: 'Setting' },
   { t: 'Edit favorites bar', s: 'favorite macros buttons toolbar', icon: 'star', run: () => { state.favEdit = true }, dest: 'Favorites bar' },
 ])
 

@@ -6,7 +6,8 @@ import { healthIssues } from '../features'
 import { route, go } from '../router'
 import { api } from '../api/moonraker'
 import { t } from '../i18n'
-defineProps({ open: Boolean })
+defineOptions({ inheritAttrs: false })
+defineProps({ open: Boolean, mode: { type: String, default: 'pinned' } })
 const emit = defineEmits(['close'])
 const NAV = [
   ['dashboard', 'dash', 'Dashboard'], ['webcam', 'cam', 'Webcam'], ['console', 'term', 'Console'], ['heightmap', 'hmap', 'Heightmap'],
@@ -44,7 +45,7 @@ function toggleCfg(c) {
 }
 </script>
 <template>
-  <nav class="sn" :class="{ open }" :aria-label="t('Main')">
+  <nav v-bind="$attrs" class="sn" :class="[{ open }, mode !== 'pinned' && 'float', mode]" :aria-label="t('Main')">
     <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span><span v-if="k === 'health' && hBadge" class="nb" :style="{ background: hBadge.c }">{{ hBadge.n }}</span></button>
     <div class="sep"></div>
     <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span></button>
@@ -61,7 +62,7 @@ function toggleCfg(c) {
       <template v-else><span class="d" :style="{ background: state.connected ? 'var(--ok)' : 'var(--dg)' }"></span>{{ state.connected ? t('Moonraker connected') : t('Connecting…') }}</template>
     </div>
   </nav>
-  <div v-if="open" class="scrim" @click="emit('close')"></div>
+  <div v-if="open && mode === 'hidden'" class="scrim" @click="emit('close')"></div>
 </template>
 <style scoped>
 .sn { width: 232px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; padding: 16px 12px; background: var(--bg); border-right: 1px solid var(--bd); overflow-y: auto; }
@@ -91,10 +92,13 @@ function toggleCfg(c) {
 .ft { flex-shrink: 0; margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 10px 12px 0; font-size: 12px; color: var(--mu); }
 .tk { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .d { width: 8px; height: 8px; border-radius: 4px; }
-.scrim { display: none; }
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 80; }
+/* hidden / auto-hide: the menu slides over the page instead of taking space */
+.sn.float { position: fixed; left: 0; top: 140px; bottom: 0; z-index: 90; transform: translateX(-100%); transition: transform .18s ease-out, box-shadow .18s; border-right: 1px solid var(--bd); border-radius: 0 14px 0 0; background: var(--s1); }
+.sn.float.open { transform: none; box-shadow: 12px 0 40px rgba(0,0,0,.45); }
 @media (max-width: 1100px) {
-  .sn { position: fixed; left: 0; top: 0; bottom: 0; z-index: 90; transform: translateX(-100%); transition: transform .2s; }
-  .sn.open { transform: none; }
-  .scrim { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 80; }
+  .sn.float { top: 0; border-radius: 0; }
+  .scrim { background: rgba(0,0,0,.5); }
 }
+
 </style>

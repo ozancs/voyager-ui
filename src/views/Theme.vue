@@ -76,6 +76,10 @@ function reset() { confirmReset.value = false; apply({ ...DEFAULT_SETTINGS(), la
       <div class="card-h"><h2>{{ t('Controls') }}</h2></div>
       <label class="col" style="gap:4px"><span class="lbl">{{ t('Printer name (empty = name from Mainsail / hostname)') }}</span><input v-model="state.settings.printerName" class="input" :placeholder="state.printerName || 'Printer'" /></label>
       <div class="row sp"><span>{{ t('Invert Z jog buttons (bed moves in Z)') }}</span><Toggle v-model="state.settings.invertZ" :label="t('Invert Z')" /></div>
+      <div class="col" style="gap:6px"><span>{{ t('Side menu') }}</span>
+        <div class="seg"><button v-for="[k, l] in [['pinned', 'Always visible'], ['hidden', 'Hidden'], ['auto', 'Auto-hide']]" :key="k" :class="{ on: (state.settings.navMode || 'pinned') === k }" @click="state.settings.navMode = k">{{ t(l) }}</button></div>
+        <span class="mu">{{ t('Auto-hide: move the mouse to the left edge and the menu opens over the page.') }}</span>
+      </div>
       <div class="row sp"><span>{{ t('Separate dashboard while printing') }}</span><Toggle v-model="state.settings.autoLayout" :label="t('Separate dashboard while printing')" /></div>
       <div class="row sp"><span>{{ t('Favorites bar') }}</span><button class="btn" @click="state.favEdit = true"><Icon name="pencil" :size="15" />{{ t('Edit') }}</button></div>
     </section>
