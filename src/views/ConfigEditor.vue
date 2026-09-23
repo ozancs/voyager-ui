@@ -4,6 +4,7 @@ import Icon from '../components/Icon.vue'
 import { state, toast, gcode, isPrinting, backupBeforeWrite } from '../store'
 import { route } from '../router'
 import { api } from '../api/moonraker'
+import { t } from '../i18n'
 const text = ref('')
 const orig = ref('')
 const loading = ref(false)
@@ -53,13 +54,13 @@ async function save(restart) {
     await backupBeforeWrite(loc.value.root, file.value)
     await api.upload(new Blob([text.value], { type: 'text/plain' }), { root: loc.value.root, path: file.value.split('/').slice(0, -1).join('/'), name: file.value.split('/').pop() })
     orig.value = text.value
-    toast(file.value + ' saved')
+    toast(t('{f} saved', { f: file.value }))
     if (restart) {
       if (file.value === 'moonraker.conf') await api.call('server.restart')
       else if (file.value === 'crowsnest.conf') await api.call('machine.services.restart', { service: 'crowsnest' })
       else await gcode('FIRMWARE_RESTART')
     }
-  } catch (e) { toast('Save failed: ' + e.message, 'error') }
+  } catch (e) { toast(t('Save failed: {e}', { e: e.message }), 'error') }
   saving.value = false
 }
 function key(e) {
@@ -138,16 +139,16 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
   <div class="split" style="height:calc(100vh - 208px)">
     <div class="col grow" style="gap:0;min-height:0">
       <div class="row" style="padding-bottom:10px">
-        <b class="mono" style="font-size:15px">{{ file }}</b><span v-if="dirty" class="chip" style="color:var(--ac)"><i></i>unsaved</span>
+        <b class="mono" style="font-size:15px">{{ file }}</b><span v-if="dirty" class="chip" style="color:var(--ac)"><i></i>{{ t('unsaved') }}</span>
         <div class="grow"></div>
-        <label class="sb"><input ref="qin" v-model="q" placeholder="Search" aria-label="Search in file" @keydown.enter.prevent="nextMatch($event.shiftKey ? -1 : 1)" @keydown.esc="q = ''" />
+        <label class="sb"><input ref="qin" v-model="q" :placeholder="t('Search')" :aria-label="t('Search in file')" @keydown.enter.prevent="nextMatch($event.shiftKey ? -1 : 1)" @keydown.esc="q = ''" />
           <span class="mono cnt">{{ q ? (matches.length ? qi + 1 + '/' + matches.length : '0/0') : '' }}</span>
-          <button class="btn clear ibtn sm" aria-label="Previous match" :disabled="!matches.length" @click="nextMatch(-1)"><Icon name="up" :size="14" /></button>
-          <button class="btn clear ibtn sm" aria-label="Next match" :disabled="!matches.length" @click="nextMatch(1)"><Icon name="down" :size="14" /></button>
+          <button class="btn clear ibtn sm" :aria-label="t('Previous match')" :disabled="!matches.length" @click="nextMatch(-1)"><Icon name="up" :size="14" /></button>
+          <button class="btn clear ibtn sm" :aria-label="t('Next match')" :disabled="!matches.length" @click="nextMatch(1)"><Icon name="down" :size="14" /></button>
         </label>
-        <button class="btn" :disabled="!dirty" @click="text = orig">Revert</button>
-        <button class="btn" :disabled="!dirty || saving" @click="save(false)"><Icon name="save" :size="16" />Save</button>
-        <button class="btn acc" :disabled="saving || isPrinting" @click="save(true)"><Icon name="restart" :size="16" :stroke="2.4" />Save &amp; Restart</button>
+        <button class="btn" :disabled="!dirty" @click="text = orig">{{ t('Revert') }}</button>
+        <button class="btn" :disabled="!dirty || saving" @click="save(false)"><Icon name="save" :size="16" />{{ t('Save') }}</button>
+        <button class="btn acc" :disabled="saving || isPrinting" @click="save(true)"><Icon name="restart" :size="16" :stroke="2.4" />{{ t('Save & Restart') }}</button>
       </div>
       <div class="ed">
         <div ref="gut" class="gut code"><div v-for="n in lineCount" :key="n">{{ n }}</div></div>
@@ -158,7 +159,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
       </div>
     </div>
     <section class="card side-col" style="width:260px;overflow:auto">
-      <div class="card-h"><h2>Outline</h2></div>
+      <div class="card-h"><h2>{{ t('Outline') }}</h2></div>
       <button v-for="[s, i] in sections" :key="i" class="ol code" @click="jump(i)">[{{ s }}]</button>
     </section>
   </div>

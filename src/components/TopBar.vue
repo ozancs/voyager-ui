@@ -5,6 +5,7 @@ import Modal from './Modal.vue'
 import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode, toast, printerName, dismiss, dismissAll } from '../store'
 import { api } from '../api/moonraker'
 import { go } from '../router'
+import { t } from '../i18n'
 
 const emit = defineEmits(['exclude', 'menu'])
 const fileInput = ref(null)
@@ -27,9 +28,9 @@ function reprint() { const f = S('print_stats').filename; if (f) api.call('print
 
 const stateColor = computed(() => ({ printing: 'var(--ok)', paused: 'var(--wn)', error: 'var(--dg)', complete: 'var(--bl)', cancelled: 'var(--mu)' }[printState.value] || 'var(--mu)'))
 const label = computed(() => {
-  if (!state.connected) return 'Disconnected'
-  if (state.klippy !== 'ready') return 'Klipper ' + state.klippy
-  return printState.value.charAt(0).toUpperCase() + printState.value.slice(1)
+  if (!state.connected) return t('Disconnected')
+  if (state.klippy !== 'ready') return t('Klipper {state}', { state: state.klippy })
+  return t(printState.value.charAt(0).toUpperCase() + printState.value.slice(1))
 })
 const savePending = computed(() => S('configfile').save_config_pending)
 const active = computed(() => ['printing', 'paused'].includes(printState.value))
@@ -43,8 +44,8 @@ async function onFile(e) {
   uploading.value = 0
   try {
     await api.upload(f, { print: true, onProgress: (p) => (uploading.value = p) })
-    toast(`${f.name} uploaded, starting print`)
-  } catch (err) { toast('Upload failed: ' + err.message, 'error') }
+    toast(t('{name} uploaded, starting print', { name: f.name }))
+  } catch (err) { toast(t('Upload failed: {msg}', { msg: err.message }), 'error') }
   uploading.value = null
 }
 async function estop() {
@@ -72,7 +73,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
 
 <template>
   <header class="tb">
-    <button class="menu btn clear ibtn" aria-label="Menu" @click="emit('menu')"><Icon name="menu" :size="22" /></button>
+    <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')"><Icon name="menu" :size="22" /></button>
     <a class="brand" href="#/dashboard">
       <div class="logo"><Icon name="cube" :size="24" :stroke="2.4" /></div>
       <div class="col" style="gap:0"><b class="pn">{{ printerName }}</b><span class="mono mu" style="font-size:11px">{{ hostName }}</span></div>
@@ -85,51 +86,51 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
           <b class="st">{{ label }}</b>
           <span v-if="active" class="mono st2">{{ (progress * 100).toFixed(1) }}%</span>
         </div>
-        <span class="mono fn">{{ state.klippy !== 'ready' && state.klippyMessage ? state.klippyMessage.split('\n')[0] : S('print_stats').filename || 'No file loaded' }}</span>
+        <span class="mono fn">{{ state.klippy !== 'ready' && state.klippyMessage ? state.klippyMessage.split('\n')[0] : S('print_stats').filename || t('No file loaded') }}</span>
       </div>
       <template v-if="active">
         <div class="pb"><div class="bar" style="height:8px"><div :style="{ width: progress * 100 + '%' }"></div></div>
-          <div class="row mono meta"><span>Layer {{ layerInfo.cur }}/{{ layerInfo.total || '--' }}</span><span>Left {{ fmtTime(printTimes.left) }}</span><span class="hide-m">ETA {{ eta }}</span></div>
+          <div class="row mono meta"><span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span><span class="hide-m">{{ t('ETA {time}', { time: eta }) }}</span></div>
         </div>
-        <button v-if="printState === 'paused'" class="btn acc pbtn" aria-label="Resume" @click="gcode('RESUME')"><Icon name="play" :size="16" :stroke="2.4" /><span class="hide-m">Resume</span></button>
-        <button v-else class="btn pbtn" aria-label="Pause" @click="gcode('PAUSE')"><Icon name="pause" :size="16" :stroke="2.4" /><span class="hide-m">Pause</span></button>
-        <button class="btn dg pbtn" aria-label="Cancel print" @click="askCancel = true"><Icon name="sq" :size="16" :stroke="2.4" /></button>
-        <button class="btn out pbtn" aria-label="Exclude object" :disabled="!eo.objects?.length" @click="emit('exclude')"><Icon name="excl" :size="16" :stroke="2.4" /><span v-if="eo.objects?.length" class="mono" style="font-size:11px">{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span></button>
+        <button v-if="printState === 'paused'" class="btn acc pbtn" :aria-label="t('Resume')" @click="gcode('RESUME')"><Icon name="play" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Resume') }}</span></button>
+        <button v-else class="btn pbtn" :aria-label="t('Pause')" @click="gcode('PAUSE')"><Icon name="pause" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Pause') }}</span></button>
+        <button class="btn dg pbtn" :aria-label="t('Cancel print')" @click="askCancel = true"><Icon name="sq" :size="16" :stroke="2.4" /></button>
+        <button class="btn out pbtn" :aria-label="t('Exclude object')" :disabled="!eo.objects?.length" @click="emit('exclude')"><Icon name="excl" :size="16" :stroke="2.4" /><span v-if="eo.objects?.length" class="mono" style="font-size:11px">{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span></button>
       </template>
-      <button v-if="state.queue.jobs?.length" class="btn pbtn qb" :title="state.queue.jobs.length + ' jobs queued'" @click="go('files')"><Icon name="queue" :size="16" /><span class="mono">{{ state.queue.jobs.length }}</span></button>
+      <button v-if="state.queue.jobs?.length" class="btn pbtn qb" :title="t('{n} jobs queued', { n: state.queue.jobs.length })" @click="go('files')"><Icon name="queue" :size="16" /><span class="mono">{{ state.queue.jobs.length }}</span></button>
       <template v-if="!active">
         <div class="grow"></div>
-        <button v-if="S('print_stats').filename && state.klippy === 'ready'" class="btn pbtn" aria-label="Print this file again" @click="reprint"><Icon name="refresh" :size="16" :stroke="2.4" /><span class="hide-m">Reprint</span></button>
+        <button v-if="S('print_stats').filename && state.klippy === 'ready'" class="btn pbtn" :aria-label="t('Print this file again')" @click="reprint"><Icon name="refresh" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Reprint') }}</span></button>
       </template>
     </div>
-    <button class="btn lg srch hide-s" aria-label="Search (Ctrl+K)" @click="state.spotlight = true"><Icon name="search" :size="18" :stroke="2.4" /><kbd class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd></button>
-    <button class="btn lg hide-s" :class="{ acc: savePending }" :disabled="!savePending" aria-label="Save Config" @click="gcode('SAVE_CONFIG')"><Icon name="save" :stroke="2.4" /><span class="hide-m">Save Config</span></button>
-    <button class="btn lg acc hide-s" aria-label="Upload & Print" :disabled="uploading !== null" @click="fileInput.click()"><Icon name="upload" :stroke="2.4" /><span v-if="uploading !== null">{{ Math.round(uploading * 100) + '%' }}</span><span v-else class="hide-m">Upload &amp; Print</span></button>
+    <button class="btn lg srch hide-s" :aria-label="t('Search (Ctrl+K)')" @click="state.spotlight = true"><Icon name="search" :size="18" :stroke="2.4" /><kbd class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd></button>
+    <button class="btn lg hide-s" :class="{ acc: savePending }" :disabled="!savePending" :aria-label="t('Save Config')" @click="gcode('SAVE_CONFIG')"><Icon name="save" :stroke="2.4" /><span class="hide-m">{{ t('Save Config') }}</span></button>
+    <button class="btn lg acc hide-s" :aria-label="t('Upload & Print')" :disabled="uploading !== null" @click="fileInput.click()"><Icon name="upload" :stroke="2.4" /><span v-if="uploading !== null">{{ Math.round(uploading * 100) + '%' }}</span><span v-else class="hide-m">{{ t('Upload & Print') }}</span></button>
     <input ref="fileInput" type="file" accept=".gcode,.g,.gco,.ufp,.nc" hidden @change="onFile" />
     <div class="rel">
-      <button class="btn ibtn" aria-label="Notifications" @click="showBell = !showBell"><Icon name="bell" :size="22" :stroke="2.4" /><span v-if="state.notifications.length" class="badge" :style="{ background: state.notifications.some((n) => n.kind === 'error') ? 'var(--dg)' : state.notifications.some((n) => n.kind === 'warn') ? 'var(--wn)' : 'var(--bl)', color: '#111' }">{{ state.notifications.length }}</span></button>
+      <button class="btn ibtn" :aria-label="t('Notifications')" @click="showBell = !showBell"><Icon name="bell" :size="22" :stroke="2.4" /><span v-if="state.notifications.length" class="badge" :style="{ background: state.notifications.some((n) => n.kind === 'error') ? 'var(--dg)' : state.notifications.some((n) => n.kind === 'warn') ? 'var(--wn)' : 'var(--bl)', color: '#111' }">{{ state.notifications.length }}</span></button>
       <div v-if="showBell" class="dd card" @mouseleave="showBell = false">
-        <div class="card-h"><h2>Notifications</h2><button class="btn" :disabled="!state.notifications.length" @click="dismissAll">Dismiss all</button></div>
-        <div v-if="!state.notifications.length" class="empty">No notifications</div>
-        <div v-for="n in state.notifications" :key="n.id" class="nt"><Icon :name="n.kind === 'info' ? 'info' : 'warn'" :size="16" :style="{ color: n.kind === 'error' ? 'var(--dg)' : n.kind === 'info' ? 'var(--bl)' : 'var(--wn)', flexShrink: 0 }" /><span class="grow">{{ n.msg }}</span><button class="btn clear ibtn sm" style="width:24px;height:24px" aria-label="Dismiss" @click="dismiss(n)"><Icon name="x" :size="14" /></button></div>
+        <div class="card-h"><h2>{{ t('Notifications') }}</h2><button class="btn" :disabled="!state.notifications.length" @click="dismissAll">{{ t('Dismiss all') }}</button></div>
+        <div v-if="!state.notifications.length" class="empty">{{ t('No notifications') }}</div>
+        <div v-for="n in state.notifications" :key="n.id" class="nt"><Icon :name="n.kind === 'info' ? 'info' : 'warn'" :size="16" :style="{ color: n.kind === 'error' ? 'var(--dg)' : n.kind === 'info' ? 'var(--bl)' : 'var(--wn)', flexShrink: 0 }" /><span class="grow">{{ n.msg }}</span><button class="btn clear ibtn sm" style="width:24px;height:24px" :aria-label="t('Dismiss')" @click="dismiss(n)"><Icon name="x" :size="14" /></button></div>
       </div>
     </div>
-    <button class="btn ibtn hide-s" aria-label="Settings" @click="go('theme')"><Icon name="gear" :size="22" :stroke="2.4" /></button>
+    <button class="btn ibtn hide-s" :aria-label="t('Settings')" @click="go('theme')"><Icon name="gear" :size="22" :stroke="2.4" /></button>
     <div class="rel">
-      <button class="btn ibtn" aria-label="Power" @click="showPower = !showPower"><Icon name="power" :size="22" :stroke="2.4" /></button>
+      <button class="btn ibtn" :aria-label="t('Power')" @click="showPower = !showPower"><Icon name="power" :size="22" :stroke="2.4" /></button>
       <div v-if="showPower" class="dd card" style="width:240px" @mouseleave="showPower = false">
-        <button v-for="p in POWER" :key="p.k" class="btn clear" :style="{ justifyContent: 'flex-start', height: '40px', color: p.danger ? 'var(--dg)' : 'var(--tx)' }" @click="doPower(p)"><Icon :name="p.icon" :size="18" />{{ p.label }}</button>
+        <button v-for="p in POWER" :key="p.k" class="btn clear" :style="{ justifyContent: 'flex-start', height: '40px', color: p.danger ? 'var(--dg)' : 'var(--tx)' }" @click="doPower(p)"><Icon :name="p.icon" :size="18" />{{ t(p.label) }}</button>
       </div>
     </div>
-    <button class="btn lg dgf estop" @click="estop"><Icon name="stop" :size="22" :stroke="2.6" /><span class="hide-s">E-STOP</span></button>
+    <button class="btn lg dgf estop" @click="estop"><Icon name="stop" :size="22" :stroke="2.6" /><span class="hide-s">{{ t('E-STOP') }}</span></button>
   </header>
-  <Modal v-if="askCancel" title="Cancel print?" @close="askCancel = false">
-    <p class="mu" style="margin:0">The current print will be cancelled.</p>
-    <template #foot><button class="btn lg" @click="askCancel = false">Keep printing</button><button class="btn lg dgf" @click="askCancel = false; gcode('CANCEL_PRINT')">Cancel print</button></template>
+  <Modal v-if="askCancel" :title="t('Cancel print?')" @close="askCancel = false">
+    <p class="mu" style="margin:0">{{ t('The current print will be cancelled.') }}</p>
+    <template #foot><button class="btn lg" @click="askCancel = false">{{ t('Keep printing') }}</button><button class="btn lg dgf" @click="askCancel = false; gcode('CANCEL_PRINT')">{{ t('Cancel print') }}</button></template>
   </Modal>
-  <Modal v-if="confirm" :title="confirm.label + '?'" @close="confirm = null">
-    <p class="mu" style="margin:0">{{ active ? 'A print is running. ' : '' }}Are you sure?</p>
-    <template #foot><button class="btn lg" @click="confirm = null">Cancel</button><button class="btn lg dgf" @click="runConfirmed">{{ confirm.label }}</button></template>
+  <Modal v-if="confirm" :title="t('{action}?', { action: t(confirm.label) })" @close="confirm = null">
+    <p class="mu" style="margin:0">{{ active ? t('A print is running. Are you sure?') : t('Are you sure?') }}</p>
+    <template #foot><button class="btn lg" @click="confirm = null">{{ t('Cancel') }}</button><button class="btn lg dgf" @click="runConfirmed">{{ t(confirm.label) }}</button></template>
   </Modal>
 </template>
 

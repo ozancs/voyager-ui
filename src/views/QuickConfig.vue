@@ -4,6 +4,7 @@ import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import { state, S, saveSettings, toast, gcode, isPrinting, backupBeforeWrite } from '../store'
 import { api } from '../api/moonraker'
+import { t, tn } from '../i18n'
 import { setOption, hasSection } from '../cfgedit'
 const drafts = ref({})
 const saving = ref(false)
@@ -60,7 +61,7 @@ async function save(restart) {
     drafts.value = {}
     result.value = log
     if (restart && !log.some((l) => l.error)) await gcode('RESTART')
-  } catch (e) { toast('Save failed: ' + e.message, 'error') }
+  } catch (e) { toast(t('Save failed: {e}', { e: e.message }), 'error') }
   saving.value = false
 }
 function removeField(f) {
@@ -80,44 +81,44 @@ function addField() {
   <div class="page">
     <div class="head" :class="{ dirty: changes.length }">
       <span class="d"></span>
-      <b>{{ changes.length ? changes.length + ' unsaved change' + (changes.length > 1 ? 's' : '') : 'Quick Config' }}</b>
-      <span class="mu">Edits the matching line in your .cfg files (SAVE_CONFIG block first). Klipper needs a restart to apply.</span>
+      <b>{{ changes.length ? tn(changes.length, '{n} unsaved change', '{n} unsaved changes') : t('Quick Config') }}</b>
+      <span class="mu">{{ t('Edits the matching line in your .cfg files (SAVE_CONFIG block first). Klipper needs a restart to apply.') }}</span>
       <div class="grow"></div>
-      <button class="btn" @click="adding = { section: '', key: '', unit: '' }"><Icon name="plus" :size="16" />Add field</button>
-      <button class="btn" :disabled="!changes.length" @click="drafts = {}"><Icon name="x" :size="16" />Discard</button>
-      <button class="btn" :disabled="!changes.length || saving" @click="save(false)"><Icon name="save" :size="16" />Save</button>
-      <button class="btn acc lg" :disabled="!changes.length || saving || isPrinting" @click="save(true)"><Icon name="restart" :stroke="2.4" />{{ saving ? 'Saving…' : 'Save & Restart' }}</button>
+      <button class="btn" @click="adding = { section: '', key: '', unit: '' }"><Icon name="plus" :size="16" />{{ t('Add field') }}</button>
+      <button class="btn" :disabled="!changes.length" @click="drafts = {}"><Icon name="x" :size="16" />{{ t('Discard') }}</button>
+      <button class="btn" :disabled="!changes.length || saving" @click="save(false)"><Icon name="save" :size="16" />{{ t('Save') }}</button>
+      <button class="btn acc lg" :disabled="!changes.length || saving || isPrinting" @click="save(true)"><Icon name="restart" :stroke="2.4" />{{ saving ? t('Saving…') : t('Save & Restart') }}</button>
     </div>
     <div class="grid3">
       <section v-for="(fields, sec) in groups" :key="sec" class="card">
         <div class="card-h"><h2 class="mono" style="font-size:14px">[{{ sec }}]</h2></div>
         <div class="g2">
           <label v-for="f in fields" :key="f.key" class="fld">
-            <span class="row" style="justify-content:space-between"><span class="k mono">{{ f.key }}</span><button class="btn clear ibtn sm rm" :aria-label="'Remove ' + f.key" @click.prevent="removeField(f)"><Icon name="x" :size="12" /></button></span>
+            <span class="row" style="justify-content:space-between"><span class="k mono">{{ f.key }}</span><button class="btn clear ibtn sm rm" :aria-label="t('Remove {k}', { k: f.key })" @click.prevent="removeField(f)"><Icon name="x" :size="12" /></button></span>
             <span class="ib" :class="{ ch: drafts[id(f)] !== undefined && drafts[id(f)] !== current(f) }">
               <input :value="drafts[id(f)] ?? current(f)" @input="drafts[id(f)] = $event.target.value" :aria-label="f.key" spellcheck="false" />
               <span v-if="f.unit" class="u">{{ f.unit }}</span>
             </span>
-            <span v-if="drafts[id(f)] !== undefined && drafts[id(f)] !== current(f)" class="was mono">was {{ current(f) }}</span>
+            <span v-if="drafts[id(f)] !== undefined && drafts[id(f)] !== current(f)" class="was mono">{{ t('was {v}', { v: current(f) }) }}</span>
           </label>
         </div>
       </section>
     </div>
-    <div v-if="!Object.keys(groups).length" class="empty">No fields match your config yet. Use “Add field”.</div>
+    <div v-if="!Object.keys(groups).length" class="empty">{{ t('No fields match your config yet. Use “Add field”.') }}</div>
   </div>
-  <Modal v-if="result" title="Saved" width="620px" @close="result = null">
+  <Modal v-if="result" :title="t('Saved')" width="620px" @close="result = null">
     <div v-for="(l, i) in result" :key="i" class="row mono" style="font-size:12px;gap:12px;padding:6px 0;border-bottom:1px solid var(--bd)">
       <Icon :name="l.error ? 'warn' : 'check'" :size="16" :style="{ color: l.error ? 'var(--dg)' : 'var(--ok)', flexShrink: 0 }" />
       <span class="grow">[{{ l.f.section }}] {{ l.f.key }} = {{ l.v }}</span>
-      <span class="mu">{{ l.error || l.file + ' · ' + l.where }}</span>
+      <span class="mu">{{ l.error ? t(l.error) : l.file + ' · ' + l.where }}</span>
     </div>
-    <template #foot><button class="btn lg" @click="result = null">Close</button><button class="btn lg acc" :disabled="isPrinting" @click="gcode('RESTART'); result = null">Restart Klipper</button></template>
+    <template #foot><button class="btn lg" @click="result = null">{{ t('Close') }}</button><button class="btn lg acc" :disabled="isPrinting" @click="gcode('RESTART'); result = null">{{ t('Restart Klipper') }}</button></template>
   </Modal>
-  <Modal v-if="adding" title="Add field" @close="adding = null">
-    <label class="col"><span class="lbl">Section</span><select v-model="adding.section" class="input"><option value="" disabled>choose…</option><option v-for="s in secNames" :key="s" :value="s">{{ s }}</option></select></label>
-    <label class="col" v-if="adding.section"><span class="lbl">Option</span><select v-model="adding.key" class="input"><option value="" disabled>choose…</option><option v-for="k in Object.keys(rawSection(adding.section) || {})" :key="k" :value="k">{{ k }}</option></select></label>
-    <label class="col"><span class="lbl">Unit (optional)</span><input v-model="adding.unit" class="input" placeholder="mm/s" /></label>
-    <template #foot><button class="btn lg" @click="adding = null">Cancel</button><button class="btn lg acc" :disabled="!adding.key" @click="addField">Add</button></template>
+  <Modal v-if="adding" :title="t('Add field')" @close="adding = null">
+    <label class="col"><span class="lbl">{{ t('Section') }}</span><select v-model="adding.section" class="input"><option value="" disabled>{{ t('choose…') }}</option><option v-for="s in secNames" :key="s" :value="s">{{ s }}</option></select></label>
+    <label class="col" v-if="adding.section"><span class="lbl">{{ t('Option') }}</span><select v-model="adding.key" class="input"><option value="" disabled>{{ t('choose…') }}</option><option v-for="k in Object.keys(rawSection(adding.section) || {})" :key="k" :value="k">{{ k }}</option></select></label>
+    <label class="col"><span class="lbl">{{ t('Unit (optional)') }}</span><input v-model="adding.unit" class="input" placeholder="mm/s" /></label>
+    <template #foot><button class="btn lg" @click="adding = null">{{ t('Cancel') }}</button><button class="btn lg acc" :disabled="!adding.key" @click="addField">{{ t('Add') }}</button></template>
   </Modal>
 </template>
 <style scoped>

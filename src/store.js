@@ -1,7 +1,8 @@
 import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
+import { setLang, t } from './i18n'
 
-export const VERSION = '0.6.0'
+export const VERSION = '0.7.0'
 export const APP = 'oznlab_klipperui'
 export const APP_NAME = 'OznLab Klipper UI'
 export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'
@@ -73,6 +74,9 @@ export const DEFAULT_SETTINGS = () => ({
   sound: { enabled: false, volume: 0.6, complete: true, error: true, paused: true, heated: false },
   errorToasts: true,
   maintenance: null, // filled with defaults on first visit of the Health page
+  lang: '', // '' = not chosen yet (first run asks)
+  setupDone: false,
+  cardOpts: {}, // per dashboard module options, e.g. macros: { scroll, showHidden, hidden: [] }
   heaterBase: {}, // { extruder: { target, power, t } } power needed to hold a temperature, learned
 })
 
@@ -129,6 +133,7 @@ export const state = reactive({
   prompt: null, // action:prompt dialog from macros
   queue: { state: '', jobs: [], enabled: null },
   spotlight: false,
+  favEdit: false,
   consoleDraft: '',
   jump: null, // { file, line } for the config editor
   anchor: '', // element id to scroll to after navigation
@@ -158,9 +163,9 @@ export function shortName(obj) {
 export function prettyName(obj) {
   const custom = state.settings.devices?.names?.[obj]
   if (custom) return custom
-  if (obj === 'fan') return 'Part Fan'
-  if (obj === 'extruder') return 'Extruder'
-  if (obj === 'heater_bed') return 'Heater Bed'
+  if (obj === 'fan') return t('Part Fan')
+  if (obj === 'extruder') return t('Extruder')
+  if (obj === 'heater_bed') return t('Heater Bed')
   return shortName(obj).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 export function fmtTime(sec) {
@@ -200,7 +205,7 @@ export function closeToast(id) { state.toasts = state.toasts.filter((t) => t.id 
 // ---------- computed ----------
 export const S = (name) => state.status[name] || {}
 
-export const printerName = computed(() => state.settings.printerName || state.printerName || state.versions.host || 'Printer')
+export const printerName = computed(() => state.settings.printerName || state.printerName || state.versions.host || t('Printer'))
 watch(printerName, (n) => { document.title = n + ' · ' + APP_NAME }, { immediate: true })
 export const printState = computed(() => S('print_stats').state || 'standby')
 export const isPrinting = computed(() => ['printing', 'paused'].includes(printState.value))
@@ -336,17 +341,17 @@ async function checkHealth() {
     const info = await api.call('server.info')
     unnotify('mr:')
     for (const w of (info.warnings || []).filter((w) => !w.includes('::TMPNAME'))) notify('mr:' + w.slice(0, 120), 'Moonraker: ' + w, 'warn')
-    for (const c of info.failed_components || []) notify('mrc:' + c, `Moonraker component "${c}" failed to load`, 'error')
+    for (const c of info.failed_components || []) notify('mrc:' + c, t('Moonraker component "{name}" failed to load', { name: c }), 'error')
   } catch {}
   try {
     const p = await api.call('machine.proc_stats')
     const bits = p.throttled_state?.bits || 0
-    for (const [b, t] of Object.entries(THROTTLE)) if (bits & (1 << b)) notify('thr:' + b, 'Raspberry Pi: ' + t, +b < 4 ? 'error' : 'warn')
+    for (const [b, txt] of Object.entries(THROTTLE)) if (bits & (1 << b)) notify('thr:' + b, t('Raspberry Pi: {msg}', { msg: t(txt) }), +b < 4 ? 'error' : 'warn')
   } catch {}
   try {
     const u = await api.call('machine.update.status', {})
     const n = Object.entries(u.version_info || {}).filter(([k, v]) => k !== 'system' && (v.commits_behind?.length || (v.remote_version && v.version && v.remote_version !== '?' && v.version !== v.remote_version))).map(([k]) => k)
-    if (n.length) notify('upd:' + n.join(','), `Updates available: ${n.join(', ')}`, 'info')
+    if (n.length) notify('upd:' + n.join(','), t('Updates available: {list}', { list: n.join(', ') }), 'info')
   } catch {}
 }
 
@@ -406,7 +411,7 @@ export function saveSettings() {
       lsSet(APP + '-settings', value)
       await api.call('server.database.post_item', { namespace: NS, key: 'settings', value })
     } catch (e) {
-      toast('Settings could not be saved: ' + e.message, 'error')
+      toast(t('Settings could not be saved: {err}', { err: e.message }), 'error')
     }
   }, 400)
 }
@@ -428,6 +433,7 @@ async function loadSettings() {
   state.settingsLoaded = true
 }
 watch(() => state.settings, () => { if (state.settingsLoaded) saveSettings() }, { deep: true })
+watch(() => state.settings.lang, (l) => { if (l) setLang(l) })
 watch(() => state.settings.accent, (a) => document.documentElement.style.setProperty('--ac', a || '#ff6b1a'), { immediate: true })
 
 // ---------- init ----------
@@ -486,7 +492,7 @@ async function initKlippy() {
     loadCommands()
     loadCurrentMeta()
   } catch (e) {
-    toast('Klipper init failed: ' + e.message, 'error')
+    toast(t('Klipper init failed: {err}', { err: e.message }), 'error')
   }
 }
 
@@ -562,11 +568,11 @@ const TASK_LABELS = {
 }
 let taskId = 0
 api.onTask = (method) => {
-  const label = method in TASK_LABELS ? TASK_LABELS[method] : method.startsWith('GET ') ? 'Downloading ' + method.slice(4) : method
+  const label = method in TASK_LABELS ? TASK_LABELS[method] && t(TASK_LABELS[method]) : method.startsWith('GET ') ? t('Downloading {name}', { name: method.slice(4) }) : method
   if (!label) return null
-  const t = { id: ++taskId, label, t: Date.now() }
-  state.tasks.push(t)
-  return () => { state.tasks = state.tasks.filter((x) => x.id !== t.id) }
+  const task = { id: ++taskId, label, t: Date.now() }
+  state.tasks.push(task)
+  return () => { state.tasks = state.tasks.filter((x) => x.id !== task.id) }
 }
 export const activeTasks = computed(() => {
   const seen = new Set()
@@ -590,10 +596,10 @@ export function start() {
     // find out why: is moonraker reachable over http?
     try {
       const r = await fetch(api.url('/server/info'), { cache: 'no-store' })
-      if (r.status === 502 || r.status === 504) state.conn.probe = 'Moonraker is not responding (nginx ' + r.status + '). It may be restarting or crashed; check moonraker.log.'
-      else if (r.ok) state.conn.probe = 'Moonraker answers over HTTP but the websocket closes. Usually a restart in progress; if it stays like this, reload the page.'
-      else state.conn.probe = 'Moonraker returned HTTP ' + r.status
-    } catch { state.conn.probe = 'The printer host is not reachable from this browser (network / Pi down).' }
+      if (r.status === 502 || r.status === 504) state.conn.probe = t('Moonraker is not responding (nginx {status}). It may be restarting or crashed; check moonraker.log.', { status: r.status })
+      else if (r.ok) state.conn.probe = t('Moonraker answers over HTTP but the websocket closes. Usually a restart in progress; if it stays like this, reload the page.')
+      else state.conn.probe = t('Moonraker returned HTTP {status}', { status: r.status })
+    } catch { state.conn.probe = t('The printer host is not reachable from this browser (network / Pi down).') }
   })
   api.on('notify_status_update', ([diff]) => {
     const fnBefore = state.status.print_stats?.filename
@@ -608,7 +614,7 @@ export function start() {
   api.on('notify_klippy_ready', () => { unnotify('klippy:'); checkKlippy() })
   api.on('notify_filelist_changed', ([p]) => { if (p?.item?.root === 'config' && BK_RE.test(p.item.path || '') && p.action === 'create_file') setTimeout(tidyBackups, 1500) })
   setInterval(() => { if (state.connected) checkHealth() }, 120000)
-  api.on('notify_klippy_shutdown', () => { state.klippy = 'shutdown'; checkKlippy(); setTimeout(() => notify('klippy:shutdown', 'Klipper shutdown: ' + (state.klippyMessage || '').split('\n')[0], 'error'), 1500) })
+  api.on('notify_klippy_shutdown', () => { state.klippy = 'shutdown'; checkKlippy(); setTimeout(() => notify('klippy:shutdown', t('Klipper shutdown: {msg}', { msg: (state.klippyMessage || '').split('\n')[0] }), 'error'), 1500) })
   api.on('notify_klippy_disconnected', () => { state.klippy = 'disconnected'; state.objects = []; checkKlippy() })
   api.on('notify_active_spool_set', () => loadSpool())
   api.on('notify_webcams_changed', ([p]) => { state.webcams = p?.webcams || state.webcams })

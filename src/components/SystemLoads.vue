@@ -4,14 +4,15 @@ import Icon from './Icon.vue'
 import Donut from './Donut.vue'
 import { state, S, fmtBytes, useApiEvent } from '../store'
 import { api } from '../api/moonraker'
+import { t } from '../i18n'
 defineProps({ compact: Boolean })
 const C = (state.cache.machine ||= {})
 const sys = ref(C.sys || null), proc = ref(C.proc || null)
-let t
+let tmr
 async function loadSys() { try { sys.value = C.sys = (await api.call('machine.system_info')).system_info } catch {} }
 async function loadProc() { try { proc.value = C.proc = await api.call('machine.proc_stats') } catch {} }
-onMounted(() => { if (!C.sys) loadSys(); loadProc(); t = setInterval(loadProc, 5000) })
-onBeforeUnmount(() => clearInterval(t))
+onMounted(() => { if (!C.sys) loadSys(); loadProc(); tmr = setInterval(loadProc, 5000) })
+onBeforeUnmount(() => clearInterval(tmr))
 useApiEvent('notify_proc_stat_update', ([p]) => {
   if (!proc.value) return
   Object.assign(proc.value, { cpu_temp: p.cpu_temp, system_cpu_usage: p.system_cpu_usage ?? proc.value.system_cpu_usage, system_memory: p.system_memory ?? proc.value.system_memory, network: p.network ?? proc.value.network })
@@ -52,27 +53,27 @@ const cpu = computed(() => sys.value?.cpu_info || {})
 </script>
 <template>
   <section class="card">
-    <div class="card-h"><h2 class="row"><Icon name="cpu" :size="18" />System Loads</h2></div>
+    <div class="card-h"><h2 class="row"><Icon name="cpu" :size="18" />{{ t('System Loads') }}</h2></div>
     <div v-for="m in mcus" :key="m.name" class="it">
       <div class="grow col" style="gap:2px;min-width:0">
         <div><b>{{ m.name }}</b> <span class="mu sm" v-if="m.chip">({{ m.chip }})</span></div>
-        <span class="sm">Version: {{ m.version }}</span>
-        <span class="sm">Load: {{ m.load.toFixed(2) }}, Awake: {{ m.awake.toFixed(2) }}<template v-if="m.freq">, Freq: {{ m.freq }} MHz</template><template v-if="m.temp != null">, Temp: {{ m.temp.toFixed(0) }}°C</template></span>
+        <span class="sm">{{ t('Version: {v}', { v: m.version }) }}</span>
+        <span class="sm">{{ t('Load: {l}, Awake: {a}', { l: m.load.toFixed(2), a: m.awake.toFixed(2) }) }}<template v-if="m.freq">, {{ t('Freq: {f} MHz', { f: m.freq }) }}</template><template v-if="m.temp != null">, {{ t('Temp: {n}°C', { n: m.temp.toFixed(0) }) }}</template></span>
       </div>
       <Donut :value="m.load * 100" />
     </div>
     <div class="it">
       <div class="grow col" style="gap:2px;min-width:0">
-        <div><b>Host</b> <span class="mu sm">({{ cpu.processor || '?' }}, {{ cpu.bits || '' }})</span></div>
-        <span class="sm">Version: {{ state.versions.klipper }}</span>
-        <span class="sm" v-if="sys?.distribution">OS: {{ sys.distribution.name }}</span>
-        <span class="sm">Load: {{ S('system_stats').sysload?.toFixed(1) ?? '--' }}<template v-if="mem">, Mem: {{ fmtBytes(mem.used * 1024) }} / {{ fmtBytes(mem.total * 1024) }}</template><template v-if="proc?.cpu_temp != null">, Temp: {{ proc.cpu_temp.toFixed(0) }}°C</template></span>
+        <div><b>{{ t('Host') }}</b> <span class="mu sm">({{ cpu.processor || '?' }}, {{ cpu.bits || '' }})</span></div>
+        <span class="sm">{{ t('Version: {v}', { v: state.versions.klipper }) }}</span>
+        <span class="sm" v-if="sys?.distribution">{{ t('OS: {v}', { v: sys.distribution.name }) }}</span>
+        <span class="sm">{{ t('Load: {l}', { l: S('system_stats').sysload?.toFixed(1) ?? '--' }) }}<template v-if="mem">, {{ t('Mem: {used} / {total}', { used: fmtBytes(mem.used * 1024), total: fmtBytes(mem.total * 1024) }) }}</template><template v-if="proc?.cpu_temp != null">, {{ t('Temp: {n}°C', { n: proc.cpu_temp.toFixed(0) }) }}</template></span>
         <template v-if="!compact">
-          <span v-for="n in nets" :key="n.name" class="sm net">{{ n.name }}<template v-if="n.ip"> ({{ n.ip }})</template>: Bandwidth: {{ fmtBytes(n.bw) }}/s, Received: {{ fmtBytes(n.rx) }}, Transmitted: {{ fmtBytes(n.tx) }}</span>
+          <span v-for="n in nets" :key="n.name" class="sm net">{{ n.name }}<template v-if="n.ip"> ({{ n.ip }})</template>: {{ t('Bandwidth: {bw}/s, Received: {rx}, Transmitted: {tx}', { bw: fmtBytes(n.bw), rx: fmtBytes(n.rx), tx: fmtBytes(n.tx) }) }}</span>
         </template>
       </div>
-      <Donut :value="cpuPct" label="CPU" />
-      <Donut :value="memPct" label="MEM" color="var(--bl)" />
+      <Donut :value="cpuPct" :label="t('CPU')" />
+      <Donut :value="memPct" :label="t('MEM')" color="var(--bl)" />
     </div>
   </section>
 </template>

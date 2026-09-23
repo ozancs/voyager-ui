@@ -11,12 +11,14 @@ import Tooltip from './components/Tooltip.vue'
 import Dashboard from './views/Dashboard.vue'
 import Spotlight from './components/Spotlight.vue'
 import MachineDialogs from './components/MachineDialogs.vue'
+import FirstRun from './components/FirstRun.vue'
 import { initFeatures } from './features'
 import { nextTick } from 'vue'
 initFeatures()
 import { state, gcode, VERSION, activeTasks, APP_NAME, closeToast } from './store'
 import { route, go } from './router'
 import { api } from './api/moonraker'
+import { t } from './i18n'
 
 const LOADERS = {
   webcam: ['Webcam', () => import('./views/WebcamPage.vue')],
@@ -28,12 +30,12 @@ const LOADERS = {
   machine: ['Machine', () => import('./views/Machine.vue')],
   health: ['Health', () => import('./views/Health.vue')],
   quick: ['Quick Config', () => import('./views/QuickConfig.vue')],
-  theme: ['Theme', () => import('./views/Theme.vue')],
+  theme: ['Settings', () => import('./views/Theme.vue')],
   config: ['Editor', () => import('./views/ConfigEditor.vue')],
 }
 const VIEWS = { dashboard: Dashboard }
 for (const [k, [name, loader]] of Object.entries(LOADERS)) {
-  VIEWS[k] = defineAsyncComponent({ loader, delay: 0, loadingComponent: { render: () => h(LoadingPanel, { title: `Opening ${name}…`, compact: true }) } })
+  VIEWS[k] = defineAsyncComponent({ loader, delay: 0, loadingComponent: { render: () => h(LoadingPanel, { title: t('Opening {name}…', { name: t(name) }), compact: true }) } })
 }
 // once the printer is loaded, fetch the other pages in the background so the first click is instant
 watch(() => state.booted, (b) => {
@@ -59,7 +61,7 @@ const view = computed(() => VIEWS[route.name] || Dashboard)
 const showExclude = ref(false)
 const navOpen = ref(false)
 const location = window.location
-const bootTask = computed(() => activeTasks.value[0]?.label || 'Loading printer')
+const bootTask = computed(() => activeTasks.value[0]?.label || t('Loading printer'))
 const notReady = computed(() => state.connected && state.klippy !== 'ready')
 </script>
 
@@ -71,14 +73,14 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
       <SideNav :open="navOpen" @close="navOpen = false" />
       <main class="main">
         <div v-if="!state.connected" class="banner"><Icon name="refresh" :size="20" class="spin" />
-          <div class="grow"><b>Connecting to Moonraker…</b><span v-if="state.conn.attempts" class="mono" style="font-weight:400;font-size:12px;margin-left:10px;color:var(--mu)">attempt {{ state.conn.attempts }}</span>
+          <div class="grow"><b>{{ t('Connecting to Moonraker…') }}</b><span v-if="state.conn.attempts" class="mono" style="font-weight:400;font-size:12px;margin-left:10px;color:var(--mu)">{{ t('attempt {n}', { n: state.conn.attempts }) }}</span>
             <pre v-if="state.conn.probe">{{ state.conn.probe }}</pre></div>
         </div>
         <div v-else-if="notReady" class="banner err">
           <Icon name="warn" :size="20" />
-          <div class="grow"><b>Klipper {{ state.klippy }}</b><pre>{{ state.klippyMessage }}</pre></div>
-          <button class="btn lg" @click="gcode('RESTART').catch(() => api.call('printer.restart'))">Restart</button>
-          <button class="btn lg acc" @click="api.call('printer.firmware_restart')">Firmware Restart</button>
+          <div class="grow"><b>{{ t('Klipper {state}', { state: state.klippy }) }}</b><pre>{{ state.klippyMessage }}</pre></div>
+          <button class="btn lg" @click="gcode('RESTART').catch(() => api.call('printer.restart'))">{{ t('Restart') }}</button>
+          <button class="btn lg acc" @click="api.call('printer.firmware_restart')">{{ t('Firmware Restart') }}</button>
         </div>
         <component :is="view" :key="route.name === 'config' ? 'config' : route.name" @exclude="state.showExclude = true" />
         <footer class="ft mono">
@@ -87,26 +89,27 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
           <span v-if="state.versions.moonraker">Moonraker {{ state.versions.moonraker }}</span>
           <span v-if="state.versions.host">{{ state.versions.host }}</span>
           <span class="grow"></span>
-          <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">Open Mainsail</a>
+          <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">{{ t('Open {name}', { name: 'Mainsail' }) }}</a>
         </footer>
       </main>
     </div>
     <MachineDialogs />
     <Spotlight />
+    <FirstRun />
     <ExcludeModal v-if="state.showExclude" @close="state.showExclude = false" />
     <UpdateModal />
     <Transition name="fade"><div v-if="state.connected && !state.booted" class="bootpill"><Icon name="refresh" :size="15" class="spin" /><span>{{ bootTask }}</span></div></Transition>
     <Tooltip />
     <div class="toasts">
       <TransitionGroup name="tst">
-        <div v-for="t in state.toasts" :key="t.id" class="toast" :class="t.kind">
-          <Icon v-if="t.kind === 'error'" name="warn" :size="18" class="ti" />
+        <div v-for="ts in state.toasts" :key="ts.id" class="toast" :class="ts.kind">
+          <Icon v-if="ts.kind === 'error'" name="warn" :size="18" class="ti" />
           <div class="col grow" style="gap:3px;min-width:0">
-            <span class="tm">{{ t.msg }}<b v-if="t.n > 1" class="mono tn">×{{ t.n }}</b></span>
-            <span v-if="t.hint" class="th">{{ t.hint }}</span>
-            <button v-if="t.console" class="tl" @click="closeToast(t.id); go('console')">Open console</button>
+            <span class="tm">{{ ts.msg }}<b v-if="ts.n > 1" class="mono tn">×{{ ts.n }}</b></span>
+            <span v-if="ts.hint" class="th">{{ ts.hint }}</span>
+            <button v-if="ts.console" class="tl" @click="closeToast(ts.id); go('console')">{{ t('Open console') }}</button>
           </div>
-          <button class="tx" aria-label="Dismiss" @click="closeToast(t.id)"><Icon name="x" :size="14" /></button>
+          <button class="tx" :aria-label="t('Dismiss')" @click="closeToast(ts.id)"><Icon name="x" :size="14" /></button>
         </div>
       </TransitionGroup>
     </div>

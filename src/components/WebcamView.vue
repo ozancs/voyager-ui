@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { api } from '../api/moonraker'
+import { t } from '../i18n'
 const props = defineProps({ cam: Object, overlay: { type: Boolean, default: true } })
 const src = ref('')
 const fps = ref(0)
@@ -12,11 +13,11 @@ const mode = computed(() => {
 })
 const transform = computed(() => {
   const c = props.cam || {}
-  const t = []
-  if (c.rotation) t.push(`rotate(${c.rotation}deg)`)
-  if (c.flip_horizontal) t.push('scaleX(-1)')
-  if (c.flip_vertical) t.push('scaleY(-1)')
-  return t.join(' ')
+  const tf = []
+  if (c.rotation) tf.push(`rotate(${c.rotation}deg)`)
+  if (c.flip_horizontal) tf.push('scaleX(-1)')
+  if (c.flip_vertical) tf.push('scaleY(-1)')
+  return tf.join(' ')
 })
 function snapUrl() {
   const u = api.url(props.cam?.snapshot_url || '/webcam/?action=snapshot')
@@ -50,10 +51,10 @@ watch(() => props.cam, start)
 </script>
 <template>
   <div class="wc">
-    <img v-if="src" :src="src" :style="{ transform }" alt="Webcam" @load="mode === 'mjpeg' && frames++" />
-    <span v-else class="mono mu">{{ cam ? 'Loading stream…' : 'No webcam configured' }}</span>
+    <img v-if="src" :src="src" :style="{ transform }" :alt="t('Webcam')" @load="mode === 'mjpeg' && frames++" />
+    <span v-else class="mono mu">{{ cam ? t('Loading stream…') : t('No webcam configured') }}</span>
     <template v-if="overlay && cam">
-      <span class="live"><i></i>LIVE</span>
+      <span class="live"><i></i>{{ t('LIVE') }}</span>
       <span class="info mono">{{ cam.name }}<template v-if="mode !== 'mjpeg'"> · {{ fps }} fps</template></span>
     </template>
   </div>

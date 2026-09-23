@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { state, sensors, hist } from '../store'
+import { t } from '../i18n'
 const COLORS = ['var(--ac)', '#5aa9ff', '#3dd68c', '#f5c451', '#c38bff', '#ff7ab6', '#4fd1c5', '#a3a7ae', '#e8a87c', '#9bd5ff']
 const colorOf = (i) => COLORS[i % COLORS.length]
 const W = 600, H = 160
@@ -48,13 +49,13 @@ const lines = computed(() => {
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>Temperature Graph</h2>
+      <h2>{{ t('Temperature Graph') }}</h2>
       <div class="seg" style="width:200px"><button v-for="r in [300, 600, 1200]" :key="r" :class="{ on: range === r }" @click="state.settings.tempRange = r">{{ r / 60 }}m</button></div>
     </div>
     <div class="lg"><span v-for="(s, i) in sensors" :key="s.name"><i :style="{ background: colorOf(i) }"></i>{{ s.label }} <b class="mono">{{ s.temperature?.toFixed(1) }}°</b></span></div>
     <div class="chart">
       <div class="plot">
-        <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" aria-label="Temperature graph">
+        <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" :aria-label="t('Temperature graph')">
           <line v-for="g in scale.ticks" :key="g" x1="0" :x2="W" :y1="y(g)" :y2="y(g)" stroke="#2e3238" stroke-width="1" vector-effect="non-scaling-stroke" />
           <path v-for="l in lines" :key="l.name + 't'" v-show="l.dt" :d="l.dt" fill="none" :stroke="l.color" stroke-width="1" stroke-dasharray="4 4" opacity=".5" vector-effect="non-scaling-stroke" />
           <path v-for="l in lines" :key="l.name" :d="l.d" fill="none" :stroke="l.color" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" />

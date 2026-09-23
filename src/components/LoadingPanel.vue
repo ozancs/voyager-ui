@@ -2,19 +2,20 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import Icon from './Icon.vue'
 import { state, activeTasks } from '../store'
+import { t } from '../i18n'
 defineProps({ title: { type: String, default: 'Loading…' }, compact: Boolean })
 const now = ref(Date.now())
-let t
-onMounted(() => { t = setInterval(() => (now.value = Date.now()), 250) })
-onBeforeUnmount(() => clearInterval(t))
+let timer
+onMounted(() => { timer = setInterval(() => (now.value = Date.now()), 250) })
+onBeforeUnmount(() => clearInterval(timer))
 const secs = (x) => ((now.value - x.t) / 1000).toFixed(1)
 </script>
 <template>
   <div class="lp" :class="{ compact }">
-    <div class="hd"><Icon name="refresh" :size="compact ? 18 : 22" class="spin" /><b>{{ title }}</b></div>
+    <div class="hd"><Icon name="refresh" :size="compact ? 18 : 22" class="spin" /><b>{{ t(title) }}</b></div>
     <div class="list">
       <div v-for="x in activeTasks" :key="x.id" class="it"><span class="dot"></span><span class="grow">{{ x.label }}</span><span class="mono s">{{ secs(x) }}s</span></div>
-      <div v-if="!activeTasks.length" class="it mu"><span class="dot"></span><span>{{ state.connected ? 'Preparing the page' : 'Waiting for Moonraker' }}</span></div>
+      <div v-if="!activeTasks.length" class="it mu"><span class="dot"></span><span>{{ state.connected ? t('Preparing the page') : t('Waiting for Moonraker') }}</span></div>
     </div>
   </div>
 </template>

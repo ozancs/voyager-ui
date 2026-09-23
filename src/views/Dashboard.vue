@@ -19,6 +19,14 @@ import MiniMeshCard from '../components/MiniMeshCard.vue'
 import SystemLoads from '../components/SystemLoads.vue'
 import CustomCard from '../components/CustomCard.vue'
 import QueueCard from '../components/QueueCard.vue'
+import MacrosCard from '../components/MacrosCard.vue'
+import DevicesCard from '../components/DevicesCard.vue'
+import RecentFilesCard from '../components/RecentFilesCard.vue'
+import RecentJobsCard from '../components/RecentJobsCard.vue'
+import SpoolCard from '../components/SpoolCard.vue'
+import RetractionCard from '../components/RetractionCard.vue'
+import HealthCard from '../components/HealthCard.vue'
+import { t } from '../i18n'
 import { state, isPrinting, DEFAULT_LAYOUT, DEFAULT_SETTINGS, layoutSnapshot, pushLayoutBackup, restoreLayout } from '../store'
 import { ICON_NAMES } from '../icons'
 
@@ -35,6 +43,13 @@ const MODULES = {
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
   system: { c: SystemLoads, n: 'System Loads', min: [4, 4], def: [6, 6] },
   queue: { c: QueueCard, n: 'Job Queue', min: [3, 4], def: [4, 6] },
+  macros: { c: MacrosCard, n: 'Macros', min: [2, 3], def: [6, 4], opts: true },
+  devices: { c: DevicesCard, n: 'Devices (fans, pins, LEDs)', min: [3, 4], def: [6, 7] },
+  files: { c: RecentFilesCard, n: 'Recent files', min: [3, 4], def: [6, 7] },
+  jobs: { c: RecentJobsCard, n: 'Recent prints', min: [3, 4], def: [6, 7] },
+  spool: { c: SpoolCard, n: 'Spoolman', min: [3, 3], def: [4, 4], need: () => !!state.spoolman.server },
+  retraction: { c: RetractionCard, n: 'Firmware retraction', min: [3, 3], def: [6, 4], need: () => state.objects.includes('firmware_retraction') },
+  health: { c: HealthCard, n: 'Health', min: [3, 3], def: [4, 4] },
 }
 const isCustom = (i) => i.startsWith('c_')
 const minOf = (i) => (isCustom(i) ? (state.settings.customCards?.[i]?.type === 'btn' ? [1, 2] : [2, 3]) : MODULES[i]?.min || [2, 2])
@@ -73,7 +88,7 @@ function removeCard(i) {
   if (isCustom(i)) { const cc = { ...state.settings.customCards }; delete cc[i]; state.settings.customCards = cc }
   persist()
 }
-const available = computed(() => Object.keys(MODULES).filter((k) => !layout.value.some((x) => x.i === k)))
+const available = computed(() => Object.keys(MODULES).filter((k) => !layout.value.some((x) => x.i === k) && (!MODULES[k].need || MODULES[k].need())))
 function addModule(k) {
   state.settings[HK()] = (state.settings[HK()] || []).filter((x) => x !== k)
   const [w, h] = MODULES[k].def
@@ -116,6 +131,15 @@ const fmtT = (t) => new Date(t).toLocaleString(undefined, { month: 'short', day:
 watch(() => state.editDash, (v) => document.body.classList.toggle('dash-edit', v), { immediate: true })
 onBeforeUnmount(() => { if (state.editDash) done(); document.body.classList.remove('dash-edit') })
 
+// ---- module options ----
+const optsFor = ref(null)
+const mo = computed(() => {
+  const o = state.settings.cardOpts || (state.settings.cardOpts = {})
+  return o.macros || (o.macros = { scroll: false, showHidden: false, hidden: [] })
+})
+const allMacros = computed(() => state.objects.filter((o) => o.startsWith('gcode_macro ')).map((o) => o.slice(12)).filter((m) => mo.value.showHidden || !m.startsWith('_')).sort())
+function toggleMacro(m) { const h = mo.value.hidden || (mo.value.hidden = []); const i = h.indexOf(m); i >= 0 ? h.splice(i, 1) : h.push(m) }
+
 // ---- custom card editor ----
 const editing = ref(null) // { id, data }
 const iconFor = ref(null)
@@ -128,42 +152,42 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
     <div v-if="state.editDash" class="dbar on">
       <template v-if="state.editDash">
         <Icon name="move" :size="18" style="color:var(--ac)" />
-        <b>Customize</b>
-        <label class="row al" title="Use a separate layout while a print is running"><Toggle v-model="state.settings.autoLayout" label="Separate layout while printing" /><span>While printing</span></label>
-        <div v-if="state.settings.autoLayout" class="seg" role="tablist" aria-label="Layout to edit">
-          <button :class="{ on: editMode === 'idle' }" @click="persist(); editMode = 'idle'">Idle</button>
-          <button :class="{ on: editMode === 'print' }" @click="persist(); editMode = 'print'">Printing</button>
+        <b>{{ t('Customize') }}</b>
+        <label class="row al" :title="t('Use a separate layout while a print is running')"><Toggle v-model="state.settings.autoLayout" :label="t('Separate layout while printing')" /><span>{{ t('While printing') }}</span></label>
+        <div v-if="state.settings.autoLayout" class="seg" role="tablist" :aria-label="t('Layout to edit')">
+          <button :class="{ on: editMode === 'idle' }" @click="persist(); editMode = 'idle'">{{ t('Idle') }}</button>
+          <button :class="{ on: editMode === 'print' }" @click="persist(); editMode = 'print'">{{ t('Printing') }}</button>
         </div>
-        <span class="mu hint">Drag by title, resize from the corner. Top cards: drag to reorder, eye to hide.</span>
+        <span class="mu hint">{{ t('Drag by title, resize from the corner. Top cards: drag to reorder, eye to hide.') }}</span>
         <div class="grow"></div>
         <div class="rel">
-          <button class="btn acc" @click="addOpen = !addOpen; restoreOpen = false"><Icon name="plus" :size="16" :stroke="2.6" />Add card</button>
+          <button class="btn acc" @click="addOpen = !addOpen; restoreOpen = false"><Icon name="plus" :size="16" :stroke="2.6" />{{ t('Add card') }}</button>
           <div v-if="addOpen" class="dd card">
-            <span class="sec-lbl">Modules</span>
-            <button v-for="k in available" :key="k" class="btn clear di" @click="addModule(k)">{{ MODULES[k].n }}</button>
-            <span v-if="!available.length" class="mu" style="font-size:12px">All modules are on the dashboard</span>
-            <span class="sec-lbl" style="margin-top:8px">Custom</span>
-            <button class="btn clear di" @click="addCustom('btn')"><Icon name="star" :size="16" />Command button (square)</button>
-            <button class="btn clear di" @click="addCustom('macros')"><Icon name="dash" :size="16" />Macro group</button>
+            <span class="sec-lbl">{{ t('Modules') }}</span>
+            <button v-for="k in available" :key="k" class="btn clear di" @click="addModule(k)">{{ t(MODULES[k].n) }}</button>
+            <span v-if="!available.length" class="mu" style="font-size:12px">{{ t('All modules are on the dashboard') }}</span>
+            <span class="sec-lbl" style="margin-top:8px">{{ t('Custom') }}</span>
+            <button class="btn clear di" @click="addCustom('btn')"><Icon name="star" :size="16" />{{ t('Command button (square)') }}</button>
+            <button class="btn clear di" @click="addCustom('macros')"><Icon name="dash" :size="16" />{{ t('Macro group') }}</button>
           </div>
         </div>
         <div class="rel">
-          <button class="btn" :disabled="!(state.settings.layoutBackups || []).length" @click="restoreOpen = !restoreOpen; addOpen = false"><Icon name="clock" :size="16" />Restore</button>
+          <button class="btn" :disabled="!(state.settings.layoutBackups || []).length" @click="restoreOpen = !restoreOpen; addOpen = false"><Icon name="clock" :size="16" />{{ t('Restore') }}</button>
           <div v-if="restoreOpen" class="dd card" style="width:280px">
-            <span class="sec-lbl">Saved layouts</span>
-            <button v-for="(b, k) in state.settings.layoutBackups" :key="k" class="btn clear di" style="justify-content:space-between" @click="restore(b)"><span>{{ b.label }}</span><span class="mono mu" style="font-size:11px">{{ fmtT(b.t) }}</span></button>
+            <span class="sec-lbl">{{ t('Saved layouts') }}</span>
+            <button v-for="(b, k) in state.settings.layoutBackups" :key="k" class="btn clear di" style="justify-content:space-between" @click="restore(b)"><span>{{ t(b.label) }}</span><span class="mono mu" style="font-size:11px">{{ fmtT(b.t) }}</span></button>
           </div>
         </div>
-        <button class="btn" aria-label="Undo changes since Customize was opened" @click="undoSession"><Icon name="rot" :size="16" />Undo</button>
-        <button class="btn dg" @click="askReset = true"><Icon name="refresh" :size="16" />Reset</button>
-        <button class="btn" @click="cancel">Cancel</button>
-        <button class="btn acc" @click="done"><Icon name="check" :size="16" :stroke="2.6" />Done</button>
+        <button class="btn" :aria-label="t('Undo changes since Customize was opened')" @click="undoSession"><Icon name="rot" :size="16" />{{ t('Undo') }}</button>
+        <button class="btn dg" @click="askReset = true"><Icon name="refresh" :size="16" />{{ t('Reset') }}</button>
+        <button class="btn" @click="cancel">{{ t('Cancel') }}</button>
+        <button class="btn acc" @click="done"><Icon name="check" :size="16" :stroke="2.6" />{{ t('Done') }}</button>
       </template>
     </div>
     <div class="top">
       <DeviceStrip v-if="state.klippy === 'ready'" />
       <div v-else class="grow"></div>
-      <button v-if="!state.editDash" class="btn cz" aria-label="Customize dashboard" @click="startEdit"><Icon name="layout" :size="18" /></button>
+      <button v-if="!state.editDash" class="btn cz" :aria-label="t('Customize dashboard')" @click="startEdit"><Icon name="layout" :size="18" /></button>
     </div>
     <GridLayout v-if="wide" v-model:layout="layout" class="grid" :class="{ editing: state.editDash }" :col-num="12" :row-height="40" :margin="[16, 16]"
       :is-draggable="state.editDash" :is-resizable="state.editDash" vertical-compact use-css-transforms @layout-updated="persist">
@@ -173,8 +197,9 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
           <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
           <component v-else :is="MODULES[it.i].c" class="fill" />
           <div v-if="state.editDash" class="tools">
-            <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="'Edit ' + nameOf(it.i)" @click="editCard(it.i)"><Icon name="pencil" :size="14" /></button>
-            <button class="btn ibtn sm" :aria-label="'Remove ' + nameOf(it.i)" @click="removeCard(it.i)"><Icon name="x" :size="16" /></button>
+            <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit {name}', { name: t(nameOf(it.i)) })" @click="editCard(it.i)"><Icon name="pencil" :size="14" /></button>
+            <button v-if="MODULES[it.i]?.opts" class="btn ibtn sm" :aria-label="t('Options {name}', { name: t(nameOf(it.i)) })" @click="optsFor = it.i"><Icon name="gear" :size="15" /></button>
+            <button class="btn ibtn sm" :aria-label="t('Remove {name}', { name: t(nameOf(it.i)) })" @click="removeCard(it.i)"><Icon name="x" :size="16" /></button>
           </div>
         </div>
       </GridItem>
@@ -187,33 +212,43 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
     </div>
   </div>
 
-  <Modal v-if="askReset" title="Reset dashboard?" @close="askReset = false">
-    <p class="mu" style="margin:0">Layout, top cards and custom cards go back to defaults. The current layout is saved under Restore, so you can go back.</p>
-    <template #foot><button class="btn lg" @click="askReset = false">Cancel</button><button class="btn lg dgf" @click="factoryReset">Reset</button></template>
+  <Modal v-if="optsFor === 'macros'" :title="t('Macros card')" width="620px" @close="optsFor = null">
+    <div class="row" style="justify-content:space-between"><div class="col" style="gap:2px"><b>{{ t('Scroll instead of shrinking') }}</b><span class="mu" style="font-size:12.5px">{{ t('Off: buttons shrink so all macros fit the card. On: buttons keep their size and the card scrolls.') }}</span></div><Toggle v-model="mo.scroll" :label="t('Scroll')" /></div>
+    <div class="row" style="justify-content:space-between"><b>{{ t('Show hidden macros (starting with _)') }}</b><Toggle v-model="mo.showHidden" :label="t('Show hidden macros')" /></div>
+    <span class="lbl">{{ t('Click a macro to hide or show it on the card') }}</span>
+    <div class="row" style="flex-wrap:wrap;gap:6px;max-height:40vh;overflow:auto">
+      <button v-for="m in allMacros" :key="m" class="mchip code" :class="{ off: (mo.hidden || []).includes(m) }" @click="toggleMacro(m)">{{ m }}</button>
+    </div>
+    <template #foot><button class="btn lg acc" @click="optsFor = null">{{ t('Done') }}</button></template>
   </Modal>
 
-  <Modal v-if="editing" :title="editing.data.type === 'btn' ? 'Command button' : 'Macro group'" width="620px" @close="editing = null">
-    <label class="col"><span class="lbl">{{ editing.data.type === 'btn' ? 'Label' : 'Title' }}</span><input v-model="editing.data.name" class="input" /></label>
+  <Modal v-if="askReset" :title="t('Reset dashboard?')" @close="askReset = false">
+    <p class="mu" style="margin:0">{{ t('Layout, top cards and custom cards go back to defaults. The current layout is saved under Restore, so you can go back.') }}</p>
+    <template #foot><button class="btn lg" @click="askReset = false">{{ t('Cancel') }}</button><button class="btn lg dgf" @click="factoryReset">{{ t('Reset') }}</button></template>
+  </Modal>
+
+  <Modal v-if="editing" :title="editing.data.type === 'btn' ? t('Command button') : t('Macro group')" width="620px" @close="editing = null">
+    <label class="col"><span class="lbl">{{ editing.data.type === 'btn' ? t('Label') : t('Title') }}</span><input v-model="editing.data.name" class="input" /></label>
     <template v-if="editing.data.type === 'btn'">
       <div class="row">
-        <button class="btn ibtn" aria-label="Change icon" @click="iconFor = editing.data"><Icon :name="editing.data.icon" :size="22" style="color:var(--ac)" /></button>
-        <CmdInput v-model="editing.data.gcode" input-class="input" placeholder="G-code or macro, e.g. CHAMBER TEMP=50" aria-label="Command" />
-        <Toggle v-model="editing.data.highlight" label="Highlight" />
+        <button class="btn ibtn" :aria-label="t('Change icon')" @click="iconFor = editing.data"><Icon :name="editing.data.icon" :size="22" style="color:var(--ac)" /></button>
+        <CmdInput v-model="editing.data.gcode" input-class="input" :placeholder="t('G-code or macro, e.g. CHAMBER TEMP=50')" :aria-label="t('Command')" />
+        <Toggle v-model="editing.data.highlight" :label="t('Highlight')" />
       </div>
     </template>
     <template v-else>
       <div v-for="(b, k) in editing.data.buttons" :key="k" class="row">
-        <button class="btn ibtn" style="width:40px;height:40px" aria-label="Change icon" @click="iconFor = b"><Icon :name="b.icon || 'star'" :size="20" style="color:var(--ac)" /></button>
-        <input v-model="b.name" class="input" style="width:130px" aria-label="Button name" />
-        <CmdInput v-model="b.gcode" input-class="input" placeholder="command" aria-label="Command" />
-        <Toggle v-model="b.highlight" label="Highlight" />
-        <button class="btn clear ibtn sm" aria-label="Remove button" @click="editing.data.buttons.splice(k, 1)"><Icon name="trash" :size="16" /></button>
+        <button class="btn ibtn" style="width:40px;height:40px" :aria-label="t('Change icon')" @click="iconFor = b"><Icon :name="b.icon || 'star'" :size="20" style="color:var(--ac)" /></button>
+        <input v-model="b.name" class="input" style="width:130px" :aria-label="t('Button name')" />
+        <CmdInput v-model="b.gcode" input-class="input" :placeholder="t('command')" :aria-label="t('Command')" />
+        <Toggle v-model="b.highlight" :label="t('Highlight')" />
+        <button class="btn clear ibtn sm" :aria-label="t('Remove button')" @click="editing.data.buttons.splice(k, 1)"><Icon name="trash" :size="16" /></button>
       </div>
-      <button class="btn" style="align-self:flex-start" @click="editing.data.buttons.push({ name: 'New', icon: 'star', gcode: '', highlight: false })"><Icon name="plus" :size="16" />Add button</button>
+      <button class="btn" style="align-self:flex-start" @click="editing.data.buttons.push({ name: 'New', icon: 'star', gcode: '', highlight: false })"><Icon name="plus" :size="16" />{{ t('Add button') }}</button>
     </template>
-    <template #foot><button class="btn lg dg" style="margin-right:auto" @click="removeCard(editing.id); editing = null">Delete card</button><button class="btn lg" @click="editing = null">Cancel</button><button class="btn lg acc" @click="saveCard">Save</button></template>
+    <template #foot><button class="btn lg dg" style="margin-right:auto" @click="removeCard(editing.id); editing = null">{{ t('Delete card') }}</button><button class="btn lg" @click="editing = null">{{ t('Cancel') }}</button><button class="btn lg acc" @click="saveCard">{{ t('Save') }}</button></template>
   </Modal>
-  <Modal v-if="iconFor" title="Choose icon" width="560px" @close="iconFor = null">
+  <Modal v-if="iconFor" :title="t('Choose icon')" width="560px" @close="iconFor = null">
     <div class="ig"><button v-for="n in ICON_NAMES" :key="n" class="btn" :class="{ acc: iconFor.icon === n }" style="height:48px" :aria-label="n" @click="iconFor.icon = n; iconFor = null"><Icon :name="n" :size="22" /></button></div>
   </Modal>
 </template>
@@ -225,6 +260,8 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .cz:hover { color: var(--ac); }
 .dbar.on { padding: 10px 14px; background: var(--s1); border: 1px solid var(--ac); border-radius: 12px; position: sticky; top: -20px; z-index: 20; }
 .mu { color: var(--mu); font-size: 13px; }
+.mchip { height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: var(--cool-bg); color: var(--cool); font-size: 12px; }
+.mchip.off { background: var(--s2); color: var(--mu2); text-decoration: line-through; }
 .al { gap: 8px; font-size: 13px; color: var(--mu); margin-left: 10px; cursor: pointer; }
 @media (max-width: 1900px) { .hint { display: none; } }
 .rel { position: relative; }
@@ -232,7 +269,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .di { justify-content: flex-start; height: 36px; color: var(--tx); }
 .grid { margin: -16px; }
 .cell { position: relative; height: 100%; }
-.fill { height: 100%; overflow: auto; }
+
 .tools { position: absolute; top: 8px; right: 8px; z-index: 5; display: flex; gap: 4px; }
 .tools .btn { background: var(--s1); }
 .editing :deep(.card) { border-style: dashed; border-color: var(--mu2); }

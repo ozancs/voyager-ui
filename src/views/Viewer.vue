@@ -6,6 +6,7 @@ import RangeSlider from '../components/RangeSlider.vue'
 import Toggle from '../components/Toggle.vue'
 import { state, S, layerInfo, printState, toast } from '../store'
 import { api } from '../api/moonraker'
+import { t } from '../i18n'
 const emit = defineEmits(['exclude'])
 const eo = computed(() => S('exclude_object'))
 const canvas = ref(null)
@@ -43,10 +44,10 @@ async function ensurePreview() {
 async function load(fn) {
   if (!fn) return
   file.value = fn
-  loading.value = 'Downloading…'
+  loading.value = t('Downloading…')
   try {
     const text = await api.getText(`/server/files/gcodes/${fn.split('/').map(encodeURIComponent).join('/')}`)
-    loading.value = 'Parsing…'
+    loading.value = t('Parsing…')
     await nextTick()
     await new Promise((r) => setTimeout(r, 30))
     const p = await ensurePreview()
@@ -62,7 +63,7 @@ async function load(fn) {
     layers.value = p.layers.length
     layer.value = layers.value
     update()
-  } catch (e) { toast('Viewer: ' + e.message, 'error') }
+  } catch (e) { toast(t('Viewer: {err}', { err: e.message }), 'error') }
   loading.value = ''
 }
 function update() {
@@ -98,12 +99,12 @@ onBeforeUnmount(() => { ro?.disconnect(); preview.value?.dispose?.() })
   <div class="split" style="min-height:calc(100vh - 208px)">
     <section class="card grow">
       <div class="card-h">
-        <h2>G-code Viewer</h2>
+        <h2>{{ t('G-code Viewer') }}</h2>
         <div class="acts">
-          <div class="seg" style="width:160px"><button :class="{ on: tab === '3d' }" @click="tab = '3d'">3D</button><button :class="{ on: tab === 'map' }" @click="tab = 'map'">Objects</button></div>
-          <button class="btn out" :disabled="!curPrint" @click="load(curPrint)"><Icon name="download" :size="16" />Load current job</button>
-          <select class="input" style="height:34px;max-width:260px" :value="file" @change="load($event.target.value)" aria-label="Open file">
-            <option value="" disabled>Open file…</option>
+          <div class="seg" style="width:160px"><button :class="{ on: tab === '3d' }" @click="tab = '3d'">3D</button><button :class="{ on: tab === 'map' }" @click="tab = 'map'">{{ t('Objects') }}</button></div>
+          <button class="btn out" :disabled="!curPrint" @click="load(curPrint)"><Icon name="download" :size="16" />{{ t('Load current job') }}</button>
+          <select class="input" style="height:34px;max-width:260px" :value="file" @change="load($event.target.value)" :aria-label="t('Open file')">
+            <option value="" disabled>{{ t('Open file…') }}</option>
             <option v-for="f in files" :key="f" :value="f">{{ f }}</option>
           </select>
         </div>
@@ -111,24 +112,24 @@ onBeforeUnmount(() => { ro?.disconnect(); preview.value?.dispose?.() })
       <div v-show="tab === '3d'" ref="wrap" class="cv">
         <canvas ref="canvas"></canvas>
         <div v-if="loading" class="ld"><Icon name="refresh" :size="20" class="spin" />{{ loading }}</div>
-        <div v-else-if="!file" class="ld">Load the current job or pick a file</div>
+        <div v-else-if="!file" class="ld">{{ t('Load the current job or pick a file') }}</div>
         <span v-if="file" class="fn mono">{{ file }}</span>
       </div>
       <ObjectMap v-if="tab === 'map'" style="flex:1;min-height:400px" @pick="emit('exclude')" />
       <div v-if="layers && tab === '3d'" class="row" style="gap:12px">
-        <div class="grow"><RangeSlider label="Layer" :min="1" :max="layers" :model-value="layer" :display="layer + ' / ' + layers" @update:model-value="layer = $event; follow = false; update()" /></div>
+        <div class="grow"><RangeSlider :label="t('Layer')" :min="1" :max="layers" :model-value="layer" :display="layer + ' / ' + layers" @update:model-value="layer = $event; follow = false; update()" /></div>
       </div>
     </section>
     <div class="side-col">
       <section class="card">
-        <div class="card-h"><h2>Print</h2><span class="chip" style="text-transform:capitalize"><i></i>{{ printState }}</span></div>
+        <div class="card-h"><h2>{{ t('Print') }}</h2><span class="chip" style="text-transform:capitalize"><i></i>{{ t(printState) }}</span></div>
         <div class="row" style="align-items:baseline"><b style="font-size:32px">{{ layerInfo.cur }}</b><span class="mono mu">/ {{ layerInfo.total || '--' }} · Z {{ (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2) }}</span></div>
-        <div class="row" style="justify-content:space-between"><span>Follow print</span><Toggle v-model="follow" label="Follow print" @update:model-value="$event && printLayer && (layer = printLayer, update())" /></div>
-        <div class="row" style="justify-content:space-between"><span>Show travel moves</span><Toggle v-model="travel" label="Show travel" /></div>
+        <div class="row" style="justify-content:space-between"><span>{{ t('Follow print') }}</span><Toggle v-model="follow" :label="t('Follow print')" @update:model-value="$event && printLayer && (layer = printLayer, update())" /></div>
+        <div class="row" style="justify-content:space-between"><span>{{ t('Show travel moves') }}</span><Toggle v-model="travel" :label="t('Show travel')" /></div>
       </section>
       <section class="card">
-        <div class="card-h"><h2>Objects</h2><button class="btn out" :disabled="!eo.objects?.length || !active" @click="emit('exclude')"><Icon name="excl" :size="16" />Exclude…</button></div>
-        <div v-if="!eo.objects?.length" class="empty">No object labels in this print.</div>
+        <div class="card-h"><h2>{{ t('Objects') }}</h2><button class="btn out" :disabled="!eo.objects?.length || !active" @click="emit('exclude')"><Icon name="excl" :size="16" />{{ t('Exclude…') }}</button></div>
+        <div v-if="!eo.objects?.length" class="empty">{{ t('No object labels in this print.') }}</div>
         <div v-for="o in eo.objects" :key="o.name" class="row" style="height:32px">
           <span class="mono grow" :style="{ fontSize: '12px', color: eo.excluded_objects?.includes(o.name) ? 'var(--mu)' : o.name === eo.current_object ? 'var(--ac)' : 'var(--tx)', textDecoration: eo.excluded_objects?.includes(o.name) ? 'line-through' : 'none' }">{{ o.name }}</span>
         </div>

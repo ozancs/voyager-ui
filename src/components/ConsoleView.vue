@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import Icon from './Icon.vue'
 import CmdInput from './CmdInput.vue'
 import { state, gcode } from '../store'
+import { t } from '../i18n'
 const props = defineProps({ limit: { type: Number, default: 400 } })
 const box = ref(null)
 const cmd = ref('')
@@ -50,8 +51,8 @@ defineExpose({ setCmd: (c) => (cmd.value = c) })
       <div v-for="l in lines" :key="l.id" class="ln" :class="cls(l)"><span class="t">{{ fmt(l.time) }}</span><span class="m">{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span></div>
     </div>
     <div class="row">
-      <label class="in"><span class="p">&gt;</span><CmdInput ref="ci" v-model="cmd" drop-up placeholder="Send G-code… (type to search commands, ↑↓ history)" aria-label="G-code command" input-class="cin" @keydown="key" @enter="send" /></label>
-      <button class="btn acc ibtn" aria-label="Send" @click="send"><Icon name="send" :stroke="2.4" /></button>
+      <label class="in"><span class="p">&gt;</span><CmdInput ref="ci" v-model="cmd" drop-up :placeholder="t('Send G-code… (type to search commands, ↑↓ history)')" :aria-label="t('G-code command')" input-class="cin" @keydown="key" @enter="send" /></label>
+      <button class="btn acc ibtn" :aria-label="t('Send')" @click="send"><Icon name="send" :stroke="2.4" /></button>
     </div>
   </div>
 </template>

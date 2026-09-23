@@ -4,6 +4,7 @@ import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import { state, S, prettyName, gcode, toast } from '../store'
 import { api } from '../api/moonraker'
+import { t, tn } from '../i18n'
 import { health, mcuHist, heaterLive, healthIssues, printStats, loadPrintStats, maintUsed, maintDueDays, MAINT_DEFAULTS } from '../features'
 
 onMounted(loadPrintStats)
@@ -27,7 +28,7 @@ const mcus = computed(() => {
     // per-sample retransmit increments for the sparkline
     const inc = h.slice(1).map((x, i) => Math.max(0, x.re - h[i].re))
     return {
-      id: o, name: o === 'mcu' ? 'Main MCU' : o.slice(4), chip: s.mcu_constants?.MCU || '', ver: s.mcu_version || '',
+      id: o, name: o === 'mcu' ? t('Main MCU') : o.slice(4), chip: s.mcu_constants?.MCU || '', ver: s.mcu_version || '',
       load: isFinite(load) ? load : null, srtt: st.srtt, re: st.bytes_retransmit ?? 0, inv: st.bytes_invalid ?? 0, dRe: d, dInv: di,
       mins: h.length > 1 ? Math.max(1, Math.round((h[h.length - 1].t - h[0].t) / 60)) : 0, inc, bus,
       level: d > 500 || di > 0 ? 'error' : d > 0 || load > 80 ? 'warn' : 'ok',
@@ -47,10 +48,10 @@ const heaters = computed(() => {
     const s = S(n), l = heaterLive[n] || {}
     const base = l.target ? state.settings.heaterBase?.[n + '@' + Math.round(l.target / 5) * 5] : null
     let level = 'ok', note = ''
-    if (!s.target) { level = 'idle'; note = 'Off' }
-    else if (!l.holding) { note = 'Heating or settling…' }
+    if (!s.target) { level = 'idle'; note = t('Off') }
+    else if (!l.holding) { note = t('Heating or settling…') }
     else {
-      note = `Holding ${l.target}° with ${Math.round(l.power * 100)}% power, swing ±${l.std.toFixed(2)}°`
+      note = t('Holding {target}° with {p}% power, swing ±{s}°', { target: l.target, p: Math.round(l.power * 100), s: l.std.toFixed(2) })
       if (l.std > 0.6) level = 'warn'
       if (base && l.power - base.power > 0.12 && l.power / base.power > 1.3) level = 'warn'
     }
@@ -63,7 +64,7 @@ const pidFor = ref(null)
 function runPid() {
   const h = pidFor.value; pidFor.value = null
   gcode(`PID_CALIBRATE HEATER=${h.n.split(' ').pop()} TARGET=${h.target}`).catch(() => {})
-  toast('PID calibration started, run SAVE_CONFIG when it finishes')
+  toast(t('PID calibration started, run SAVE_CONFIG when it finishes'))
 }
 
 // ---------- drivers ----------
@@ -77,7 +78,7 @@ const drivers = computed(() => state.objects.filter((o) => o.startsWith('tmc')).
 // ---------- maintenance ----------
 const tasks = computed(() => state.settings.maintenance || [])
 const editT = ref(null)
-function done(t) { t.doneAt = printStats.totalHours; t.doneDate = Date.now(); toast(`“${t.name}” marked done, counter reset`) }
+function done(tk) { tk.doneAt = printStats.totalHours; tk.doneDate = Date.now(); toast(t('“{name}” marked done, counter reset', { name: t(tk.name) })) }
 function addTask() { editT.value = { id: 'm' + Date.now(), name: '', hours: 100, isNew: true } }
 function saveTask() {
   const t = editT.value; editT.value = null
@@ -87,15 +88,15 @@ function saveTask() {
 }
 function delTask(t) { state.settings.maintenance = tasks.value.filter((x) => x.id !== t.id); editT.value = null }
 function resetDefaults() { state.settings.maintenance = MAINT_DEFAULTS().map((t) => ({ ...t, doneAt: printStats.totalHours ?? 0, doneDate: Date.now() })) }
-const dueTxt = (t) => {
-  const d = maintDueDays(t)
-  if (d === 0) return 'Due now'
-  if (d == null) return 'no recent prints to estimate'
-  if (d < 1.5) return 'due in about a day'
-  if (d < 60) return `due in ~${Math.round(d)} days`
-  return `due in ~${Math.round(d / 30)} months`
+const dueTxt = (tk) => {
+  const d = maintDueDays(tk)
+  if (d === 0) return t('Due now')
+  if (d == null) return t('no recent prints to estimate')
+  if (d < 1.5) return t('due in about a day')
+  if (d < 60) return t('due in ~{n} days', { n: Math.round(d) })
+  return t('due in ~{n} months', { n: Math.round(d / 30) })
 }
-const ago = (ts) => { const d = (Date.now() - ts) / 86400000; return d < 1 ? 'today' : d < 2 ? 'yesterday' : `${Math.round(d)} days ago` }
+const ago = (ts) => { const d = (Date.now() - ts) / 86400000; return d < 1 ? t('today') : d < 2 ? t('yesterday') : t('{n} days ago', { n: Math.round(d) }) }
 const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(--mu2)', info: 'var(--bl)' }
 </script>
 
@@ -106,8 +107,8 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
       <div class="row" style="gap:14px">
         <div class="big" :style="{ color: healthIssues.some((i) => i.level === 'error') ? 'var(--dg)' : healthIssues.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--ok)' }"><Icon name="heart" :size="28" :stroke="2.4" /></div>
         <div class="col" style="gap:2px">
-          <h2 style="margin:0;font-size:20px">{{ healthIssues.length ? healthIssues.length + (healthIssues.length > 1 ? ' things to look at' : ' thing to look at') : 'Everything looks healthy' }}</h2>
-          <span class="mu">Live data from Klipper, sampled every 2 s while this UI is open.</span>
+          <h2 style="margin:0;font-size:20px">{{ healthIssues.length ? tn(healthIssues.length, '{n} thing to look at', '{n} things to look at') : t('Everything looks healthy') }}</h2>
+          <span class="mu">{{ t('Live data from Klipper, sampled every 2 s while this UI is open.') }}</span>
         </div>
       </div>
       <div v-if="healthIssues.length" class="iss">
@@ -118,65 +119,65 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
     <div class="hg">
       <!-- MCU / CAN -->
       <section class="card">
-        <div class="card-h"><h2>MCU &amp; CAN links</h2><Icon name="link" :size="18" style="color:var(--mu)" /></div>
+        <div class="card-h"><h2>{{ t('MCU & CAN links') }}</h2><Icon name="link" :size="18" style="color:var(--mu)" /></div>
         <div v-for="m in mcus" :key="m.id" class="mc">
           <div class="row"><span class="d" :style="{ background: LV[m.level] }"></span><b class="grow">{{ m.name }}</b><span class="mono mu sm">{{ m.chip }}</span></div>
           <div class="kv">
-            <div><span class="lbl">Load</span><b class="mono">{{ m.load != null ? m.load.toFixed(1) + '%' : '--' }}</b></div>
-            <div><span class="lbl">Round trip</span><b class="mono">{{ m.srtt != null ? (m.srtt * 1000).toFixed(1) + ' ms' : '--' }}</b></div>
-            <div><span class="lbl">Retransmit</span><b class="mono" :style="{ color: m.dRe ? 'var(--wn)' : '' }">{{ m.dRe }} <small class="mu">/ {{ m.mins || '–' }} min</small></b></div>
-            <div><span class="lbl">Invalid</span><b class="mono" :style="{ color: m.dInv ? 'var(--dg)' : '' }">{{ m.dInv }}</b></div>
+            <div><span class="lbl">{{ t('MCU load') }}</span><b class="mono">{{ m.load != null ? m.load.toFixed(1) + '%' : '--' }}</b></div>
+            <div><span class="lbl">{{ t('Round trip') }}</span><b class="mono">{{ m.srtt != null ? (m.srtt * 1000).toFixed(1) + ' ms' : '--' }}</b></div>
+            <div><span class="lbl">{{ t('Retransmit') }}</span><b class="mono" :style="{ color: m.dRe ? 'var(--wn)' : '' }">{{ m.dRe }} <small class="mu">/ {{ m.mins || '–' }} min</small></b></div>
+            <div><span class="lbl">{{ t('Invalid') }}</span><b class="mono" :style="{ color: m.dInv ? 'var(--dg)' : '' }">{{ m.dInv }}</b></div>
           </div>
           <svg class="sp" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline :points="spark(m.inc)" fill="none" :stroke="m.dRe ? 'var(--wn)' : 'var(--sense)'" stroke-width="1.6" vector-effect="non-scaling-stroke" /></svg>
-          <div v-if="m.bus.bus_state" class="row mono mu sm" style="gap:14px"><span>CAN {{ m.bus.bus_state }}</span><span>rx err {{ m.bus.rx_error }}</span><span>tx err {{ m.bus.tx_error }}</span><span>retries {{ m.bus.tx_retries }}</span></div>
-          <span class="mono mu sm">{{ m.ver }} · total retransmit {{ m.re }} bytes</span>
+          <div v-if="m.bus.bus_state" class="row mono mu sm" style="gap:14px"><span>CAN {{ m.bus.bus_state }}</span><span>{{ t('rx err {n}', { n: m.bus.rx_error }) }}</span><span>{{ t('tx err {n}', { n: m.bus.tx_error }) }}</span><span>{{ t('retries {n}', { n: m.bus.tx_retries }) }}</span></div>
+          <span class="mono mu sm">{{ m.ver }} · {{ t('total retransmit {n} bytes', { n: m.re }) }}</span>
         </div>
-        <p class="mu sm" style="margin:0">Retransmits that keep growing usually mean a loose cable, missing CAN termination or electrical noise. A few after a restart are normal.</p>
+        <p class="mu sm" style="margin:0">{{ t('Retransmits that keep growing usually mean a loose cable, missing CAN termination or electrical noise. A few after a restart are normal.') }}</p>
       </section>
 
       <!-- heaters -->
       <section class="card">
-        <div class="card-h"><h2>Heaters</h2><Icon name="flame" :size="18" style="color:var(--mu)" /></div>
+        <div class="card-h"><h2>{{ t('Heaters') }}</h2><Icon name="flame" :size="18" style="color:var(--mu)" /></div>
         <div v-for="h in heaters" :key="h.n" class="hr">
           <span class="d" :style="{ background: LV[h.level] }"></span>
           <div class="col grow" style="gap:1px;min-width:0">
             <div class="row"><b>{{ h.name }}</b><span class="mono mu sm">{{ h.temp?.toFixed(1) }}° / {{ h.target || 0 }}°</span></div>
             <span class="mu sm">{{ h.note }}</span>
-            <span v-if="h.base && h.l.holding" class="mu sm">First time at {{ h.l.target }}° it needed {{ Math.round(h.base.power * 100) }}%</span>
+            <span v-if="h.base && h.l.holding" class="mu sm">{{ t('First time at {target}° it needed {p}%', { target: h.l.target, p: Math.round(h.base.power * 100) }) }}</span>
           </div>
-          <button v-if="h.target && h.l.holding && h.l.std > 0.6" class="btn sm2" @click="pidFor = h">PID tune</button>
+          <button v-if="h.target && h.l.holding && h.l.std > 0.6" class="btn sm2" @click="pidFor = h">{{ t('PID tune') }}</button>
         </div>
         <details v-if="baseList.length" class="bl">
-          <summary class="mu sm">Learned power baselines ({{ baseList.length }})</summary>
-          <div v-for="b in baseList" :key="b.k" class="row mono sm" style="justify-content:space-between"><span>{{ prettyName(b.heater) }} @ {{ b.target }}°</span><span>{{ Math.round(b.power * 100) }}%</span><button class="btn clear ibtn sm" :aria-label="'Forget ' + b.k" @click="forgetBase(b.k)"><Icon name="x" :size="13" /></button></div>
+          <summary class="mu sm">{{ t('Learned power baselines ({n})', { n: baseList.length }) }}</summary>
+          <div v-for="b in baseList" :key="b.k" class="row mono sm" style="justify-content:space-between"><span>{{ prettyName(b.heater) }} @ {{ b.target }}°</span><span>{{ Math.round(b.power * 100) }}%</span><button class="btn clear ibtn sm" :aria-label="t('Forget {name}', { name: b.k })" @click="forgetBase(b.k)"><Icon name="x" :size="13" /></button></div>
         </details>
-        <p class="mu sm" style="margin:0">The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.</p>
+        <p class="mu sm" style="margin:0">{{ t('The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.') }}</p>
       </section>
 
       <!-- drivers -->
       <section class="card">
-        <div class="card-h"><h2>Stepper drivers</h2><Icon name="motor" :size="18" style="color:var(--mu)" /></div>
-        <div v-if="!drivers.length" class="empty">No TMC drivers in the config.</div>
+        <div class="card-h"><h2>{{ t('Stepper drivers') }}</h2><Icon name="motor" :size="18" style="color:var(--mu)" /></div>
+        <div v-if="!drivers.length" class="empty">{{ t('No TMC drivers in the config.') }}</div>
         <table v-else class="tbl">
-          <thead><tr><th></th><th>Stepper</th><th>Driver</th><th>Current</th><th>Status</th></tr></thead>
+          <thead><tr><th></th><th>{{ t('Stepper') }}</th><th>{{ t('Driver') }}</th><th>{{ t('Current') }}</th><th>{{ t('Status') }}</th></tr></thead>
           <tbody><tr v-for="d in drivers" :key="d.id">
             <td style="width:14px"><span class="d" :style="{ background: LV[d.level] }"></span></td>
             <td><b>{{ d.stepper }}</b></td>
             <td class="mono mu sm">{{ d.model }}</td>
             <td class="mono sm">{{ d.cur != null ? d.cur.toFixed(2) + ' A' : '--' }}<span v-if="d.temp != null" class="mu"> · {{ d.temp.toFixed(0) }}°</span></td>
-            <td class="sm"><span v-if="!d.flags.length" class="mu">OK</span><span v-for="f in d.flags" :key="f" class="chip" style="margin-right:4px;color:var(--wn)">{{ FLAG_TXT[f] }}</span></td>
+            <td class="sm"><span v-if="!d.flags.length" class="mu">{{ t('OK') }}</span><span v-for="f in d.flags" :key="f" class="chip" style="margin-right:4px;color:var(--wn)">{{ t(FLAG_TXT[f]) }}</span></td>
           </tr></tbody>
         </table>
       </section>
 
       <!-- host -->
       <section class="card">
-        <div class="card-h"><h2>Host</h2><button class="btn clear ibtn sm" aria-label="Refresh" @click="loadHost"><Icon name="refresh" :size="16" /></button></div>
+        <div class="card-h"><h2>{{ t('Host') }}</h2><button class="btn clear ibtn sm" :aria-label="t('Refresh')" @click="loadHost"><Icon name="refresh" :size="16" /></button></div>
         <div class="kv">
-          <div><span class="lbl">CPU temp</span><b class="mono">{{ host?.cpu_temp != null ? host.cpu_temp.toFixed(1) + '°' : '--' }}</b></div>
+          <div><span class="lbl">{{ t('CPU temp') }}</span><b class="mono">{{ host?.cpu_temp != null ? host.cpu_temp.toFixed(1) + '°' : '--' }}</b></div>
           <div><span class="lbl">CPU</span><b class="mono">{{ host?.system_cpu_usage?.cpu != null ? host.system_cpu_usage.cpu.toFixed(0) + '%' : '--' }}</b></div>
-          <div><span class="lbl">Memory</span><b class="mono">{{ host?.system_memory ? Math.round(host.system_memory.used / host.system_memory.total * 100) + '%' : '--' }}</b></div>
-          <div><span class="lbl">Power</span><b :style="{ color: throttled.length ? 'var(--wn)' : 'var(--ok)' }">{{ throttled.length ? 'throttled' : 'OK' }}</b></div>
+          <div><span class="lbl">{{ t('Memory') }}</span><b class="mono">{{ host?.system_memory ? Math.round(host.system_memory.used / host.system_memory.total * 100) + '%' : '--' }}</b></div>
+          <div><span class="lbl">{{ t('Power') }}</span><b :style="{ color: throttled.length ? 'var(--wn)' : 'var(--ok)' }">{{ throttled.length ? t('throttled') : t('OK') }}</b></div>
         </div>
         <span v-for="f in throttled" :key="f" class="mu sm">{{ f }}</span>
       </section>
@@ -185,36 +186,36 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
     <!-- maintenance -->
     <section class="card">
       <div class="card-h">
-        <h2>Maintenance</h2>
+        <h2>{{ t('Maintenance') }}</h2>
         <div class="acts">
-          <span class="mono mu sm">{{ printStats.totalHours != null ? printStats.totalHours.toFixed(0) + ' h printed' : '' }}<template v-if="printStats.hoursPerDay"> · ~{{ printStats.hoursPerDay.toFixed(1) }} h/day lately</template></span>
-          <button class="btn" @click="addTask"><Icon name="plus" :size="16" />Add task</button>
+          <span class="mono mu sm">{{ printStats.totalHours != null ? t('{n} h printed', { n: printStats.totalHours.toFixed(0) }) : '' }}<template v-if="printStats.hoursPerDay"> · {{ t('~{n} h/day lately', { n: printStats.hoursPerDay.toFixed(1) }) }}</template></span>
+          <button class="btn" @click="addTask"><Icon name="plus" :size="16" />{{ t('Add task') }}</button>
         </div>
       </div>
       <div class="mt">
-        <div v-for="t in tasks" :key="t.id" class="tk" :class="{ due: maintUsed(t) >= t.hours }">
-          <div class="row"><Icon name="wrench" :size="18" :style="{ color: maintUsed(t) >= t.hours ? 'var(--heat)' : 'var(--mu)' }" /><b class="grow">{{ t.name }}</b><button class="btn clear ibtn sm" :aria-label="'Edit ' + t.name" @click="editT = { ...t }"><Icon name="pencil" :size="14" /></button></div>
-          <div class="bar"><div :style="{ width: Math.min(100, maintUsed(t) / t.hours * 100) + '%', background: maintUsed(t) >= t.hours ? 'var(--heat)' : maintUsed(t) / t.hours > .8 ? 'var(--wn)' : 'var(--sense)' }"></div></div>
-          <div class="row mono sm" style="justify-content:space-between"><span>{{ maintUsed(t).toFixed(0) }} / {{ t.hours }} h</span><span :style="{ color: maintUsed(t) >= t.hours ? 'var(--heat)' : 'var(--mu)' }">{{ dueTxt(t) }}</span></div>
-          <div class="row"><span class="mu sm grow">Last done {{ ago(t.doneDate) }}</span><button class="btn" :class="{ acc: maintUsed(t) >= t.hours }" @click="done(t)"><Icon name="check" :size="16" :stroke="2.6" />Done</button></div>
+        <div v-for="tk in tasks" :key="tk.id" class="tk" :class="{ due: maintUsed(tk) >= tk.hours }">
+          <div class="row"><Icon name="wrench" :size="18" :style="{ color: maintUsed(tk) >= tk.hours ? 'var(--heat)' : 'var(--mu)' }" /><b class="grow">{{ t(tk.name) }}</b><button class="btn clear ibtn sm" :aria-label="t('Edit {name}', { name: t(tk.name) })" @click="editT = { ...tk }"><Icon name="pencil" :size="14" /></button></div>
+          <div class="bar"><div :style="{ width: Math.min(100, maintUsed(tk) / tk.hours * 100) + '%', background: maintUsed(tk) >= tk.hours ? 'var(--heat)' : maintUsed(tk) / tk.hours > .8 ? 'var(--wn)' : 'var(--sense)' }"></div></div>
+          <div class="row mono sm" style="justify-content:space-between"><span>{{ maintUsed(tk).toFixed(0) }} / {{ tk.hours }} h</span><span :style="{ color: maintUsed(tk) >= tk.hours ? 'var(--heat)' : 'var(--mu)' }">{{ dueTxt(tk) }}</span></div>
+          <div class="row"><span class="mu sm grow">{{ t('Last done {when}', { when: ago(tk.doneDate) }) }}</span><button class="btn" :class="{ acc: maintUsed(tk) >= tk.hours }" @click="done(tk)"><Icon name="check" :size="16" :stroke="2.6" />{{ t('Done') }}</button></div>
         </div>
       </div>
-      <p class="mu sm" style="margin:0">Counters use print time from Moonraker's history. The due date is estimated from how much you printed in the last 30 days.</p>
+      <p class="mu sm" style="margin:0">{{ t("Counters use print time from Moonraker's history. The due date is estimated from how much you printed in the last 30 days.") }}</p>
     </section>
   </div>
 
-  <Modal v-if="editT" :title="editT.isNew ? 'New maintenance task' : 'Edit task'" @close="editT = null">
-    <label class="col" style="gap:4px"><span class="lbl">Task</span><input v-model="editT.name" class="input" placeholder="e.g. Check belt tension" /></label>
-    <label class="col" style="gap:4px"><span class="lbl">Every (print hours)</span><input v-model.number="editT.hours" type="number" min="1" class="input mono" style="width:140px" /></label>
+  <Modal v-if="editT" :title="editT.isNew ? t('New maintenance task') : t('Edit task')" @close="editT = null">
+    <label class="col" style="gap:4px"><span class="lbl">{{ t('Task') }}</span><input v-model="editT.name" class="input" :placeholder="t('e.g. Check belt tension')" /></label>
+    <label class="col" style="gap:4px"><span class="lbl">{{ t('Every (print hours)') }}</span><input v-model.number="editT.hours" type="number" min="1" class="input mono" style="width:140px" /></label>
     <template #foot>
-      <button v-if="!editT.isNew" class="btn lg dg" style="margin-right:auto" @click="delTask(editT)">Delete</button>
-      <button v-if="editT.isNew" class="btn lg clear" style="margin-right:auto" @click="resetDefaults(); editT = null">Reset to default list</button>
-      <button class="btn lg" @click="editT = null">Cancel</button><button class="btn lg acc" @click="saveTask">Save</button>
+      <button v-if="!editT.isNew" class="btn lg dg" style="margin-right:auto" @click="delTask(editT)">{{ t('Delete') }}</button>
+      <button v-if="editT.isNew" class="btn lg clear" style="margin-right:auto" @click="resetDefaults(); editT = null">{{ t('Reset to default list') }}</button>
+      <button class="btn lg" @click="editT = null">{{ t('Cancel') }}</button><button class="btn lg acc" @click="saveTask">{{ t('Save') }}</button>
     </template>
   </Modal>
-  <Modal v-if="pidFor" :title="'PID tune ' + pidFor.name + '?'" @close="pidFor = null">
-    <p style="margin:0">Runs <span class="code">PID_CALIBRATE HEATER={{ pidFor.n.split(' ').pop() }} TARGET={{ pidFor.target }}</span>. It takes a few minutes, then save with SAVE_CONFIG.</p>
-    <template #foot><button class="btn lg" @click="pidFor = null">Cancel</button><button class="btn lg acc" @click="runPid">Start</button></template>
+  <Modal v-if="pidFor" :title="t('PID tune {name}?', { name: pidFor.name })" @close="pidFor = null">
+    <p style="margin:0">{{ t('Runs') }} <span class="code">PID_CALIBRATE HEATER={{ pidFor.n.split(' ').pop() }} TARGET={{ pidFor.target }}</span>. {{ t('It takes a few minutes, then save with SAVE_CONFIG.') }}</p>
+    <template #foot><button class="btn lg" @click="pidFor = null">{{ t('Cancel') }}</button><button class="btn lg acc" @click="runPid">{{ t('Start') }}</button></template>
   </Modal>
 </template>
 

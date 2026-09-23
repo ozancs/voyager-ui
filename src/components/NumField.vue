@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { t } from '../i18n'
 const props = defineProps({ label: String, modelValue: [Number, String], unit: String, step: { type: Number, default: 1 }, min: Number, max: Number, decimals: { type: Number, default: 0 } })
 const emit = defineEmits(['update:modelValue', 'commit'])
 const local = ref(props.modelValue)
@@ -27,10 +28,10 @@ function commit() {
   <label class="nf">
     <span v-if="label" class="nf-l">{{ label }}</span>
     <span class="nf-b">
-      <button type="button" aria-label="Decrease" @click="bump(-1)">−</button>
+      <button type="button" :aria-label="t('Decrease')" @click="bump(-1)">−</button>
       <input :value="editing ? local : fmt(local)" @focus="editing = true" @input="local = $event.target.value" @keydown.enter="$event.target.blur()" @blur="commit" :aria-label="label" />
       <span v-if="unit" class="u">{{ unit }}</span>
-      <button type="button" aria-label="Increase" @click="bump(1)">+</button>
+      <button type="button" :aria-label="t('Increase')" @click="bump(1)">+</button>
     </span>
   </label>
 </template>

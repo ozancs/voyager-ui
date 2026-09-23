@@ -133,3 +133,4 @@ body.dash-edit { user-select: none; -webkit-user-select: none; }
 /* element reached through search */
 .flash { animation: flashring 1.8s ease-out; }
 @keyframes flashring { 0%, 40% { box-shadow: 0 0 0 2px var(--ac); } 100% { box-shadow: 0 0 0 2px transparent; } }
+.fill { height: 100%; overflow: auto; }

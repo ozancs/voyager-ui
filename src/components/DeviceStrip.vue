@@ -5,6 +5,7 @@ import Toggle from './Toggle.vue'
 import Modal from './Modal.vue'
 import RangeSlider from './RangeSlider.vue'
 import { state, S, stripAll, stripVisible, prettyName, shortName, setFan, setHeater, gcode, saveSettings } from '../store'
+import { t } from '../i18n'
 const open = ref(null)
 const close = () => (open.value = null)
 const items = computed(() => (state.editDash ? stripAll.value : stripVisible.value))
@@ -90,23 +91,23 @@ function sensorExtra(id) {
       :draggable="state.editDash" @dragstart="dragId = d.id" @dragend="dragId = null" @dragover.prevent @drop.prevent="onDrop(d)"
       @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id) : null">
       <div v-if="state.editDash" class="etools">
-        <button v-if="d.kind !== 'spoolman'" class="btn clear ibtn sm" aria-label="Rename card" @click.stop="startRename(d)"><Icon name="pencil" :size="14" /></button>
-        <button class="btn clear ibtn sm" :aria-label="isHidden(d) ? 'Show card' : 'Hide card'" @click.stop="toggleHide(d)"><Icon :name="isHidden(d) ? 'eyeoff' : 'eye'" :size="16" /></button>
+        <button v-if="d.kind !== 'spoolman'" class="btn clear ibtn sm" :aria-label="t('Rename card')" @click.stop="startRename(d)"><Icon name="pencil" :size="14" /></button>
+        <button class="btn clear ibtn sm" :aria-label="isHidden(d) ? t('Show card') : t('Hide card')" @click.stop="toggleHide(d)"><Icon :name="isHidden(d) ? 'eyeoff' : 'eye'" :size="16" /></button>
       </div>
       <!-- TEMP -->
       <template v-if="d.kind === 'temp'">
-        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><span v-if="canTarget(d) && !state.editDash" class="mono tt" :class="{ on: S(d.obj).target > 0 }">{{ S(d.obj).target > 0 ? '→ ' + S(d.obj).target.toFixed(0) + '°' : 'off' }}</span></div>
+        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><span v-if="canTarget(d) && !state.editDash" class="mono tt" :class="{ on: S(d.obj).target > 0 }">{{ S(d.obj).target > 0 ? '→ ' + S(d.obj).target.toFixed(0) + '°' : t('off') }}</span></div>
         <div class="row" style="gap:4px;align-items:baseline"><span class="tbig">{{ S(d.obj).temperature != null ? S(d.obj).temperature.toFixed(1) : '--' }}</span><small class="mu" style="font-size:15px">°C</small></div>
         <div class="bar"><div :style="{ width: (S(d.obj).power != null ? S(d.obj).power * 100 : S(d.obj).speed != null ? S(d.obj).speed * 100 : 0) + '%', background: S(d.obj).target > 0 ? 'var(--heat)' : 'var(--mu2)' }"></div></div>
         <div v-if="open === d.id" class="pop card" @click.stop>
-          <span class="lbl">{{ prettyName(d.obj) }} target</span>
-          <div class="row"><input class="input mono grow" type="number" v-model="tgt" :placeholder="String(S(d.obj).target ?? 0)" @keydown.enter="setT(d, tgt)" aria-label="Target temperature" /><button class="btn acc" style="height:40px" @click="setT(d, tgt)">Set</button></div>
-          <div class="seg"><button @click="setT(d, 0)">Off</button><button v-for="p in state.settings.presets.filter((p) => p.temps[d.obj])" :key="p.id" @click="setT(d, p.temps[d.obj])">{{ p.name }} {{ p.temps[d.obj] }}</button></div>
+          <span class="lbl">{{ t('{name} target', { name: prettyName(d.obj) }) }}</span>
+          <div class="row"><input class="input mono grow" type="number" v-model="tgt" :placeholder="String(S(d.obj).target ?? 0)" @keydown.enter="setT(d, tgt)" :aria-label="t('Target temperature')" /><button class="btn acc" style="height:40px" @click="setT(d, tgt)">{{ t('Set') }}</button></div>
+          <div class="seg"><button @click="setT(d, 0)">{{ t('Off') }}</button><button v-for="p in state.settings.presets.filter((p) => p.temps[d.obj])" :key="p.id" @click="setT(d, p.temps[d.obj])">{{ p.name }} {{ p.temps[d.obj] }}</button></div>
         </div>
       </template>
       <!-- FAN -->
       <template v-else-if="d.kind === 'fan'">
-        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><span v-if="d.auto" class="auto"><Icon name="lock" :size="11" :stroke="2.6" />auto</span></div>
+        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><span v-if="d.auto" class="auto"><Icon name="lock" :size="11" :stroke="2.6" />{{ t('auto') }}</span></div>
         <div class="row" style="gap:10px"><Icon name="fan" :size="30" class="ki" :class="{ spin: S(d.obj).speed > 0 }" :style="{ animationDuration: (1.9 - 1.4 * (S(d.obj).speed || 0)) + 's' }" /><span class="big">{{ pct(S(d.obj).speed) }}<small>%</small></span>
           <span v-if="S(d.obj).temperature != null" class="mono mu" style="font-size:11px;margin-left:auto;text-align:right">{{ S(d.obj).temperature.toFixed(0) }}°<br />→{{ S(d.obj).target?.toFixed(0) }}°</span>
           <span v-else-if="S(d.obj).rpm" class="mono mu" style="font-size:11px;margin-left:auto">{{ Math.round(S(d.obj).rpm) }} rpm</span>
@@ -114,14 +115,14 @@ function sensorExtra(id) {
         <div class="bar"><div :style="{ width: pct(S(d.obj).speed) + '%' }"></div></div>
         <div v-if="open === d.id" class="pop card" @click.stop>
           <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).speed)" :display="pct(S(d.obj).speed) + '%'" @commit="setFan(d.obj, $event)" />
-          <div class="seg"><button v-for="v in [0, 25, 50, 75, 100]" :key="v" :class="{ on: pct(S(d.obj).speed) === v }" @click="setFan(d.obj, v)">{{ v ? v + '%' : 'Off' }}</button></div>
+          <div class="seg"><button v-for="v in [0, 25, 50, 75, 100]" :key="v" :class="{ on: pct(S(d.obj).speed) === v }" @click="setFan(d.obj, v)">{{ v ? v + '%' : t('Off') }}</button></div>
         </div>
       </template>
       <!-- OUTPUT PIN -->
       <template v-else-if="d.kind === 'pin'">
         <span class="lbl nm">{{ prettyName(d.obj) }}</span>
         <div class="row" style="justify-content:space-between"><Icon name="bulb" :size="30" :class="S(d.obj).value > 0 ? 'acc' : 'mu'" /><Toggle v-if="!isPwm(d.obj)" :model-value="S(d.obj).value > 0" :label="prettyName(d.obj)" @update:model-value="setPin(d.obj, $event ? 1 : 0)" /></div>
-        <span class="mono sm">{{ S(d.obj).value > 0 ? 'ON' : 'OFF' }}<template v-if="isPwm(d.obj)"> · {{ pct(S(d.obj).value) }}%</template></span>
+        <span class="mono sm">{{ S(d.obj).value > 0 ? t('ON') : t('OFF') }}<template v-if="isPwm(d.obj)"> · {{ pct(S(d.obj).value) }}%</template></span>
         <div v-if="open === d.id" class="pop card" @click.stop>
           <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).value)" :display="pct(S(d.obj).value) + '%'" @commit="setPin(d.obj, ($event / 100).toFixed(2))" />
         </div>
@@ -130,23 +131,23 @@ function sensorExtra(id) {
       <template v-else-if="d.kind === 'led'">
         <span class="lbl nm">{{ prettyName(d.obj) }}</span>
         <div class="row" style="justify-content:space-between"><span class="sw" :style="{ background: ledOn(d.obj) ? ledHex(d.obj) : 'var(--s2)' }"></span><Toggle :model-value="ledOn(d.obj)" :label="prettyName(d.obj)" @update:model-value="ledToggle(d.obj, $event)" /></div>
-        <span class="mono sm">{{ ledOn(d.obj) ? ledHex(d.obj).toUpperCase() : 'OFF' }}</span>
+        <span class="mono sm">{{ ledOn(d.obj) ? ledHex(d.obj).toUpperCase() : t('OFF') }}</span>
         <div v-if="open === d.id" class="pop card" @click.stop>
-          <span class="lbl">Color</span>
+          <span class="lbl">{{ t('Color') }}</span>
           <div class="row" style="flex-wrap:wrap"><button v-for="c in SWATCH" :key="c" class="swb" :style="{ background: c }" :aria-label="c" @click="setLed(d.obj, c)"></button></div>
-          <label class="row"><input type="color" :value="ledHex(d.obj)" @change="setLed(d.obj, $event.target.value)" style="width:48px;height:36px;border:none;background:none;padding:0" /><span class="mu" style="font-size:13px">Custom</span></label>
-          <button class="btn" @click="ledToggle(d.obj, false)">Turn off</button>
+          <label class="row"><input type="color" :value="ledHex(d.obj)" @change="setLed(d.obj, $event.target.value)" style="width:48px;height:36px;border:none;background:none;padding:0" /><span class="mu" style="font-size:13px">{{ t('Custom') }}</span></label>
+          <button class="btn" @click="ledToggle(d.obj, false)">{{ t('Turn off') }}</button>
         </div>
       </template>
       <!-- FILAMENT SENSOR -->
       <template v-else-if="d.kind === 'filament'">
-        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><Toggle v-if="!d.custom && S(d.obj).enabled !== undefined" :model-value="!!S(d.obj).enabled" label="Enable sensor" @update:model-value="gcode(`SET_FILAMENT_SENSOR SENSOR=${shortName(d.obj)} ENABLE=${$event ? 1 : 0}`)" /></div>
+        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><Toggle v-if="!d.custom && S(d.obj).enabled !== undefined" :model-value="!!S(d.obj).enabled" :label="t('Enable sensor')" @update:model-value="gcode(`SET_FILAMENT_SENSOR SENSOR=${shortName(d.obj)} ENABLE=${$event ? 1 : 0}`)" /></div>
         <div class="row" style="gap:10px" v-if="S(d.obj).filament_detected !== undefined">
           <Icon name="sensor" :size="30" :stroke="2.4" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }" />
-          <b style="font-size:17px" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }">{{ S(d.obj).filament_detected ? 'Detected' : 'Empty' }}</b>
+          <b style="font-size:17px" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }">{{ S(d.obj).filament_detected ? t('Detected') : t('Empty') }}</b>
         </div>
-        <div v-else class="row" style="gap:10px"><Icon name="sensor" :size="30" :stroke="2.4" class="ki" /><b style="font-size:15px">{{ S(d.obj).enabled === false ? 'Disabled' : 'Active' }}</b></div>
-        <span class="mono sm mu">{{ S(d.obj).enabled === false ? 'disabled' : sensorExtra(d.obj).map(([k, v]) => `${k}: ${typeof v === 'number' ? +v.toFixed(2) : v}`).join(' · ') || 'enabled' }}</span>
+        <div v-else class="row" style="gap:10px"><Icon name="sensor" :size="30" :stroke="2.4" class="ki" /><b style="font-size:15px">{{ S(d.obj).enabled === false ? t('Disabled') : t('Active') }}</b></div>
+        <span class="mono sm mu">{{ S(d.obj).enabled === false ? t('disabled') : sensorExtra(d.obj).map(([k, v]) => `${k}: ${typeof v === 'number' ? +v.toFixed(2) : v}`).join(' · ') || t('enabled') }}</span>
       </template>
       <!-- SPOOLMAN -->
       <template v-else-if="d.kind === 'spoolman'">
@@ -156,16 +157,16 @@ function sensorExtra(id) {
             <span class="spool" :style="{ background: '#' + (spool.filament?.color_hex || '333') }"></span>
             <div class="col" style="gap:0;min-width:0"><b class="ell" style="font-size:14px">{{ spool.filament?.name || spool.filament?.material }}</b><span class="mono mu" style="font-size:11px">{{ spool.filament?.material }} · #{{ spool.id }}</span></div>
           </div>
-          <div v-else class="mu" style="font-size:13px">No active spool</div>
+          <div v-else class="mu" style="font-size:13px">{{ t('No active spool') }}</div>
           <div v-if="spool" class="row"><div class="bar grow"><div :style="{ width: Math.min(100, (spool.remaining_weight / (spool.initial_weight || spool.filament?.weight || 1000)) * 100) + '%' }"></div></div><b class="mono" style="font-size:12px">{{ Math.round(spool.remaining_weight || 0) }} g</b></div>
         </a>
       </template>
     </div>
   </div>
-  <Modal v-if="renaming" title="Card name" @close="renaming = null">
-    <input v-model="renaming.value" class="input" :placeholder="prettyName(renaming.obj)" aria-label="Card name" @keydown.enter="saveRename" />
-    <span class="mu" style="font-size:12px">Empty uses the name from printer.cfg ({{ renaming.obj }}).</span>
-    <template #foot><button class="btn lg" @click="renaming = null">Cancel</button><button class="btn lg acc" @click="saveRename">Save</button></template>
+  <Modal v-if="renaming" :title="t('Card name')" @close="renaming = null">
+    <input v-model="renaming.value" class="input" :placeholder="prettyName(renaming.obj)" :aria-label="t('Card name')" @keydown.enter="saveRename" />
+    <span class="mu" style="font-size:12px">{{ t('Empty uses the name from printer.cfg ({name}).', { name: renaming.obj }) }}</span>
+    <template #foot><button class="btn lg" @click="renaming = null">{{ t('Cancel') }}</button><button class="btn lg acc" @click="saveRename">{{ t('Save') }}</button></template>
   </Modal>
 </template>
 <style scoped>

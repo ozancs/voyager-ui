@@ -3,6 +3,7 @@
 import { reactive, watch, computed, markRaw } from 'vue'
 import { api } from './api/moonraker'
 import { state, S, toast, printState, pushConsole, gcode, backupBeforeWrite } from './store'
+import { t } from './i18n'
 
 // ---------------------------------------------------------------- macro prompts
 // Klipper macros can open dialogs with "// action:prompt_*" lines (same protocol Mainsail uses).
@@ -16,7 +17,7 @@ function parsePrompt(line) {
     return { label: label.trim(), gcode: (gc ?? label).trim(), color: (color || '').trim() }
   }
   switch (cmd) {
-    case 'begin': draft = { title: arg || 'Prompt', items: [], footer: [] }; break
+    case 'begin': draft = { title: arg || t('Prompt'), items: [], footer: [] }; break
     case 'text': draft?.items.push({ type: 'text', text: arg }); break
     case 'button': {
       const b = btn(arg)
@@ -52,7 +53,7 @@ const HINTS = [
   [/is not valid in section|Section .* is not a valid config section|Unable to parse option/i, 'Config error. Open the file from the search (Ctrl+K) and fix the option.'],
   [/Option .* must have minimum|must have maximum/i, 'A config value is outside its allowed range.'],
 ]
-export const hintFor = (msg) => HINTS.find(([re]) => re.test(msg))?.[1] || ''
+export const hintFor = (msg) => { const h = HINTS.find(([re]) => re.test(msg))?.[1]; return h ? t(h) : '' }
 function onErrorLine(line) {
   if (!state.settings.errorToasts) return
   const msg = line.replace(/^!!\s*/, '').trim()
@@ -124,7 +125,7 @@ export async function loadQueue() {
   }
 }
 export const queueApi = {
-  add: (filenames) => api.call('server.job_queue.post_job', { filenames, reset: false }).then(() => toast(filenames.length > 1 ? `${filenames.length} files queued` : 'Added to queue')),
+  add: (filenames) => api.call('server.job_queue.post_job', { filenames, reset: false }).then(() => toast(filenames.length > 1 ? t('{n} files queued', { n: filenames.length }) : t('Added to queue'))),
   remove: (ids) => api.call('server.job_queue.delete_job', { job_ids: ids }),
   clear: () => api.call('server.job_queue.delete_job', { all: true }),
   start: () => api.call('server.job_queue.start'),
@@ -134,11 +135,11 @@ export const queueApi = {
 // adds [job_queue] to moonraker.conf (backup first) and restarts moonraker
 export async function enableQueue() {
   const txt = await api.getText('/server/files/config/moonraker.conf')
-  if (/^\[job_queue\]/m.test(txt)) { toast('[job_queue] is already in moonraker.conf, restarting Moonraker'); await api.call('server.restart'); return }
+  if (/^\[job_queue\]/m.test(txt)) { toast(t('[job_queue] is already in moonraker.conf, restarting Moonraker')); await api.call('server.restart'); return }
   await backupBeforeWrite('config', 'moonraker.conf')
   const out = txt.replace(/\s*$/, '\n') + '\n[job_queue]\nload_on_startup: False\n'
   await api.upload(new Blob([out], { type: 'text/plain' }), { root: 'config', name: 'moonraker.conf' })
-  toast('Job queue enabled, restarting Moonraker')
+  toast(t('Job queue enabled, restarting Moonraker'))
   await api.call('server.restart')
 }
 
@@ -213,23 +214,23 @@ export const healthIssues = computed(() => {
   for (const [n, h] of Object.entries(mcuHist)) {
     if (h.length < 2) continue
     const d = h[h.length - 1].re - h[0].re
-    if (d > 0) out.push({ area: 'mcu', key: n, level: d > 500 ? 'error' : 'warn', msg: `${n}: ${d} bytes retransmitted in the last ${Math.round((h[h.length - 1].t - h[0].t) / 60) || 1} min` })
+    if (d > 0) out.push({ area: 'mcu', key: n, level: d > 500 ? 'error' : 'warn', msg: t('{name}: {d} bytes retransmitted in the last {m} min', { name: n, d, m: Math.round((h[h.length - 1].t - h[0].t) / 60) || 1 }) })
     const last = h[h.length - 1]
-    if (last.load > 80) out.push({ area: 'mcu', key: n, level: 'warn', msg: `${n}: MCU load ${Math.round(last.load)}%` })
+    if (last.load > 80) out.push({ area: 'mcu', key: n, level: 'warn', msg: t('{name}: MCU load {p}%', { name: n, p: Math.round(last.load) }) })
   }
   for (const [n, l] of Object.entries(heaterLive)) {
     if (!l.holding) continue
-    if (l.std > 0.6) out.push({ area: 'heater', key: n, level: 'warn', msg: `${n}: temperature swings ±${l.std.toFixed(1)}°, a PID tune may help` })
+    if (l.std > 0.6) out.push({ area: 'heater', key: n, level: 'warn', msg: t('{name}: temperature swings ±{s}°, a PID tune may help', { name: n, s: l.std.toFixed(1) }) })
     const b = state.settings.heaterBase?.[n + '@' + Math.round(l.target / 5) * 5]
-    if (b && l.power - b.power > 0.12 && l.power / b.power > 1.3) out.push({ area: 'heater', key: n, level: 'warn', msg: `${n}: needs ${Math.round(l.power * 100)}% power to hold ${l.target}°, it used to need ${Math.round(b.power * 100)}%` })
+    if (b && l.power - b.power > 0.12 && l.power / b.power > 1.3) out.push({ area: 'heater', key: n, level: 'warn', msg: t('{name}: needs {p}% power to hold {target}°, it used to need {b}%', { name: n, p: Math.round(l.power * 100), target: l.target, b: Math.round(b.power * 100) }) })
   }
   for (const o of state.objects) {
     if (!o.startsWith('tmc')) continue
     const ds = S(o).drv_status || {}
     const bad = ['ot', 'otpw', 's2ga', 's2gb', 's2vsa', 's2vsb', 'uv_cp'].filter((k) => ds[k])
-    if (bad.length) out.push({ area: 'tmc', key: o, level: bad.some((k) => k !== 'otpw') ? 'error' : 'warn', msg: `${o.split(' ').pop()}: driver flags ${bad.join(', ')}` })
+    if (bad.length) out.push({ area: 'tmc', key: o, level: bad.some((k) => k !== 'otpw') ? 'error' : 'warn', msg: t('{name}: driver flags {flags}', { name: o.split(' ').pop(), flags: bad.join(', ') }) })
   }
-  for (const t of dueMaintenance.value) out.push({ area: 'maint', key: t.id, level: 'info', msg: `Maintenance due: ${t.name}` })
+  for (const mt of dueMaintenance.value) out.push({ area: 'maint', key: mt.id, level: 'info', msg: t('Maintenance due: {name}', { name: t(mt.name) }) })
   return out
 })
 
@@ -280,7 +281,7 @@ export function initFeatures() {
   api.on('notify_job_queue_changed', ([p]) => {
     if (p?.updated_queue) state.queue.jobs = p.updated_queue
     if (p?.queue_state) state.queue.state = p.queue_state
-    if (p?.action === 'job_loaded') toast('Queue: starting next print')
+    if (p?.action === 'job_loaded') toast(t('Queue: starting next print'))
   })
   api.on('notify_filelist_changed', ([p]) => { if (p?.item?.root === 'config') cfgStale = true })
   api.on('notify_history_changed', ([p]) => { if (p?.action === 'finished') loadPrintStats() })

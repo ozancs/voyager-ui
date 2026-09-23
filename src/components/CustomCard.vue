@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import Icon from './Icon.vue'
 import { state, gcode } from '../store'
+import { t } from '../i18n'
 const props = defineProps({ id: String })
 const emit = defineEmits(['edit'])
 const c = computed(() => state.settings.customCards?.[props.id] || { type: 'btn', name: '?', icon: 'star', gcode: '' })
@@ -24,7 +25,7 @@ async function run(g, k) {
       <button v-for="(b, k) in c.buttons || []" :key="k" class="mb" :class="{ hot: b.highlight, busy: busy === k }" :data-tip="b.gcode" @click="run(b.gcode, k)">
         <Icon :name="b.icon || 'star'" :size="24" :stroke="2.4" /><span>{{ b.name }}</span>
       </button>
-      <div v-if="!(c.buttons || []).length" class="mu" style="font-size:13px">No buttons yet. Edit this card to add some.</div>
+      <div v-if="!(c.buttons || []).length" class="mu" style="font-size:13px">{{ t('No buttons yet. Edit this card to add some.') }}</div>
     </div>
   </section>
 </template>

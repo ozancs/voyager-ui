@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import Icon from './Icon.vue'
 import { state, S, gcode, isPrinting, toast } from '../store'
+import { t } from '../i18n'
 const th = computed(() => S('toolhead'))
 const gm = computed(() => S('gcode_move'))
 const homed = computed(() => th.value.homed_axes || '')
@@ -20,7 +21,7 @@ function jog(axis, d) {
   const lo = th.value.axis_minimum?.[i] ?? -Infinity, hi = th.value.axis_maximum?.[i] ?? Infinity
   const target = Math.min(hi, Math.max(lo, cur + d))
   const dd = Math.round((target - cur) * 1000) / 1000
-  if (!dd) { toast(`${axis} is at its limit`); return }
+  if (!dd) { toast(t('{axis} is at its limit', { axis })); return }
   const f = axis === 'Z' ? 900 : 6000
   gcode(`SAVE_GCODE_STATE NAME=_ui_jog\nG91\nG1 ${axis}${dd} F${f}\nRESTORE_GCODE_STATE NAME=_ui_jog`)
 }
@@ -34,7 +35,7 @@ function moveTo(axis, e) {
   if (isNaN(v)) return
   const i = 'XYZ'.indexOf(axis)
   const lo = th.value.axis_minimum?.[i], hi = th.value.axis_maximum?.[i]
-  if ((lo != null && v < lo) || (hi != null && v > hi)) { toast(`${axis}${v} is outside ${lo}..${hi}`, 'error'); return }
+  if ((lo != null && v < lo) || (hi != null && v > hi)) { toast(t('{axis}{v} is outside {lo}..{hi}', { axis, v, lo: String(lo), hi: String(hi) }), 'error'); return }
   gcode(`SAVE_GCODE_STATE NAME=_ui_move\nG90\nG1 ${axis}${v} F${axis === 'Z' ? 900 : 6000}\nRESTORE_GCODE_STATE NAME=_ui_move`)
 }
 const speed = computed(() => Math.round((gm.value.speed_factor ?? 1) * 100))
@@ -48,47 +49,47 @@ function saveZ() { gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>Toolhead</h2>
+      <h2>{{ t('Toolhead') }}</h2>
       <div class="acts">
-        <button class="btn acc" :disabled="isPrinting" @click="gcode('G28')"><Icon name="home" :size="16" :stroke="2.4" />Home All</button>
-        <button class="btn" :disabled="isPrinting" @click="gcode('Z_TILT_ADJUST')"><Icon name="tilt" :size="16" :stroke="2.4" />Z Tilt</button>
-        <button class="btn" :disabled="isPrinting" @click="gcode('M84')"><Icon name="power" :size="16" :stroke="2.4" />Motors off</button>
+        <button class="btn acc" :disabled="isPrinting" @click="gcode('G28')"><Icon name="home" :size="16" :stroke="2.4" />{{ t('Home All') }}</button>
+        <button class="btn" :disabled="isPrinting" @click="gcode('Z_TILT_ADJUST')"><Icon name="tilt" :size="16" :stroke="2.4" />{{ t('Z Tilt') }}</button>
+        <button class="btn" :disabled="isPrinting" @click="gcode('M84')"><Icon name="power" :size="16" :stroke="2.4" />{{ t('Motors off') }}</button>
       </div>
     </div>
     <div class="body">
       <div class="grp pos3">
-        <div v-for="(a, i) in ['X', 'Y', 'Z']" :key="a" class="pos" :data-tip="!can(a) ? a + ' must be homed first' : isPrinting ? 'Not while printing' : 'Type a position and press Enter'">
+        <div v-for="(a, i) in ['X', 'Y', 'Z']" :key="a" class="pos" :data-tip="!can(a) ? t('{axis} must be homed first', { axis: a }) : isPrinting ? t('Not while printing') : t('Type a position and press Enter')">
           <span class="ax">{{ a }}<i :style="{ background: can(a) ? 'var(--ok)' : 'var(--dg)' }"></i></span>
-          <input class="mono pin" :value="edit[a] ?? (pos[i] ?? 0).toFixed(a === 'Z' ? 3 : 2)" :disabled="!can(a) || isPrinting" :aria-label="'Move ' + a + ' to position'"
+          <input class="mono pin" :value="edit[a] ?? (pos[i] ?? 0).toFixed(a === 'Z' ? 3 : 2)" :disabled="!can(a) || isPrinting" :aria-label="t('Move {axis} to position', { axis: a })"
             @focus="onFocus(a, i, $event)" @input="edit[a] = $event.target.value" @keydown.enter="moveTo(a, $event)" @keydown.esc="edit[a] = undefined; $event.target.blur()" @blur="edit[a] = undefined" />
         </div>
       </div>
       <div class="grp jog">
-        <div v-for="r in AX" :key="r.a" class="jr" :data-tip="!can(r.a) ? r.a + ' must be homed first' : ''">
+        <div v-for="r in AX" :key="r.a" class="jr" :data-tip="!can(r.a) ? t('{axis} must be homed first', { axis: r.a }) : ''">
           <button v-for="st in r.steps" :key="'-' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, -st)">−{{ st }}</button>
-          <button class="axb" :class="{ homed: can(r.a) }" :aria-label="'Home ' + r.a" :disabled="isPrinting" @click="gcode('G28 ' + r.a)">{{ r.a }}</button>
+          <button class="axb" :class="{ homed: can(r.a) }" :aria-label="t('Home {axis}', { axis: r.a })" :disabled="isPrinting" @click="gcode('G28 ' + r.a)">{{ r.a }}</button>
           <button v-for="st in [...r.steps].reverse()" :key="'+' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, st)">+{{ st }}</button>
         </div>
       </div>
-      <div class="grp dpad" :data-tip="!can('X') || !can('Y') ? 'Home X and Y first' : ''">
+      <div class="grp dpad" :data-tip="!can('X') || !can('Y') ? t('Home X and Y first') : ''">
         <span></span><button class="jb" aria-label="Y+" :disabled="!can('Y') || isPrinting" @click="jog('Y', dstep)"><Icon name="up" :stroke="2.6" /></button><span></span>
         <button class="jb" aria-label="X-" :disabled="!can('X') || isPrinting" @click="jog('X', -dstep)"><Icon name="left" :stroke="2.6" /></button>
-        <button class="axb homed" aria-label="Home X Y" :disabled="isPrinting" @click="gcode('G28 X Y')"><Icon name="home" :size="18" :stroke="2.6" /></button>
+        <button class="axb homed" :aria-label="t('Home X Y')" :disabled="isPrinting" @click="gcode('G28 X Y')"><Icon name="home" :size="18" :stroke="2.6" /></button>
         <button class="jb" aria-label="X+" :disabled="!can('X') || isPrinting" @click="jog('X', dstep)"><Icon name="right" :stroke="2.6" /></button>
         <span></span><button class="jb" aria-label="Y-" :disabled="!can('Y') || isPrinting" @click="jog('Y', -dstep)"><Icon name="down" :stroke="2.6" /></button><span></span>
       </div>
-      <div class="grp zcol" :data-tip="!can('Z') ? 'Z must be homed first' : ''">
-        <button class="jb" :aria-label="state.settings.invertZ ? 'Bed up (Z-' + dstep + ')' : 'Z+' + dstep" :disabled="!can('Z') || isPrinting" @click="jog('Z', zdir * Math.min(dstep, 25))"><Icon name="up" :stroke="2.6" /></button>
-        <button class="axb" :class="{ homed: can('Z') }" aria-label="Home Z" :disabled="isPrinting" @click="gcode('G28 Z')">Z</button>
-        <button class="jb" :aria-label="state.settings.invertZ ? 'Bed down (Z+' + dstep + ')' : 'Z-' + dstep" :disabled="!can('Z') || isPrinting" @click="jog('Z', -zdir * Math.min(dstep, 25))"><Icon name="down" :stroke="2.6" /></button>
+      <div class="grp zcol" :data-tip="!can('Z') ? t('{axis} must be homed first', { axis: 'Z' }) : ''">
+        <button class="jb" :aria-label="state.settings.invertZ ? t('Bed up (Z-{n})', { n: dstep }) : 'Z+' + dstep" :disabled="!can('Z') || isPrinting" @click="jog('Z', zdir * Math.min(dstep, 25))"><Icon name="up" :stroke="2.6" /></button>
+        <button class="axb" :class="{ homed: can('Z') }" :aria-label="t('Home {axis}', { axis: 'Z' })" :disabled="isPrinting" @click="gcode('G28 Z')">Z</button>
+        <button class="jb" :aria-label="state.settings.invertZ ? t('Bed down (Z+{n})', { n: dstep }) : 'Z-' + dstep" :disabled="!can('Z') || isPrinting" @click="jog('Z', -zdir * Math.min(dstep, 25))"><Icon name="down" :stroke="2.6" /></button>
       </div>
-      <div class="steps" role="group" aria-label="D-pad step (mm)">
-        <button v-for="v in [100, 50, 10, 1, 0.1]" :key="v" :class="{ on: dstep === v }" :aria-label="'Step ' + v + ' mm'" @click="dstep = v">{{ v }}</button>
+      <div class="steps" role="group" :aria-label="t('D-pad step (mm)')">
+        <button v-for="v in [100, 50, 10, 1, 0.1]" :key="v" :class="{ on: dstep === v }" :aria-label="t('Step {n} mm', { n: v })" @click="dstep = v">{{ v }}</button>
       </div>
       <div class="grp zo">
         <div class="zh">
-          <span class="lbl"><Icon name="layers" :size="14" style="vertical-align:-2px" /> Z-Offset <b class="mono" style="color:var(--tx);font-size:14px">{{ zoff.toFixed(3) }}</b></span>
-          <div class="row" style="gap:4px"><button class="btn clear" :disabled="!zoff" @click="gcode('SET_GCODE_OFFSET Z=0 MOVE=1')">Clear</button><button class="btn clear" style="color:var(--ac)" :disabled="!zoff || isPrinting" aria-label="Save z offset to config" @click="saveZ">Save</button></div>
+          <span class="lbl"><Icon name="layers" :size="14" style="vertical-align:-2px" /> {{ t('Z-Offset') }} <b class="mono" style="color:var(--tx);font-size:14px">{{ zoff.toFixed(3) }}</b></span>
+          <div class="row" style="gap:4px"><button class="btn clear" :disabled="!zoff" @click="gcode('SET_GCODE_OFFSET Z=0 MOVE=1')">{{ t('Clear') }}</button><button class="btn clear" style="color:var(--ac)" :disabled="!zoff || isPrinting" :aria-label="t('Save z offset to config')" @click="saveZ">{{ t('Save') }}</button></div>
         </div>
         <div class="zr"><button v-for="z in [0.005, 0.01, 0.025, 0.05]" :key="'u' + z" class="jb" @click="gcode(`SET_GCODE_OFFSET Z_ADJUST=${z} MOVE=1`)"><Icon name="up" :size="12" :stroke="2.6" />{{ z }}</button></div>
         <div class="zr"><button v-for="z in [0.005, 0.01, 0.025, 0.05]" :key="'d' + z" class="jb" @click="gcode(`SET_GCODE_OFFSET Z_ADJUST=-${z} MOVE=1`)"><Icon name="down" :size="12" :stroke="2.6" />{{ z }}</button></div>

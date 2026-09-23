@@ -4,6 +4,7 @@ import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import { state, fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store'
 import { api } from '../api/moonraker'
+import { t } from '../i18n'
 const jobs = ref(state.cache.jobs || [])
 const totals = ref(state.cache.totals || null)
 const loading = ref(!state.cache.jobs)
@@ -101,8 +102,8 @@ async function remove() {
   }
   picked.value = new Set()
   await load()
-  if (fail) toast(`${fail} job(s) could not be deleted (already removed?). List refreshed.`, 'error')
-  else toast(`${list.length} job(s) deleted`)
+  if (fail) toast(t('{n} job(s) could not be deleted (already removed?). List refreshed.', { n: fail }), 'error')
+  else toast(t('{n} job(s) deleted', { n: list.length }))
 }
 function exportCsv() {
   const rows = [['file', 'status', 'start', 'estimated_s', 'print_s', 'total_s', 'filament_mm', 'slicer']]
@@ -115,29 +116,29 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
 <template>
   <div class="page">
     <section class="card">
-      <div class="card-h"><h2 class="row"><Icon name="hmap" :size="18" />Statistics</h2></div>
+      <div class="card-h"><h2 class="row"><Icon name="hmap" :size="18" />{{ t('Statistics') }}</h2></div>
       <div class="stats">
         <div class="kv">
-          <div><span>Total Print Time</span><b class="mono">{{ fmtTime(totals?.total_print_time) }}</b></div>
-          <div><span>Longest Print Time</span><b class="mono">{{ fmtTime(totals?.longest_print) }}</b></div>
-          <div><span>Print Time Ø</span><b class="mono">{{ fmtTime(avg) }}</b></div>
-          <div><span>Total Filament Used</span><b class="mono">{{ totals ? (totals.total_filament_used / 1000).toFixed(1) + ' m' : '--' }}</b></div>
-          <div><span>Total Jobs</span><b class="mono">{{ totals?.total_jobs ?? '--' }}</b></div>
+          <div><span>{{ t('Total Print Time') }}</span><b class="mono">{{ fmtTime(totals?.total_print_time) }}</b></div>
+          <div><span>{{ t('Longest Print Time') }}</span><b class="mono">{{ fmtTime(totals?.longest_print) }}</b></div>
+          <div><span>{{ t('Print Time Ø') }}</span><b class="mono">{{ fmtTime(avg) }}</b></div>
+          <div><span>{{ t('Total Filament Used') }}</span><b class="mono">{{ totals ? (totals.total_filament_used / 1000).toFixed(1) + ' m' : '--' }}</b></div>
+          <div><span>{{ t('Total Jobs') }}</span><b class="mono">{{ totals?.total_jobs ?? '--' }}</b></div>
         </div>
         <div class="pie">
           <div class="row" style="gap:20px;align-items:center">
-            <svg width="150" height="150" viewBox="0 0 100 100" aria-label="Jobs by status">
+            <svg width="150" height="150" viewBox="0 0 100 100" :aria-label="t('Jobs by status')">
               <circle cx="50" cy="50" r="40" fill="none" stroke="var(--s2)" stroke-width="14" />
               <circle v-for="s in pie" :key="s.k" cx="50" cy="50" r="40" fill="none" :stroke="s.color" stroke-width="14" :stroke-dasharray="s.dash" :stroke-dashoffset="s.off" transform="rotate(-90 50 50)" />
             </svg>
             <div class="col" style="gap:6px">
-              <div v-for="s in pie" :key="s.k" class="row lg"><i :style="{ background: s.color }"></i><span class="grow">{{ s.k.replace('_', ' ') }}</span><b class="mono">{{ fmtPie(s) }}</b><span class="mono mu">{{ Math.round(s.pct * 100) }}%</span></div>
+              <div v-for="s in pie" :key="s.k" class="row lg"><i :style="{ background: s.color }"></i><span class="grow">{{ t(s.k.replace('_', ' ')) }}</span><b class="mono">{{ fmtPie(s) }}</b><span class="mono mu">{{ Math.round(s.pct * 100) }}%</span></div>
             </div>
           </div>
-          <div class="seg" style="width:240px"><button v-for="m in ['jobs', 'filament', 'time']" :key="m" :class="{ on: pieMode === m }" @click="pieMode = m">{{ m }}</button></div>
+          <div class="seg" style="width:240px"><button v-for="m in ['jobs', 'filament', 'time']" :key="m" :class="{ on: pieMode === m }" @click="pieMode = m">{{ t(m) }}</button></div>
         </div>
         <div class="bc">
-          <span class="lbl">{{ barMode === 'filament' ? 'Filament (m), last 14 days' : 'Avg print time (min), last 14 days' }}</span>
+          <span class="lbl">{{ barMode === 'filament' ? t('Filament (m), last 14 days') : t('Avg print time (min), last 14 days') }}</span>
           <div class="chart">
             <div class="ya mono"><span>{{ barMax }}</span><span>{{ barMax / 2 }}</span><span>0</span></div>
             <div class="bars">
@@ -147,56 +148,56 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
               </div>
             </div>
           </div>
-          <div class="seg" style="width:280px;align-self:center;margin-top:16px"><button :class="{ on: barMode === 'filament' }" @click="barMode = 'filament'">Filament usage</button><button :class="{ on: barMode === 'time' }" @click="barMode = 'time'">Print time Ø</button></div>
+          <div class="seg" style="width:280px;align-self:center;margin-top:16px"><button :class="{ on: barMode === 'filament' }" @click="barMode = 'filament'">{{ t('Filament usage') }}</button><button :class="{ on: barMode === 'time' }" @click="barMode = 'time'">{{ t('Print time Ø') }}</button></div>
         </div>
       </div>
     </section>
     <section class="card">
       <div class="card-h">
-        <h2 class="row"><Icon name="clock" :size="18" />Print History</h2>
+        <h2 class="row"><Icon name="clock" :size="18" />{{ t('Print History') }}</h2>
         <div class="acts">
-          <label class="row input sr"><Icon name="search" :size="16" /><input v-model="q" placeholder="Search" aria-label="Search history" /></label>
-          <button v-if="picked.size" class="btn dg" style="height:40px" @click="del = jobs.filter((j) => picked.has(j.job_id))"><Icon name="trash" :size="16" />Delete ({{ picked.size }})</button>
-          <button class="btn" style="height:40px" @click="exportCsv"><Icon name="download" :size="16" />Export CSV</button>
+          <label class="row input sr"><Icon name="search" :size="16" /><input v-model="q" :placeholder="t('Search')" :aria-label="t('Search history')" /></label>
+          <button v-if="picked.size" class="btn dg" style="height:40px" @click="del = jobs.filter((j) => picked.has(j.job_id))"><Icon name="trash" :size="16" />{{ t('Delete ({n})', { n: picked.size }) }}</button>
+          <button class="btn" style="height:40px" @click="exportCsv"><Icon name="download" :size="16" />{{ t('Export CSV') }}</button>
         </div>
       </div>
       <div style="overflow:auto">
         <table class="tbl">
           <thead><tr>
-            <th style="width:36px"><input type="checkbox" class="cb" :checked="allOnPage" aria-label="Select page" @change="togglePage" /></th><th style="width:56px"></th><th class="s" @click="sortBy('filename')">Filename{{ arrow('filename') }}</th><th></th>
-            <th class="s" @click="sortBy('start_time')">Start time{{ arrow('start_time') }}</th><th class="s" @click="sortBy('estimated')">Estimated{{ arrow('estimated') }}</th>
-            <th class="s" @click="sortBy('print_duration')">Print time{{ arrow('print_duration') }}</th><th class="s" @click="sortBy('filament_used')">Filament{{ arrow('filament_used') }}</th><th>Slicer</th><th style="width:80px"></th>
+            <th style="width:36px"><input type="checkbox" class="cb" :checked="allOnPage" :aria-label="t('Select page')" @change="togglePage" /></th><th style="width:56px"></th><th class="s" @click="sortBy('filename')">{{ t('Filename') }}{{ arrow('filename') }}</th><th></th>
+            <th class="s" @click="sortBy('start_time')">{{ t('Start time') }}{{ arrow('start_time') }}</th><th class="s" @click="sortBy('estimated')">{{ t('Estimated') }}{{ arrow('estimated') }}</th>
+            <th class="s" @click="sortBy('print_duration')">{{ t('Print time') }}{{ arrow('print_duration') }}</th><th class="s" @click="sortBy('filament_used')">{{ t('Filament') }}{{ arrow('filament_used') }}</th><th>{{ t('Slicer') }}</th><th style="width:80px"></th>
           </tr></thead>
           <tbody>
             <tr v-for="j in shown" :key="j.job_id" :class="{ gone: !j.exists, sel: picked.has(j.job_id) }">
-              <td><input type="checkbox" class="cb" :checked="picked.has(j.job_id)" aria-label="Select job" @change="togglePick(j)" /></td>
+              <td><input type="checkbox" class="cb" :checked="picked.has(j.job_id)" :aria-label="t('Select job')" @change="togglePick(j)" /></td>
               <td><div class="th"><img v-if="thumb(j)" :src="thumb(j)" alt="" loading="lazy" /><Icon v-else name="file" :size="20" :stroke="1.8" /></div></td>
               <td class="fn">{{ j.filename }}</td>
-              <td><span :style="{ color: st(j.status).c }" :aria-label="j.status.replace('_', ' ')" :data-tip="j.status.replace('_', ' ')"><Icon :name="st(j.status).i" :size="18" :stroke="2.4" /></span></td>
+              <td><span :style="{ color: st(j.status).c }" :aria-label="t(j.status.replace('_', ' '))" :data-tip="t(j.status.replace('_', ' '))"><Icon :name="st(j.status).i" :size="18" :stroke="2.4" /></span></td>
               <td class="mono">{{ fmtDate(j.start_time) }}</td>
               <td class="mono">{{ fmtTime(j.metadata?.estimated_time) }}</td>
               <td class="mono">{{ fmtTime(j.print_duration) }}</td>
               <td class="mono">{{ fmtFil(j.filament_used) }}</td>
               <td class="mu sl">{{ j.metadata?.slicer }} {{ j.metadata?.slicer_version }}</td>
-              <td><div class="row" style="gap:4px"><button class="btn ibtn sm" aria-label="Print again" :disabled="isPrinting || !j.exists" @click="reprint(j)"><Icon name="refresh" :size="16" /></button><button class="btn ibtn sm clear" aria-label="Delete from history" @click="del = [j]"><Icon name="trash" :size="16" /></button></div></td>
+              <td><div class="row" style="gap:4px"><button class="btn ibtn sm" :aria-label="t('Print again')" :disabled="isPrinting || !j.exists" @click="reprint(j)"><Icon name="refresh" :size="16" /></button><button class="btn ibtn sm clear" :aria-label="t('Delete from history')" @click="del = [j]"><Icon name="trash" :size="16" /></button></div></td>
             </tr>
           </tbody>
         </table>
-        <div v-if="loading" class="empty">Loading…</div>
-        <div v-else-if="!filtered.length" class="empty">No jobs</div>
+        <div v-if="loading" class="empty">{{ t('Loading…') }}</div>
+        <div v-else-if="!filtered.length" class="empty">{{ t('No jobs') }}</div>
       </div>
       <div class="pg">
-        <span class="lbl">Jobs</span>
-        <select class="input" style="height:32px" v-model.number="per" aria-label="Jobs per page"><option v-for="n in [10, 25, 50, 100]" :key="n" :value="n">{{ n }}</option></select>
-        <span class="mono mu">{{ filtered.length ? page * per + 1 : 0 }}-{{ Math.min((page + 1) * per, filtered.length) }} of {{ filtered.length }}</span>
-        <button class="btn clear ibtn sm" aria-label="Previous page" :disabled="page === 0" @click="page--"><Icon name="left" :size="18" /></button>
-        <button class="btn clear ibtn sm" aria-label="Next page" :disabled="page >= pages - 1" @click="page++"><Icon name="right" :size="18" /></button>
+        <span class="lbl">{{ t('Jobs') }}</span>
+        <select class="input" style="height:32px" v-model.number="per" :aria-label="t('Jobs per page')"><option v-for="n in [10, 25, 50, 100]" :key="n" :value="n">{{ n }}</option></select>
+        <span class="mono mu">{{ t('{a}-{b} of {n}', { a: filtered.length ? page * per + 1 : 0, b: Math.min((page + 1) * per, filtered.length), n: filtered.length }) }}</span>
+        <button class="btn clear ibtn sm" :aria-label="t('Previous page')" :disabled="page === 0" @click="page--"><Icon name="left" :size="18" /></button>
+        <button class="btn clear ibtn sm" :aria-label="t('Next page')" :disabled="page >= pages - 1" @click="page++"><Icon name="right" :size="18" /></button>
       </div>
     </section>
   </div>
-  <Modal v-if="del" :title="del.length > 1 ? `Delete ${del.length} jobs from history?` : 'Delete job from history?'" @close="del = null">
+  <Modal v-if="del" :title="del.length > 1 ? t('Delete {n} jobs from history?', { n: del.length }) : t('Delete job from history?')" @close="del = null">
     <div class="mono" style="max-height:200px;overflow:auto;font-size:12px"><div v-for="j in del" :key="j.job_id">{{ j.filename }}</div></div>
-    <template #foot><button class="btn lg" @click="del = null">Cancel</button><button class="btn lg dgf" @click="remove">Delete</button></template>
+    <template #foot><button class="btn lg" @click="del = null">{{ t('Cancel') }}</button><button class="btn lg dgf" @click="remove">{{ t('Delete') }}</button></template>
   </Modal>
 </template>
 <style scoped>

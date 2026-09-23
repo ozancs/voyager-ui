@@ -5,6 +5,7 @@ import Modal from './Modal.vue'
 import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode } from '../store'
 import { api } from '../api/moonraker'
 import { go } from '../router'
+import { t } from '../i18n'
 const emit = () => { state.showExclude = true }
 const ask = ref(false)
 const ps = computed(() => S('print_stats'))
@@ -33,37 +34,37 @@ function reprint() { if (ps.value.filename) api.call('printer.print.start', { fi
     </div>
     <div class="grow col" style="gap:10px">
       <div class="row" style="gap:10px;min-width:0">
-        <span class="chip" :style="{ color }"><i></i>{{ printState }}</span>
-        <span class="fn">{{ ps.filename || 'No file loaded' }}</span>
+        <span class="chip" :style="{ color }"><i></i>{{ t(printState) }}</span>
+        <span class="fn">{{ ps.filename || t('No file loaded') }}</span>
       </div>
       <div class="stats">
-        <div><span class="lbl">Layer</span><b class="mono">{{ layerInfo.cur }} / {{ layerInfo.total || '--' }}</b></div>
+        <div><span class="lbl">{{ t('Layer') }}</span><b class="mono">{{ layerInfo.cur }} / {{ layerInfo.total || '--' }}</b></div>
         <div><span class="lbl">Z</span><b class="mono">{{ z }} mm</b></div>
-        <div><span class="lbl">Filament</span><b class="mono">{{ filament }}</b></div>
-        <div><span class="lbl">Print time</span><b class="mono">{{ fmtTime(ps.print_duration) }}</b></div>
-        <div><span class="lbl">Left</span><b class="mono">{{ active ? fmtTime(printTimes.left) : '--' }}</b></div>
-        <div><span class="lbl">ETA</span><b class="mono">{{ active ? eta : '--' }}</b></div>
+        <div><span class="lbl">{{ t('Filament') }}</span><b class="mono">{{ filament }}</b></div>
+        <div><span class="lbl">{{ t('Print time') }}</span><b class="mono">{{ fmtTime(ps.print_duration) }}</b></div>
+        <div><span class="lbl">{{ t('Left') }}</span><b class="mono">{{ active ? fmtTime(printTimes.left) : '--' }}</b></div>
+        <div><span class="lbl">{{ t('ETA') }}</span><b class="mono">{{ active ? eta : '--' }}</b></div>
       </div>
       <div class="row" style="gap:12px"><div class="bar grow" style="height:12px"><div :style="{ width: progress * 100 + '%' }"></div></div><b class="mono" style="font-size:16px">{{ (progress * 100).toFixed(1) }}%</b></div>
     </div>
     <div class="acts">
       <template v-if="active">
         <div class="row">
-          <button v-if="printState === 'paused'" class="btn lg acc grow" @click="gcode('RESUME')"><Icon name="play" :stroke="2.4" />Resume</button>
-          <button v-else class="btn lg grow" @click="gcode('PAUSE')"><Icon name="pause" :stroke="2.4" />Pause</button>
-          <button class="btn lg dg grow" @click="ask = true"><Icon name="sq" :stroke="2.4" />Cancel</button>
+          <button v-if="printState === 'paused'" class="btn lg acc grow" @click="gcode('RESUME')"><Icon name="play" :stroke="2.4" />{{ t('Resume') }}</button>
+          <button v-else class="btn lg grow" @click="gcode('PAUSE')"><Icon name="pause" :stroke="2.4" />{{ t('Pause') }}</button>
+          <button class="btn lg dg grow" @click="ask = true"><Icon name="sq" :stroke="2.4" />{{ t('Cancel') }}</button>
         </div>
-        <button class="btn lg out" :disabled="!eo.objects?.length" @click="emit()"><Icon name="excl" :size="18" :stroke="2.4" />Exclude Object<span v-if="eo.objects?.length" class="mono cnt">{{ remaining }}/{{ eo.objects.length }}</span></button>
+        <button class="btn lg out" :disabled="!eo.objects?.length" @click="emit()"><Icon name="excl" :size="18" :stroke="2.4" />{{ t('Exclude Object') }}<span v-if="eo.objects?.length" class="mono cnt">{{ remaining }}/{{ eo.objects.length }}</span></button>
       </template>
       <template v-else>
-        <button class="btn lg acc" @click="go('files')"><Icon name="file" :stroke="2.4" />Choose file</button>
-        <button class="btn lg" :disabled="!ps.filename" @click="reprint"><Icon name="refresh" :stroke="2.4" />Reprint</button>
+        <button class="btn lg acc" @click="go('files')"><Icon name="file" :stroke="2.4" />{{ t('Choose file') }}</button>
+        <button class="btn lg" :disabled="!ps.filename" @click="reprint"><Icon name="refresh" :stroke="2.4" />{{ t('Reprint') }}</button>
       </template>
     </div>
   </section>
-  <Modal v-if="ask" title="Cancel print?" @close="ask = false">
-    <p style="margin:0" class="mu">The current print will be cancelled.</p>
-    <template #foot><button class="btn lg" @click="ask = false">Keep printing</button><button class="btn lg dgf" @click="cancel">Cancel print</button></template>
+  <Modal v-if="ask" :title="t('Cancel print?')" @close="ask = false">
+    <p style="margin:0" class="mu">{{ t('The current print will be cancelled.') }}</p>
+    <template #foot><button class="btn lg" @click="ask = false">{{ t('Keep printing') }}</button><button class="btn lg dgf" @click="cancel">{{ t('Cancel print') }}</button></template>
   </Modal>
 </template>
 <style scoped>

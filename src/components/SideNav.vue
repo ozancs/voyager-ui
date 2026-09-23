@@ -5,13 +5,14 @@ import { state, useApiEvent, activeTasks } from '../store'
 import { healthIssues } from '../features'
 import { route, go } from '../router'
 import { api } from '../api/moonraker'
+import { t } from '../i18n'
 defineProps({ open: Boolean })
 const emit = defineEmits(['close'])
 const NAV = [
   ['dashboard', 'dash', 'Dashboard'], ['webcam', 'cam', 'Webcam'], ['console', 'term', 'Console'], ['heightmap', 'hmap', 'Heightmap'],
   ['files', 'file', 'G-code Files'], ['viewer', 'cube', 'G-code Viewer'], ['history', 'clock', 'History'], ['machine', 'cpu', 'Machine'], ['health', 'heart', 'Health'],
 ]
-const NAV2 = [['quick', 'sliders', 'Quick Config'], ['theme', 'palette', 'Theme']]
+const NAV2 = [['quick', 'sliders', 'Quick Config'], ['theme', 'gear', 'Settings']]
 const cfgs = ref([])
 async function loadCfgs() {
   try {
@@ -43,21 +44,21 @@ function toggleCfg(c) {
 }
 </script>
 <template>
-  <nav class="sn" :class="{ open }" aria-label="Main">
-    <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ l }}</span><span v-if="k === 'health' && hBadge" class="nb" :style="{ background: hBadge.c }">{{ hBadge.n }}</span></button>
+  <nav class="sn" :class="{ open }" :aria-label="t('Main')">
+    <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span><span v-if="k === 'health' && hBadge" class="nb" :style="{ background: hBadge.c }">{{ hBadge.n }}</span></button>
     <div class="sep"></div>
-    <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ l }}</span></button>
-    <div class="hd row"><span class="sec-lbl grow">Config files</span><button class="btn clear ibtn sm ed" :class="{ on: editCfg }" :aria-label="editCfg ? 'Done' : 'Show hidden files'" @click="editCfg = !editCfg"><Icon :name="editCfg ? 'check' : 'pencil'" :size="14" /></button></div>
+    <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span></button>
+    <div class="hd row"><span class="sec-lbl grow">{{ t('Config files') }}</span><button class="btn clear ibtn sm ed" :class="{ on: editCfg }" :aria-label="editCfg ? t('Done') : t('Show hidden files')" @click="editCfg = !editCfg"><Icon :name="editCfg ? 'check' : 'pencil'" :size="14" /></button></div>
     <div class="cf">
       <div v-for="c in shown" :key="c" class="cfr" :class="{ hid: hidden(c) }">
         <button class="cfi" :class="{ on: route.name === 'config' && (route.arg === c || route.arg === 'config/' + c) }" @click="nav('config', c)"><Icon name="file" :size="16" /><span>{{ c }}</span></button>
-        <button class="eye" :class="{ show: editCfg }" :aria-label="hidden(c) ? 'Show ' + c : 'Hide ' + c" @click="toggleCfg(c)"><Icon :name="hidden(c) ? 'eye' : 'eyeoff'" :size="14" /></button>
+        <button class="eye" :class="{ show: editCfg }" :aria-label="hidden(c) ? t('Show {name}', { name: c }) : t('Hide {name}', { name: c })" @click="toggleCfg(c)"><Icon :name="hidden(c) ? 'eye' : 'eyeoff'" :size="14" /></button>
       </div>
-      <div v-if="!shown.length" class="mu" style="font-size:12px;padding:4px 12px">All files hidden</div>
+      <div v-if="!shown.length" class="mu" style="font-size:12px;padding:4px 12px">{{ t('All files hidden') }}</div>
     </div>
     <div class="ft">
       <template v-if="slowTasks.length"><Icon name="refresh" :size="13" class="spin" style="color:var(--heat)" /><span class="tk">{{ slowTasks[0].label }}…<template v-if="slowTasks.length > 1"> +{{ slowTasks.length - 1 }}</template></span></template>
-      <template v-else><span class="d" :style="{ background: state.connected ? 'var(--ok)' : 'var(--dg)' }"></span>{{ state.connected ? 'Moonraker connected' : 'Connecting…' }}</template>
+      <template v-else><span class="d" :style="{ background: state.connected ? 'var(--ok)' : 'var(--dg)' }"></span>{{ state.connected ? t('Moonraker connected') : t('Connecting…') }}</template>
     </div>
   </nav>
   <div v-if="open" class="scrim" @click="emit('close')"></div>

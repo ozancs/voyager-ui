@@ -5,6 +5,7 @@ import { ref, computed, watch } from 'vue'
 import Icon from './Icon.vue'
 import { state, S, gcode } from '../store'
 import { promptRun, promptClose } from '../features'
+import { t } from '../i18n'
 
 const p = computed(() => state.prompt)
 const cls = (c) => ({ primary: 'acc', secondary: '', info: 'info', warning: 'warn', error: 'dg' }[c] ?? '')
@@ -35,7 +36,7 @@ const tiltRows = computed(() => Object.entries(tilt.value?.results || {}).map(([
   <!-- macro prompt -->
   <div v-if="p" class="ov">
     <div class="dlg card" role="dialog" :aria-label="p.title">
-      <div class="card-h"><h2>{{ p.title }}</h2><button class="btn clear ibtn sm" aria-label="Close" @click="promptClose"><Icon name="x" :size="18" /></button></div>
+      <div class="card-h"><h2>{{ p.title }}</h2><button class="btn clear ibtn sm" :aria-label="t('Close')" @click="promptClose"><Icon name="x" :size="18" /></button></div>
       <template v-for="(it, k) in p.items" :key="k">
         <p v-if="it.type === 'text'" class="tx">{{ it.text }}</p>
         <div v-else class="bg" :class="{ grp: it.type === 'group' }">
@@ -50,49 +51,49 @@ const tiltRows = computed(() => Object.entries(tilt.value?.results || {}).map(([
 
   <!-- manual probe -->
   <div v-else-if="mp.is_active" class="ov">
-    <div class="dlg card" role="dialog" aria-label="Manual probe">
-      <div class="card-h"><h2>Manual probe</h2><span class="chip mono">{{ mp.name || 'probe' }}</span></div>
-      <p class="tx mu">Move the nozzle down until a sheet of paper just drags, then accept.</p>
+    <div class="dlg card" role="dialog" :aria-label="t('Manual probe')">
+      <div class="card-h"><h2>{{ t('Manual probe') }}</h2><span class="chip mono">{{ mp.name || 'probe' }}</span></div>
+      <p class="tx mu">{{ t('Move the nozzle down until a sheet of paper just drags, then accept.') }}</p>
       <div class="zbox">
-        <div class="col" style="gap:2px;align-items:center"><span class="lbl">Z position</span><b class="mono zv">{{ fmt(mp.z_position) }}</b></div>
-        <div class="row mono mu" style="font-size:12px;gap:14px"><span>lower {{ fmt(mp.z_position_lower) }}</span><span>upper {{ fmt(mp.z_position_upper) }}</span></div>
+        <div class="col" style="gap:2px;align-items:center"><span class="lbl">{{ t('Z position') }}</span><b class="mono zv">{{ fmt(mp.z_position) }}</b></div>
+        <div class="row mono mu" style="font-size:12px;gap:14px"><span>{{ t('lower {v}', { v: fmt(mp.z_position_lower) }) }}</span><span>{{ t('upper {v}', { v: fmt(mp.z_position_upper) }) }}</span></div>
       </div>
       <div class="steps">
         <button v-for="s in STEPS" :key="s" class="btn lg mono" :class="{ up: s > 0 }" @click="gcode('TESTZ Z=' + s)">{{ s > 0 ? '+' : '' }}{{ s }}</button>
       </div>
       <div class="row">
-        <button class="btn grow" @click="gcode('TESTZ Z=-')">Bisect down</button>
-        <button class="btn grow" @click="gcode('TESTZ Z=+')">Bisect up</button>
+        <button class="btn grow" @click="gcode('TESTZ Z=-')">{{ t('Bisect down') }}</button>
+        <button class="btn grow" @click="gcode('TESTZ Z=+')">{{ t('Bisect up') }}</button>
       </div>
-      <div class="ft"><button class="btn lg dg" @click="gcode('ABORT')">Abort</button><button class="btn lg acc" @click="gcode('ACCEPT')"><Icon name="check" :size="18" :stroke="2.6" />Accept</button></div>
+      <div class="ft"><button class="btn lg dg" @click="gcode('ABORT')">{{ t('Abort') }}</button><button class="btn lg acc" @click="gcode('ACCEPT')"><Icon name="check" :size="18" :stroke="2.6" />{{ t('Accept') }}</button></div>
     </div>
   </div>
 
   <!-- bed screws -->
   <div v-else-if="bs.is_active" class="ov">
-    <div class="dlg card" role="dialog" aria-label="Bed screws adjust">
-      <div class="card-h"><h2>Bed screws</h2><span class="chip">{{ bs.state === 'fine' ? 'fine adjust' : 'adjust' }}</span></div>
-      <p class="tx">Screw {{ (bs.current_screw ?? 0) + 1 }}: adjust until the paper just drags. Press <b>Adjusted</b> if you turned it, <b>Accept</b> if it was already right.</p>
-      <p class="mu" style="margin:0;font-size:12.5px">Accepted: {{ bs.accepted_screws ?? 0 }}</p>
-      <div class="ft"><button class="btn lg dg" @click="gcode('ABORT')">Abort</button><button class="btn lg" @click="gcode('ADJUSTED')">Adjusted</button><button class="btn lg acc" @click="gcode('ACCEPT')">Accept</button></div>
+    <div class="dlg card" role="dialog" :aria-label="t('Bed screws adjust')">
+      <div class="card-h"><h2>{{ t('Bed screws') }}</h2><span class="chip">{{ bs.state === 'fine' ? t('fine adjust') : t('adjust') }}</span></div>
+      <p class="tx">{{ t('Screw {n}: adjust until the paper just drags.', { n: (bs.current_screw ?? 0) + 1 }) }} {{ t('Press') }} <b>{{ t('Adjusted') }}</b> {{ t('if you turned it,') }} <b>{{ t('Accept') }}</b> {{ t('if it was already right.') }}</p>
+      <p class="mu" style="margin:0;font-size:12.5px">{{ t('Accepted: {n}', { n: bs.accepted_screws ?? 0 }) }}</p>
+      <div class="ft"><button class="btn lg dg" @click="gcode('ABORT')">{{ t('Abort') }}</button><button class="btn lg" @click="gcode('ADJUSTED')">{{ t('Adjusted') }}</button><button class="btn lg acc" @click="gcode('ACCEPT')">{{ t('Accept') }}</button></div>
     </div>
   </div>
 
   <!-- screws tilt result -->
   <div v-if="tilt" class="ov" @mousedown.self="tilt = null">
-    <div class="dlg card" role="dialog" aria-label="Screws tilt result">
-      <div class="card-h"><h2>Screws tilt</h2><button class="btn clear ibtn sm" aria-label="Close" @click="tilt = null"><Icon name="x" :size="18" /></button></div>
-      <p v-if="tilt.error" class="tx" style="color:var(--dg)">Probing failed.</p>
+    <div class="dlg card" role="dialog" :aria-label="t('Screws tilt result')">
+      <div class="card-h"><h2>{{ t('Screws tilt') }}</h2><button class="btn clear ibtn sm" :aria-label="t('Close')" @click="tilt = null"><Icon name="x" :size="18" /></button></div>
+      <p v-if="tilt.error" class="tx" style="color:var(--dg)">{{ t('Probing failed.') }}</p>
       <table class="tbl">
-        <thead><tr><th>Screw</th><th>Z</th><th>Turn</th></tr></thead>
+        <thead><tr><th>{{ t('Screw') }}</th><th>Z</th><th>{{ t('Turn') }}</th></tr></thead>
         <tbody><tr v-for="r in tiltRows" :key="r.k">
-          <td>{{ r.name }}<span v-if="r.is_base" class="chip" style="margin-left:8px">base</span></td>
+          <td>{{ r.name }}<span v-if="r.is_base" class="chip" style="margin-left:8px">{{ t('base') }}</span></td>
           <td class="mono">{{ r.z?.toFixed?.(4) ?? r.z }}</td>
           <td class="mono"><b v-if="!r.is_base" :style="{ color: r.adjust === '00:00' ? 'var(--ok)' : 'var(--heat)' }">{{ r.sign }} {{ r.adjust }}</b></td>
         </tr></tbody>
       </table>
-      <p class="mu" style="margin:0;font-size:12px">CW = clockwise, CCW = counter-clockwise, hh:mm = turns : minutes on a clock face.</p>
-      <div class="ft"><button class="btn lg" @click="gcode('SCREWS_TILT_CALCULATE'); tilt = null">Probe again</button><button class="btn lg acc" @click="tilt = null">Done</button></div>
+      <p class="mu" style="margin:0;font-size:12px">{{ t('CW = clockwise, CCW = counter-clockwise, hh:mm = turns : minutes on a clock face.') }}</p>
+      <div class="ft"><button class="btn lg" @click="gcode('SCREWS_TILT_CALCULATE'); tilt = null">{{ t('Probe again') }}</button><button class="btn lg acc" @click="tilt = null">{{ t('Done') }}</button></div>
     </div>
   </div>
 </template>

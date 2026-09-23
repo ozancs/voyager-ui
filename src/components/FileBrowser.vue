@@ -5,6 +5,7 @@ import Modal from './Modal.vue'
 import { fmtBytes, fmtDate, toast, useApiEvent } from '../store'
 import { api } from '../api/moonraker'
 import { go } from '../router'
+import { t } from '../i18n'
 const roots = ref(['config'])
 const root = ref('config')
 const path = ref('')
@@ -72,19 +73,19 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
 </script>
 <template>
   <section class="card">
-    <div class="card-h"><h2 class="row"><Icon name="folder" :size="18" />Config Files</h2></div>
+    <div class="card-h"><h2 class="row"><Icon name="folder" :size="18" />{{ t('Config Files') }}</h2></div>
     <div class="row" style="flex-wrap:wrap">
-      <select class="input" style="flex:1;min-width:160px" :value="root" aria-label="Root" @change="changeRoot($event.target.value)"><option v-for="r in roots" :key="r" :value="r">{{ r }}</option></select>
-      <button class="btn ibtn" style="width:40px;height:40px" aria-label="Upload file" @click="fileInput.click()"><Icon name="upload" :size="18" /></button>
-      <button class="btn ibtn" style="width:40px;height:40px" aria-label="New file" @click="modal = { kind: 'newfile', value: '' }"><Icon name="file" :size="18" /></button>
-      <button class="btn ibtn" style="width:40px;height:40px" aria-label="New folder" @click="modal = { kind: 'newdir', value: '' }"><Icon name="folder" :size="18" /></button>
-      <button class="btn ibtn" style="width:40px;height:40px" aria-label="Refresh" @click="load"><Icon name="refresh" :size="18" /></button>
+      <select class="input" style="flex:1;min-width:160px" :value="root" :aria-label="t('Root')" @change="changeRoot($event.target.value)"><option v-for="r in roots" :key="r" :value="r">{{ r }}</option></select>
+      <button class="btn ibtn" style="width:40px;height:40px" :aria-label="t('Upload file')" @click="fileInput.click()"><Icon name="upload" :size="18" /></button>
+      <button class="btn ibtn" style="width:40px;height:40px" :aria-label="t('New file')" @click="modal = { kind: 'newfile', value: '' }"><Icon name="file" :size="18" /></button>
+      <button class="btn ibtn" style="width:40px;height:40px" :aria-label="t('New folder')" @click="modal = { kind: 'newdir', value: '' }"><Icon name="folder" :size="18" /></button>
+      <button class="btn ibtn" style="width:40px;height:40px" :aria-label="t('Refresh')" @click="load"><Icon name="refresh" :size="18" /></button>
       <input ref="fileInput" type="file" multiple hidden @change="upload" />
     </div>
-    <div class="row mono" style="justify-content:space-between;font-size:12px"><b>Current path: /{{ full }}</b><span class="mu" v-if="disk">{{ up != null ? 'Uploading ' + Math.round(up * 100) + '%' : 'Free disk: ' + fmtBytes(disk.free) }}</span></div>
+    <div class="row mono" style="justify-content:space-between;font-size:12px"><b>{{ t('Current path: /{p}', { p: full }) }}</b><span class="mu" v-if="disk">{{ up != null ? t('Uploading {n}%', { n: Math.round(up * 100) }) : t('Free disk: {free}', { free: fmtBytes(disk.free) }) }}</span></div>
     <div style="overflow:auto;flex:1;min-height:0">
       <table class="tbl">
-        <thead><tr><th style="width:36px"></th><th class="s" @click="sortBy('filename')">Name</th><th class="s" @click="sortBy('size')" style="text-align:right">Filesize</th><th class="s" @click="sortBy('modified')" style="text-align:right">Last modified</th><th style="width:110px"></th></tr></thead>
+        <thead><tr><th style="width:36px"></th><th class="s" @click="sortBy('filename')">{{ t('Name') }}</th><th class="s" @click="sortBy('size')" style="text-align:right">{{ t('Filesize') }}</th><th class="s" @click="sortBy('modified')" style="text-align:right">{{ t('Last modified') }}</th><th style="width:110px"></th></tr></thead>
         <tbody>
           <tr v-if="path" class="click" @click="upDir"><td><Icon name="folder" :size="18" style="color:var(--mu)" /></td><td colspan="4" class="mono">..</td></tr>
           <tr v-for="it in rows" :key="(it.dir ? 'd' : 'f') + it.name" class="click fr" @click="open(it)">
@@ -93,19 +94,19 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
             <td class="mono mu r">{{ it.dir ? '--' : fmtBytes(it.size) }}</td>
             <td class="mono mu r">{{ fmtDate(it.modified) }}</td>
             <td><div class="acts">
-              <a v-if="!it.dir" class="btn clear ibtn sm" :href="api.url(`/server/files/${full}/${it.name}`)" download aria-label="Download" @click.stop><Icon name="download" :size="16" /></a>
-              <button class="btn clear ibtn sm" aria-label="Rename" @click.stop="modal = { kind: 'rename', item: it, value: it.name }"><Icon name="pencil" :size="16" /></button>
-              <button class="btn clear ibtn sm" aria-label="Delete" @click.stop="modal = { kind: 'delete', item: it }"><Icon name="trash" :size="16" /></button>
+              <a v-if="!it.dir" class="btn clear ibtn sm" :href="api.url(`/server/files/${full}/${it.name}`)" download :aria-label="t('Download')" @click.stop><Icon name="download" :size="16" /></a>
+              <button class="btn clear ibtn sm" :aria-label="t('Rename')" @click.stop="modal = { kind: 'rename', item: it, value: it.name }"><Icon name="pencil" :size="16" /></button>
+              <button class="btn clear ibtn sm" :aria-label="t('Delete')" @click.stop="modal = { kind: 'delete', item: it }"><Icon name="trash" :size="16" /></button>
             </div></td>
           </tr>
         </tbody>
       </table>
     </div>
   </section>
-  <Modal v-if="modal" :title="TITLES[modal.kind]" @close="modal = null">
-    <p v-if="modal.kind === 'delete'" style="margin:0">Delete <b class="mono">{{ modal.item.name }}</b>{{ modal.item.dir ? ' and everything inside it' : '' }}?</p>
-    <input v-else v-model="modal.value" class="input mono" :aria-label="TITLES[modal.kind]" @keydown.enter="confirmModal" />
-    <template #foot><button class="btn lg" @click="modal = null">Cancel</button><button class="btn lg" :class="modal.kind === 'delete' ? 'dgf' : 'acc'" :disabled="modal.kind !== 'delete' && !modal.value" @click="confirmModal">{{ modal.kind === 'delete' ? 'Delete' : 'OK' }}</button></template>
+  <Modal v-if="modal" :title="t(TITLES[modal.kind])" @close="modal = null">
+    <p v-if="modal.kind === 'delete'" style="margin:0">{{ t('Delete') }} <b class="mono">{{ modal.item.name }}</b>{{ modal.item.dir ? t(' and everything inside it') : '' }}?</p>
+    <input v-else v-model="modal.value" class="input mono" :aria-label="t(TITLES[modal.kind])" @keydown.enter="confirmModal" />
+    <template #foot><button class="btn lg" @click="modal = null">{{ t('Cancel') }}</button><button class="btn lg" :class="modal.kind === 'delete' ? 'dgf' : 'acc'" :disabled="modal.kind !== 'delete' && !modal.value" @click="confirmModal">{{ modal.kind === 'delete' ? t('Delete') : t('OK') }}</button></template>
   </Modal>
 </template>
 <style scoped>

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { S } from '../store'
+import { t } from '../i18n'
 const emit = defineEmits(['pick'])
 const bed = computed(() => {
   const t = S('toolhead')
@@ -23,7 +24,7 @@ const pos = computed(() => {
 })
 </script>
 <template>
-  <svg :viewBox="`-4 -4 ${bed.w + 8} ${bed.h + 8}`" preserveAspectRatio="xMidYMid meet" style="background:#0b0c0e;border-radius:8px;width:100%;height:100%" aria-label="Objects on bed">
+  <svg :viewBox="`-4 -4 ${bed.w + 8} ${bed.h + 8}`" preserveAspectRatio="xMidYMid meet" style="background:#0b0c0e;border-radius:8px;width:100%;height:100%" :aria-label="t('Objects on bed')">
     <rect x="0" y="0" :width="bed.w" :height="bed.h" fill="#15171a" stroke="#2e3238" stroke-width="1.5" rx="4" />
     <g v-for="o in objs" :key="o.name" style="cursor:pointer" @click="!o.excluded && emit('pick', o.name)">
       <polygon v-if="o.pts" :points="o.pts" :fill="o.excluded ? 'rgba(229,72,77,.15)' : o.current ? 'rgba(255,107,26,.35)' : 'rgba(255,255,255,.08)'" :stroke="o.excluded ? '#e5484d' : o.current ? 'var(--ac)' : '#a3a7ae'" stroke-width="1.5" />

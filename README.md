@@ -19,6 +19,9 @@ Status: early and tested on one printer (CoreXY, Raspberry Pi 4, Klipper + Moonr
 - job queue panel next to the file list
 - optional separate dashboard layout while printing
 - Klipper errors as pop-ups with a short hint, optional sounds for print finished, paused and errors
+- dashboard cards for macros (with parameters), devices, recent files, recent prints, Spoolman, firmware retraction and health
+- quick commands in the search box: `chamber 40`, `bed off`, `fan 50`, `speed 120`, `z offset -0.05`, `home xy`, preset names. Checked against max_temp, homing and axis limits before they run
+- English and Turkish, with a short setup on first start
 - settings are stored in the Moonraker database and can be exported as a file
 
 ## Requirements
