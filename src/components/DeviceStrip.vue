@@ -1,0 +1,204 @@
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import Icon from './Icon.vue'
+import Toggle from './Toggle.vue'
+import Modal from './Modal.vue'
+import RangeSlider from './RangeSlider.vue'
+import { state, S, stripAll, stripVisible, prettyName, shortName, setFan, setHeater, gcode, saveSettings } from '../store'
+const open = ref(null)
+const close = () => (open.value = null)
+const items = computed(() => (state.editDash ? stripAll.value : stripVisible.value))
+const isHidden = (d) => (state.settings.strip.hidden || []).includes(d.id) || state.settings.devices.hidden.includes(d.obj)
+function toggleHide(d) {
+  const h = state.settings.strip.hidden
+  const i = h.indexOf(d.id)
+  if (i >= 0) h.splice(i, 1); else h.push(d.id)
+  const j = state.settings.devices.hidden.indexOf(d.obj)
+  if (j >= 0) state.settings.devices.hidden.splice(j, 1)
+}
+const dragId = ref(null)
+const renaming = ref(null)
+function startRename(d) { renaming.value = { obj: d.obj, value: state.settings.devices.names?.[d.obj] || '' } }
+function saveRename() {
+  const r = renaming.value
+  if (!state.settings.devices.names) state.settings.devices.names = {}
+  if (r.value.trim()) state.settings.devices.names[r.obj] = r.value.trim()
+  else delete state.settings.devices.names[r.obj]
+  renaming.value = null
+}
+function onDrop(target) {
+  if (!dragId.value || dragId.value === target.id) return
+  const ids = stripAll.value.map((x) => x.id)
+  const from = ids.indexOf(dragId.value), to = ids.indexOf(target.id)
+  ids.splice(to, 0, ids.splice(from, 1)[0])
+  state.settings.strip.order = ids
+  dragId.value = null
+}
+const tgt = ref('')
+function setT(d, v) { setHeater(d.obj, v); open.value = null }
+function tint(d) {
+  if (d.kind === 'temp') return canTarget(d) ? 't-heat' : ''
+  return { fan: 't-cool', pin: 't-light', led: 't-light', filament: 't-sense', spoolman: 't-spool' }[d.kind] || ''
+}
+const canTarget = (d) => (S('heaters').available_heaters || []).includes(d.obj) || d.obj.startsWith('temperature_fan ')
+onMounted(() => document.addEventListener('click', close))
+onBeforeUnmount(() => document.removeEventListener('click', close))
+function toggleOpen(id) { open.value = open.value === id ? null : id }
+
+const pct = (v) => Math.round((v || 0) * 100)
+function ledColor(id) {
+  const c = S(id).color_data?.[0] || [0, 0, 0, 0]
+  return c
+}
+function ledHex(id) {
+  const [r, g, b, w = 0] = ledColor(id)
+  const f = (x) => Math.round(Math.min(1, x + w) * 255).toString(16).padStart(2, '0')
+  return '#' + f(r) + f(g) + f(b)
+}
+const ledOn = (id) => ledColor(id).some((x) => x > 0.001)
+const lastColor = {}
+function setLed(id, hex, white) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255
+  lastColor[id] = hex
+  const w = white != null ? ` WHITE=${white.toFixed(3)}` : ''
+  gcode(`SET_LED LED=${shortName(id)} RED=${r.toFixed(3)} GREEN=${g.toFixed(3)} BLUE=${b.toFixed(3)}${w} SYNC=0 TRANSMIT=1`)
+}
+function ledToggle(id, on) {
+  if (on) setLed(id, lastColor[id] || '#ffffff')
+  else { lastColor[id] = ledHex(id); gcode(`SET_LED LED=${shortName(id)} RED=0 GREEN=0 BLUE=0 WHITE=0 SYNC=0 TRANSMIT=1`) }
+}
+const isPwm = (id) => {
+  const s = S('configfile').settings?.[id.toLowerCase()]
+  return !!s?.pwm
+}
+function setPin(id, v) { gcode(`SET_PIN PIN=${shortName(id)} VALUE=${v}`) }
+const spool = computed(() => state.spoolman.spool)
+const spoolUrl = computed(() => {
+  let u = state.spoolman.server || ''
+  u = u.replace(/\/\/(127\.0\.0\.1|localhost)/, '//' + (location.hostname || 'localhost'))
+  return spool.value ? `${u}/spool/show/${spool.value.id}` : u
+})
+const SWATCH = ['#ffffff', '#ff3d7f', '#ff6b1a', '#f5c451', '#3dd68c', '#3da5ff', '#8b5cf6']
+function sensorExtra(id) {
+  const s = S(id)
+  return Object.entries(s).filter(([k, v]) => typeof v !== 'object' && !['enabled', 'filament_detected'].includes(k)).slice(0, 2)
+}
+</script>
+<template>
+  <div class="ds" :class="{ editing: state.editDash }">
+    <div v-for="d in items" :key="d.id" class="dc" :class="[tint(d), { click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]"
+      :draggable="state.editDash" @dragstart="dragId = d.id" @dragend="dragId = null" @dragover.prevent @drop.prevent="onDrop(d)"
+      @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id) : null">
+      <div v-if="state.editDash" class="etools">
+        <button v-if="d.kind !== 'spoolman'" class="btn clear ibtn sm" aria-label="Rename card" @click.stop="startRename(d)"><Icon name="pencil" :size="14" /></button>
+        <button class="btn clear ibtn sm" :aria-label="isHidden(d) ? 'Show card' : 'Hide card'" @click.stop="toggleHide(d)"><Icon :name="isHidden(d) ? 'eyeoff' : 'eye'" :size="16" /></button>
+      </div>
+      <!-- TEMP -->
+      <template v-if="d.kind === 'temp'">
+        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><span v-if="canTarget(d) && !state.editDash" class="mono tt" :class="{ on: S(d.obj).target > 0 }">{{ S(d.obj).target > 0 ? '→ ' + S(d.obj).target.toFixed(0) + '°' : 'off' }}</span></div>
+        <div class="row" style="gap:4px;align-items:baseline"><span class="tbig">{{ S(d.obj).temperature != null ? S(d.obj).temperature.toFixed(1) : '--' }}</span><small class="mu" style="font-size:15px">°C</small></div>
+        <div class="bar"><div :style="{ width: (S(d.obj).power != null ? S(d.obj).power * 100 : S(d.obj).speed != null ? S(d.obj).speed * 100 : 0) + '%', background: S(d.obj).target > 0 ? 'var(--heat)' : 'var(--mu2)' }"></div></div>
+        <div v-if="open === d.id" class="pop card" @click.stop>
+          <span class="lbl">{{ prettyName(d.obj) }} target</span>
+          <div class="row"><input class="input mono grow" type="number" v-model="tgt" :placeholder="String(S(d.obj).target ?? 0)" @keydown.enter="setT(d, tgt)" aria-label="Target temperature" /><button class="btn acc" style="height:40px" @click="setT(d, tgt)">Set</button></div>
+          <div class="seg"><button @click="setT(d, 0)">Off</button><button v-for="p in state.settings.presets.filter((p) => p.temps[d.obj])" :key="p.id" @click="setT(d, p.temps[d.obj])">{{ p.name }} {{ p.temps[d.obj] }}</button></div>
+        </div>
+      </template>
+      <!-- FAN -->
+      <template v-else-if="d.kind === 'fan'">
+        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><span v-if="d.auto" class="auto"><Icon name="lock" :size="11" :stroke="2.6" />auto</span></div>
+        <div class="row" style="gap:10px"><Icon name="fan" :size="30" class="ki" :class="{ spin: S(d.obj).speed > 0 }" :style="{ animationDuration: (1.9 - 1.4 * (S(d.obj).speed || 0)) + 's' }" /><span class="big">{{ pct(S(d.obj).speed) }}<small>%</small></span>
+          <span v-if="S(d.obj).temperature != null" class="mono mu" style="font-size:11px;margin-left:auto;text-align:right">{{ S(d.obj).temperature.toFixed(0) }}°<br />→{{ S(d.obj).target?.toFixed(0) }}°</span>
+          <span v-else-if="S(d.obj).rpm" class="mono mu" style="font-size:11px;margin-left:auto">{{ Math.round(S(d.obj).rpm) }} rpm</span>
+        </div>
+        <div class="bar"><div :style="{ width: pct(S(d.obj).speed) + '%' }"></div></div>
+        <div v-if="open === d.id" class="pop card" @click.stop>
+          <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).speed)" :display="pct(S(d.obj).speed) + '%'" @commit="setFan(d.obj, $event)" />
+          <div class="seg"><button v-for="v in [0, 25, 50, 75, 100]" :key="v" :class="{ on: pct(S(d.obj).speed) === v }" @click="setFan(d.obj, v)">{{ v ? v + '%' : 'Off' }}</button></div>
+        </div>
+      </template>
+      <!-- OUTPUT PIN -->
+      <template v-else-if="d.kind === 'pin'">
+        <span class="lbl nm">{{ prettyName(d.obj) }}</span>
+        <div class="row" style="justify-content:space-between"><Icon name="bulb" :size="30" :class="S(d.obj).value > 0 ? 'acc' : 'mu'" /><Toggle v-if="!isPwm(d.obj)" :model-value="S(d.obj).value > 0" :label="prettyName(d.obj)" @update:model-value="setPin(d.obj, $event ? 1 : 0)" /></div>
+        <span class="mono sm">{{ S(d.obj).value > 0 ? 'ON' : 'OFF' }}<template v-if="isPwm(d.obj)"> · {{ pct(S(d.obj).value) }}%</template></span>
+        <div v-if="open === d.id" class="pop card" @click.stop>
+          <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).value)" :display="pct(S(d.obj).value) + '%'" @commit="setPin(d.obj, ($event / 100).toFixed(2))" />
+        </div>
+      </template>
+      <!-- LED -->
+      <template v-else-if="d.kind === 'led'">
+        <span class="lbl nm">{{ prettyName(d.obj) }}</span>
+        <div class="row" style="justify-content:space-between"><span class="sw" :style="{ background: ledOn(d.obj) ? ledHex(d.obj) : 'var(--s2)' }"></span><Toggle :model-value="ledOn(d.obj)" :label="prettyName(d.obj)" @update:model-value="ledToggle(d.obj, $event)" /></div>
+        <span class="mono sm">{{ ledOn(d.obj) ? ledHex(d.obj).toUpperCase() : 'OFF' }}</span>
+        <div v-if="open === d.id" class="pop card" @click.stop>
+          <span class="lbl">Color</span>
+          <div class="row" style="flex-wrap:wrap"><button v-for="c in SWATCH" :key="c" class="swb" :style="{ background: c }" :aria-label="c" @click="setLed(d.obj, c)"></button></div>
+          <label class="row"><input type="color" :value="ledHex(d.obj)" @change="setLed(d.obj, $event.target.value)" style="width:48px;height:36px;border:none;background:none;padding:0" /><span class="mu" style="font-size:13px">Custom</span></label>
+          <button class="btn" @click="ledToggle(d.obj, false)">Turn off</button>
+        </div>
+      </template>
+      <!-- FILAMENT SENSOR -->
+      <template v-else-if="d.kind === 'filament'">
+        <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><Toggle v-if="!d.custom && S(d.obj).enabled !== undefined" :model-value="!!S(d.obj).enabled" label="Enable sensor" @update:model-value="gcode(`SET_FILAMENT_SENSOR SENSOR=${shortName(d.obj)} ENABLE=${$event ? 1 : 0}`)" /></div>
+        <div class="row" style="gap:10px" v-if="S(d.obj).filament_detected !== undefined">
+          <Icon name="sensor" :size="30" :stroke="2.4" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }" />
+          <b style="font-size:17px" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }">{{ S(d.obj).filament_detected ? 'Detected' : 'Empty' }}</b>
+        </div>
+        <div v-else class="row" style="gap:10px"><Icon name="sensor" :size="30" :stroke="2.4" class="ki" /><b style="font-size:15px">{{ S(d.obj).enabled === false ? 'Disabled' : 'Active' }}</b></div>
+        <span class="mono sm mu">{{ S(d.obj).enabled === false ? 'disabled' : sensorExtra(d.obj).map(([k, v]) => `${k}: ${typeof v === 'number' ? +v.toFixed(2) : v}`).join(' · ') || 'enabled' }}</span>
+      </template>
+      <!-- SPOOLMAN -->
+      <template v-else-if="d.kind === 'spoolman'">
+        <a class="spl" :href="spoolUrl" target="_blank" rel="noopener" @click.stop>
+          <div class="hd"><span class="lbl">Spoolman</span><Icon name="ext" :size="14" :stroke="2.4" class="mu" /></div>
+          <div v-if="spool" class="row" style="gap:10px;min-width:0">
+            <span class="spool" :style="{ background: '#' + (spool.filament?.color_hex || '333') }"></span>
+            <div class="col" style="gap:0;min-width:0"><b class="ell" style="font-size:14px">{{ spool.filament?.name || spool.filament?.material }}</b><span class="mono mu" style="font-size:11px">{{ spool.filament?.material }} · #{{ spool.id }}</span></div>
+          </div>
+          <div v-else class="mu" style="font-size:13px">No active spool</div>
+          <div v-if="spool" class="row"><div class="bar grow"><div :style="{ width: Math.min(100, (spool.remaining_weight / (spool.initial_weight || spool.filament?.weight || 1000)) * 100) + '%' }"></div></div><b class="mono" style="font-size:12px">{{ Math.round(spool.remaining_weight || 0) }} g</b></div>
+        </a>
+      </template>
+    </div>
+  </div>
+  <Modal v-if="renaming" title="Card name" @close="renaming = null">
+    <input v-model="renaming.value" class="input" :placeholder="prettyName(renaming.obj)" aria-label="Card name" @keydown.enter="saveRename" />
+    <span class="mu" style="font-size:12px">Empty uses the name from printer.cfg ({{ renaming.obj }}).</span>
+    <template #foot><button class="btn lg" @click="renaming = null">Cancel</button><button class="btn lg acc" @click="saveRename">Save</button></template>
+  </Modal>
+</template>
+<style scoped>
+.ds { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; flex: 1; min-width: 0; }
+.dc { position: relative; background: var(--s1); border: 1px solid transparent; border-radius: var(--r); height: 96px; padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+.dc.click { cursor: pointer; }
+.dc.wide { }
+.dc.edit .hd { padding-right: 56px; }
+.dc.edit { cursor: grab; border-style: dashed; border-color: var(--mu2); }
+.dc.hid { opacity: .35; }
+.dc.drag { opacity: .5; border-color: var(--ac); }
+.dc.hot { box-shadow: inset 0 0 0 1px var(--heat-ln); }
+.dc.edit .spl { pointer-events: none; }
+.etools { position: absolute; top: 4px; right: 4px; z-index: 2; display: flex; gap: 2px; }
+.etools .btn { width: 26px; height: 26px; background: var(--s1); }
+.tbig { font-size: 26px; font-weight: 700; line-height: 1; }
+.tt { font-size: 12px; color: var(--mu); flex-shrink: 0; }
+.tt.on { color: var(--heat); font-weight: 600; }
+.dc.click:hover, .dc.open { border-color: var(--k, var(--mu2)); }
+.hd { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+.nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.auto { display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 500; color: var(--mu); flex-shrink: 0; }
+.ki { color: var(--k, var(--mu)); }
+.dc .bar > div { background: var(--k, var(--mu)); }
+.dc .bar { background: rgba(255,255,255,.06); }
+.mu { color: var(--mu); }
+.big { font-size: 24px; font-weight: 700; }
+.big small { font-size: 15px; color: var(--mu); }
+.sm { font-size: 12px; font-weight: 700; }
+.sw { width: 34px; height: 34px; border-radius: 17px; border: 3px solid var(--s2); outline: 2px solid var(--bd); }
+.swb { width: 30px; height: 30px; border-radius: 15px; border: 2px solid var(--bd); }
+.pop { position: absolute; top: 102px; left: 0; width: 260px; z-index: 40; box-shadow: 0 12px 40px rgba(0,0,0,.5); cursor: default; }
+.spl { display: flex; flex-direction: column; justify-content: space-between; height: 100%; color: var(--tx); text-decoration: none; gap: 4px; }
+.spool { width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; border: 6px solid #3a3a3a; }
+.ell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>

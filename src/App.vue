@@ -1,0 +1,110 @@
+<script setup>
+import { ref, computed, defineAsyncComponent, h, watch } from 'vue'
+import LoadingPanel from './components/LoadingPanel.vue'
+import TopBar from './components/TopBar.vue'
+import FavoritesBar from './components/FavoritesBar.vue'
+import SideNav from './components/SideNav.vue'
+import ExcludeModal from './components/ExcludeModal.vue'
+import Icon from './components/Icon.vue'
+import UpdateModal from './components/UpdateModal.vue'
+import Tooltip from './components/Tooltip.vue'
+import Dashboard from './views/Dashboard.vue'
+import { state, gcode, VERSION, activeTasks, APP_NAME } from './store'
+import { route } from './router'
+import { api } from './api/moonraker'
+
+const LOADERS = {
+  webcam: ['Webcam', () => import('./views/WebcamPage.vue')],
+  console: ['Console', () => import('./views/ConsolePage.vue')],
+  heightmap: ['Heightmap', () => import('./views/Heightmap.vue')],
+  files: ['G-code Files', () => import('./views/Files.vue')],
+  viewer: ['G-code Viewer', () => import('./views/Viewer.vue')],
+  history: ['History', () => import('./views/History.vue')],
+  machine: ['Machine', () => import('./views/Machine.vue')],
+  quick: ['Quick Config', () => import('./views/QuickConfig.vue')],
+  theme: ['Theme', () => import('./views/Theme.vue')],
+  config: ['Editor', () => import('./views/ConfigEditor.vue')],
+}
+const VIEWS = { dashboard: Dashboard }
+for (const [k, [name, loader]] of Object.entries(LOADERS)) {
+  VIEWS[k] = defineAsyncComponent({ loader, delay: 0, loadingComponent: { render: () => h(LoadingPanel, { title: `Opening ${name}…`, compact: true }) } })
+}
+// once the printer is loaded, fetch the other pages in the background so the first click is instant
+watch(() => state.booted, (b) => {
+  if (!b) return
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1500))
+  idle(() => {
+    Object.values(LOADERS).forEach(([, l], i) => setTimeout(() => l().catch(() => {}), i * 150))
+    setTimeout(() => import('./components/Surface3D.vue').catch(() => {}), 4000)
+    setTimeout(() => import('gcode-preview').catch(() => {}), 6000)
+  })
+}, { immediate: true })
+const view = computed(() => VIEWS[route.name] || Dashboard)
+const showExclude = ref(false)
+const navOpen = ref(false)
+const location = window.location
+const bootTask = computed(() => activeTasks.value[0]?.label || 'Loading printer')
+const notReady = computed(() => state.connected && state.klippy !== 'ready')
+</script>
+
+<template>
+  <div class="shell" :class="{ booting: state.connected && !state.booted }">
+    <TopBar @exclude="state.showExclude = true" @menu="navOpen = !navOpen" />
+    <FavoritesBar />
+    <div class="body">
+      <SideNav :open="navOpen" @close="navOpen = false" />
+      <main class="main">
+        <div v-if="!state.connected" class="banner"><Icon name="refresh" :size="20" class="spin" />
+          <div class="grow"><b>Connecting to Moonraker…</b><span v-if="state.conn.attempts" class="mono" style="font-weight:400;font-size:12px;margin-left:10px;color:var(--mu)">attempt {{ state.conn.attempts }}</span>
+            <pre v-if="state.conn.probe">{{ state.conn.probe }}</pre></div>
+        </div>
+        <div v-else-if="notReady" class="banner err">
+          <Icon name="warn" :size="20" />
+          <div class="grow"><b>Klipper {{ state.klippy }}</b><pre>{{ state.klippyMessage }}</pre></div>
+          <button class="btn lg" @click="gcode('RESTART').catch(() => api.call('printer.restart'))">Restart</button>
+          <button class="btn lg acc" @click="api.call('printer.firmware_restart')">Firmware Restart</button>
+        </div>
+        <component :is="view" :key="route.name === 'config' ? 'config' : route.name" @exclude="state.showExclude = true" />
+        <footer class="ft mono">
+          <span><b>{{ APP_NAME }}</b> v{{ VERSION }}</span>
+          <span v-if="state.versions.klipper">Klipper {{ state.versions.klipper }}</span>
+          <span v-if="state.versions.moonraker">Moonraker {{ state.versions.moonraker }}</span>
+          <span v-if="state.versions.host">{{ state.versions.host }}</span>
+          <span class="grow"></span>
+          <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">Open Mainsail</a>
+        </footer>
+      </main>
+    </div>
+    <ExcludeModal v-if="state.showExclude" @close="state.showExclude = false" />
+    <UpdateModal />
+    <Transition name="fade"><div v-if="state.connected && !state.booted" class="bootpill"><Icon name="refresh" :size="15" class="spin" /><span>{{ bootTask }}</span></div></Transition>
+    <Tooltip />
+    <div class="toasts">
+      <div v-for="t in state.toasts" :key="t.id" class="toast" :class="t.kind">{{ t.msg }}</div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.shell { height: 100%; display: flex; flex-direction: column; }
+.body { flex: 1; min-height: 0; display: flex; }
+.main > * { flex-shrink: 0; }
+.main { flex: 1; min-width: 0; overflow: auto; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+.banner { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--s1); border: 1px solid var(--wn); border-radius: var(--r); color: var(--wn); font-weight: 700; flex-shrink: 0; }
+.banner.err { border-color: var(--dg); color: var(--tx); }
+.banner.err > svg { color: var(--dg); }
+.banner pre { margin: 4px 0 0; font-family: var(--fm); font-size: 12px; color: var(--mu); white-space: pre-wrap; font-weight: 400; }
+.ft { margin-top: auto; flex-shrink: 0; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 18px 4px 4px; border-top: 1px solid var(--bd); font-size: 11px; color: var(--mu2); }
+.ft b { color: var(--mu); }
+.ft a { color: var(--mu); text-decoration: none; }
+.ft a:hover { color: var(--ac); }
+.main { padding-bottom: 24px !important; }
+.bootpill { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--s2); border-radius: 18px; font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.4); z-index: 150; }
+.bootpill :deep(svg) { color: var(--heat); }
+.fade-leave-active { transition: opacity .3s; }
+.fade-leave-to { opacity: 0; }
+.toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 200; }
+.toast { padding: 12px 16px; background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; font-weight: 600; max-width: 420px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.toast.error { border-color: var(--dg); }
+@media (max-width: 1100px) { .main { padding: 10px; } }
+</style>
