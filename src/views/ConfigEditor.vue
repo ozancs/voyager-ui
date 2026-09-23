@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import Icon from '../components/Icon.vue'
-import { toast, gcode, isPrinting, backupBeforeWrite } from '../store'
+import { state, toast, gcode, isPrinting, backupBeforeWrite } from '../store'
 import { route } from '../router'
 import { api } from '../api/moonraker'
 const text = ref('')
@@ -23,9 +23,30 @@ async function load() {
   loading.value = true
   try { text.value = orig.value = await api.getText(`/server/files/${loc.value.root}/${file.value}`) } catch (e) { toast(e.message, 'error'); text.value = orig.value = '' }
   loading.value = false
+  applyJump()
 }
 onMounted(load)
 watch(file, load)
+// jump to a line (from Ctrl+K search)
+const flash = ref(-1)
+function applyJump() {
+  const j = state.jump
+  if (!j || j.file !== file.value || loading.value || !ta.value) return
+  state.jump = null
+  requestAnimationFrame(() => {
+    const lines = text.value.split('\n')
+    const i = Math.max(0, Math.min(lines.length - 1, j.line - 1))
+    const start = lines.slice(0, i).reduce((a, l) => a + l.length + 1, 0)
+    const lh = parseFloat(getComputedStyle(ta.value).lineHeight) || 22.1
+    ta.value.scrollTop = Math.max(0, i * lh - ta.value.clientHeight / 3)
+    ta.value.focus()
+    ta.value.setSelectionRange(start, start + lines[i].length)
+    sync()
+    flash.value = i
+    setTimeout(() => (flash.value = -1), 2200)
+  })
+}
+watch(() => state.jump, applyJump)
 async function save(restart) {
   saving.value = true
   try {
@@ -60,14 +81,15 @@ const marked = computed(() => {
   matches.value.forEach((m, k) => { out += text.value.slice(last, m) + (k === qi.value ? '\u0004' : MK) + text.value.slice(m, m + L) + ME; last = m + L })
   return out + text.value.slice(last)
 })
-const html = computed(() => marked.value.split('\n').map((l) => {
+const html = computed(() => marked.value.split('\n').map((l, i) => i === flash.value ? '\u0005' + hlLine(l) + '\u0006' : hlLine(l)).join('\n').replace(/\u0005/g, '<span class="fl">').replace(/\u0006/g, '</span>').replace(/\u0004/g, '<mark class="cur">').replace(/\u0002/g, '<mark>').replace(/\u0003/g, '</mark>') + '\n')
+function hlLine(l) {
   let m
   if ((m = l.match(/^(\s*)(\[[^\]]*\])(.*)$/))) return `${escH(m[1])}<span class="s">${escH(m[2])}</span><span class="c">${escH(m[3])}</span>`
   if (/^\s*[#;]/.test(l)) return `<span class="c">${escH(l)}</span>`
   if ((m = l.match(/^([A-Za-z0-9_.\-]+)(\s*[:=])(.*?)(\s[#;].*)?$/))) return `<span class="k">${escH(m[1])}</span><span class="p">${escH(m[2])}</span>${escH(m[3])}${m[4] ? `<span class="c">${escH(m[4])}</span>` : ''}`
   if (/^\s+/.test(l)) return l.replace(/(\{[%{].*?[%}]\})/g, '\u0000$1\u0001').split(/[\u0000\u0001]/).map((x) => /^\{[%{]/.test(x) ? `<span class="j">${escH(x)}</span>` : `<span class="g">${escH(x)}</span>`).join('')
   return escH(l)
-}).join('\n').replace(/\u0004/g, '<mark class="cur">').replace(/\u0002/g, '<mark>').replace(/\u0003/g, '</mark>') + '\n')
+}
 const lineCount = computed(() => text.value.split('\n').length)
 const sections = computed(() => text.value.split('\n').map((l, i) => [l.match(/^\[([^\]]+)\]/)?.[1], i]).filter(([s]) => s))
 function jump(i) {
@@ -162,6 +184,8 @@ textarea::selection { background: rgba(255, 107, 26, .3); color: transparent; }
 .cnt { font-size: 11px; color: var(--mu); min-width: 44px; text-align: right; }
 .hl :deep(mark) { background: rgba(245, 196, 81, .28); color: inherit; border-radius: 2px; }
 .hl :deep(mark.cur) { background: var(--ac); color: var(--oa); }
+.hl :deep(.fl) { background: rgba(255,107,26,.22); box-shadow: -4px 0 0 var(--ac); display: inline-block; min-width: 100%; animation: flfade 2.2s ease-out forwards; }
+@keyframes flfade { 70% { background: rgba(255,107,26,.22); } 100% { background: transparent; box-shadow: none; } }
 .ol { height: 28px; padding: 0 8px; background: transparent; border: none; border-radius: 6px; text-align: left; font-size: 12px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ol:hover { background: var(--s2); color: var(--ac); }
 </style>

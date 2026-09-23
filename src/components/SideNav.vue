@@ -2,13 +2,14 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import Icon from './Icon.vue'
 import { state, useApiEvent, activeTasks } from '../store'
+import { healthIssues } from '../features'
 import { route, go } from '../router'
 import { api } from '../api/moonraker'
 defineProps({ open: Boolean })
 const emit = defineEmits(['close'])
 const NAV = [
   ['dashboard', 'dash', 'Dashboard'], ['webcam', 'cam', 'Webcam'], ['console', 'term', 'Console'], ['heightmap', 'hmap', 'Heightmap'],
-  ['files', 'file', 'G-code Files'], ['viewer', 'cube', 'G-code Viewer'], ['history', 'clock', 'History'], ['machine', 'cpu', 'Machine'],
+  ['files', 'file', 'G-code Files'], ['viewer', 'cube', 'G-code Viewer'], ['history', 'clock', 'History'], ['machine', 'cpu', 'Machine'], ['health', 'heart', 'Health'],
 ]
 const NAV2 = [['quick', 'sliders', 'Quick Config'], ['theme', 'palette', 'Theme']]
 const cfgs = ref([])
@@ -24,6 +25,11 @@ onMounted(() => { if (state.connected) loadCfgs() })
 watch(() => state.connected, (c) => c && loadCfgs())
 useApiEvent('notify_filelist_changed', ([p]) => { if (p?.item?.root === 'config') loadCfgs() })
 function nav(n, a) { go(n, a); emit('close') }
+const hBadge = computed(() => {
+  const l = healthIssues.value
+  if (!l.length) return null
+  return { n: l.length, c: l.some((i) => i.level === 'error') ? 'var(--dg)' : l.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--bl)' }
+})
 const editCfg = ref(false)
 const tick = ref(Date.now())
 setInterval(() => (tick.value = Date.now()), 250)
@@ -38,7 +44,7 @@ function toggleCfg(c) {
 </script>
 <template>
   <nav class="sn" :class="{ open }" aria-label="Main">
-    <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ l }}</span></button>
+    <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ l }}</span><span v-if="k === 'health' && hBadge" class="nb" :style="{ background: hBadge.c }">{{ hBadge.n }}</span></button>
     <div class="sep"></div>
     <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ l }}</span></button>
     <div class="hd row"><span class="sec-lbl grow">Config files</span><button class="btn clear ibtn sm ed" :class="{ on: editCfg }" :aria-label="editCfg ? 'Done' : 'Show hidden files'" @click="editCfg = !editCfg"><Icon :name="editCfg ? 'check' : 'pencil'" :size="14" /></button></div>
@@ -63,6 +69,7 @@ function toggleCfg(c) {
 .it:hover { background: var(--s2); }
 .it.on { background: rgba(255,107,26,.13); color: var(--tx); font-weight: 600; }
 .it.on :deep(svg) { color: var(--heat); }
+.nb { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; color: #111; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .sep { height: 1px; background: var(--bd); margin: 6px 4px; flex-shrink: 0; }
 .hd { padding: 12px 4px 4px 12px; flex-shrink: 0; }
 .ed { width: 26px; height: 26px; }

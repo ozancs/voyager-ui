@@ -7,6 +7,10 @@ import CmdInput from '../components/CmdInput.vue'
 import { state, saveSettings, macroList, prettyName, DEFAULT_SETTINGS, S, VERSION, toast, APP, APP_NAME } from '../store'
 import { api } from '../api/moonraker'
 import { ICON_NAMES } from '../icons'
+import { playSound } from '../features'
+if (!state.settings.sound) state.settings.sound = DEFAULT_SETTINGS().sound
+const snd = computed(() => state.settings.sound)
+const SOUNDS = [['complete', 'Print finished', 'complete'], ['paused', 'Print paused (e.g. runout)', 'paused'], ['error', 'Error / Klipper shutdown', 'error'], ['heated', 'Heater reached target', 'heated']]
 const favs = computed(() => state.settings.favorites)
 const iconFor = ref(null)
 const dragI = ref(null)
@@ -58,7 +62,7 @@ function reset() { confirmReset.value = false; apply(DEFAULT_SETTINGS(), 'Settin
 <template>
   <div class="split">
     <div class="col grow" style="gap:16px">
-      <section class="card">
+      <section id="set-favorites" class="card">
         <div class="card-h"><h2>Favorite Macros</h2><button class="btn acc" @click="add"><Icon name="plus" :size="16" :stroke="2.4" />Add macro</button></div>
         <span class="mu">Drag to reorder. G-code can be any command or several lines. Highlight fills the button with the accent color.</span>
         <div class="col" style="gap:6px">
@@ -74,7 +78,7 @@ function reset() { confirmReset.value = false; apply(DEFAULT_SETTINGS(), 'Settin
         </div>
         <div class="row" style="flex-wrap:wrap;gap:6px"><span class="lbl">Your macros:</span><button v-for="m in macroList.slice(0, 40)" :key="m" class="chip mb" @click="favs.push({ id: 'f' + Date.now(), name: m.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()), icon: 'star', gcode: m, highlight: false })">+ {{ m }}</button></div>
       </section>
-      <section class="card">
+      <section id="set-presets" class="card">
         <div class="card-h"><h2>Temperature Presets</h2><button class="btn" @click="addPreset"><Icon name="plus" :size="16" />Add preset</button></div>
         <div v-for="(p, i) in state.settings.presets" :key="p.id" class="pr">
           <input v-model="p.name" class="input" style="width:120px;font-weight:700" aria-label="Preset name" />
@@ -84,26 +88,40 @@ function reset() { confirmReset.value = false; apply(DEFAULT_SETTINGS(), 'Settin
       </section>
     </div>
     <div class="side-col" style="width:400px">
-      <section class="card">
+      <section id="set-accent" class="card">
         <div class="card-h"><h2>Accent</h2></div>
         <div class="row" style="flex-wrap:wrap;gap:10px">
           <button v-for="c in ACCENTS" :key="c" class="swc" :class="{ on: state.settings.accent === c }" :style="{ background: c }" :aria-label="'Accent ' + c" @click="state.settings.accent = c"></button>
           <label class="swc cu" aria-label="Custom accent"><input type="color" v-model="state.settings.accent" /></label>
         </div>
       </section>
-      <section class="card">
+      <section id="set-controls" class="card">
         <div class="card-h"><h2>Controls</h2></div>
         <label class="col" style="gap:4px"><span class="lbl">Printer name (empty = name from Mainsail / hostname)</span><input v-model="state.settings.printerName" class="input" :placeholder="state.printerName || 'Printer'" /></label>
         <div class="row" style="justify-content:space-between"><span>Invert Z jog buttons (bed moves in Z)</span><Toggle v-model="state.settings.invertZ" label="Invert Z" /></div>
       </section>
-      <section class="card">
+      <section id="set-sounds" class="card">
+        <div class="card-h"><h2>Sounds &amp; alerts</h2><button class="btn" :disabled="!snd.enabled" @click="playSound('complete')"><Icon name="volume" :size="16" />Test</button></div>
+        <div class="row" style="justify-content:space-between"><span>Play sounds</span><Toggle v-model="snd.enabled" label="Play sounds" /></div>
+        <template v-if="snd.enabled">
+          <label class="row" style="gap:10px"><Icon name="volume" :size="16" style="color:var(--mu)" /><input v-model.number="snd.volume" type="range" min="0.1" max="1" step="0.05" class="rng" :style="{ '--p': snd.volume * 100 + '%' }" aria-label="Volume" /></label>
+          <div v-for="[k, l, t] in SOUNDS" :key="k" class="row" style="justify-content:space-between">
+            <span>{{ l }}</span>
+            <div class="row" style="gap:6px"><button class="btn clear ibtn sm" :aria-label="'Play ' + l" @click="playSound(t)"><Icon name="play" :size="14" /></button><Toggle v-model="snd[k]" :label="l" /></div>
+          </div>
+          <span class="mu">Sounds play in this browser tab, so the page has to be open somewhere.</span>
+        </template>
+        <div class="row" style="justify-content:space-between;border-top:1px solid var(--bd);padding-top:12px"><span>Show Klipper errors as pop-ups</span><Toggle v-model="state.settings.errorToasts" label="Error pop-ups" /></div>
+        <div class="row" style="justify-content:space-between"><span>Separate dashboard while printing</span><Toggle v-model="state.settings.autoLayout" label="Separate dashboard while printing" /></div>
+      </section>
+      <section id="set-sensors" class="card">
         <div class="card-h"><h2>Temperatures card &amp; graph</h2></div>
         <span class="mu">Sensors shown in the temperatures card and graph.</span>
         <div class="row" style="flex-wrap:wrap;gap:6px">
           <button v-for="s in S('heaters').available_sensors || []" :key="s" class="sch" :class="{ on: !state.settings.hiddenSensors.includes(s) }" :aria-pressed="!state.settings.hiddenSensors.includes(s)" @click="toggleHidden(state.settings.hiddenSensors, s)">{{ prettyName(s) }}</button>
         </div>
       </section>
-      <section class="card">
+      <section id="set-backup" class="card">
         <div class="card-h"><h2>Backup &amp; restore</h2></div>
         <span class="mu">Favorites, dashboard layout, cards, presets, theme and all other UI settings in one file.</span>
         <div class="row" style="flex-wrap:wrap">

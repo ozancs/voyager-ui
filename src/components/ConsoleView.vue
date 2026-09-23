@@ -12,7 +12,7 @@ const auto = ref(true)
 const TEMP_RE = /^(ok\s+)?(B|T\d*|C):\s*-?\d/
 const lines = computed(() => {
   let l = state.console
-  l = l.filter((x) => !(x.type === 'command' && /NAME=_ui_/.test(x.message)))
+  l = l.filter((x) => !(x.type === 'command' && /NAME=_ui_|MSG=action:prompt_end/.test(x.message)) && !x.message.startsWith('// action:'))
   if (state.settings.consoleHideTemps) l = l.filter((x) => !TEMP_RE.test(x.message))
   return l.slice(-props.limit)
 })
@@ -20,6 +20,11 @@ const fmt = (t) => new Date(t * 1000).toLocaleTimeString(undefined, { hour12: fa
 function scroll() { if (auto.value && box.value) box.value.scrollTop = box.value.scrollHeight }
 watch(() => lines.value.length, () => nextTick(scroll))
 onMounted(() => nextTick(scroll))
+// command picked in Ctrl+K search lands here
+const ci = ref(null)
+function takeDraft() { if (state.consoleDraft) { cmd.value = state.consoleDraft; state.consoleDraft = ''; nextTick(() => ci.value?.focus()) } }
+onMounted(takeDraft)
+watch(() => state.consoleDraft, takeDraft)
 function onScroll() {
   const b = box.value
   auto.value = b.scrollHeight - b.scrollTop - b.clientHeight < 40
@@ -45,7 +50,7 @@ defineExpose({ setCmd: (c) => (cmd.value = c) })
       <div v-for="l in lines" :key="l.id" class="ln" :class="cls(l)"><span class="t">{{ fmt(l.time) }}</span><span class="m">{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span></div>
     </div>
     <div class="row">
-      <label class="in"><span class="p">&gt;</span><CmdInput v-model="cmd" drop-up placeholder="Send G-code… (type to search commands, ↑↓ history)" aria-label="G-code command" input-class="cin" @keydown="key" @enter="send" /></label>
+      <label class="in"><span class="p">&gt;</span><CmdInput ref="ci" v-model="cmd" drop-up placeholder="Send G-code… (type to search commands, ↑↓ history)" aria-label="G-code command" input-class="cin" @keydown="key" @enter="send" /></label>
       <button class="btn acc ibtn" aria-label="Send" @click="send"><Icon name="send" :stroke="2.4" /></button>
     </div>
   </div>

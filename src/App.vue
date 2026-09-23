@@ -9,8 +9,13 @@ import Icon from './components/Icon.vue'
 import UpdateModal from './components/UpdateModal.vue'
 import Tooltip from './components/Tooltip.vue'
 import Dashboard from './views/Dashboard.vue'
-import { state, gcode, VERSION, activeTasks, APP_NAME } from './store'
-import { route } from './router'
+import Spotlight from './components/Spotlight.vue'
+import MachineDialogs from './components/MachineDialogs.vue'
+import { initFeatures } from './features'
+import { nextTick } from 'vue'
+initFeatures()
+import { state, gcode, VERSION, activeTasks, APP_NAME, closeToast } from './store'
+import { route, go } from './router'
 import { api } from './api/moonraker'
 
 const LOADERS = {
@@ -21,6 +26,7 @@ const LOADERS = {
   viewer: ['G-code Viewer', () => import('./views/Viewer.vue')],
   history: ['History', () => import('./views/History.vue')],
   machine: ['Machine', () => import('./views/Machine.vue')],
+  health: ['Health', () => import('./views/Health.vue')],
   quick: ['Quick Config', () => import('./views/QuickConfig.vue')],
   theme: ['Theme', () => import('./views/Theme.vue')],
   config: ['Editor', () => import('./views/ConfigEditor.vue')],
@@ -39,6 +45,16 @@ watch(() => state.booted, (b) => {
     setTimeout(() => import('gcode-preview').catch(() => {}), 6000)
   })
 }, { immediate: true })
+// scroll to a section after navigating (settings found through Ctrl+K)
+watch([() => state.anchor, () => route.name], async () => {
+  const a = state.anchor
+  if (!a || a.startsWith('file:')) return
+  for (let i = 0; i < 20; i++) {
+    await new Promise((r) => setTimeout(r, 100))
+    const el = document.getElementById(a)
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1800); state.anchor = ''; return }
+  }
+})
 const view = computed(() => VIEWS[route.name] || Dashboard)
 const showExclude = ref(false)
 const navOpen = ref(false)
@@ -75,12 +91,24 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
         </footer>
       </main>
     </div>
+    <MachineDialogs />
+    <Spotlight />
     <ExcludeModal v-if="state.showExclude" @close="state.showExclude = false" />
     <UpdateModal />
     <Transition name="fade"><div v-if="state.connected && !state.booted" class="bootpill"><Icon name="refresh" :size="15" class="spin" /><span>{{ bootTask }}</span></div></Transition>
     <Tooltip />
     <div class="toasts">
-      <div v-for="t in state.toasts" :key="t.id" class="toast" :class="t.kind">{{ t.msg }}</div>
+      <TransitionGroup name="tst">
+        <div v-for="t in state.toasts" :key="t.id" class="toast" :class="t.kind">
+          <Icon v-if="t.kind === 'error'" name="warn" :size="18" class="ti" />
+          <div class="col grow" style="gap:3px;min-width:0">
+            <span class="tm">{{ t.msg }}<b v-if="t.n > 1" class="mono tn">×{{ t.n }}</b></span>
+            <span v-if="t.hint" class="th">{{ t.hint }}</span>
+            <button v-if="t.console" class="tl" @click="closeToast(t.id); go('console')">Open console</button>
+          </div>
+          <button class="tx" aria-label="Dismiss" @click="closeToast(t.id)"><Icon name="x" :size="14" /></button>
+        </div>
+      </TransitionGroup>
     </div>
   </div>
 </template>
@@ -104,7 +132,16 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
 .fade-leave-active { transition: opacity .3s; }
 .fade-leave-to { opacity: 0; }
 .toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 200; }
-.toast { padding: 12px 16px; background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; font-weight: 600; max-width: 420px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
-.toast.error { border-color: var(--dg); }
+.toast { display: flex; align-items: flex-start; gap: 10px; padding: 12px 12px 12px 16px; background: var(--s2); border: 1px solid var(--bd); border-radius: 12px; font-weight: 600; width: 400px; max-width: calc(100vw - 40px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.toast.error { border-color: rgba(240,106,106,.55); background: #2a1f21; }
+.ti { color: var(--dg); flex-shrink: 0; margin-top: 1px; }
+.tm { word-break: break-word; }
+.tn { margin-left: 8px; font-size: 11px; color: var(--mu); }
+.th { font-weight: 400; font-size: 12.5px; color: var(--mu); line-height: 1.45; }
+.tl { align-self: flex-start; background: none; border: none; padding: 0; color: var(--heat); font-size: 12px; font-weight: 600; }
+.tx { background: none; border: none; color: var(--mu); padding: 2px; flex-shrink: 0; }
+.tx:hover { color: var(--tx); }
+.tst-enter-active, .tst-leave-active { transition: all .2s; }
+.tst-enter-from, .tst-leave-to { opacity: 0; transform: translateX(20px); }
 @media (max-width: 1100px) { .main { padding: 10px; } }
 </style>

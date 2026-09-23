@@ -1,7 +1,7 @@
 import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 
-export const VERSION = '0.5.3'
+export const VERSION = '0.6.0'
 export const APP = 'oznlab_klipperui'
 export const APP_NAME = 'OznLab Klipper UI'
 export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'
@@ -66,6 +66,14 @@ export const DEFAULT_SETTINGS = () => ({
   printerName: '',
   customCards: {},
   layoutBackups: [],
+  // layout used while printing (null = same as idle until edited)
+  autoLayout: false,
+  layoutPrint: null,
+  hiddenCardsPrint: [],
+  sound: { enabled: false, volume: 0.6, complete: true, error: true, paused: true, heated: false },
+  errorToasts: true,
+  maintenance: null, // filled with defaults on first visit of the Health page
+  heaterBase: {}, // { extruder: { target, power, t } } power needed to hold a temperature, learned
 })
 
 export const DEFAULT_LAYOUT = () => [
@@ -77,7 +85,7 @@ export const DEFAULT_LAYOUT = () => [
   { i: 'extruder', x: 0, y: 26, w: 6, h: 7 },
   { i: 'limits', x: 6, y: 26, w: 6, h: 7 },
 ]
-export const LAYOUT_KEYS = ['layout', 'hiddenCards', 'strip', 'customCards']
+export const LAYOUT_KEYS = ['layout', 'hiddenCards', 'strip', 'customCards', 'layoutPrint', 'hiddenCardsPrint', 'autoLayout']
 export function layoutSnapshot() {
   const o = {}
   for (const k of LAYOUT_KEYS) o[k] = JSON.parse(JSON.stringify(state.settings[k] ?? null))
@@ -118,6 +126,12 @@ export const state = reactive({
   conn: { attempts: 0, since: 0, probe: '' },
   tasks: [],
   booted: false,
+  prompt: null, // action:prompt dialog from macros
+  queue: { state: '', jobs: [], enabled: null },
+  spotlight: false,
+  consoleDraft: '',
+  jump: null, // { file, line } for the config editor
+  anchor: '', // element id to scroll to after navigation
 })
 
 // local copies so the dashboard can be drawn before moonraker answers
@@ -170,11 +184,18 @@ export function fmtDate(ts) {
   const d = new Date(ts * 1000)
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
-export function toast(msg, kind = 'info') {
+export function toast(msg, kind = 'info', opts = {}) {
+  // same message twice within a few seconds (e.g. rpc error + "!!" echo) shows once
+  const now = Date.now()
+  const dup = state.toasts.find((t) => t.msg === msg)
+  if (dup) { dup.n = (dup.n || 1) + 1; return }
   const id = Math.random().toString(36).slice(2)
-  state.toasts.push({ id, msg, kind })
-  setTimeout(() => { state.toasts = state.toasts.filter((t) => t.id !== id) }, kind === 'error' ? 7000 : 3500)
+  state.toasts.push({ id, msg, kind, t: now, ...opts })
+  if (state.toasts.length > 4) state.toasts.splice(0, state.toasts.length - 4)
+  const ms = opts.ms ?? (kind === 'error' ? 9000 : 3500)
+  if (ms) setTimeout(() => closeToast(id), ms)
 }
+export function closeToast(id) { state.toasts = state.toasts.filter((t) => t.id !== id) }
 
 // ---------- computed ----------
 export const S = (name) => state.status[name] || {}

@@ -18,7 +18,8 @@ import ObjectsCard from '../components/ObjectsCard.vue'
 import MiniMeshCard from '../components/MiniMeshCard.vue'
 import SystemLoads from '../components/SystemLoads.vue'
 import CustomCard from '../components/CustomCard.vue'
-import { state, DEFAULT_LAYOUT, DEFAULT_SETTINGS, layoutSnapshot, pushLayoutBackup, restoreLayout } from '../store'
+import QueueCard from '../components/QueueCard.vue'
+import { state, isPrinting, DEFAULT_LAYOUT, DEFAULT_SETTINGS, layoutSnapshot, pushLayoutBackup, restoreLayout } from '../store'
 import { ICON_NAMES } from '../icons'
 
 const MODULES = {
@@ -33,6 +34,7 @@ const MODULES = {
   objects: { c: ObjectsCard, n: 'Objects Map', min: [3, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
   system: { c: SystemLoads, n: 'System Loads', min: [4, 4], def: [6, 6] },
+  queue: { c: QueueCard, n: 'Job Queue', min: [3, 4], def: [4, 6] },
 }
 const isCustom = (i) => i.startsWith('c_')
 const minOf = (i) => (isCustom(i) ? (state.settings.customCards?.[i]?.type === 'btn' ? [1, 2] : [2, 3]) : MODULES[i]?.min || [2, 2])
@@ -44,29 +46,36 @@ onMounted(() => window.addEventListener('resize', onResize))
 onBeforeUnmount(() => window.removeEventListener('resize', onResize))
 const wide = computed(() => width.value > 1000)
 
+// two layouts: normal and while printing (optional). In Customize both can be edited.
+const editMode = ref('idle')
+const mode = computed(() => state.editDash ? (state.settings.autoLayout ? editMode.value : 'idle') : (state.settings.autoLayout && isPrinting.value ? 'print' : 'idle'))
+const LK = () => (mode.value === 'print' ? 'layoutPrint' : 'layout')
+const HK = () => (mode.value === 'print' ? 'hiddenCardsPrint' : 'hiddenCards')
+const srcLayout = () => (mode.value === 'print' ? state.settings.layoutPrint || state.settings.layout : state.settings.layout) || DEFAULT_LAYOUT()
 function clean(l) {
-  const hidden = state.settings.hiddenCards || []
+  const hidden = state.settings[HK()] || []
   const seen = new Set()
   const ok = (i) => MODULES[i] || (isCustom(i) && state.settings.customCards?.[i])
   const out = (l || []).filter((x) => ok(x.i) && !seen.has(x.i) && seen.add(x.i)).map(({ i, x, y, w, h }) => ({ i, x, y, w, h }))
   for (const d of DEFAULT_LAYOUT()) if (!seen.has(d.i) && !hidden.includes(d.i)) out.push({ ...d, y: 999 })
   return out
 }
-const layout = ref(clean(state.settings.layout || DEFAULT_LAYOUT()))
-function reload() { layout.value = clean(state.settings.layout || DEFAULT_LAYOUT()) }
+const layout = ref(clean(srcLayout()))
+function reload() { layout.value = clean(srcLayout()) }
+watch(mode, reload)
 watch(() => state.settingsLoaded, (v) => v && reload())
 const sorted = computed(() => [...layout.value].sort((a, b) => a.y - b.y || a.x - b.x))
-function persist() { state.settings.layout = layout.value.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })) }
+function persist() { state.settings[LK()] = layout.value.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })) }
 const bottom = () => Math.max(0, ...layout.value.map((x) => x.y + x.h))
 function removeCard(i) {
-  if (MODULES[i] && DEFAULT_LAYOUT().some((d) => d.i === i)) state.settings.hiddenCards = [...new Set([...(state.settings.hiddenCards || []), i])]
+  if (MODULES[i] && DEFAULT_LAYOUT().some((d) => d.i === i)) state.settings[HK()] = [...new Set([...(state.settings[HK()] || []), i])]
   layout.value = layout.value.filter((x) => x.i !== i)
   if (isCustom(i)) { const cc = { ...state.settings.customCards }; delete cc[i]; state.settings.customCards = cc }
   persist()
 }
 const available = computed(() => Object.keys(MODULES).filter((k) => !layout.value.some((x) => x.i === k)))
 function addModule(k) {
-  state.settings.hiddenCards = (state.settings.hiddenCards || []).filter((x) => x !== k)
+  state.settings[HK()] = (state.settings[HK()] || []).filter((x) => x !== k)
   const [w, h] = MODULES[k].def
   layout.value = [...layout.value, { i: k, x: 0, y: bottom(), w, h }]
   persist(); addOpen.value = false
@@ -96,7 +105,7 @@ function undoSession() { if (entry) { restoreLayout(entry); reload() } }
 function factoryReset() {
   pushLayoutBackup(layoutSnapshot(), 'Before reset')
   const d = DEFAULT_SETTINGS()
-  restoreLayout({ layout: null, hiddenCards: [], strip: d.strip, customCards: {} })
+  restoreLayout({ layout: null, hiddenCards: [], strip: d.strip, customCards: {}, layoutPrint: null, hiddenCardsPrint: [], autoLayout: state.settings.autoLayout })
   reload(); persist(); askReset.value = false
 }
 function restore(b) {
@@ -120,6 +129,11 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
       <template v-if="state.editDash">
         <Icon name="move" :size="18" style="color:var(--ac)" />
         <b>Customize</b>
+        <label class="row al" title="Use a separate layout while a print is running"><Toggle v-model="state.settings.autoLayout" label="Separate layout while printing" /><span>While printing</span></label>
+        <div v-if="state.settings.autoLayout" class="seg" role="tablist" aria-label="Layout to edit">
+          <button :class="{ on: editMode === 'idle' }" @click="persist(); editMode = 'idle'">Idle</button>
+          <button :class="{ on: editMode === 'print' }" @click="persist(); editMode = 'print'">Printing</button>
+        </div>
         <span class="mu hint">Drag by title, resize from the corner. Top cards: drag to reorder, eye to hide.</span>
         <div class="grow"></div>
         <div class="rel">
@@ -211,7 +225,8 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .cz:hover { color: var(--ac); }
 .dbar.on { padding: 10px 14px; background: var(--s1); border: 1px solid var(--ac); border-radius: 12px; position: sticky; top: -20px; z-index: 20; }
 .mu { color: var(--mu); font-size: 13px; }
-@media (max-width: 1500px) { .hint { display: none; } }
+.al { gap: 8px; font-size: 13px; color: var(--mu); margin-left: 10px; cursor: pointer; }
+@media (max-width: 1900px) { .hint { display: none; } }
 .rel { position: relative; }
 .dd { position: absolute; right: 0; top: 40px; width: 240px; z-index: 40; gap: 2px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
 .di { justify-content: flex-start; height: 36px; color: var(--tx); }

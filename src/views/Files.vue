@@ -2,6 +2,8 @@
 import { ref, computed, onMounted } from 'vue'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
+import QueueCard from '../components/QueueCard.vue'
+import { queueApi } from '../features'
 import { state, fmtTime, fmtBytes, fmtDate, toast, isPrinting, gcode, useApiEvent } from '../store'
 import { api } from '../api/moonraker'
 const path = ref('gcodes')
@@ -30,7 +32,17 @@ async function load() {
   } catch (e) { toast(e.message, 'error') }
   loading.value = false
 }
-onMounted(load)
+onMounted(() => {
+  // opened from Ctrl+K search: jump to the file
+  if (state.anchor?.startsWith('file:')) {
+    const f = state.anchor.slice(5); state.anchor = ''
+    const dir = f.split('/').slice(0, -1).join('/')
+    if (dir) path.value = 'gcodes/' + dir
+    q.value = f.split('/').pop(); sel.value = q.value
+  }
+  load()
+})
+const addQ = (fs) => queueApi.add(fs.map(rel)).catch((e) => toast(e.message, 'error'))
 let rt
 useApiEvent('notify_filelist_changed', ([p]) => { if (p?.item?.root !== 'gcodes') return; clearTimeout(rt); rt = setTimeout(load, 300) })
 const rel = (f) => (path.value === 'gcodes' ? '' : path.value.slice(7) + '/') + f.filename
@@ -80,12 +92,14 @@ async function mkdir() {
 function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfer.files, value: '' } }) }
 </script>
 <template>
-  <section class="card" style="flex:1" @dragover.prevent @drop="onDrop">
+  <div class="split">
+  <section class="card grow" style="flex:1 1 auto" @dragover.prevent @drop="onDrop">
     <div class="row" style="gap:10px;flex-wrap:wrap">
       <button class="btn clear" :disabled="path === 'gcodes'" @click="upDir"><Icon name="left" :size="16" /></button>
       <b class="mono">{{ path }} /</b>
       <div class="grow"></div>
       <label class="row input" style="width:280px"><Icon name="search" :size="16" /><input v-model="q" placeholder="Search files" aria-label="Search files" style="flex:1;background:transparent;border:none;outline:none" /></label>
+      <button v-if="picked.size && state.queue.enabled" class="btn" style="height:40px" @click="addQ(list.filter((f) => picked.has(f.filename)))"><Icon name="queue" :size="16" />Queue ({{ picked.size }})</button>
       <button v-if="picked.size" class="btn dg" style="height:40px" @click="del = list.filter((f) => picked.has(f.filename))"><Icon name="trash" :size="16" />Delete ({{ picked.size }})</button>
       <button class="btn" style="height:40px" @click="newDir = ''"><Icon name="folder" :size="16" />New folder</button>
       <button class="btn ibtn" style="width:40px;height:40px" aria-label="Refresh" @click="load"><Icon name="refresh" :size="18" /></button>
@@ -98,7 +112,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
           <th style="width:36px"><input type="checkbox" class="cb" :checked="allPicked" aria-label="Select all" @change="toggleAll" /></th>
           <th style="width:60px"></th>
           <th class="s" @click="sortBy('filename')">Name</th><th class="s" @click="sortBy('size')">Size</th><th class="s" @click="sortBy('estimated_time')">Print time</th>
-          <th class="s" @click="sortBy('filament_total')">Filament</th><th>Layer</th><th class="s" @click="sortBy('modified')">Modified</th><th style="width:150px"></th>
+          <th class="s" @click="sortBy('filament_total')">Filament</th><th>Layer</th><th class="s" @click="sortBy('modified')">Modified</th><th style="width:190px"></th>
         </tr></thead>
         <tbody>
           <tr v-for="d in dirs" :key="'d' + d.dirname" class="click" @click="open(d)">
@@ -115,6 +129,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
             <td class="mono mu">{{ fmtDate(f.modified) }}</td>
             <td><div class="row" style="gap:6px">
               <button class="btn acc ibtn sm" aria-label="Print" :disabled="isPrinting" @click.stop="print(f)"><Icon name="play" :size="16" :stroke="2.4" /></button>
+              <button v-if="state.queue.enabled" class="btn ibtn sm" aria-label="Add to queue" title="Add to queue" @click.stop="addQ([f])"><Icon name="queue" :size="16" /></button>
               <button class="btn ibtn sm" aria-label="Preheat" @click.stop="preheat(f)"><Icon name="flame" :size="16" /></button>
               <a class="btn ibtn sm" aria-label="Download" :href="api.url(`/server/files/${path}/${f.filename}`)" download @click.stop><Icon name="download" :size="16" /></a>
               <button class="btn ibtn sm" aria-label="Delete" @click.stop="del = [f]"><Icon name="trash" :size="16" /></button>
@@ -126,6 +141,8 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
     </div>
     <div class="row mono mu" style="justify-content:space-between;font-size:12px"><span>{{ list.length }} files · {{ dirs.length }} folders</span><span v-if="disk">Disk: {{ fmtBytes(disk.free) }} free of {{ fmtBytes(disk.total) }}</span></div>
   </section>
+  <div class="side-col"><QueueCard /></div>
+  </div>
   <Modal v-if="del" :title="del.length > 1 ? `Delete ${del.length} files?` : 'Delete file?'" @close="del = null">
     <div class="mono" style="max-height:220px;overflow:auto;font-size:12px"><div v-for="f in del" :key="f.filename">{{ f.filename }}</div></div>
     <template #foot><button class="btn lg" @click="del = null">Cancel</button><button class="btn lg dgf" @click="doDelete">Delete</button></template>

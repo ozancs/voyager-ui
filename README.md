@@ -12,6 +12,13 @@ Status: early and tested on one printer (CoreXY, Raspberry Pi 4, Klipper + Moonr
 - console, webcam, 3d heightmap, g-code viewer, file manager, print history
 - config editor with search, and a backup copy is made before every save
 - machine page with system load and update manager
+- health page: MCU and CAN link errors, heater power and stability, TMC driver flags, host throttling
+- maintenance reminders based on print hours, with a due date estimated from recent printing
+- search everything with Ctrl+K: pages, macros, commands, g-code files, settings and config options (opens the file at the line)
+- dialogs for macro prompts (`action:prompt_*`), manual probe (PROBE_CALIBRATE and friends), BED_SCREWS_ADJUST and SCREWS_TILT_CALCULATE
+- job queue panel next to the file list
+- optional separate dashboard layout while printing
+- Klipper errors as pop-ups with a short hint, optional sounds for print finished, paused and errors
 - settings are stored in the Moonraker database and can be exported as a file
 
 ## Requirements

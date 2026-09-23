@@ -34,6 +34,7 @@ const label = computed(() => {
 const savePending = computed(() => S('configfile').save_config_pending)
 const active = computed(() => ['printing', 'paused'].includes(printState.value))
 const hostName = location.host
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform)
 
 async function onFile(e) {
   const f = e.target.files[0]
@@ -95,11 +96,13 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
         <button class="btn dg pbtn" aria-label="Cancel print" @click="askCancel = true"><Icon name="sq" :size="16" :stroke="2.4" /></button>
         <button class="btn out pbtn" aria-label="Exclude object" :disabled="!eo.objects?.length" @click="emit('exclude')"><Icon name="excl" :size="16" :stroke="2.4" /><span v-if="eo.objects?.length" class="mono" style="font-size:11px">{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span></button>
       </template>
-      <template v-else>
+      <button v-if="state.queue.jobs?.length" class="btn pbtn qb" :title="state.queue.jobs.length + ' jobs queued'" @click="go('files')"><Icon name="queue" :size="16" /><span class="mono">{{ state.queue.jobs.length }}</span></button>
+      <template v-if="!active">
         <div class="grow"></div>
         <button v-if="S('print_stats').filename && state.klippy === 'ready'" class="btn pbtn" aria-label="Print this file again" @click="reprint"><Icon name="refresh" :size="16" :stroke="2.4" /><span class="hide-m">Reprint</span></button>
       </template>
     </div>
+    <button class="btn lg srch hide-s" aria-label="Search (Ctrl+K)" @click="state.spotlight = true"><Icon name="search" :size="18" :stroke="2.4" /><kbd class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd></button>
     <button class="btn lg hide-s" :class="{ acc: savePending }" :disabled="!savePending" aria-label="Save Config" @click="gcode('SAVE_CONFIG')"><Icon name="save" :stroke="2.4" /><span class="hide-m">Save Config</span></button>
     <button class="btn lg acc hide-s" aria-label="Upload & Print" :disabled="uploading !== null" @click="fileInput.click()"><Icon name="upload" :stroke="2.4" /><span v-if="uploading !== null">{{ Math.round(uploading * 100) + '%' }}</span><span v-else class="hide-m">Upload &amp; Print</span></button>
     <input ref="fileInput" type="file" accept=".gcode,.g,.gco,.ufp,.nc" hidden @change="onFile" />
@@ -135,6 +138,9 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
 .brand { display: flex; align-items: center; gap: 12px; width: 212px; flex-shrink: 0; color: var(--tx); text-decoration: none; }
 .brand b { font-size: 18px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
 .logo { width: 40px; height: 40px; border-radius: 10px; background: var(--ac); color: var(--oa); display: flex; align-items: center; justify-content: center; }
+.srch { gap: 10px; color: var(--mu); }
+.srch kbd { font-family: var(--fm); font-size: 11px; background: var(--s3); padding: 2px 6px; border-radius: 5px; }
+.qb { color: var(--cool); }
 .pill { flex: 1; display: flex; align-items: center; gap: 12px; padding: 0 6px 0 5px; height: 52px; background: var(--s1); border: none; border-radius: 14px; min-width: 0; }
 .pth { width: 42px; height: 42px; flex-shrink: 0; border-radius: 10px; background: var(--s2); display: flex; align-items: center; justify-content: center; color: var(--mu); overflow: hidden; }
 .pth img { width: 100%; height: 100%; object-fit: contain; }
