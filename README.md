@@ -28,7 +28,7 @@ Run on the printer host over SSH:
 curl -fsSL https://raw.githubusercontent.com/ozancs/oznlab_klipperui/main/install.sh | bash
 ```
 
-Then open `http://<printer-host>:8000`. Mainsail or Fluidd keeps working on port 80.
+Then open `http://<printer-host>:8000`. Mainsail or Fluidd keeps working on port 80. If port 8000 is taken, the installer says what is using it and offers the next free port. Updates keep the port you picked.
 
 To use another port:
 

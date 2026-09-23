@@ -4,7 +4,9 @@
 #   curl -fsSL https://raw.githubusercontent.com/ozancs/oznlab_klipperui/main/install.sh | bash
 #
 # Options (pass after "bash -s --" when piping, or directly when running the file):
-#   --port 8000        port for the web UI (default 8000, Mainsail stays on 80)
+#   --port 8000        port for the web UI (default 8000, Mainsail stays on 80).
+#                      If it is taken the installer offers the next free port.
+#                      Updates keep the port of the existing install.
 #   --zip FILE         install from a local zip instead of downloading the latest release
 #   --no-updater       do not add the [update_manager] section to moonraker.conf
 #   --uninstall        remove the UI, its nginx site and the update_manager section
@@ -17,17 +19,19 @@ SITE="/etc/nginx/sites-available/$NAME"
 CONF_DIR="$HOME/printer_data/config"
 MR_CONF="$CONF_DIR/moonraker.conf"
 PORT=8000
+PORT_SET=0
+OLD_PORT=""
 ZIP=""
 UPDATER=1
 UNINSTALL=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --port) PORT="$2"; shift 2 ;;
+    --port) PORT="$2"; PORT_SET=1; shift 2 ;;
     --zip) ZIP="$2"; shift 2 ;;
     --no-updater) UPDATER=0; shift ;;
     --uninstall) UNINSTALL=1; shift ;;
-    [0-9]*) PORT="$1"; shift ;;          # old style: install.sh 8000 [zip]
+    [0-9]*) PORT="$1"; PORT_SET=1; shift ;;          # old style: install.sh 8000 [zip]
     *.zip) ZIP="$1"; shift ;;
     *) echo "unknown option: $1"; exit 1 ;;
   esac
@@ -44,6 +48,7 @@ remove_old_carbon() {
   # earlier builds of this UI were called carbon-ui
   if [ -e /etc/nginx/sites-enabled/carbon-ui ] || [ -e /etc/nginx/sites-available/carbon-ui ]; then
     say "removing old carbon-ui nginx site"
+    OLD_PORT="$(grep -m1 -oE 'listen [0-9]+' /etc/nginx/sites-available/carbon-ui 2>/dev/null | grep -oE '[0-9]+')"
     sudo rm -f /etc/nginx/sites-enabled/carbon-ui /etc/nginx/sites-available/carbon-ui
   fi
   [ -d "$HOME/carbon-ui" ] && { rm -rf "$HOME/carbon-ui"; say "removed ~/carbon-ui"; }
@@ -80,9 +85,43 @@ command -v python3 >/dev/null || { echo "python3 not found"; exit 1; }
 
 remove_old_carbon
 
-if [ ! -f "$SITE" ] && ss -ltn 2>/dev/null | awk '{print $4}' | grep -qE "[:.]$PORT\$"; then
-  echo "Port $PORT is already in use. Try: --port 8001"; exit 1
-fi
+# ---- port ----
+# on an update keep the port we used last time
+OWN_PORT=""
+[ -f "$SITE" ] && OWN_PORT="$(grep -m1 -oE 'listen [0-9]+' "$SITE" | grep -oE '[0-9]+')"
+[ -z "$OWN_PORT" ] && OWN_PORT="$OLD_PORT"   # carbon-ui's port is freed when nginx reloads
+[ "$PORT_SET" = 0 ] && [ -n "$OWN_PORT" ] && PORT="$OWN_PORT"
+
+port_used() {  # is something other than us listening on $1?
+  [ "$1" = "$OWN_PORT" ] && return 1
+  if command -v ss >/dev/null; then
+    ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "[:.]$1\$"
+  else
+    ! python3 -c "import socket,sys; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('', int(sys.argv[1])))" "$1" 2>/dev/null
+  fi
+}
+port_owner() { sudo -n ss -ltnpH 2>/dev/null | awk -v p="$1" '$4 ~ "[:.]"p"$"' | grep -oE '"[^"]+"' | head -1 | tr -d '"'; }
+free_port_from() { local p=$1; while [ $p -lt 65535 ] && port_used $p; do p=$((p+1)); done; echo $p; }
+valid_port() { [[ "$1" =~ ^[0-9]+$ ]] && [ "$1" -ge 1 ] && [ "$1" -le 65535 ]; }
+
+valid_port "$PORT" || { echo "invalid port: $PORT"; exit 1; }
+while port_used "$PORT"; do
+  who="$(port_owner "$PORT")"
+  SUGGEST="$(free_port_from $((PORT+1)))"
+  echo "Port $PORT is already in use${who:+ by $who}."
+  if (: < /dev/tty > /dev/tty) 2>/dev/null; then
+    # works even when the script comes through "curl | bash"
+    printf "Use port %s instead? Press Enter to accept or type another port: " "$SUGGEST" > /dev/tty
+    read -r ans < /dev/tty || ans=""
+    if [ -z "$ans" ]; then PORT="$SUGGEST"
+    elif valid_port "$ans"; then PORT="$ans"
+    else echo "invalid port: $ans"
+    fi
+  else
+    PORT="$SUGGEST"
+    echo "Using free port $PORT instead."
+  fi
+done
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
