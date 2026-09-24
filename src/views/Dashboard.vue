@@ -41,7 +41,7 @@ const MODULES = {
   print: { c: PrintCard, n: 'Print Status', min: [5, 3], def: [12, 3] },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [3, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
-  system: { c: SystemLoads, n: 'System Loads', min: [4, 4], def: [6, 6] },
+  system: { c: SystemLoads, n: 'System Loads', min: [3, 3], def: [6, 4] },
   queue: { c: QueueCard, n: 'Job Queue', min: [3, 4], def: [4, 6] },
   macros: { c: MacrosCard, n: 'Macros', min: [2, 3], def: [6, 4], opts: true },
   devices: { c: DevicesCard, n: 'Devices (fans, pins, LEDs)', min: [3, 4], def: [6, 7] },

@@ -50,37 +50,39 @@ const nets = computed(() => {
   }).filter((x) => x.rx || x.tx)
 })
 const cpu = computed(() => sys.value?.cpu_info || {})
+const details = ref(false)
+// one small tile per MCU plus CPU and memory of the host
+const tiles = computed(() => [
+  ...mcus.value.map((m) => ({ k: m.name, name: m.name === 'mcu' ? 'MCU' : m.name.slice(4), sub: m.temp != null ? m.temp.toFixed(0) + '°C' : m.chip, v: m.load * 100, color: 'var(--ac)', tip: [m.chip, m.version, m.freq && m.freq + ' MHz'].filter(Boolean).join('\n') })),
+  { k: 'cpu', name: t('CPU'), sub: proc.value?.cpu_temp != null ? proc.value.cpu_temp.toFixed(0) + '°C' : cpu.value.processor || '', v: cpuPct.value, color: 'var(--cool)', tip: [cpu.value.model, sys.value?.distribution?.name].filter(Boolean).join('\n') },
+  { k: 'mem', name: t('MEM'), sub: mem.value ? fmtBytes(mem.value.used * 1024) : '', v: memPct.value, color: 'var(--sense)', tip: mem.value ? fmtBytes(mem.value.used * 1024) + ' / ' + fmtBytes(mem.value.total * 1024) : '' },
+])
 </script>
 <template>
   <section class="card">
-    <div class="card-h"><h2 class="row"><Icon name="cpu" :size="18" />{{ t('System Loads') }}</h2></div>
-    <div v-for="m in mcus" :key="m.name" class="it">
-      <div class="grow col" style="gap:2px;min-width:0">
-        <div><b>{{ m.name }}</b> <span class="mu sm" v-if="m.chip">({{ m.chip }})</span></div>
-        <span class="sm">{{ t('Version: {v}', { v: m.version }) }}</span>
-        <span class="sm">{{ t('Load: {l}, Awake: {a}', { l: m.load.toFixed(2), a: m.awake.toFixed(2) }) }}<template v-if="m.freq">, {{ t('Freq: {f} MHz', { f: m.freq }) }}</template><template v-if="m.temp != null">, {{ t('Temp: {n}°C', { n: m.temp.toFixed(0) }) }}</template></span>
+    <div class="card-h"><h2 class="row"><Icon name="cpu" :size="18" />{{ t('System Loads') }}</h2><button class="btn clear sm2" @click="details = !details">{{ details ? t('Less') : t('Details') }}</button></div>
+    <div class="tiles">
+      <div v-for="x in tiles" :key="x.k" class="tl" :data-tip="x.tip">
+        <Donut :value="x.v" :color="x.color" :size="54" />
+        <b class="nm">{{ x.name }}</b>
+        <span class="sub mono">{{ x.sub }}</span>
       </div>
-      <Donut :value="m.load * 100" />
     </div>
-    <div class="it">
-      <div class="grow col" style="gap:2px;min-width:0">
-        <div><b>{{ t('Host') }}</b> <span class="mu sm">({{ cpu.processor || '?' }}, {{ cpu.bits || '' }})</span></div>
-        <span class="sm">{{ t('Version: {v}', { v: state.versions.klipper }) }}</span>
-        <span class="sm" v-if="sys?.distribution">{{ t('OS: {v}', { v: sys.distribution.name }) }}</span>
-        <span class="sm">{{ t('Load: {l}', { l: S('system_stats').sysload?.toFixed(1) ?? '--' }) }}<template v-if="mem">, {{ t('Mem: {used} / {total}', { used: fmtBytes(mem.used * 1024), total: fmtBytes(mem.total * 1024) }) }}</template><template v-if="proc?.cpu_temp != null">, {{ t('Temp: {n}°C', { n: proc.cpu_temp.toFixed(0) }) }}</template></span>
-        <template v-if="!compact">
-          <span v-for="n in nets" :key="n.name" class="sm net">{{ n.name }}<template v-if="n.ip"> ({{ n.ip }})</template>: {{ t('Bandwidth: {bw}/s, Received: {rx}, Transmitted: {tx}', { bw: fmtBytes(n.bw), rx: fmtBytes(n.rx), tx: fmtBytes(n.tx) }) }}</span>
-        </template>
-      </div>
-      <Donut :value="cpuPct" :label="t('CPU')" />
-      <Donut :value="memPct" :label="t('MEM')" color="var(--bl)" />
+    <div v-if="details" class="det">
+      <div v-for="m in mcus" :key="m.name" class="sm"><b>{{ m.name }}</b> <span class="mu">{{ m.chip }}</span> · {{ m.version }}<template v-if="m.freq"> · {{ m.freq }} MHz</template> · {{ t('Load: {l}, Awake: {a}', { l: m.load.toFixed(2), a: m.awake.toFixed(2) }) }}</div>
+      <div class="sm"><b>{{ t('Host') }}</b> <span class="mu">{{ cpu.processor }} {{ cpu.bits }}</span><template v-if="sys?.distribution"> · {{ sys.distribution.name }}</template> · Klipper {{ state.versions.klipper }} · {{ t('Load: {l}', { l: S('system_stats').sysload?.toFixed(1) ?? '--' }) }}</div>
+      <div v-for="n in nets" :key="n.name" class="sm mu net">{{ n.name }}<template v-if="n.ip"> ({{ n.ip }})</template>: {{ t('Bandwidth: {bw}/s, Received: {rx}, Transmitted: {tx}', { bw: fmtBytes(n.bw), rx: fmtBytes(n.rx), tx: fmtBytes(n.tx) }) }}</div>
     </div>
   </section>
 </template>
 <style scoped>
-.it { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--bd); }
-.sm { font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.tl { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px 10px; border-radius: 12px; background: var(--s2); min-width: 0; }
+.nm { font-size: 13px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub { font-size: 11.5px; color: var(--mu); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.det { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--bd); overflow: auto; min-height: 0; }
+.sm { font-size: 12.5px; line-height: 1.5; }
+.sm2 { height: 30px; font-size: 12.5px; }
 .mu { color: var(--mu); }
 .net { word-break: break-word; }
-b { font-size: 14px; }
 </style>

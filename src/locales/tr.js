@@ -810,5 +810,6 @@ export default {
  "Card color": "Kart rengi",
  "No color": "Renksiz",
  "Custom color": "Özel renk",
- "Default": "Varsayılan"
+ "Default": "Varsayılan",
+ "Less": "Daha az"
 }
