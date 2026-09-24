@@ -263,7 +263,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
 .ring .rt { stroke: var(--s3); }
 .ring .rv { stroke-linecap: round; transition: stroke-dashoffset .4s; }
 @media (max-width: 1100px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
-.big { width: 52px; height: 52px; border-radius: 14px; background: rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; }
+.big { width: 52px; height: 52px; border-radius: 14px; background: var(--shade); display: flex; align-items: center; justify-content: center; }
 .iss { display: flex; flex-direction: column; gap: 6px; }
 .is { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
 .d { width: 8px; height: 8px; border-radius: 4px; flex-shrink: 0; display: inline-block; }

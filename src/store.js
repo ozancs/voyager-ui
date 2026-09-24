@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.8.2'
+export const VERSION = '0.8.3'
 export const APP = 'oznlab_klipperui'
 export const APP_NAME = 'OznLab Klipper UI'
 export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'
@@ -68,6 +68,7 @@ export const DEFAULT_SETTINGS = () => ({
   customCards: {},
   layoutBackups: [],
   // layout used while printing (null = same as idle until edited)
+  theme: 'dark', // dark | light | auto
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
   layoutPrint: null,
@@ -451,6 +452,16 @@ async function loadSettings() {
 }
 watch(() => state.settings, () => { if (state.settingsLoaded) saveSettings() }, { deep: true })
 watch(() => state.settings.lang, (l) => { if (l) setLang(l) })
+// light / dark: 'auto' follows the operating system
+const mqDark = window.matchMedia?.('(prefers-color-scheme: dark)')
+function applyTheme() {
+  const pref = state.settings.theme || 'dark'
+  const mode = pref === 'auto' ? (mqDark?.matches === false ? 'light' : 'dark') : pref
+  document.documentElement.dataset.theme = mode
+  try { localStorage.setItem(APP + '-theme', mode) } catch {}
+}
+watch(() => state.settings.theme, applyTheme, { immediate: true })
+mqDark?.addEventListener?.('change', applyTheme)
 watch(() => state.settings.accent, (a) => document.documentElement.style.setProperty('--ac', a || '#ff6b1a'), { immediate: true })
 
 // ---------- init ----------

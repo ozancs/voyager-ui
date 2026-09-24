@@ -811,5 +811,10 @@ export default {
  "No color": "Renksiz",
  "Custom color": "Özel renk",
  "Default": "Varsayılan",
- "Less": "Daha az"
+ "Less": "Daha az",
+ "Appearance": "Görünüm",
+ "Dark": "Koyu",
+ "Light": "Açık",
+ "Auto": "Otomatik",
+ "Switch light / dark theme": "Açık / koyu temaya geç"
 }

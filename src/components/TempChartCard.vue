@@ -56,7 +56,7 @@ const lines = computed(() => {
     <div class="chart">
       <div class="plot">
         <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" :aria-label="t('Temperature graph')">
-          <line v-for="g in scale.ticks" :key="g" x1="0" :x2="W" :y1="y(g)" :y2="y(g)" stroke="#2e3238" stroke-width="1" vector-effect="non-scaling-stroke" />
+          <line v-for="g in scale.ticks" :key="g" x1="0" :x2="W" :y1="y(g)" :y2="y(g)" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke" />
           <path v-for="l in lines" :key="l.name + 't'" v-show="l.dt" :d="l.dt" fill="none" :stroke="l.color" stroke-width="1" stroke-dasharray="4 4" opacity=".5" vector-effect="non-scaling-stroke" />
           <path v-for="l in lines" :key="l.name" :d="l.d" fill="none" :stroke="l.color" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
         </svg>

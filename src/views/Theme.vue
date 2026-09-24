@@ -65,7 +65,11 @@ function reset() { confirmReset.value = false; apply({ ...DEFAULT_SETTINGS(), la
     </section>
 
     <section id="set-accent" class="card">
-      <div class="card-h"><h2>{{ t('Accent') }}</h2></div>
+      <div class="card-h"><h2>{{ t('Appearance') }}</h2></div>
+      <div class="seg">
+        <button v-for="[k, l, ic] in [['dark', 'Dark', 'moon'], ['light', 'Light', 'sun'], ['auto', 'Auto', 'contrast']]" :key="k" :class="{ on: (state.settings.theme || 'dark') === k }" @click="state.settings.theme = k"><Icon :name="ic" :size="14" style="margin-right:6px;vertical-align:-2px" />{{ t(l) }}</button>
+      </div>
+      <span class="lbl">{{ t('Accent') }}</span>
       <div class="row" style="flex-wrap:wrap;gap:10px">
         <button v-for="c in ACCENTS" :key="c" class="swc" :class="{ on: state.settings.accent === c }" :style="{ background: c }" :aria-label="t('Accent') + ' ' + c" @click="state.settings.accent = c"></button>
         <label class="swc cu" :aria-label="t('Custom accent')"><input v-model="state.settings.accent" type="color" /></label>

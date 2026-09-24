@@ -153,7 +153,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
 .fade-leave-to { opacity: 0; }
 .toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 200; }
 .toast { display: flex; align-items: flex-start; gap: 10px; padding: 12px 12px 12px 16px; background: var(--s2); border: 1px solid var(--bd); border-radius: 12px; font-weight: 600; width: 400px; max-width: calc(100vw - 40px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
-.toast.error { border-color: rgba(240,106,106,.55); background: #2a1f21; }
+.toast.error { border-color: rgba(240,106,106,.55); background: var(--toast-err); }
 .ti { color: var(--dg); flex-shrink: 0; margin-top: 1px; }
 .tm { word-break: break-word; }
 .tn { margin-left: 8px; font-size: 11px; color: var(--mu); }

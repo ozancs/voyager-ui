@@ -180,8 +180,8 @@ textarea::selection { background: rgba(255, 107, 26, .3); color: transparent; }
 .hl :deep(.s) { color: var(--ac); font-weight: 700; }
 .hl :deep(.k) { color: #5aa9ff; }
 .hl :deep(.p) { color: var(--mu); }
-.hl :deep(.c) { color: #6b7079; font-style: italic; }
-.hl :deep(.g) { color: #d9d4c7; }
+.hl :deep(.c) { color: var(--comment); font-style: italic; }
+.hl :deep(.g) { color: var(--code); }
 .hl :deep(.j) { color: #c38bff; }
 .sb { display: flex; align-items: center; gap: 2px; height: 34px; padding: 0 4px 0 10px; background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; }
 .sb:focus-within { border-color: var(--ac); }

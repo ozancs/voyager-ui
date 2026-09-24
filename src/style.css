@@ -13,8 +13,28 @@
   --r: 14px; --rb: 9px;
   --fd: 'Onest', system-ui, sans-serif;
   --fm: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --base-s2: #262a30; --base-s3: #30343b; --base-bd: #2c3037;
+  --hover: #22252b; --code: #d9d4c7; --comment: #6b7079; --grid: #2e3238; --toast-err: #2a1f21; --plate: #15171a;
+  --shade: rgba(0,0,0,.18); --tn-mix: 12%;
   color-scheme: dark;
 }
+/* light theme: same structure, paper-white surfaces, deeper inks so tints stay readable */
+:root[data-theme="light"] {
+  --bg: #eef0f3; --s1: #ffffff; --s2: #f0f2f5; --s3: #e2e6eb; --bd: #dde1e7;
+  --tx: #1b1e23; --mu: #5a6170; --mu2: #8a919c;
+  --dg: #d23f3f; --ok: #1f9a60; --wn: #b27a12; --bl: #2f7cc4;
+  --heat-bg: #fdefe6; --heat-ln: #f6d6c3; --heat: #c2551a;
+  --cool-bg: #e7f0fa; --cool-ln: #cadef3; --cool: #2b72b8;
+  --light-bg: #fbf3da; --light-ln: #efdfa8; --light: #95700a;
+  --sense-bg: #e3f4eb; --sense-ln: #bfe5d0; --sense: #1d8656;
+  --spool-bg: #f1e9fb; --spool-ln: #dccbf3; --spool: #7348b8;
+  --base-s2: #f0f2f5; --base-s3: #e2e6eb; --base-bd: #dde1e7;
+  --hover: #f3f5f8; --code: #2a2e35; --comment: #8a919c; --grid: #dfe3e8; --toast-err: #fdecec; --plate: #f4f5f7;
+  --shade: rgba(0,0,0,.05); --tn-mix: 14%;
+  color-scheme: light;
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb { border-color: var(--bg); }
+:root[data-theme="light"] .card { box-shadow: 0 1px 2px rgba(20,24,30,.05); }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--tx); font-family: var(--fd); font-size: 14px; -webkit-font-smoothing: antialiased; }
 #app { height: 100%; }
@@ -91,7 +111,7 @@ table.tbl th { font-size: 12.5px; font-weight: 500; color: var(--mu2); text-alig
 table.tbl td { padding: 11px 14px; border-bottom: 1px solid var(--bd); }
 table.tbl tr.sel td { background: var(--s2); }
 table.tbl tr.click { cursor: pointer; }
-table.tbl tr.click:hover td { background: #22252b; }
+table.tbl tr.click:hover td { background: var(--hover); }
 
 .spin { animation: kspin 1.6s linear infinite; transform-origin: 50% 50%; }
 @keyframes kspin { to { transform: rotate(360deg); } }
@@ -143,10 +163,12 @@ body.dash-edit { user-select: none; -webkit-user-select: none; }
   --tn-rose: #f07a9a; --tn-teal: #3cc7c0; --tn-sand: #d9a86a; --tn-slate: #8fa0bf; --tn-lime: #a8d15a;
 }
 .tint-cell > .card, .card.tint {
-  background: color-mix(in srgb, var(--tint) 12%, var(--s1)) !important;
-  --s2: color-mix(in srgb, var(--tint) 13%, #262a30);
-  --s3: color-mix(in srgb, var(--tint) 19%, #30343b);
-  --bd: color-mix(in srgb, var(--tint) 16%, #2c3037);
+  background: color-mix(in srgb, var(--tint) var(--tn-mix), var(--s1)) !important;
+  --s2: color-mix(in srgb, var(--tint) 13%, var(--base-s2));
+  --s3: color-mix(in srgb, var(--tint) 19%, var(--base-s3));
+  --bd: color-mix(in srgb, var(--tint) 16%, var(--base-bd));
   --k: var(--tint);
 }
 .tint-cell > .card .card-h h2, .card.tint .card-h h2 { color: color-mix(in srgb, var(--tint) 30%, var(--tx)); }
+/* dashboard cells: the card always fills its grid cell, also for components with several root nodes */
+.vgl-item .cell > .card { height: 100%; overflow: auto; }
