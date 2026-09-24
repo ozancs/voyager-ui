@@ -59,8 +59,7 @@ const tiles = computed(() => [
 ])
 </script>
 <template>
-  <section class="card">
-    <div class="card-h"><h2 class="row"><Icon name="cpu" :size="18" />{{ t('System Loads') }}</h2><button class="btn clear sm2" @click="details = !details">{{ details ? t('Less') : t('Details') }}</button></div>
+  <section class="card sl">
     <div class="tiles">
       <div v-for="x in tiles" :key="x.k" class="tl" :data-tip="x.tip">
         <Donut :value="x.v" :color="x.color" :size="54" />
@@ -68,6 +67,7 @@ const tiles = computed(() => [
         <span class="sub mono">{{ x.sub }}</span>
       </div>
     </div>
+    <button class="more" :aria-label="details ? t('Less') : t('Details')" :data-tip="details ? t('Less') : t('Details')" @click="details = !details"><Icon :name="details ? 'up' : 'info'" :size="14" /></button>
     <div v-if="details" class="det">
       <div v-for="m in mcus" :key="m.name" class="sm"><b>{{ m.name }}</b> <span class="mu">{{ m.chip }}</span> · {{ m.version }}<template v-if="m.freq"> · {{ m.freq }} MHz</template> · {{ t('Load: {l}, Awake: {a}', { l: m.load.toFixed(2), a: m.awake.toFixed(2) }) }}</div>
       <div class="sm"><b>{{ t('Host') }}</b> <span class="mu">{{ cpu.processor }} {{ cpu.bits }}</span><template v-if="sys?.distribution"> · {{ sys.distribution.name }}</template> · Klipper {{ state.versions.klipper }} · {{ t('Load: {l}', { l: S('system_stats').sysload?.toFixed(1) ?? '--' }) }}</div>
@@ -76,6 +76,9 @@ const tiles = computed(() => [
   </section>
 </template>
 <style scoped>
+.sl { position: relative; padding: 14px; justify-content: center; }
+.more { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border: none; border-radius: 6px; background: transparent; color: var(--mu2); display: flex; align-items: center; justify-content: center; opacity: .6; }
+.more:hover { opacity: 1; color: var(--tx); background: var(--s2); }
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
 .tl { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px 10px; border-radius: 12px; background: var(--s2); min-width: 0; }
 .nm { font-size: 13px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -18,11 +18,13 @@ const loc = computed(() => {
   return { root: 'config', path: a }
 })
 const file = computed(() => loc.value.path)
+let crlf = false
 const dirty = computed(() => text.value !== orig.value)
 async function load() {
   if (!file.value) return
   loading.value = true
-  try { text.value = orig.value = await api.getText(`/server/files/${loc.value.root}/${file.value}`) } catch (e) { toast(e.message, 'error'); text.value = orig.value = '' }
+  // edit with LF only (the textarea does that anyway), write back with the file's own line endings
+  try { const raw = await api.getText(`/server/files/${loc.value.root}/${file.value}`); crlf = raw.includes('\r\n'); text.value = orig.value = raw.replace(/\r\n/g, '\n') } catch (e) { toast(e.message, 'error'); text.value = orig.value = '' }
   loading.value = false
   applyJump()
 }
@@ -35,14 +37,17 @@ function applyJump() {
   if (!j || j.file !== file.value || loading.value || !ta.value) return
   state.jump = null
   requestAnimationFrame(() => {
-    const lines = text.value.split('\n')
+    // use the textarea's own value: browsers turn CRLF into LF there, so offsets from text.value drift
+    const lines = ta.value.value.split('\n')
     const i = Math.max(0, Math.min(lines.length - 1, j.line - 1))
     const start = lines.slice(0, i).reduce((a, l) => a + l.length + 1, 0)
     const lh = parseFloat(getComputedStyle(ta.value).lineHeight) || 22.1
-    ta.value.scrollTop = Math.max(0, i * lh - ta.value.clientHeight / 3)
-    ta.value.focus()
+    // focus first (without letting the browser scroll to the old caret), then select, then scroll
+    ta.value.focus({ preventScroll: true })
     ta.value.setSelectionRange(start, start + lines[i].length)
+    ta.value.scrollTop = Math.max(0, i * lh - ta.value.clientHeight / 3)
     sync()
+    requestAnimationFrame(() => { ta.value.scrollTop = Math.max(0, i * lh - ta.value.clientHeight / 3); sync() })
     flash.value = i
     setTimeout(() => (flash.value = -1), 2200)
   })
@@ -52,7 +57,7 @@ async function save(restart) {
   saving.value = true
   try {
     await backupBeforeWrite(loc.value.root, file.value)
-    await api.upload(new Blob([text.value], { type: 'text/plain' }), { root: loc.value.root, path: file.value.split('/').slice(0, -1).join('/'), name: file.value.split('/').pop() })
+    await api.upload(new Blob([crlf ? text.value.replace(/\n/g, '\r\n') : text.value], { type: 'text/plain' }), { root: loc.value.root, path: file.value.split('/').slice(0, -1).join('/'), name: file.value.split('/').pop() })
     orig.value = text.value
     toast(t('{f} saved', { f: file.value }))
     if (restart) {
