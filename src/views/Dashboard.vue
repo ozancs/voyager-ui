@@ -192,7 +192,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
     <GridLayout v-if="wide" v-model:layout="layout" class="grid" :class="{ editing: state.editDash }" :col-num="12" :row-height="40" :margin="[16, 16]"
       :is-draggable="state.editDash" :is-resizable="state.editDash" vertical-compact use-css-transforms @layout-updated="persist">
       <GridItem v-for="it in layout" :key="it.i" :i="it.i" :x="it.x" :y="it.y" :w="it.w" :h="it.h" :min-w="minOf(it.i)[0]" :min-h="minOf(it.i)[1]"
-        drag-allow-from=".card-h, .cb" drag-ignore-from="button, input, select, textarea, a, .seg">
+        drag-ignore-from=".tools">
         <div class="cell">
           <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
           <component v-else :is="MODULES[it.i].c" class="fill" />
@@ -273,7 +273,10 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .tools { position: absolute; top: 8px; right: 8px; z-index: 5; display: flex; gap: 4px; }
 .tools .btn { background: var(--s1); }
 .editing :deep(.card) { border-style: dashed; border-color: var(--mu2); }
-.editing :deep(.card-h) { cursor: move; }
+.editing :deep(.vgl-item) { cursor: move; }
+/* while customizing the whole card is a drag handle: its own buttons, sliders and fields stay inert */
+.editing .cell > :deep(.fill) { pointer-events: none; user-select: none; }
+.editing .tools { pointer-events: auto; }
 .editing :deep(.card-h .acts) { visibility: hidden; }
 .editing :deep(.vgl-item__resizer) { width: 22px; height: 22px; }
 .editing :deep(.vgl-item__resizer::before) { border-color: var(--ac); border-right-width: 3px; border-bottom-width: 3px; }
