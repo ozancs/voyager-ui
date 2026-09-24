@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.7.2'
+export const VERSION = '0.7.3'
 export const APP = 'oznlab_klipperui'
 export const APP_NAME = 'OznLab Klipper UI'
 export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'
@@ -77,6 +77,7 @@ export const DEFAULT_SETTINGS = () => ({
   maintenance: null, // filled with defaults on first visit of the Health page
   lang: '', // '' = not chosen yet (first run asks)
   setupDone: false,
+  migratedCarbon: false,
   cardOpts: {}, // per dashboard module options, e.g. macros: { scroll, showHidden, hidden: [] }
   heaterBase: {}, // { extruder: { target, power, t } } power needed to hold a temperature, learned
 })
@@ -409,6 +410,7 @@ export function saveSettings() {
   saveTimer = setTimeout(async () => {
     try {
       const value = JSON.parse(JSON.stringify(state.settings))
+      value.migratedCarbon = true
       lsSet(APP + '-settings', value)
       await api.call('server.database.post_item', { namespace: NS, key: 'settings', value })
     } catch (e) {
@@ -417,20 +419,33 @@ export function saveSettings() {
   }, 400)
 }
 async function loadSettings() {
+  let cur = null, missing = false
   try {
     const r = await api.call('server.database.get_item', { namespace: NS, key: 'settings' })
-    state.settings = mergeSettings(r.value)
-    lsSet(APP + '-settings', r.value || {})
+    cur = r.value || {}
   } catch (e) {
-    // key missing = fresh install (or first run after the rename); otherwise keep the cached copy
-    if (e.code === 404) {
-      try {
-        const old = await api.call('server.database.get_item', { namespace: 'carbon-ui', key: 'settings' })
-        state.settings = mergeSettings(old.value)
-        await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: old.value || {} })
-      } catch { state.settings = DEFAULT_SETTINGS() }
+    // "not found" comes back with different codes depending on the Moonraker version
+    missing = e.code === 404 || /not found|does not exist|no such/i.test(e.message || '')
+    if (!missing && e.message === 'not connected') { state.settingsLoaded = false; return }
+  }
+  // one-time carry-over from the old name (carbon-ui). Old values win over untouched defaults,
+  // things that only exist in the new version (language, setup, sounds...) are kept.
+  if (!cur?.migratedCarbon && (cur || missing)) {
+    try {
+      const old = (await api.call('server.database.get_item', { namespace: 'carbon-ui', key: 'settings' })).value
+      if (old && typeof old === 'object') {
+        const keep = cur ? { lang: cur.lang, setupDone: cur.setupDone, navMode: cur.navMode, sound: cur.sound, errorToasts: cur.errorToasts } : {}
+        for (const k of Object.keys(keep)) if (keep[k] === undefined) delete keep[k]
+        cur = { ...(cur || {}), ...old, ...keep }
+      }
+    } catch {}
+    if (cur || missing) {
+      cur = { ...(cur || {}), migratedCarbon: true }
+      try { await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: cur }) } catch {}
     }
   }
+  if (cur) { state.settings = mergeSettings(cur); lsSet(APP + '-settings', cur) }
+  else if (missing) state.settings = DEFAULT_SETTINGS()
   state.settingsLoaded = true
 }
 watch(() => state.settings, () => { if (state.settingsLoaded) saveSettings() }, { deep: true })
