@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.7.5'
+export const VERSION = '0.8.0'
 export const APP = 'oznlab_klipperui'
 export const APP_NAME = 'OznLab Klipper UI'
 export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'
@@ -78,7 +78,8 @@ export const DEFAULT_SETTINGS = () => ({
   lang: '', // '' = not chosen yet (first run asks)
   setupDone: false,
   migratedCarbon: false,
-  cardOpts: {}, // per dashboard module options, e.g. macros: { scroll, showHidden, hidden: [] }
+  cardOpts: {},
+  cardColors: {}, // dashboard card -> tint name ('cool'...), '#rrggbb' or 'none' // per dashboard module options, e.g. macros: { scroll, showHidden, hidden: [] }
   heaterBase: {}, // { extruder: { target, power, t } } power needed to hold a temperature, learned
 })
 
@@ -91,7 +92,7 @@ export const DEFAULT_LAYOUT = () => [
   { i: 'extruder', x: 0, y: 26, w: 6, h: 7 },
   { i: 'limits', x: 6, y: 26, w: 6, h: 7 },
 ]
-export const LAYOUT_KEYS = ['layout', 'hiddenCards', 'strip', 'customCards', 'layoutPrint', 'hiddenCardsPrint', 'autoLayout']
+export const LAYOUT_KEYS = ['layout', 'hiddenCards', 'strip', 'customCards', 'layoutPrint', 'hiddenCardsPrint', 'autoLayout', 'cardColors']
 export function layoutSnapshot() {
   const o = {}
   for (const k of LAYOUT_KEYS) o[k] = JSON.parse(JSON.stringify(state.settings[k] ?? null))

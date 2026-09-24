@@ -137,7 +137,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
 .edge { position: fixed; left: 0; top: 140px; bottom: 0; width: 12px; z-index: 85; }
 .body { flex: 1; min-height: 0; display: flex; }
 .main > * { flex-shrink: 0; }
-.main { flex: 1; min-width: 0; overflow: auto; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+.main { flex: 1; min-width: 0; overflow: auto; padding: 24px 28px 24px; display: flex; flex-direction: column; gap: 20px; }
 .banner { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--s1); border: 1px solid var(--wn); border-radius: var(--r); color: var(--wn); font-weight: 700; flex-shrink: 0; }
 .banner.err { border-color: var(--dg); color: var(--tx); }
 .banner.err > svg { color: var(--dg); }

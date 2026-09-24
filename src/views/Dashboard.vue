@@ -52,6 +52,17 @@ const MODULES = {
   health: { c: HealthCard, n: 'Health', min: [3, 3], def: [4, 4] },
 }
 const isCustom = (i) => i.startsWith('c_')
+// default hue per module, so no two neighbours look the same out of the box
+const TINTS = ['heat', 'cool', 'light', 'sense', 'spool', 'rose', 'teal', 'sand', 'slate', 'lime']
+const DEFAULT_TINT = { console: 'slate', temps: 'heat', tempchart: 'rose', webcam: 'none', toolhead: 'cool', extruder: 'sand', limits: 'teal', print: 'sense', objects: 'light', mesh: 'spool', system: 'slate', queue: 'teal', macros: 'spool', devices: 'cool', files: 'sand', jobs: 'sense', spool: 'spool', retraction: 'rose', health: 'lime' }
+const tintKey = (i) => state.settings.cardColors?.[i] ?? (isCustom(i) ? 'none' : DEFAULT_TINT[i] || 'slate')
+const tintVar = (i) => { const k = tintKey(i); return k === 'none' ? null : k.startsWith('#') ? k : `var(--tn-${k})` }
+function setTint(i, v) { state.settings.cardColors = { ...(state.settings.cardColors || {}), [i]: v } }
+function resetTint(i) { const c = { ...(state.settings.cardColors || {}) }; delete c[i]; state.settings.cardColors = c }
+const colorFor = ref(null)
+const closeColor = () => (colorFor.value = null)
+onMounted(() => document.addEventListener('click', closeColor))
+onBeforeUnmount(() => document.removeEventListener('click', closeColor))
 const minOf = (i) => (isCustom(i) ? (state.settings.customCards?.[i]?.type === 'btn' ? [1, 2] : [2, 3]) : MODULES[i]?.min || [2, 2])
 const nameOf = (i) => (isCustom(i) ? state.settings.customCards?.[i]?.name || 'Custom' : MODULES[i]?.n)
 
@@ -111,6 +122,7 @@ const restoreOpen = ref(false)
 const askReset = ref(false)
 function startEdit() { entry = layoutSnapshot(); state.editDash = true }
 function done() {
+  colorFor.value = null
   persist()
   if (entry && JSON.stringify(entry) !== JSON.stringify(layoutSnapshot())) pushLayoutBackup(entry, 'Before last edit')
   entry = null; state.editDash = false
@@ -189,22 +201,32 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
       <div v-else class="grow"></div>
       <button v-if="!state.editDash" class="btn cz" :aria-label="t('Customize dashboard')" @click="startEdit"><Icon name="layout" :size="18" /></button>
     </div>
-    <GridLayout v-if="wide" v-model:layout="layout" class="grid" :class="{ editing: state.editDash }" :col-num="12" :row-height="40" :margin="[16, 16]"
+    <GridLayout v-if="wide" v-model:layout="layout" class="grid" :class="{ editing: state.editDash }" :col-num="12" :row-height="40" :margin="[20, 20]"
       :is-draggable="state.editDash" :is-resizable="state.editDash" vertical-compact use-css-transforms @layout-updated="persist">
       <GridItem v-for="it in layout" :key="it.i" :i="it.i" :x="it.x" :y="it.y" :w="it.w" :h="it.h" :min-w="minOf(it.i)[0]" :min-h="minOf(it.i)[1]"
         drag-ignore-from=".tools">
-        <div class="cell">
+        <div class="cell" :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i }" :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null">
           <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
           <component v-else :is="MODULES[it.i].c" class="fill" />
           <div v-if="state.editDash" class="tools">
             <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit {name}', { name: t(nameOf(it.i)) })" @click="editCard(it.i)"><Icon name="pencil" :size="14" /></button>
             <button v-if="MODULES[it.i]?.opts" class="btn ibtn sm" :aria-label="t('Options {name}', { name: t(nameOf(it.i)) })" @click="optsFor = it.i"><Icon name="gear" :size="15" /></button>
+            <button class="btn ibtn sm sw" :aria-label="t('Card color')" @click.stop="colorFor = colorFor === it.i ? null : it.i"><i :style="{ background: tintVar(it.i) || 'var(--s3)' }"></i></button>
             <button class="btn ibtn sm" :aria-label="t('Remove {name}', { name: t(nameOf(it.i)) })" @click="removeCard(it.i)"><Icon name="x" :size="16" /></button>
+            <div v-if="colorFor === it.i" class="cp card" @mousedown.stop @click.stop>
+              <span class="lbl">{{ t('Card color') }}</span>
+              <div class="cps">
+                <button v-for="k in TINTS" :key="k" class="dot" :class="{ on: tintKey(it.i) === k }" :style="{ background: `var(--tn-${k})` }" :aria-label="k" @click="setTint(it.i, k)"></button>
+                <button class="dot none" :class="{ on: tintKey(it.i) === 'none' }" :aria-label="t('No color')" @click="setTint(it.i, 'none')"></button>
+              </div>
+              <label class="row cpc"><input type="color" :value="tintKey(it.i).startsWith('#') ? tintKey(it.i) : '#5aa9ee'" @input="setTint(it.i, $event.target.value)" /><span>{{ t('Custom color') }}</span></label>
+              <button class="btn clear" style="align-self:flex-start;height:30px;padding:0 6px" @click="resetTint(it.i)">{{ t('Default') }}</button>
+            </div>
           </div>
         </div>
       </GridItem>
     </GridLayout>
-    <div v-else class="col" style="gap:16px">
+    <div v-else class="col" style="gap:20px">
       <template v-for="it in sorted" :key="it.i">
         <CustomCard v-if="isCustom(it.i)" :id="it.i" :style="{ minHeight: it.h * 40 + 'px' }" @edit="editCard" />
         <component v-else :is="MODULES[it.i].c" :style="{ minHeight: it.h * 40 + 'px' }" />
@@ -272,6 +294,15 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 
 .tools { position: absolute; top: 8px; right: 8px; z-index: 5; display: flex; gap: 4px; }
 .tools .btn { background: var(--s1); }
+.sw i { width: 16px; height: 16px; border-radius: 8px; display: block; box-shadow: 0 0 0 2px rgba(255,255,255,.18); }
+.cp { position: absolute; top: 40px; right: 0; width: 232px; padding: 14px; gap: 10px; z-index: 60; background: var(--s1) !important; box-shadow: 0 16px 40px rgba(0,0,0,.5); cursor: default; }
+.cps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.dot { width: 28px; height: 28px; border-radius: 14px; border: 2px solid transparent; padding: 0; }
+.dot.on { border-color: var(--tx); }
+.dot.none { background: var(--s2); background-image: linear-gradient(135deg, transparent 45%, var(--mu2) 45%, var(--mu2) 55%, transparent 55%); }
+.cpc { gap: 10px; font-size: 13px; cursor: pointer; }
+.cpc input { width: 34px; height: 28px; border: none; padding: 0; background: none; cursor: pointer; }
+.grid :deep(.vgl-item:has(.cpop)) { z-index: 40; }
 .editing :deep(.card) { border-style: dashed; border-color: var(--mu2); }
 .editing :deep(.vgl-item) { cursor: move; }
 /* while customizing the whole card is a drag handle: its own buttons, sliders and fields stay inert */

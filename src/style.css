@@ -33,7 +33,7 @@ a { color: var(--ac); }
 .row { display: flex; align-items: center; gap: 8px; }
 .col { display: flex; flex-direction: column; gap: 8px; }
 
-.card { background: var(--s1); border: 1px solid transparent; border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card { background: var(--s1); border: 1px solid transparent; border-radius: var(--r); padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .card-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; min-height: 34px; }
 .card-h h2 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
 .card-h .acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
@@ -87,8 +87,8 @@ input[type=range].rng::-moz-range-thumb { width: 16px; height: 16px; border-radi
 .bar > div { height: 100%; background: var(--ac); transition: width .4s; }
 
 table.tbl { width: 100%; border-collapse: collapse; }
-table.tbl th { font-size: 12.5px; font-weight: 500; color: var(--mu2); text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--bd); white-space: nowrap; }
-table.tbl td { padding: 8px 12px; border-bottom: 1px solid var(--bd); }
+table.tbl th { font-size: 12.5px; font-weight: 500; color: var(--mu2); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--bd); white-space: nowrap; }
+table.tbl td { padding: 11px 14px; border-bottom: 1px solid var(--bd); }
 table.tbl tr.sel td { background: var(--s2); }
 table.tbl tr.click { cursor: pointer; }
 table.tbl tr.click:hover td { background: #22252b; }
@@ -96,11 +96,11 @@ table.tbl tr.click:hover td { background: #22252b; }
 .spin { animation: kspin 1.6s linear infinite; transform-origin: 50% 50%; }
 @keyframes kspin { to { transform: rotate(360deg); } }
 
-.page { display: flex; flex-direction: column; gap: 16px; }
+.page { display: flex; flex-direction: column; gap: 20px; }
 .page > * { flex-shrink: 0; }
-.split { display: flex; gap: 16px; flex: 1 0 auto; min-height: 0; }
+.split { display: flex; gap: 20px; flex: 1 0 auto; min-height: 0; }
 .side-col > * { flex-shrink: 0; }
-.side-col { width: 340px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+.side-col { width: 340px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; }
 .empty { color: var(--mu); font-size: 13px; padding: 24px; text-align: center; }
 
 @media (max-width: 1100px) {
@@ -134,3 +134,19 @@ body.dash-edit { user-select: none; -webkit-user-select: none; }
 .flash { animation: flashring 1.8s ease-out; }
 @keyframes flashring { 0%, 40% { box-shadow: 0 0 0 2px var(--ac); } 100% { box-shadow: 0 0 0 2px transparent; } }
 .fill { height: 100%; overflow: auto; }
+
+/* ---- card tints ----
+   Each dashboard card gets its own pale hue, like labelled bins on a workshop wall.
+   --tint is set per card (default per module, or picked in Customize). Inner surfaces follow the tint. */
+:root {
+  --tn-heat: #ff8a4c; --tn-cool: #5aa9ee; --tn-light: #e8c24a; --tn-sense: #4fd19a; --tn-spool: #b48cf0;
+  --tn-rose: #f07a9a; --tn-teal: #3cc7c0; --tn-sand: #d9a86a; --tn-slate: #8fa0bf; --tn-lime: #a8d15a;
+}
+.tint-cell > .card, .card.tint {
+  background: color-mix(in srgb, var(--tint) 12%, var(--s1)) !important;
+  --s2: color-mix(in srgb, var(--tint) 13%, #262a30);
+  --s3: color-mix(in srgb, var(--tint) 19%, #30343b);
+  --bd: color-mix(in srgb, var(--tint) 16%, #2c3037);
+  --k: var(--tint);
+}
+.tint-cell > .card .card-h h2, .card.tint .card-h h2 { color: color-mix(in srgb, var(--tint) 30%, var(--tx)); }

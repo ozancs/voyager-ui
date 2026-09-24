@@ -142,7 +142,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
     </div>
     <div class="row mono mu" style="justify-content:space-between;font-size:12px"><span>{{ t('{n} files · {d} folders', { n: list.length, d: dirs.length }) }}</span><span v-if="disk">{{ t('Disk: {free} free of {total}', { free: fmtBytes(disk.free), total: fmtBytes(disk.total) }) }}</span></div>
   </section>
-  <div class="side-col"><QueueCard /></div>
+  <div class="side-col"><QueueCard class="tint" style="--tint: var(--tn-teal)" /></div>
   </div>
   <Modal v-if="del" :title="del.length > 1 ? t('Delete {n} files?', { n: del.length }) : t('Delete file?')" @close="del = null">
     <div class="mono" style="max-height:220px;overflow:auto;font-size:12px"><div v-for="f in del" :key="f.filename">{{ f.filename }}</div></div>
@@ -158,7 +158,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
 .th { width: 44px; height: 44px; border-radius: 8px; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; color: var(--mu); overflow: hidden; }
 .th img { width: 100%; height: 100%; object-fit: contain; }
 .th.fo { color: var(--ac); }
-.nm { font-weight: 700; word-break: break-all; }
+.nm { font-weight: 700; overflow-wrap: anywhere; min-width: 200px; }
 .mu { color: var(--mu); }
 td.mono { font-size: 13px; white-space: nowrap; }
 th.s { cursor: pointer; }

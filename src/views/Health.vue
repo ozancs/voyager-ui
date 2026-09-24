@@ -97,19 +97,45 @@ const dueTxt = (tk) => {
   return t('due in ~{n} months', { n: Math.round(d / 30) })
 }
 const ago = (ts) => { const d = (Date.now() - ts) / 86400000; return d < 1 ? t('today') : d < 2 ? t('yesterday') : t('{n} days ago', { n: Math.round(d) }) }
+// one tile per area at the top: colour = area, dot = worst state in it
+const AREAS = [
+  { k: 'mcu', label: 'MCU & CAN links', icon: 'link', tint: 'cool', id: 'h-mcu' },
+  { k: 'heater', label: 'Heaters', icon: 'flame', tint: 'heat', id: 'h-heat' },
+  { k: 'tmc', label: 'Stepper drivers', icon: 'motor', tint: 'spool', id: 'h-tmc' },
+  { k: 'host', label: 'Host', icon: 'cpu', tint: 'sense', id: 'h-host' },
+  { k: 'maint', label: 'Maintenance', icon: 'wrench', tint: 'sand', id: 'h-maint' },
+]
+const RANK = { ok: 0, error: 3, warn: 2, info: 1 }
+const tiles = computed(() => AREAS.map((a) => {
+  const list = healthIssues.value.filter((i) => i.area === a.k)
+  if (a.k === 'host' && throttled.value.length) list.push({ level: 'warn' })
+  const worst = list.reduce((w, i) => (RANK[i.level] > RANK[w] ? i.level : w), 'ok')
+  return { ...a, n: list.length, level: list.length ? worst : 'ok' }
+}))
+const jumpTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+// maintenance ring
+const RING = 2 * Math.PI * 22
+const ringOff = (tk) => RING * (1 - Math.min(1, maintUsed(tk) / tk.hours))
 const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(--mu2)', info: 'var(--bl)' }
 </script>
 
 <template>
   <div class="page">
     <!-- summary -->
-    <section class="card sum" :class="healthIssues.some((i) => i.level !== 'info') ? 't-heat' : 't-sense'">
+    <section class="sum">
       <div class="row" style="gap:14px">
         <div class="big" :style="{ color: healthIssues.some((i) => i.level === 'error') ? 'var(--dg)' : healthIssues.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--ok)' }"><Icon name="heart" :size="28" :stroke="2.4" /></div>
         <div class="col" style="gap:2px">
           <h2 style="margin:0;font-size:20px">{{ healthIssues.length ? tn(healthIssues.length, '{n} thing to look at', '{n} things to look at') : t('Everything looks healthy') }}</h2>
           <span class="mu">{{ t('Live data from Klipper, sampled every 2 s while this UI is open.') }}</span>
         </div>
+      </div>
+      <div class="tiles">
+        <button v-for="a in tiles" :key="a.k" class="tile card tint" :style="{ '--tint': `var(--tn-${a.tint})` }" @click="jumpTo(a.id)">
+          <div class="row" style="justify-content:space-between"><Icon :name="a.icon" :size="20" class="ti" /><span class="d" :style="{ background: LV[a.level] || LV.ok }"></span></div>
+          <b class="tv" :style="{ color: a.n ? LV[a.level] : '' }">{{ a.n ? a.n : t('OK') }}</b>
+          <span class="tl">{{ t(a.label) }}</span>
+        </button>
       </div>
       <div v-if="healthIssues.length" class="iss">
         <div v-for="i in healthIssues" :key="i.area + i.key + i.msg" class="is"><span class="d" :style="{ background: LV[i.level] }"></span>{{ i.msg }}</div>
@@ -118,7 +144,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
 
     <div class="hg">
       <!-- MCU / CAN -->
-      <section class="card">
+      <section id="h-mcu" class="card tint" style="--tint: var(--tn-cool)">
         <div class="card-h"><h2>{{ t('MCU & CAN links') }}</h2><Icon name="link" :size="18" style="color:var(--mu)" /></div>
         <div v-for="m in mcus" :key="m.id" class="mc">
           <div class="row"><span class="d" :style="{ background: LV[m.level] }"></span><b class="grow">{{ m.name }}</b><span class="mono mu sm">{{ m.chip }}</span></div>
@@ -136,12 +162,13 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
       </section>
 
       <!-- heaters -->
-      <section class="card">
+      <section id="h-heat" class="card tint" style="--tint: var(--tn-heat)">
         <div class="card-h"><h2>{{ t('Heaters') }}</h2><Icon name="flame" :size="18" style="color:var(--mu)" /></div>
         <div v-for="h in heaters" :key="h.n" class="hr">
           <span class="d" :style="{ background: LV[h.level] }"></span>
           <div class="col grow" style="gap:1px;min-width:0">
             <div class="row"><b>{{ h.name }}</b><span class="mono mu sm">{{ h.temp?.toFixed(1) }}° / {{ h.target || 0 }}°</span></div>
+            <div v-if="h.target" class="hb"><div :style="{ width: Math.min(100, (h.temp || 0) / h.target * 100) + '%' }"></div></div>
             <span class="mu sm">{{ h.note }}</span>
             <span v-if="h.base && h.l.holding" class="mu sm">{{ t('First time at {target}° it needed {p}%', { target: h.l.target, p: Math.round(h.base.power * 100) }) }}</span>
           </div>
@@ -155,7 +182,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
       </section>
 
       <!-- drivers -->
-      <section class="card">
+      <section id="h-tmc" class="card tint" style="--tint: var(--tn-spool)">
         <div class="card-h"><h2>{{ t('Stepper drivers') }}</h2><Icon name="motor" :size="18" style="color:var(--mu)" /></div>
         <div v-if="!drivers.length" class="empty">{{ t('No TMC drivers in the config.') }}</div>
         <table v-else class="tbl">
@@ -171,7 +198,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
       </section>
 
       <!-- host -->
-      <section class="card">
+      <section id="h-host" class="card tint" style="--tint: var(--tn-sense)">
         <div class="card-h"><h2>{{ t('Host') }}</h2><button class="btn clear ibtn sm" :aria-label="t('Refresh')" @click="loadHost"><Icon name="refresh" :size="16" /></button></div>
         <div class="kv">
           <div><span class="lbl">{{ t('CPU temp') }}</span><b class="mono">{{ host?.cpu_temp != null ? host.cpu_temp.toFixed(1) + '°' : '--' }}</b></div>
@@ -184,7 +211,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
     </div>
 
     <!-- maintenance -->
-    <section class="card">
+    <section id="h-maint" class="card tint" style="--tint: var(--tn-sand)">
       <div class="card-h">
         <h2>{{ t('Maintenance') }}</h2>
         <div class="acts">
@@ -195,8 +222,10 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
       <div class="mt">
         <div v-for="tk in tasks" :key="tk.id" class="tk" :class="{ due: maintUsed(tk) >= tk.hours }">
           <div class="row"><Icon name="wrench" :size="18" :style="{ color: maintUsed(tk) >= tk.hours ? 'var(--heat)' : 'var(--mu)' }" /><b class="grow">{{ t(tk.name) }}</b><button class="btn clear ibtn sm" :aria-label="t('Edit {name}', { name: t(tk.name) })" @click="editT = { ...tk }"><Icon name="pencil" :size="14" /></button></div>
-          <div class="bar"><div :style="{ width: Math.min(100, maintUsed(tk) / tk.hours * 100) + '%', background: maintUsed(tk) >= tk.hours ? 'var(--heat)' : maintUsed(tk) / tk.hours > .8 ? 'var(--wn)' : 'var(--sense)' }"></div></div>
-          <div class="row mono sm" style="justify-content:space-between"><span>{{ maintUsed(tk).toFixed(0) }} / {{ tk.hours }} h</span><span :style="{ color: maintUsed(tk) >= tk.hours ? 'var(--heat)' : 'var(--mu)' }">{{ dueTxt(tk) }}</span></div>
+          <div class="row" style="gap:14px">
+            <svg class="ring" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="22" class="rt" /><circle cx="26" cy="26" r="22" class="rv" :stroke="maintUsed(tk) >= tk.hours ? 'var(--heat)' : maintUsed(tk) / tk.hours > .8 ? 'var(--wn)' : 'var(--k)'" :stroke-dasharray="RING" :stroke-dashoffset="ringOff(tk)" /></svg>
+            <div class="col" style="gap:2px"><b class="mono" style="font-size:17px">{{ maintUsed(tk).toFixed(0) }}<span class="mu" style="font-size:12px;font-weight:500"> / {{ tk.hours }} h</span></b><span class="sm" :style="{ color: maintUsed(tk) >= tk.hours ? 'var(--heat)' : 'var(--mu)' }">{{ dueTxt(tk) }}</span></div>
+          </div>
           <div class="row"><span class="mu sm grow">{{ t('Last done {when}', { when: ago(tk.doneDate) }) }}</span><button class="btn" :class="{ acc: maintUsed(tk) >= tk.hours }" @click="done(tk)"><Icon name="check" :size="16" :stroke="2.6" />{{ t('Done') }}</button></div>
         </div>
       </div>
@@ -220,25 +249,38 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
 </template>
 
 <style scoped>
-.sum { gap: 14px; }
+.sum { display: flex; flex-direction: column; gap: 18px; padding: 4px 2px 0; }
+.tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.tile { padding: 16px 18px; gap: 6px; text-align: left; border: none; color: var(--tx); cursor: pointer; }
+.tile:hover { filter: brightness(1.08); }
+.ti { color: var(--k); }
+.tv { font-size: 26px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; margin-top: 6px; }
+.tl { font-size: 12.5px; color: var(--mu); }
+.hb { height: 4px; border-radius: 2px; background: var(--s3); overflow: hidden; margin: 4px 0 2px; max-width: 220px; }
+.hb > div { height: 100%; background: var(--k); }
+.ring { width: 52px; height: 52px; transform: rotate(-90deg); flex-shrink: 0; }
+.ring circle { fill: none; stroke-width: 5; }
+.ring .rt { stroke: var(--s3); }
+.ring .rv { stroke-linecap: round; transition: stroke-dashoffset .4s; }
+@media (max-width: 1100px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
 .big { width: 52px; height: 52px; border-radius: 14px; background: rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; }
 .iss { display: flex; flex-direction: column; gap: 6px; }
 .is { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
 .d { width: 8px; height: 8px; border-radius: 4px; flex-shrink: 0; display: inline-block; }
-.hg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.hg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .mu { color: var(--mu); }
 .sm { font-size: 12px; }
-.mc { background: var(--s2); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.mc { background: var(--s2); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
 .kv { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .kv > div { display: flex; flex-direction: column; gap: 2px; }
 .kv b { font-size: 15px; }
 .sp { width: 100%; height: 30px; }
-.hr { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--s2); border-radius: 12px; }
+.hr { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: var(--s2); border-radius: 12px; }
 .sm2 { height: 30px; font-size: 12px; }
 .bl summary { cursor: pointer; }
 .bl > div { padding: 2px 0; }
-.mt { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.tk { background: var(--s2); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.mt { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+.tk { background: var(--s2); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .tk.due { background: var(--heat-bg); }
 @media (max-width: 1100px) { .hg { grid-template-columns: 1fr; } .kv { grid-template-columns: repeat(2, 1fr); } }
 </style>
