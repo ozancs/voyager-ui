@@ -2,7 +2,7 @@
   /* neutrals: soft graphite, a touch of blue so it doesn't read as pure black */
   --bg: #16181c; --s1: #1e2126; --s2: #282c32; --s3: #31363d; --bd: #2c3037;
   --tx: #ecebe7; --mu: #a4a8b0; --mu2: #737983;
-  --ac: #ff6b1a; --oa: #1a0b02;
+  --ac-raw: #ff6b1a; --ac: var(--ac-raw); --oa: #1a0b02;
   --dg: #f06a6a; --ok: #56d39a; --wn: #f2c35b; --bl: #6fb0ec;
   /* category tints: background / line / ink */
   --heat-bg: #2a211d; --heat-ln: #3d2e26; --heat: #ff9a62;
@@ -30,7 +30,8 @@
   --spool-bg: #f1e9fb; --spool-ln: #dccbf3; --spool: #7348b8;
   --base-s2: #f0f2f5; --base-s3: #e2e6eb; --base-bd: #dde1e7;
   --hover: #f3f5f8; --code: #2a2e35; --comment: #8a919c; --grid: #dfe3e8; --toast-err: #fdecec; --plate: #f4f5f7;
-  --shade: rgba(0,0,0,.05); --tn-mix: 14%;
+  --shade: rgba(0,0,0,.05); --tn-mix: 15%;
+  --ac: color-mix(in srgb, var(--ac-raw) 80%, #000); --oa: #ffffff;
   color-scheme: light;
 }
 :root[data-theme="light"] ::-webkit-scrollbar-thumb { border-color: var(--bg); }
@@ -68,7 +69,7 @@ a { color: var(--ac); }
 :focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
 .btn.lg { height: 44px; padding: 0 16px; font-size: 14px; }
 .btn.acc { background: var(--ac); color: var(--oa); border-color: var(--ac); }
-.btn.out { background: rgba(255,107,26,.12); color: var(--heat); border-color: transparent; }
+.btn.out { background: var(--heat-bg); color: var(--heat); border-color: transparent; }
 .btn.dg { background: rgba(240,106,106,.12); color: var(--dg); border-color: transparent; }
 .btn.dgf { background: var(--dg); color: #fff; border-color: var(--dg); }
 .btn.clear { background: transparent; border-color: transparent; color: var(--mu); }
@@ -163,12 +164,14 @@ body.dash-edit { user-select: none; -webkit-user-select: none; }
   --tn-rose: #f07a9a; --tn-teal: #3cc7c0; --tn-sand: #d9a86a; --tn-slate: #8fa0bf; --tn-lime: #a8d15a;
 }
 .tint-cell > .card, .card.tint {
-  background: color-mix(in srgb, var(--tint) var(--tn-mix), var(--s1)) !important;
-  --s2: color-mix(in srgb, var(--tint) 13%, var(--base-s2));
-  --s3: color-mix(in srgb, var(--tint) 19%, var(--base-s3));
-  --bd: color-mix(in srgb, var(--tint) 16%, var(--base-bd));
-  --k: var(--tint);
+  --tint-d: var(--tint);
+  background: color-mix(in srgb, var(--tint-d) var(--tn-mix), var(--s1)) !important;
+  --s2: color-mix(in srgb, var(--tint-d) 13%, var(--base-s2));
+  --s3: color-mix(in srgb, var(--tint-d) 19%, var(--base-s3));
+  --bd: color-mix(in srgb, var(--tint-d) 16%, var(--base-bd));
+  --k: var(--tint-d);
 }
-.tint-cell > .card .card-h h2, .card.tint .card-h h2 { color: color-mix(in srgb, var(--tint) 30%, var(--tx)); }
+.tint-cell > .card .card-h h2, .card.tint .card-h h2 { color: color-mix(in srgb, var(--tint-d) 30%, var(--tx)); }
+:root[data-theme="light"] .tint-cell > .card, :root[data-theme="light"] .card.tint { --tint-d: color-mix(in srgb, var(--tint) 82%, #000); }
 /* dashboard cells: the card always fills its grid cell, also for components with several root nodes */
 .vgl-item .cell > .card { height: 100%; overflow: auto; }

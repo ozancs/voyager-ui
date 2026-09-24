@@ -108,7 +108,7 @@ async function restore(e) {
 .dots { display: flex; gap: 6px; }
 .dots span { flex: 1; font-size: 11.5px; font-weight: 600; color: var(--mu2); padding-top: 8px; border-top: 3px solid var(--s3); }
 .dots span.on { color: var(--tx); border-color: var(--ac); }
-.dots span.done { border-color: rgba(255,107,26,.45); }
+.dots span.done { border-color: color-mix(in srgb, var(--ac) 45%, transparent); }
 .body { display: flex; flex-direction: column; gap: 14px; min-height: 230px; }
 h3 { margin: 0; font-size: 17px; }
 .langs { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }

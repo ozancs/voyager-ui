@@ -27,7 +27,7 @@ const pos = computed(() => {
   <svg :viewBox="`-4 -4 ${bed.w + 8} ${bed.h + 8}`" preserveAspectRatio="xMidYMid meet" style="background:#0b0c0e;border-radius:8px;width:100%;height:100%" :aria-label="t('Objects on bed')">
     <rect x="0" y="0" :width="bed.w" :height="bed.h" fill="var(--plate)" stroke="var(--grid)" stroke-width="1.5" rx="4" />
     <g v-for="o in objs" :key="o.name" style="cursor:pointer" @click="!o.excluded && emit('pick', o.name)">
-      <polygon v-if="o.pts" :points="o.pts" :fill="o.excluded ? 'rgba(229,72,77,.15)' : o.current ? 'rgba(255,107,26,.35)' : 'color-mix(in srgb, var(--tx) 8%, transparent)'" :stroke="o.excluded ? '#e5484d' : o.current ? 'var(--ac)' : 'var(--mu)'" stroke-width="1.5" />
+      <polygon v-if="o.pts" :points="o.pts" :fill="o.excluded ? 'rgba(229,72,77,.15)' : o.current ? 'color-mix(in srgb, var(--ac) 35%, transparent)' : 'color-mix(in srgb, var(--tx) 8%, transparent)'" :stroke="o.excluded ? '#e5484d' : o.current ? 'var(--ac)' : 'var(--mu)'" stroke-width="1.5" />
       <circle v-else-if="o.c" :cx="o.c[0]" :cy="o.c[1]" r="6" :fill="o.excluded ? '#e5484d' : 'var(--ac)'" />
       <title>{{ o.name }}</title>
     </g>

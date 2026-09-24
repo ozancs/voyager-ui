@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.8.3'
+export const VERSION = '0.8.4'
 export const APP = 'oznlab_klipperui'
 export const APP_NAME = 'OznLab Klipper UI'
 export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'
@@ -462,7 +462,7 @@ function applyTheme() {
 }
 watch(() => state.settings.theme, applyTheme, { immediate: true })
 mqDark?.addEventListener?.('change', applyTheme)
-watch(() => state.settings.accent, (a) => document.documentElement.style.setProperty('--ac', a || '#ff6b1a'), { immediate: true })
+watch(() => state.settings.accent, (a) => document.documentElement.style.setProperty('--ac-raw', a || '#ff6b1a'), { immediate: true })
 
 // ---------- init ----------
 function mergeStatus(diff) {

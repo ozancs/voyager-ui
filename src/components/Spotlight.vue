@@ -161,7 +161,7 @@ kbd { font-family: var(--fm); font-size: 11px; padding: 2px 6px; border-radius: 
 .it { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
 .it.on { background: var(--s2); }
 .ic { width: 32px; height: 32px; border-radius: 8px; background: var(--s2); display: flex; align-items: center; justify-content: center; color: var(--mu); flex-shrink: 0; }
-.it.on .ic { background: rgba(255,107,26,.15); color: var(--heat); }
+.it.on .ic { background: color-mix(in srgb, var(--ac) 15%, transparent); color: var(--ac); }
 .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .tx b { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tx .mu { font-size: 12px; color: var(--mu); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

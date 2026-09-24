@@ -176,7 +176,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
 .hl, textarea { position: absolute; inset: 0; margin: 0; padding: 14px 16px; font-size: 13px; line-height: 1.7; white-space: pre; overflow: auto; tab-size: 2; border: none; }
 .hl { color: var(--tx); pointer-events: none; overflow: hidden; }
 textarea { background: transparent; color: transparent; caret-color: var(--ac); outline: none; resize: none; }
-textarea::selection { background: rgba(255, 107, 26, .3); color: transparent; }
+textarea::selection { background: color-mix(in srgb, var(--ac) 30%, transparent); color: transparent; }
 .hl :deep(.s) { color: var(--ac); font-weight: 700; }
 .hl :deep(.k) { color: #5aa9ff; }
 .hl :deep(.p) { color: var(--mu); }
@@ -190,8 +190,8 @@ textarea::selection { background: rgba(255, 107, 26, .3); color: transparent; }
 .cnt { font-size: 11px; color: var(--mu); min-width: 44px; text-align: right; }
 .hl :deep(mark) { background: rgba(245, 196, 81, .28); color: inherit; border-radius: 2px; }
 .hl :deep(mark.cur) { background: var(--ac); color: var(--oa); }
-.hl :deep(.fl) { background: rgba(255,107,26,.22); box-shadow: -4px 0 0 var(--ac); display: inline-block; min-width: 100%; animation: flfade 2.2s ease-out forwards; }
-@keyframes flfade { 70% { background: rgba(255,107,26,.22); } 100% { background: transparent; box-shadow: none; } }
+.hl :deep(.fl) { background: color-mix(in srgb, var(--ac) 22%, transparent); box-shadow: -4px 0 0 var(--ac); display: inline-block; min-width: 100%; animation: flfade 2.2s ease-out forwards; }
+@keyframes flfade { 70% { background: color-mix(in srgb, var(--ac) 22%, transparent); } 100% { background: transparent; box-shadow: none; } }
 .ol { height: 28px; padding: 0 8px; background: transparent; border: none; border-radius: 6px; text-align: left; font-size: 12px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ol:hover { background: var(--s2); color: var(--ac); }
 </style>
