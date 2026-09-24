@@ -88,7 +88,7 @@ function reset() { confirmReset.value = false; apply({ ...DEFAULT_SETTINGS(), la
       <div class="card-h"><h2>{{ t('Sounds & alerts') }}</h2><button class="btn" :disabled="!snd.enabled" @click="playSound('complete')"><Icon name="volume" :size="16" />{{ t('Test') }}</button></div>
       <div class="row sp"><span>{{ t('Play sounds') }}</span><Toggle v-model="snd.enabled" :label="t('Play sounds')" /></div>
       <template v-if="snd.enabled">
-        <label class="row" style="gap:10px"><Icon name="volume" :size="16" style="color:var(--mu)" /><input v-model.number="snd.volume" type="range" min="0.1" max="1" step="0.05" class="rng" :style="{ '--p': snd.volume * 100 + '%' }" :aria-label="t('Volume')" /></label>
+        <label class="row" style="gap:10px"><Icon name="volume" :size="16" style="color:var(--mu)" /><input v-model.number="snd.volume" type="range" min="0.1" max="1" step="0.05" class="rng" :style="{ '--f': (snd.volume - 0.1) / 0.9 }" :aria-label="t('Volume')" /></label>
         <div v-for="[k, l, tone] in SOUNDS" :key="k" class="row sp">
           <span>{{ t(l) }}</span>
           <div class="row" style="gap:6px"><button class="btn clear ibtn sm" :aria-label="t('Play')" @click="playSound(tone)"><Icon name="play" :size="14" /></button><Toggle v-model="snd[k]" :label="t(l)" /></div>

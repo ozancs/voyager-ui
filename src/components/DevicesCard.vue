@@ -28,13 +28,13 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' }
         <Icon :name="ICON[d.kind]" :size="18" class="ic" :class="d.kind" />
         <span class="nm">{{ prettyName(d.id) }}</span>
         <template v-if="d.kind === 'fan'">
-          <input v-if="d.controllable" type="range" class="rng" min="0" max="100" :value="pct(S(d.id).speed)" :style="{ '--p': pct(S(d.id).speed) + '%' }" :aria-label="prettyName(d.id)" @input="fan(d, +$event.target.value)" />
+          <input v-if="d.controllable" type="range" class="rng" min="0" max="100" :value="pct(S(d.id).speed)" :style="{ '--f': pct(S(d.id).speed) / 100 }" :aria-label="prettyName(d.id)" @input="fan(d, +$event.target.value)" />
           <span v-else class="grow mu sm">{{ t('auto') }}</span>
           <b class="mono v">{{ pct(S(d.id).speed) }}%</b>
         </template>
         <template v-else-if="d.kind === 'pin'">
           <template v-if="cfg(d.id).pwm">
-            <input type="range" class="rng" min="0" max="100" :value="pinVal(d)" :style="{ '--p': pinVal(d) + '%' }" :aria-label="prettyName(d.id)" @input="pin(d, +$event.target.value)" />
+            <input type="range" class="rng" min="0" max="100" :value="pinVal(d)" :style="{ '--f': pinVal(d) / 100 }" :aria-label="prettyName(d.id)" @input="pin(d, +$event.target.value)" />
             <b class="mono v">{{ pinVal(d) }}%</b>
           </template>
           <template v-else><span class="grow"></span><Toggle :model-value="!!S(d.id).value" :label="prettyName(d.id)" @update:model-value="(v) => pin(d, v ? 100 : 0)" /></template>

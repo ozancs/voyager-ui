@@ -84,7 +84,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
     <div class="body">
       <SideNav :open="navOpen" :mode="navMode" @close="navOpen = false" @pin="pinNav" @mouseenter="navMode === 'auto' && peek(true)" @mouseleave="navMode === 'auto' && peek(false)" />
       <div v-if="navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
-      <button v-if="navMode !== 'pinned' && !navOpen && !narrow" class="navtab" :aria-label="t('Show / hide the side menu')" :data-tip="t('Menu')" @click="navOpen = true" @mouseenter="navMode === 'auto' && peek(true)"><Icon name="chevr2" :size="16" :stroke="2.4" /></button>
+      <button v-if="navMode !== 'pinned' && !navOpen && !narrow" class="navtab" :aria-label="t('Show / hide the side menu')" :data-tip="t('Menu')" @click="navMode === 'hidden' ? pinNav() : (navOpen = true)" @mouseenter="navMode === 'auto' && peek(true)"><Icon name="chevr2" :size="16" :stroke="2.4" /></button>
       <main class="main">
         <div v-if="!state.connected" class="banner"><Icon name="refresh" :size="20" class="spin" />
           <div class="grow"><b>{{ t('Connecting to Moonraker…') }}</b><span v-if="state.conn.attempts" class="mono" style="font-weight:400;font-size:12px;margin-left:10px;color:var(--mu)">{{ t('attempt {n}', { n: state.conn.attempts }) }}</span>
