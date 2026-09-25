@@ -24,7 +24,7 @@
 [data-look="panel"] .fav { font-family: var(--fx); font-stretch: 108%; font-weight: 650; font-size: 13px; }
 
 /* instrument bank */
-[data-look="panel"] .ds { gap: 4px; grid-template-columns: repeat(auto-fill, minmax(130px, 176px)); }
+[data-look="panel"] .ds { gap: 4px; grid-template-columns: repeat(auto-fill, minmax(124px, 144px)); }
 [data-look="panel"] .ds .dc {
   background: var(--s1) !important; border-radius: 7px; height: 84px; padding: 9px 11px 8px; isolation: isolate;
   box-shadow: none;

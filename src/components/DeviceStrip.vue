@@ -23,7 +23,7 @@ onBeforeUnmount(() => ro?.disconnect())
 const cols = computed(() => {
   const n = items.value.length
   if (!n || !boxW.value) return null
-  const max = Math.max(1, Math.floor((boxW.value + 4) / 134))
+  const max = Math.max(1, Math.floor((boxW.value + 4) / 128))
   const rows = Math.ceil(n / max)
   return Math.ceil(n / rows)
 })
@@ -162,7 +162,7 @@ function sensorExtra(id) {
 }
 </script>
 <template>
-  <TransitionGroup tag="div" ref="box" class="ds" :class="{ editing: state.editDash, settle }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 176px))` } : null" move-class="mv">
+  <TransitionGroup tag="div" ref="box" class="ds" :class="{ editing: state.editDash, settle }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 144px))` } : null" move-class="mv">
     <div v-for="(d, gi) in items" :key="d.id" class="dc" :class="[tint(d), { click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, over: overId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]" :style="{ '--dx': dragId === d.id && state.editDash ? dragPos.x + 'px' : overId === d.id ? swapOff.x + 'px' : '0px', '--dy': dragId === d.id && state.editDash ? dragPos.y + 'px' : overId === d.id ? swapOff.y + 'px' : '0px', '--lvl': level(d), '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null }"
       :data-id="d.id" @pointerdown="pDown(d, $event)"
       @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id, $event) : null">
@@ -246,9 +246,9 @@ function sensorExtra(id) {
   </Modal>
 </template>
 <style scoped>
-.ds { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 176px)); gap: 8px; flex: 1; min-width: 0; }
+.ds { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 144px)); gap: 8px; flex: 1; min-width: 0; }
 .dc { position: relative; background: var(--s1); border: 1px solid transparent; border-radius: var(--r); height: 78px; padding: 8px 10px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
-.dc.click { cursor: pointer; }
+.dc.click { cursor: pointer; user-select: none; }
 .dc.wide { }
 .dc.edit .hd { padding-right: 56px; }
 .dc.edit { cursor: grab; border-style: dashed; border-color: var(--mu2); }
