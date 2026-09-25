@@ -23,7 +23,7 @@ onBeforeUnmount(() => ro?.disconnect())
 const cols = computed(() => {
   const n = items.value.length
   if (!n || !boxW.value) return null
-  const max = Math.max(1, Math.floor((boxW.value + 4) / 154))
+  const max = Math.max(1, Math.floor((boxW.value + 4) / 134))
   const rows = Math.ceil(n / max)
   return Math.ceil(n / rows)
 })
@@ -162,7 +162,7 @@ function sensorExtra(id) {
 }
 </script>
 <template>
-  <TransitionGroup tag="div" ref="box" class="ds" :class="{ editing: state.editDash, settle }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : null" move-class="mv">
+  <TransitionGroup tag="div" ref="box" class="ds" :class="{ editing: state.editDash, settle }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 176px))` } : null" move-class="mv">
     <div v-for="(d, gi) in items" :key="d.id" class="dc" :class="[tint(d), { click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, over: overId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]" :style="{ '--dx': dragId === d.id && state.editDash ? dragPos.x + 'px' : overId === d.id ? swapOff.x + 'px' : '0px', '--dy': dragId === d.id && state.editDash ? dragPos.y + 'px' : overId === d.id ? swapOff.y + 'px' : '0px', '--lvl': level(d), '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null }"
       :data-id="d.id" @pointerdown="pDown(d, $event)"
       @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id, $event) : null">
@@ -184,7 +184,7 @@ function sensorExtra(id) {
       <!-- FAN -->
       <template v-else-if="d.kind === 'fan'">
         <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><span v-if="d.auto" class="auto"><Icon name="lock" :size="11" :stroke="2.6" />{{ t('auto') }}</span></div>
-        <div class="row" style="gap:10px"><Icon name="fan" :size="30" class="ki" :class="{ spin: S(d.obj).speed > 0 }" :style="{ animationDuration: (1.9 - 1.4 * (S(d.obj).speed || 0)) + 's' }" /><span class="big">{{ pct(S(d.obj).speed) }}<small>%</small></span>
+        <div class="row" style="gap:10px"><Icon name="fan" :size="24" class="ki" :class="{ spin: S(d.obj).speed > 0 }" :style="{ animationDuration: (1.9 - 1.4 * (S(d.obj).speed || 0)) + 's' }" /><span class="big">{{ pct(S(d.obj).speed) }}<small>%</small></span>
           <span v-if="S(d.obj).temperature != null" class="mono mu" style="font-size:11px;margin-left:auto;text-align:right">{{ S(d.obj).temperature.toFixed(0) }}°<br />→{{ S(d.obj).target?.toFixed(0) }}°</span>
           <span v-else-if="S(d.obj).rpm" class="mono mu" style="font-size:11px;margin-left:auto">{{ Math.round(S(d.obj).rpm) }} rpm</span>
         </div>
@@ -197,7 +197,7 @@ function sensorExtra(id) {
       <!-- OUTPUT PIN -->
       <template v-else-if="d.kind === 'pin'">
         <span class="lbl nm">{{ prettyName(d.obj) }}</span>
-        <div class="row" style="justify-content:space-between"><Icon name="bulb" :size="30" :class="S(d.obj).value > 0 ? 'acc' : 'mu'" /><Toggle v-if="!isPwm(d.obj)" :model-value="S(d.obj).value > 0" :label="prettyName(d.obj)" @update:model-value="setPin(d.obj, $event ? 1 : 0)" /></div>
+        <div class="row" style="justify-content:space-between"><Icon name="bulb" :size="24" :class="S(d.obj).value > 0 ? 'acc' : 'mu'" /><Toggle v-if="!isPwm(d.obj)" :model-value="S(d.obj).value > 0" :label="prettyName(d.obj)" @update:model-value="setPin(d.obj, $event ? 1 : 0)" /></div>
         <span class="mono sm">{{ S(d.obj).value > 0 ? t('ON') : t('OFF') }}<template v-if="isPwm(d.obj)"> · {{ pct(S(d.obj).value) }}%</template></span>
         <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
           <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).value)" :display="pct(S(d.obj).value) + '%'" unit="%" @commit="setPin(d.obj, ($event / 100).toFixed(2))" />
@@ -219,10 +219,10 @@ function sensorExtra(id) {
       <template v-else-if="d.kind === 'filament'">
         <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><Toggle v-if="!d.custom && S(d.obj).enabled !== undefined" :model-value="!!S(d.obj).enabled" :label="t('Enable sensor')" @update:model-value="gcode(`SET_FILAMENT_SENSOR SENSOR=${shortName(d.obj)} ENABLE=${$event ? 1 : 0}`)" /></div>
         <div class="row" style="gap:10px" v-if="S(d.obj).filament_detected !== undefined">
-          <Icon name="sensor" :size="30" :stroke="2.4" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }" />
+          <Icon name="sensor" :size="24" :stroke="2.4" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }" />
           <b style="font-size:17px" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }">{{ S(d.obj).filament_detected ? t('Detected') : t('Empty') }}</b>
         </div>
-        <div v-else class="row" style="gap:10px"><Icon name="sensor" :size="30" :stroke="2.4" class="ki" /><b style="font-size:15px">{{ S(d.obj).enabled === false ? t('Disabled') : t('Active') }}</b></div>
+        <div v-else class="row" style="gap:10px"><Icon name="sensor" :size="24" :stroke="2.4" class="ki" /><b style="font-size:15px">{{ S(d.obj).enabled === false ? t('Disabled') : t('Active') }}</b></div>
         <span class="mono sm mu">{{ S(d.obj).enabled === false ? t('disabled') : sensorExtra(d.obj).map(([k, v]) => `${k}: ${typeof v === 'number' ? +v.toFixed(2) : v}`).join(' · ') || t('enabled') }}</span>
       </template>
       <!-- SPOOLMAN -->
@@ -246,8 +246,8 @@ function sensorExtra(id) {
   </Modal>
 </template>
 <style scoped>
-.ds { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; flex: 1; min-width: 0; }
-.dc { position: relative; background: var(--s1); border: 1px solid transparent; border-radius: var(--r); height: 96px; padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+.ds { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 176px)); gap: 8px; flex: 1; min-width: 0; }
+.dc { position: relative; background: var(--s1); border: 1px solid transparent; border-radius: var(--r); height: 78px; padding: 8px 10px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
 .dc.click { cursor: pointer; }
 .dc.wide { }
 .dc.edit .hd { padding-right: 56px; }
@@ -263,7 +263,7 @@ function sensorExtra(id) {
 .dc.edit .spl { pointer-events: none; }
 .etools { position: absolute; top: 4px; right: 4px; z-index: 2; display: flex; gap: 2px; }
 .etools .btn { width: 26px; height: 26px; background: var(--s1); }
-.tbig { font-size: 26px; font-weight: 700; line-height: 1; }
+.tbig { font-size: 22px; font-weight: 700; line-height: 1; }
 .tt { font-size: 12px; color: var(--mu); flex-shrink: 0; }
 .tt.on { color: var(--heat); font-weight: 600; }
 .dc.click:hover, .dc.open { border-color: var(--k, var(--mu2)); }
@@ -276,14 +276,14 @@ function sensorExtra(id) {
 .dc .bar > div { background: var(--k, var(--mu)); }
 .dc .bar { background: rgba(255,255,255,.06); }
 .mu { color: var(--mu); }
-.big { font-size: 24px; font-weight: 700; }
-.big small { font-size: 15px; color: var(--mu); }
+.big { font-size: 20px; font-weight: 700; }
+.big small { font-size: 13px; color: var(--mu); }
 .sm { font-size: 12px; font-weight: 700; }
-.sw { width: 34px; height: 34px; border-radius: 17px; border: 3px solid var(--s2); outline: 2px solid var(--bd); }
+.sw { width: 28px; height: 28px; border-radius: 14px; border: 3px solid var(--s2); outline: 2px solid var(--bd); }
 .swb { width: 30px; height: 30px; border-radius: 15px; border: 2px solid var(--bd); }
 .pop.rt { left: auto; right: 0; }
-.pop { position: absolute; top: 102px; left: 0; width: 300px; z-index: 40; box-shadow: 0 12px 40px rgba(0,0,0,.5); cursor: default; }
+.pop { position: absolute; top: calc(100% + 6px); left: 0; width: 300px; z-index: 40; box-shadow: 0 12px 40px rgba(0,0,0,.5); cursor: default; }
 .spl { display: flex; flex-direction: column; justify-content: space-between; height: 100%; color: var(--tx); text-decoration: none; gap: 4px; }
-.spool { width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; border: 6px solid #3a3a3a; }
+.spool { width: 28px; height: 28px; flex-shrink: 0; border-radius: 14px; border: 5px solid #3a3a3a; }
 .ell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

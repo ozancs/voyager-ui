@@ -15,18 +15,18 @@
 [data-look="panel"] .ds .big,
 [data-look="panel"] .tv,
 [data-look="panel"] .zv { font-family: var(--fx); font-stretch: 125%; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
-[data-look="panel"] .ds .tbig { font-size: 30px; }
-[data-look="panel"] .ds .big { font-size: 28px; }
+[data-look="panel"] .ds .tbig { font-size: 24px; }
+[data-look="panel"] .ds .big { font-size: 22px; }
 [data-look="panel"] .ds .lbl,
 [data-look="panel"] .ds .tt,
-[data-look="panel"] .ds .auto { font-family: var(--fx); font-stretch: 70%; font-size: 13.5px; font-weight: 600; }
-[data-look="panel"] .ds .tt { font-size: 14px; }
-[data-look="panel"] .fav { font-family: var(--fx); font-stretch: 108%; font-weight: 650; font-size: 13.5px; }
+[data-look="panel"] .ds .auto { font-family: var(--fx); font-stretch: 70%; font-size: 12.5px; font-weight: 600; }
+[data-look="panel"] .ds .tt { font-size: 12.5px; }
+[data-look="panel"] .fav { font-family: var(--fx); font-stretch: 108%; font-weight: 650; font-size: 13px; }
 
 /* instrument bank */
-[data-look="panel"] .ds { gap: 4px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+[data-look="panel"] .ds { gap: 4px; grid-template-columns: repeat(auto-fill, minmax(130px, 176px)); }
 [data-look="panel"] .ds .dc {
-  background: var(--s1) !important; border-radius: 7px; height: 108px; padding: 12px 14px 11px; isolation: isolate;
+  background: var(--s1) !important; border-radius: 7px; height: 84px; padding: 9px 11px 8px; isolation: isolate;
   box-shadow: none;
 }
 [data-look="panel"] .ds .dc::before {
@@ -42,8 +42,8 @@
 [data-look="panel"] .ds .dc.edit { border-color: var(--mu2); }
 @media (prefers-reduced-motion: reduce) { [data-look="panel"] .ds .dc::before { transition: none; } }
 
-/* favorites share the row evenly */
-[data-look="panel"] .fav { flex: 1 1 0; min-width: max-content; border-radius: 10px; }
+/* favorites keep their own width, a short list does not stretch across the bar */
+[data-look="panel"] .fav { flex: 0 0 auto; border-radius: 10px; }
 
 /* big cards: larger radius so the tight tiles and the roomy cards read as two different things */
 [data-look="panel"] .card { border-radius: var(--r); }
