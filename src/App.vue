@@ -83,6 +83,7 @@ let navT
 function peek(on) { clearTimeout(navT); if (on) navOpen.value = true; else navT = setTimeout(() => (navOpen.value = false), 350) }
 const location = window.location
 const bootTask = computed(() => activeTasks.value[0]?.label || t('Loading printer'))
+const showFavBar = computed(() => { const m = state.settings.favBar || 'always'; return m === 'always' || (m === 'dashboard' && route.name === 'dashboard') })
 const notReady = computed(() => state.connected && state.klippy !== 'ready')
 </script>
 
@@ -90,7 +91,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
   <div class="shell" :class="{ booting: state.connected && !state.booted }">
     <TopBar @exclude="state.showExclude = true" @menu="toggleNav" />
     <SettingsDialog v-if="state.settingsOpen" />
-    <FavoritesBar />
+    <FavoritesBar v-if="showFavBar" />
     <div class="body">
       <SideNav :open="navOpen" :mode="navMode" @close="navOpen = false" @pin="pinNav" @mouseenter="navMode === 'auto' && peek(true)" @mouseleave="navMode === 'auto' && peek(false)" />
       <div v-if="navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>

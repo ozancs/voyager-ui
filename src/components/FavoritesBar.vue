@@ -9,6 +9,7 @@ import { state, gcode, macroList } from '../store'
 import IconPicker from './IconPicker.vue'
 import { t } from '../i18n'
 
+defineProps({ card: Boolean }) // card: the same buttons as a dashboard card instead of the bar
 const busy = ref(null)
 const INKS = ['var(--heat)', 'var(--cool)', 'var(--sense)', 'var(--light)', 'var(--spool)']
 const favs = computed(() => state.settings.favorites)
@@ -48,7 +49,8 @@ function onDrop(i) {
 </script>
 
 <template>
-  <div class="fb" :class="{ editing: state.favEdit }">
+  <component :is="card ? 'section' : 'div'" :class="[card ? 'card fcard' : 'fb', { editing: state.favEdit }]">
+    <div v-if="card" class="card-h"><h2>{{ t('Favorites') }}</h2><div class="acts"><button class="btn ibtn" :aria-label="t('Add favorite')" @click="add"><Icon name="plus" :size="16" :stroke="2.4" /></button><button class="btn ibtn" :class="{ acc: state.favEdit }" :aria-label="state.favEdit ? t('Done') : t('Edit favorites')" @click="state.favEdit = !state.favEdit"><Icon :name="state.favEdit ? 'check' : 'pencil'" :size="15" :stroke="2.4" /></button></div></div>
     <div class="list">
       <button v-for="(f, i) in favs" :key="f.id" class="fav" :class="{ hot: f.highlight, busy: busy === f.id, drag: dragI === i }" :style="{ '--k': f.color || INKS[i % INKS.length] }"
         :data-tip="state.favEdit ? '' : f.gcode" :draggable="state.favEdit" @dragstart="dragI = i" @dragend="dragI = null" @dragover.prevent @drop.prevent="onDrop(i)" @click="run(f)">
@@ -59,9 +61,8 @@ function onDrop(i) {
       </button>
       <div v-if="!favs.length" class="hint">{{ t('No favorites yet. Press + to add a macro or command.') }}</div>
     </div>
-    <button class="side" :aria-label="t('Add favorite')" @click="add"><Icon name="plus" :size="18" :stroke="2.4" /></button>
-    <button class="side" :class="{ on: state.favEdit }" :aria-label="state.favEdit ? t('Done') : t('Edit favorites')" @click="state.favEdit = !state.favEdit"><Icon :name="state.favEdit ? 'check' : 'pencil'" :size="16" :stroke="2.4" /></button>
-  </div>
+    <button v-if="!card" class="side" :aria-label="t('Add favorite')" @click="add"><Icon name="plus" :size="18" :stroke="2.4" /></button>
+    <button v-if="!card" class="side" :class="{ on: state.favEdit }" :aria-label="state.favEdit ? t('Done') : t('Edit favorites')" @click="state.favEdit = !state.favEdit"><Icon :name="state.favEdit ? 'check' : 'pencil'" :size="16" :stroke="2.4" /></button>
 
   <Modal v-if="form" :title="form.isNew ? t('New favorite') : t('Edit favorite')" width="600px" @close="form = null">
     <div class="row">
@@ -78,6 +79,7 @@ function onDrop(i) {
       <button class="btn lg acc" :disabled="!form.gcode.trim()" @click="save">{{ t('Save') }}</button>
     </template>
   </Modal>
+  </component>
 </template>
 
 <style scoped>
@@ -107,4 +109,8 @@ function onDrop(i) {
 .mb:hover { color: var(--ac); border-color: var(--ac); }
 .mu { color: var(--mu); } .sm { font-size: 12.5px; }
 @media (max-width: 1100px) { .fb { padding: 0 10px; } .fav { min-width: 96px; } }
+/* as a dashboard card */
+.fcard .list { flex-wrap: wrap; overflow: auto; align-content: flex-start; }
+.fcard .fav { background: var(--s2); }
+.fcard .fav:hover { background: var(--s3); }
 </style>
