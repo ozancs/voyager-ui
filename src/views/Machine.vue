@@ -69,7 +69,7 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log']
     <section class="card">
       <div class="card-h"><h2>{{ t('Update Manager') }}</h2><div class="acts"><button v-if="updates.filter(([, v]) => needs(v)).length > 1" class="btn acc" :disabled="!!busy" @click="confirm = '__all'"><Icon name="download" :size="16" />{{ t('Update all') }}</button><button class="btn" :disabled="busy === 'check'" @click="loadUpd(true)"><Icon name="refresh" :size="16" />{{ busy === 'check' ? t('Checking…') : t('Check') }}</button></div></div>
       <div v-if="!upd" class="empty">{{ t('Loading…') }}</div>
-      <div v-for="[name, v] in updates" :key="name" class="it">
+      <div v-for="[name, v] in updates" :key="name" :id="'upd-' + name" class="it">
         <div class="grow row" style="gap:10px;min-width:0;align-items:baseline"><b>{{ name }}</b><span class="mono mu" style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ verText(v) }}<template v-if="needs(v)"> → {{ v.remote_version }}</template><template v-if="v.is_dirty"> · {{ t('dirty') }}</template><template v-if="v.detached"> · {{ t('detached') }}</template></span></div>
         <button v-if="needs(v)" class="btn acc" :disabled="!!busy" @click="confirm = name"><Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}</button>
         <span v-else class="chip" :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--ok)' }"><i></i>{{ v.detached ? t('Pinned') : t('Up to date') }}</span>

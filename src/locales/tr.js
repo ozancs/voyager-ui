@@ -1117,5 +1117,7 @@ export default {
  "Control: jog speeds and steps": "Kontrol: hareket hızları ve adımlar",
  "Console settings": "Konsol ayarları",
  "Mainsail / Fluidd sync": "Mainsail / Fluidd eşitleme",
- "Demo: a simulated printer, nothing is real": "Demo: simüle yazıcı, hiçbir şey gerçek değil"
+ "Demo: a simulated printer, nothing is real": "Demo: simüle yazıcı, hiçbir şey gerçek değil",
+ "Open the update manager": "Güncelleme yöneticisini aç",
+ "Voyager UI {v} is out": "Voyager UI {v} çıktı"
 }

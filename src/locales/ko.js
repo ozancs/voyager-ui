@@ -1116,5 +1116,7 @@ export default {
  "Control: jog speeds and steps": "제어: 속도와 간격",
  "Console settings": "콘솔 설정",
  "Mainsail / Fluidd sync": "Mainsail / Fluidd 동기화",
- "Demo: a simulated printer, nothing is real": "데모: 시뮬레이션 프린터, 실제가 아닙니다"
+ "Demo: a simulated printer, nothing is real": "데모: 시뮬레이션 프린터, 실제가 아닙니다",
+ "Open the update manager": "업데이트 관리자 열기",
+ "Voyager UI {v} is out": "Voyager UI {v} 출시"
 }

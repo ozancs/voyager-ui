@@ -432,7 +432,7 @@ function handle(m){
     case 'machine.system_info': return {system_info:{distribution:{name:'Debian GNU/Linux 13 (trixie)'},cpu_info:{model:'Raspberry Pi 4',processor:'aarch64',bits:'64bit'},network:{wlan0:{ip_addresses:[{family:'ipv4',address:'192.168.1.139'}]}}}}
     case 'server.files.roots': return [{name:'config'},{name:'gcodes'},{name:'logs'}]
     case 'machine.proc_stats': return {throttled_state:{bits:0x50000,flags:[]},network:{wlan0:{rx_bytes:130e6,tx_bytes:3.4e9,bandwidth:12600},can0:{rx_bytes:6.6e6,tx_bytes:538e3,bandwidth:500}},cpu_temp:43,system_cpu_usage:{cpu:18},system_memory:{total:4000000,used:1200000},system_uptime:280000}
-    case 'machine.update.status': return {version_info:{klipper:{version:'v0.13.0-300',remote_version:'v0.13.0-310',commits_behind:[1]},moonraker:{version:'v0.9.3',remote_version:'v0.9.3'},system:{package_count:0}}}
+    case 'machine.update.status': return {version_info:{klipper:{version:'v0.13.0-300',remote_version:'v0.13.0-310',commits_behind:[1]},moonraker:{version:'v0.9.3',remote_version:'v0.9.3'},'voyager-ui':{version:'v0.14.5',remote_version:'v0.15.0'},system:{package_count:0}}}
     case 'printer.gcode.script': return gcodeScript(p.script)
     case 'server.job_queue.status': return {queued_jobs:queue.jobs,queue_state:queue.state}
     case 'server.job_queue.start': queue.state='ready'; wsAll({jsonrpc:'2.0',method:'notify_job_queue_changed',params:[{action:'state_changed',updated_queue:null,queue_state:'ready'}]}); return 'ok'

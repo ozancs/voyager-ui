@@ -8,11 +8,58 @@ A web interface for Klipper printers. Runs next to Mainsail or Fluidd on its own
 >
 > Why it exists: Mainsail is great but it never quite fit how I use my printer, and reading the forums I saw I am not alone. This is my take on it. If a UI like this is something you wanted too, try it, break it, open an issue.
 
-**Live demo:** https://ozancs.github.io/voyager-ui/ (a simulated printer running in the browser, nothing is real)
-
 Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KIAUH.
 
 ## What it does
+
+A dashboard you arrange yourself (drag, resize, hide, colour the cards), a config editor that understands Klipper and checks your files before you save, and Ctrl+K to reach any page, macro, file or setting by typing a few letters.
+
+Reading is boring. Go click around the **[live demo](https://ozancs.github.io/voyager-ui/)** (a simulated printer running in your browser, nothing is real). If it feels right, install it on your printer and try it there.
+
+Video: coming soon.
+
+## Install
+
+You need Klipper, Moonraker and nginx (they are all there if you have Mainsail or Fluidd) and a free port.
+
+Open a terminal (PowerShell on Windows, Terminal on macOS) and connect to your printer over SSH. Use your printer's user name and IP address, the same ones you use for Mainsail:
+
+```bash
+ssh pi@192.168.1.xxx
+```
+
+Once you are on the printer, run this and answer the questions:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ozancs/voyager-ui/main/install.sh | bash
+```
+
+Then open `http://<printer-ip>:8000` in your browser. Mainsail or Fluidd stays on port 80 as before.
+
+## Update
+
+The installer registers Voyager UI with Moonraker's update manager, so it shows up next to Klipper and Moonraker. When a new version is out, the sidebar footer says so; click it to go to the Machine page, where the Update Manager card has an Update button on the `voyager-ui` row. It also shows up in Mainsail's and Fluidd's update lists.
+
+<p align="center"><img src="docs/update-manager.png" width="560" alt="Update Manager card with an Update button on the voyager-ui row"></p>
+
+If you prefer, running the install command again also updates.
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173/?host=<printer>` to point the dev server at a printer (Moonraker needs the dev address in `cors_domains`). This only works in the dev server, a release build always talks to the host it was loaded from. `npm test` runs the tests, `bash scripts/pack.sh` builds the release zip, pushing a `v*` tag makes a GitHub release. `npm run build:demo` builds the live demo (the UI plus a fake Moonraker in `src/demo/mock.js`), which GitHub Pages serves from every push to main.
+
+## License
+
+GPL-3.0. See [LICENSE](LICENSE).
+
+## For the curious
+
+Everything the UI does, in one list:
 
 - Dashboard with cards you can drag, resize, hide, add and colour. Optional second layout while printing
 - Favorites bar for macros and commands
@@ -28,17 +75,7 @@ Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KI
 - Scales to the screen, so a laptop shows the same layout as a big monitor
 - 14 languages. Everything except English and Turkish was machine translated, corrections welcome
 
-## Install
-
-You need Klipper, Moonraker, nginx (there if you have Mainsail or Fluidd) and a free port. On the printer over SSH:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/ozancs/voyager-ui/main/install.sh | bash
-```
-
-Open `http://<printer>:8000`. Mainsail or Fluidd stays on port 80.
-
-The installer checks the system first, finds every printer on the host, asks which ones to set up, picks a free port for each, writes an nginx site (webcam ports come from `crowsnest.conf`), checks `trusted_clients` and adds an `[update_manager voyager-ui]` section so updates show up in the update manager. Options:
+What the installer does: checks the system first, finds every printer on the host, asks which ones to set up, picks a free port for each, writes an nginx site (webcam ports come from `crowsnest.conf`), checks `trusted_clients` and adds an `[update_manager voyager-ui]` section to `moonraker.conf`. Options:
 
 ```
 --port 8001              use this port
@@ -52,20 +89,3 @@ The installer checks the system first, finds every printer on the host, asks whi
 ```
 
 Not supported yet: Creality K1, Sonic Pad and other OpenWrt hosts, Moonraker with `force_logins`.
-
-## Update
-
-Update manager in any UI, or run the install command again.
-
-## Development
-
-```bash
-npm install
-npm run dev
-```
-
-Open `http://localhost:5173/?host=<printer>` to point the dev server at a printer (Moonraker needs the dev address in `cors_domains`). This only works in the dev server, a release build always talks to the host it was loaded from. `npm test` runs the tests, `bash scripts/pack.sh` builds the release zip, pushing a `v*` tag makes a GitHub release. `npm run build:demo` builds the live demo (the UI plus a fake Moonraker in `src/demo/mock.js`), which GitHub Pages serves from every push to main.
-
-## License
-
-GPL-3.0. See [LICENSE](LICENSE).

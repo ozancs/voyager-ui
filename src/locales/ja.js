@@ -1116,5 +1116,7 @@ export default {
  "Control: jog speeds and steps": "操作: 速度とステップ",
  "Console settings": "コンソール設定",
  "Mainsail / Fluidd sync": "Mainsail / Fluidd 同期",
- "Demo: a simulated printer, nothing is real": "デモ: 模擬プリンター、実機ではありません"
+ "Demo: a simulated printer, nothing is real": "デモ: 模擬プリンター、実機ではありません",
+ "Open the update manager": "アップデートマネージャーを開く",
+ "Voyager UI {v} is out": "Voyager UI {v} が公開されました"
 }

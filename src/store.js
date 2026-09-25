@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.15.0'
+export const VERSION = '0.15.1'
 export const APP = 'voyager-ui'
 export const APP_NAME = 'Voyager UI'
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui'
@@ -127,6 +127,7 @@ export const state = reactive({
   toasts: [],
   versions: { klipper: '', moonraker: '', host: '' },
   update: null, // { app, lines: [], complete }
+  uiUpdate: null, // { name, version, remote } when Moonraker's update manager has a newer Voyager UI
   cache: {},
   editDash: false,
   printerName: '',
@@ -370,6 +371,9 @@ async function checkHealth() {
     const n = Object.entries(u.version_info || {}).filter(([k, v]) => k !== 'system' && (v.commits_behind?.length || (v.remote_version && v.version && v.remote_version !== '?' && v.version !== v.remote_version))).map(([k]) => k)
     unnotify('upd:')
     if (n.length) notify('upd:' + n.join(','), t('Updates available: {list}', { list: n.join(', ') }), 'info')
+    // our own entry gets a hint in the side menu, one click away from the update button
+    const me = Object.entries(u.version_info || {}).find(([k]) => k === APP || k.startsWith(APP + '-'))
+    state.uiUpdate = me && n.includes(me[0]) ? { name: me[0], version: me[1].version, remote: me[1].remote_version } : null
   } catch {}
 }
 

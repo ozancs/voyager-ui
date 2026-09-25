@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.1
+
+- Sidebar footer shows when a new Voyager UI version is available; clicking it opens the Machine page at the update row
+- Pages opened by deep link or reload no longer fail with "not connected" before the socket is up (Update Manager stuck on "Loading…")
+- README: shorter, beginner-friendly install steps, update section with screenshot
+
 ## 0.15.0
 
 Bug sweep over the whole code base. Fixed:

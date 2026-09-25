@@ -1116,5 +1116,7 @@ export default {
  "Control: jog speeds and steps": "Керування: швидкості та кроки",
  "Console settings": "Налаштування консолі",
  "Mainsail / Fluidd sync": "Синхронізація Mainsail / Fluidd",
- "Demo: a simulated printer, nothing is real": "Демо: симуляція принтера, нічого справжнього"
+ "Demo: a simulated printer, nothing is real": "Демо: симуляція принтера, нічого справжнього",
+ "Open the update manager": "Відкрити менеджер оновлень",
+ "Voyager UI {v} is out": "Вийшов Voyager UI {v}"
 }

@@ -1116,5 +1116,7 @@ export default {
  "Control: jog speeds and steps": "Sterowanie: prędkości i kroki",
  "Console settings": "Ustawienia konsoli",
  "Mainsail / Fluidd sync": "Synchronizacja Mainsail / Fluidd",
- "Demo: a simulated printer, nothing is real": "Demo: symulowana drukarka, nic nie jest prawdziwe"
+ "Demo: a simulated printer, nothing is real": "Demo: symulowana drukarka, nic nie jest prawdziwe",
+ "Open the update manager": "Otwórz menedżer aktualizacji",
+ "Voyager UI {v} is out": "Voyager UI {v} jest dostępny"
 }

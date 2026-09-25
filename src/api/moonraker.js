@@ -138,7 +138,19 @@ export class Moonraker {
     return p
   }
 
-  _call(method, params) {
+  // Wait (briefly) for the socket to come up. Pages that load data in onMounted otherwise fail with 'not connected'
+  // when they are opened by deep link or reload, before the socket has finished connecting.
+  ready() {
+    if (this.ws?.readyState === 1) return Promise.resolve()
+    return new Promise((resolve, reject) => {
+      const ok = () => { clearTimeout(tm); this.off('open', ok); resolve() }
+      const tm = setTimeout(() => { this.off('open', ok); reject(new Error('not connected')) }, 8000)
+      this.on('open', ok)
+    })
+  }
+
+  async _call(method, params) {
+    await this.ready()
     return new Promise((resolve, reject) => {
       if (!this.ws || this.ws.readyState !== 1) return reject(new Error('not connected'))
       const id = this.id++

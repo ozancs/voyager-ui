@@ -33,6 +33,7 @@ const slowTasks = computed(() => state.booted ? activeTasks.value.filter((t) => 
     <button class="it" :class="{ on: !!state.settingsOpen }" @click="state.settingsOpen = 'general'; emit('close')"><Icon name="gear" /><span>{{ t('Interface settings') }}</span></button>
     <div class="ft">
       <template v-if="slowTasks.length"><Icon name="refresh" :size="13" class="spin" style="color:var(--heat)" /><span class="tk">{{ slowTasks[0].label }}…<template v-if="slowTasks.length > 1"> +{{ slowTasks.length - 1 }}</template></span></template>
+      <button v-else-if="state.uiUpdate && state.connected" class="up" :data-tip="t('Open the update manager')" @click="state.anchor = 'upd-' + state.uiUpdate.name; nav('machine')"><Icon name="download" :size="13" /><span class="tk">{{ t('Voyager UI {v} is out', { v: state.uiUpdate.remote }) }}</span></button>
       <template v-else><span class="d" :style="{ background: state.connected ? 'var(--ok)' : 'var(--dg)' }"></span>{{ state.connected ? t('Moonraker connected') : t('Connecting…') }}</template>
     </div>
   </nav>
@@ -52,6 +53,8 @@ const slowTasks = computed(() => state.booted ? activeTasks.value.filter((t) => 
 @media (max-width: 1100px) { .pinrow { display: none; } }
 .sep { height: 1px; background: var(--bd); margin: 6px 4px; flex-shrink: 0; }
 .ft { flex-shrink: 0; margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 10px 12px 0; font-size: 12px; color: var(--mu); }
+.up { display: flex; align-items: center; gap: 8px; border: none; background: color-mix(in srgb, #f5b23a 14%, transparent); color: #f5b23a; font-weight: 600; font-size: 12px; padding: 6px 10px; margin: 0 -4px; border-radius: 8px; cursor: pointer; text-align: left; }
+.up:hover { background: color-mix(in srgb, #f5b23a 22%, transparent); }
 .tk { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .d { width: 8px; height: 8px; border-radius: 4px; }
 .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 80; }
