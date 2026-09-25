@@ -2,105 +2,58 @@
 
 # Voyager UI
 
-A web interface for Klipper printers, running next to Mainsail or Fluidd on its own port. It talks to Moonraker like any other client, so nothing in Klipper changes.
+A web interface for Klipper printers. Runs next to Mainsail or Fluidd on its own port, talks to Moonraker like any other client, changes nothing in Klipper.
 
-Status: early and tested on one printer (CoreXY, Raspberry Pi 4, Klipper + Moonraker installed with KIAUH). Expect rough edges.
+> **Read this first.** The code in this repo was written with AI (Claude). I am a maker, not a frontend developer, and I could not have built this on my own. I designed it, decided what goes where, tested every feature on my printer, sent back everything that looked or felt wrong and had it redone until it was right. There is a mock Moonraker for automated browser tests, unit tests for the config checks and translations, and the code went through a security review. Still, it is one person's printer and one person's taste. Treat it as early software and keep Mainsail installed next to it.
+>
+> Why it exists: Mainsail is great but it never quite fit how I use my printer, and reading the forums I saw I am not alone. This is my take on it. If a UI like this is something you wanted too, try it, break it, open an issue.
 
-## Features
+Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KIAUH.
 
-- dashboard with cards you can drag, resize, hide and add (custom command and macro buttons included)
-- favorites bar for macros and commands, with icons and autocomplete
-- temperatures, fans, LEDs, filament sensors and Spoolman in one strip
-- console, webcam, 3d heightmap, g-code viewer, file manager, print history
-- config editor: Klipper syntax colours, file tree and tabs, search and replace, folding, suggestions, checks while typing (repeated options, missing includes, unbalanced macro blocks, Klipper warnings), compare with the saved file or a backup, docs link per section. A backup copy is made before every save
-- machine page with system load and update manager
-- MMU card for Happy Hare and Box Turtle (AFC), shown by itself when one is found
-- webcams: MJPEG, WebRTC (camera-streamer, go2rtc, MediaMTX), HLS
-- Moonraker login when the printer asks for one
-- power devices (smart plugs, relays) and phone notifications (Telegram, Discord, ntfy, Pushover) through Moonraker
-- health page: MCU and CAN link errors, heater power and stability, TMC driver flags, host throttling
-- maintenance reminders based on print hours, with a due date estimated from recent printing
-- search everything with Ctrl+K: pages, macros, commands, g-code files, settings and config options (opens the file at the line)
-- dialogs for macro prompts (`action:prompt_*`), manual probe (PROBE_CALIBRATE and friends), BED_SCREWS_ADJUST and SCREWS_TILT_CALCULATE
-- job queue panel next to the file list
-- optional separate dashboard layout while printing
-- Klipper errors as pop-ups with a short hint, optional sounds for print finished, paused and errors
-- dashboard cards for macros (with parameters), devices, recent files, recent prints, Spoolman, firmware retraction and health
-- quick commands in the search box: `chamber 40`, `bed off`, `fan 50`, `speed 120`, `z offset -0.05`, `home xy`, preset names. Checked against max_temp, homing and axis limits before they run
-- 14 languages (English, German, Spanish, French, Italian, Dutch, Polish, Portuguese, Turkish, Russian, Ukrainian, Chinese, Japanese, Korean), with a short setup on first start. Translations other than English and Turkish were made with AI help, corrections are welcome
-- settings are stored in the Moonraker database and can be exported as a file
+## What it does
 
-## Requirements
-
-- Klipper and Moonraker
-- nginx (already there if you installed Mainsail or Fluidd)
-- a free port, 8000 by default
+- Dashboard with cards you can drag, resize, hide, add and colour. Optional second layout while printing
+- Favorites bar for macros and commands
+- Temperatures, fans, LEDs, filament sensors and Spoolman in one strip of tiles
+- Console, webcam (MJPEG, WebRTC, HLS), heightmap, g-code viewer, file manager, print history, job queue
+- Config editor with Klipper syntax colours, search and replace, folding, suggestions, live checks (repeated options, missing includes, unbalanced macro blocks), diff against the saved file or a backup. A backup is made before every save
+- Ctrl+K search: pages, macros, files, settings, config options, and quick commands like `bed 60`, `fan 50`, `z offset -0.05`
+- Health page: MCU and CAN errors, TMC driver flags, host throttling, maintenance reminders based on print hours
+- MMU card for Happy Hare and Box Turtle (AFC)
+- Power devices and phone notifications (Telegram, Discord, ntfy, Pushover) through Moonraker
+- Dialogs for macro prompts, PROBE_CALIBRATE, BED_SCREWS_ADJUST, SCREWS_TILT_CALCULATE
+- Settings dialog like Mainsail's. Printer name, jog steps, extrusion and temperature presets are kept in sync with Mainsail and Fluidd
+- Scales to the screen, so a laptop shows the same layout as a big monitor
+- 14 languages. Everything except English and Turkish was machine translated, corrections welcome
 
 ## Install
 
-Run on the printer host over SSH:
+You need Klipper, Moonraker, nginx (there if you have Mainsail or Fluidd) and a free port. On the printer over SSH:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ozancs/voyager-ui/main/install.sh | bash
 ```
 
-Then open `http://<printer-host>:8000`. Mainsail or Fluidd keeps working on port 80. If port 8000 is taken, the installer says what is using it and offers the next free port. Updates keep the port you picked.
+Open `http://<printer>:8000`. Mainsail or Fluidd stays on port 80.
 
-To use another port:
+The installer checks the system first, finds every printer on the host, asks which ones to set up, picks a free port for each, writes an nginx site (webcam ports come from `crowsnest.conf`), checks `trusted_clients` and adds an `[update_manager voyager-ui]` section so updates show up in the update manager. Options:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/ozancs/voyager-ui/main/install.sh | bash -s -- --port 8001
+```
+--port 8001              use this port
+--printer printer_data_2 only this printer (or: all)
+--moonraker-port 7126    if it cannot find it
+--check                  only run the system check
+--no-updater             skip the update_manager section
+--yes                    take every suggested answer
+--zip voyager-ui.zip     install from a downloaded release (offline, or to roll back)
+--uninstall              remove files, nginx site and update_manager section. Settings stay in the Moonraker database
 ```
 
-The installer first runs a system check (OS, sudo, nginx, python3, disk space, Moonraker) and stops with a clear message if something is missing. To only run the check and change nothing:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/ozancs/voyager-ui/main/install.sh | bash -s -- --check
-```
-
-Then it:
-
-1. finds every printer on the host (`printer_data`, `printer_data_2`, `<name>_data` ...) and asks which ones to install for
-2. finds each Moonraker port, and asks when it cannot
-3. picks a free web port for each printer, starting at 8000
-4. copies the release to `~/voyager-ui` (other printers get `~/voyager-ui-<folder>`)
-5. adds an nginx site per printer, with webcam ports read from `crowsnest.conf`
-6. checks that Moonraker trusts your network (`trusted_clients`) and offers to add it, keeping a backup of `moonraker.conf`
-7. adds this section to `moonraker.conf` so updates show up in the update manager:
-
-```ini
-[update_manager voyager-ui]
-type: web
-channel: stable
-repo: ozancs/voyager-ui
-path: ~/voyager-ui
-```
-
-Other options: `--printer printer_data_2` (or `all`), `--moonraker-port 7126`, `--yes` to take every suggested answer.
-
-Not supported yet: Creality K1 / K1 Max, Sonic Pad and other OpenWrt based hosts, Moonraker with `force_logins` turned on.
-
-Use `--no-updater` to skip step 7.
+Not supported yet: Creality K1, Sonic Pad and other OpenWrt hosts, Moonraker with `force_logins`.
 
 ## Update
 
-Use the update manager in this UI, Mainsail or Fluidd. Running the install command again also works.
-
-## Roll back or install offline
-
-Download a zip from the releases page, copy it to the printer and run:
-
-```bash
-bash install.sh --zip voyager-ui.zip
-```
-
-## Uninstall
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/ozancs/voyager-ui/main/install.sh | bash -s -- --uninstall
-```
-
-This removes the files, the nginx site and the update manager section. Your settings stay in the Moonraker database.
+Update manager in any UI, or run the install command again.
 
 ## Development
 
@@ -109,9 +62,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173/?host=<printer-host>` to connect the dev server to a printer. `?host=` with an empty value switches back to same origin. Moonraker has to allow the dev address in `cors_domains`. The parameter only works in the dev server; a release build always talks to the host it was loaded from.
-
-Build a release zip with `bash scripts/pack.sh`. Pushing a `v*` tag builds the zip on GitHub and attaches it to a release.
+Open `http://localhost:5173/?host=<printer>` to point the dev server at a printer (Moonraker needs the dev address in `cors_domains`). This only works in the dev server, a release build always talks to the host it was loaded from. `npm test` runs the tests, `bash scripts/pack.sh` builds the release zip, pushing a `v*` tag makes a GitHub release.
 
 ## License
 
