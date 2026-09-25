@@ -6,12 +6,14 @@ import { defineAsyncComponent } from 'vue'
 const Surface3D = defineAsyncComponent(() => import('../components/Surface3D.vue'))
 import NumField from '../components/NumField.vue'
 import Rng from '../components/Rng.vue'
+import Toggle from '../components/Toggle.vue'
+import { PALETTES, paletteColor, cssGradient } from '../meshPalette'
 import { state, S, gcode, isPrinting } from '../store'
 import { t } from '../i18n'
 const bm = computed(() => S('bed_mesh'))
 const useProbed = ref(true)
 // view options, kept in settings: colour range (auto = the mesh's own extremes) and the 3D z axis height
-if (!state.settings.heightmap) state.settings.heightmap = { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5 }
+if (!state.settings.heightmap) state.settings.heightmap = { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false }
 const hv = computed(() => state.settings.heightmap)
 const mode3d = ref(true)
 const saveName = ref('')
@@ -33,14 +35,7 @@ const lim = computed(() => {
 })
 // 3D z axis half height (± mm), null = auto
 const zMax = computed(() => (hv.value.zAuto ? null : Math.max(Number(hv.value.zMax) || 0.5, 0.01)))
-function color(z) {
-  const lim_ = lim.value
-  const f = Math.max(-1, Math.min(1, z / lim_))
-  const base = [46, 50, 56], hi = [255, 107, 26], lo = [56, 120, 255]
-  const c = f >= 0 ? hi : lo
-  const k = Math.abs(f)
-  return `rgb(${base.map((b, i) => Math.round(b + (c[i] - b) * k)).join(',')})`
-}
+function color(z) { return paletteColor(hv.value.palette, z / lim.value) }
 const rows = computed(() => (matrix.value ? [...matrix.value].reverse() : []))
 const profiles = computed(() => Object.keys(bm.value.profiles || {}))
 function doSave() {
@@ -58,14 +53,14 @@ function doSave() {
         <div class="acts"><div class="seg" style="width:130px"><button :class="{ on: mode3d }" @click="mode3d = true">3D</button><button :class="{ on: !mode3d }" @click="mode3d = false">2D</button></div><div class="seg" style="width:180px"><button :class="{ on: useProbed }" @click="useProbed = true">{{ t('Probed') }}</button><button :class="{ on: !useProbed }" @click="useProbed = false">{{ t('Mesh') }}</button></div></div>
       </div>
       <div v-if="!matrix" class="empty" style="flex:1;display:flex;align-items:center;justify-content:center">{{ t('No bed mesh loaded. Calibrate or load a profile.') }}</div>
-      <div v-else-if="mode3d" style="flex:1;min-height:0"><Surface3D :z="matrix" :min="bm.mesh_min" :max="bm.mesh_max" :lim="lim" :zmax="zMax" /></div>
+      <div v-else-if="mode3d" style="flex:1;min-height:0"><Surface3D :z="matrix" :min="bm.mesh_min" :max="bm.mesh_max" :lim="lim" :zmax="zMax" :palette="hv.palette" :wire="!!hv.wire" /></div>
       <div v-else class="hm">
         <div class="grid" :style="{ gridTemplateColumns: `repeat(${stats.cols}, minmax(0, 1fr))` }">
           <template v-for="(r, ri) in rows" :key="ri">
             <div v-for="(z, ci) in r" :key="ci" class="cell mono" :style="{ background: color(z) }" :title="z.toFixed(4)">{{ stats.cols <= 15 ? (z >= 0 ? '+' : '') + z.toFixed(2) : '' }}</div>
           </template>
         </div>
-        <div class="legend"><span class="mono">+{{ lim.toFixed(3) }}</span><div class="lgd"></div><span class="mono">-{{ lim.toFixed(3) }}</span></div>
+        <div class="legend"><span class="mono">+{{ lim.toFixed(3) }}</span><div class="lgd" :style="{ background: cssGradient(hv.palette) }"></div><span class="mono">-{{ lim.toFixed(3) }}</span></div>
       </div>
       <div class="mono mu" style="font-size:12px" v-if="matrix && !mode3d">{{ t('front of bed is at the bottom') }}</div>
     </section>
@@ -102,6 +97,9 @@ function doSave() {
             <NumField v-model="hv.colorLim" :label="t('Colour range ±')" unit="mm" :step="0.01" :min="0.005" :max="5" :decimals="3" />
             <Rng :value="Math.min(hv.colorLim, 1)" :min="0.005" :max="1" :step="0.005" :label="t('Colour range ±')" @input="hv.colorLim = $event" />
           </template>
+          <div class="row" style="justify-content:space-between"><span>{{ t('Colours') }}</span><select class="input" style="width:170px;height:36px" :value="hv.palette || 'voyager'" :aria-label="t('Colours')" @change="hv.palette = $event.target.value"><option v-for="(p, k) in PALETTES" :key="k" :value="k">{{ t(p.name) }}</option></select></div>
+          <div class="pv" :style="{ background: 'linear-gradient(90deg,' + PALETTES[hv.palette || 'voyager'].stops.join(',') + ')' }"></div>
+          <div class="row" style="justify-content:space-between"><span>{{ t('Wireframe (3D)') }}</span><Toggle v-model="hv.wire" :label="t('Wireframe (3D)')" /></div>
           <div class="row" style="justify-content:space-between"><span>{{ t('3D z axis') }}</span><div class="seg" style="width:150px"><button :class="{ on: hv.zAuto }" @click="hv.zAuto = true">{{ t('Auto') }}</button><button :class="{ on: !hv.zAuto }" @click="hv.zAuto = false">{{ t('Manual') }}</button></div></div>
           <template v-if="!hv.zAuto">
             <NumField v-model="hv.zMax" :label="t('Z axis max ±')" unit="mm" :step="0.05" :min="0.01" :max="10" :decimals="2" />
@@ -119,9 +117,10 @@ function doSave() {
 <style scoped>
 .hm { flex: 1; display: flex; align-items: center; justify-content: center; gap: 20px; min-height: 0; }
 .grid { display: grid; gap: 3px; width: min(100%, 620px); }
-.cell { aspect-ratio: 1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #f2f2ef; }
+.cell { aspect-ratio: 1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #f2f2ef; text-shadow: 0 1px 2px rgba(0,0,0,.8); }
 .legend { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: var(--mu); }
-.lgd { width: 14px; height: 360px; border-radius: 7px; background: linear-gradient(#ff6b1a, #2e3238, #3878ff); }
+.lgd { width: 14px; height: 360px; border-radius: 7px; }
+.pv { height: 8px; border-radius: 4px; }
 .st { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .st > div { display: flex; flex-direction: column; gap: 4px; padding: 12px; background: var(--s2); border-radius: 10px; }
 .st b { font-size: 20px; }

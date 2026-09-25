@@ -1,16 +1,14 @@
 <script setup>
 import { computed } from 'vue'
 import Icon from './Icon.vue'
-import { S, gcode, isPrinting } from '../store'
+import { state, S, gcode, isPrinting } from '../store'
+import { paletteColor } from '../meshPalette'
 import { go } from '../router'
 import { t } from '../i18n'
 const bm = computed(() => S('bed_mesh'))
 const m = computed(() => { const x = bm.value.probed_matrix; return x?.length && x[0].length ? x : null })
 const st = computed(() => { if (!m.value) return null; const a = m.value.flat(); const mn = Math.min(...a), mx = Math.max(...a); return { mn, mx, lim: Math.max(Math.abs(mn), Math.abs(mx), 0.01) } })
-function col(z) {
-  const t = Math.max(-1, Math.min(1, z / st.value.lim)), base = [46, 50, 56], c = t >= 0 ? [255, 107, 26] : [56, 120, 255], k = Math.abs(t)
-  return `rgb(${base.map((b, i) => Math.round(b + (c[i] - b) * k)).join(',')})`
-}
+const col = (z) => paletteColor(state.settings.heightmap?.palette, z / st.value.lim) // same colours as the Heightmap page
 </script>
 <template>
   <section class="card">
