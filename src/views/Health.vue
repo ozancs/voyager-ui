@@ -5,7 +5,7 @@ import Modal from '../components/Modal.vue'
 import { state, S, prettyName, gcode, toast, THROTTLE } from '../store'
 import { api } from '../api/moonraker'
 import { t } from '../i18n'
-import { health, mcuHist, heaterLive, healthIssues, printStats, loadPrintStats, maintUsed, maintDueDays, MAINT_DEFAULTS } from '../features'
+import { counterGrowth, health, mcuHist, heaterLive, healthIssues, printStats, loadPrintStats, maintUsed, maintDueDays, MAINT_DEFAULTS } from '../features'
 
 onMounted(loadPrintStats)
 
@@ -28,8 +28,7 @@ const mcus = computed(() => {
   return state.objects.filter((o) => o === 'mcu' || o.startsWith('mcu ')).map((o) => {
     const s = S(o), st = s.last_stats || {}
     const h = mcuHist[o] || []
-    const d = h.length > 1 ? h[h.length - 1].re - h[0].re : 0
-    const di = h.length > 1 ? h[h.length - 1].inv - h[0].inv : 0
+    const d = counterGrowth(h, 're'), di = counterGrowth(h, 'inv') // restarts reset the counters
     const load = (st.mcu_task_avg + 3 * st.mcu_task_stddev) / 0.0025
     const bus = S('canbus_stats ' + (o === 'mcu' ? 'mcu' : o.slice(4)))
     // per-sample retransmit increments for the sparkline

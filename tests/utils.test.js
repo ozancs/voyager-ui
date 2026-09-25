@@ -27,3 +27,12 @@ describe('download folders', () => {
     expect(expandPaths([{ path: 'mmu', dir: true }, { path: 'printer.cfg' }], all).sort()).toEqual(['mmu/base/mmu.cfg', 'mmu/macros/a.cfg', 'mmu/top.cfg', 'printer.cfg'])
   })
 })
+
+import { counterGrowth } from '../src/calc.js'
+describe('mcu counters', () => {
+  it('ignores the drop when Klipper restarts', () => {
+    const h = [{ re: 100 }, { re: 120 }, { re: 5 }, { re: 15 }]
+    expect(counterGrowth(h, 're')).toBe(30)
+  })
+})
+

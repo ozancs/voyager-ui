@@ -5,6 +5,8 @@ import { api } from './api/moonraker'
 import { state, S, toast, printState, pushConsole, gcode, backupBeforeWrite } from './store'
 import { t } from './i18n'
 import { expandPaths } from './paths'
+import { counterGrowth } from './calc'
+export { counterGrowth }
 
 // ---------------------------------------------------------------- macro prompts
 // Klipper macros can open dialogs with "// action:prompt_*" lines (same protocol Mainsail uses).
@@ -231,7 +233,7 @@ export const healthIssues = computed(() => {
     // so warn on a sustained rate, and always on invalid bytes (corrupted data).
     const first = h[0], last = h[h.length - 1]
     const mins = Math.max(1, (last.t - first.t) / 60)
-    const d = last.re - first.re, inv = last.inv - first.inv
+    const d = counterGrowth(h, 're'), inv = counterGrowth(h, 'inv')
     if (mins >= 3 && d / mins > 150) out.push({ area: 'mcu', key: n, level: d / mins > 1500 ? 'error' : 'warn', msg: t('{name}: {d} bytes retransmitted in the last {m} min', { name: n, d, m: Math.round(mins) }) })
     if (inv > 0) out.push({ area: 'mcu', key: n, level: 'error', msg: t('{name}: {d} invalid bytes received, check the wiring', { name: n, d: inv }) })
   }
