@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.3
+
+- MMU card: set the filament of a gate or lane (material, colour, name, temperature, Spoolman spool). Happy Hare uses MMU_GATE_MAP, AFC uses SET_MATERIAL / SET_COLOR / SET_SPOOL_ID
+
 ## 0.18.2
 
 - Health: the Power tile no longer says "throttled" when Moonraker cannot read the power state (it shows -- instead)
