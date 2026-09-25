@@ -64,12 +64,17 @@ function moveTo(id, targetId) {
   ;[ids[from], ids[to]] = [ids[to], ids[from]]
   state.settings.strip.order = ids
 }
-const basePos = (el) => { const pr = el.offsetParent?.getBoundingClientRect() || { left: 0, top: 0 }; return { x: pr.left + el.offsetLeft, y: pr.top + el.offsetTop } }
+// pointer position in the strip's own CSS pixels. With the interface scale (CSS zoom) the pointer comes in screen
+// pixels while offsetLeft/Top are CSS pixels; the ratio of the two sizes converts between them in every browser.
+function local(el, e) {
+  const par = el.offsetParent || el.parentElement, r = par.getBoundingClientRect(), k = r.width / (par.offsetWidth || r.width) || 1
+  return { x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k }
+}
 function pDown(d, e) {
   if (!state.editDash || e.button !== 0 || e.target.closest('button, input, a')) return
-  const el = e.currentTarget, b = basePos(el)
+  const el = e.currentTarget, p = local(el, e)
   dragEl = el
-  dragStart = { x: e.clientX, y: e.clientY, id: d.id, ox: e.clientX - b.x, oy: e.clientY - b.y }
+  dragStart = { x: e.clientX, y: e.clientY, id: d.id, ox: p.x - el.offsetLeft, oy: p.y - el.offsetTop }
   window.addEventListener('pointermove', pMove)
   window.addEventListener('pointerup', pUp)
   window.addEventListener('pointercancel', pUp)
@@ -78,11 +83,10 @@ function pDown(d, e) {
 function pMove(e) {
   if (!dragStart || !dragEl) return
   if (!dragId.value) { if (Math.hypot(e.clientX - dragStart.x, e.clientY - dragStart.y) < 6) return; dragId.value = dragStart.id }
-  const b = basePos(dragEl)
-  dragPos.value = { x: e.clientX - dragStart.ox - b.x, y: e.clientY - dragStart.oy - b.y }
+  const q = local(dragEl, e)
+  dragPos.value = { x: q.x - dragStart.ox - dragEl.offsetLeft, y: q.y - dragStart.oy - dragEl.offsetTop }
   if (!slots.length) slots = [...dragEl.parentElement.children].filter((x) => x.classList?.contains('dc')).map((x) => ({ id: x.dataset.id, x: x.offsetLeft, y: x.offsetTop, w: x.offsetWidth, h: x.offsetHeight }))
-  const pr = dragEl.offsetParent?.getBoundingClientRect() || { left: 0, top: 0 }
-  const px = e.clientX - pr.left, py = e.clientY - pr.top
+  const px = q.x, py = q.y
   const hit = slots.find((x) => x.id !== dragId.value && px >= x.x && px < x.x + x.w && py >= x.y && py < x.y + x.h)
   overId.value = hit?.id || null
   // preview the swap: the target slides into the dragged tile's slot
