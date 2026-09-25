@@ -91,6 +91,7 @@ export class Moonraker {
   }
 
   async connect(host = '') {
+    if (host && !/^[A-Za-z0-9.-]+(:\d{1,5})?$/.test(host)) host = '' // host[:port] only, never a path or credentials
     this.host = host
     clearTimeout(this.retry)
     const q = await this.wsQuery()

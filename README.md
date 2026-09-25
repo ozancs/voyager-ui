@@ -109,7 +109,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173/?host=<printer-host>` to connect the dev server to a printer. `?host=` with an empty value switches back to same origin. Moonraker has to allow the dev address in `cors_domains`.
+Open `http://localhost:5173/?host=<printer-host>` to connect the dev server to a printer. `?host=` with an empty value switches back to same origin. Moonraker has to allow the dev address in `cors_domains`. The parameter only works in the dev server; a release build always talks to the host it was loaded from.
 
 Build a release zip with `bash scripts/pack.sh`. Pushing a `v*` tag builds the zip on GitHub and attaches it to a release.
 

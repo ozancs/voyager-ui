@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.14.0'
+export const VERSION = '0.14.1'
 export const APP = 'voyager-ui'
 export const APP_NAME = 'Voyager UI'
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui'
@@ -670,12 +670,19 @@ export const activeTasks = computed(() => {
 })
 
 export function start() {
-  const qp = new URLSearchParams(location.search).get('host')
-  if (qp !== null) {
-    try { qp ? localStorage.setItem(APP + '-host', qp) : localStorage.removeItem(APP + '-host') } catch {}
-  }
+  // `?host=` points the dev server (npm run dev) at a printer. It is a dev-only feature: in a production build
+  // every request, the login form and the tokens must stay on the origin the page was served from, otherwise
+  // a link like /?host=evil could make the UI hand the Moonraker token or password to another server.
   let host = ''
-  try { host = localStorage.getItem(APP + '-host') || '' } catch {}
+  if (import.meta.env.DEV) {
+    const qp = new URLSearchParams(location.search).get('host')
+    if (qp !== null) {
+      try { qp && /^[A-Za-z0-9.-]+(:\d{1,5})?$/.test(qp) ? localStorage.setItem(APP + '-host', qp) : localStorage.removeItem(APP + '-host') } catch {}
+    }
+    try { host = localStorage.getItem(APP + '-host') || '' } catch {}
+  } else {
+    try { localStorage.removeItem(APP + '-host') } catch {}
+  }
 
   api.on('open', onOpen)
   api.on('auth-required', (info) => { state.login = { needed: true, sources: info.available_sources || ['moonraker'], source: info.default_source || 'moonraker' } })

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.1
+
+- Security: the `?host=` parameter is honoured by the dev server only. A release build always talks to the host the page came from, so a crafted link can no longer point the UI (and its Moonraker token or login) at another server. Found with Anthropic's claude-code-security-review
+
 ## 0.14.0
 
 - New name: Voyager UI, with the amber probe logo. Settings, favorites and layouts from the old names (oznlab_klipperui, carbon-ui) are carried over on first start; the installer removes the old nginx sites and update_manager entries and keeps the port
