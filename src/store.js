@@ -2,17 +2,18 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.8.4'
-export const APP = 'oznlab_klipperui'
-export const APP_NAME = 'OznLab Klipper UI'
-export const REPO_URL = 'https://github.com/ozancs/oznlab_klipperui'
+export const VERSION = '0.14.0'
+export const APP = 'voyager-ui'
+export const APP_NAME = 'Voyager UI'
+export const REPO_URL = 'https://github.com/ozancs/voyager-ui'
+export const OLD_APPS = ['oznlab_klipperui', 'carbon-ui'] // earlier names, their data is carried over once
 const NS = APP
-// carry over data from the old name (carbon-ui)
+// carry over browser data from the old names
 try {
-  for (const k of ['settings', 'objects', 'heaters', 'dismissed', 'host']) {
-    const o = localStorage.getItem(APP + '-' + k)
+  for (const old of OLD_APPS) for (const k of ['settings', 'objects', 'heaters', 'dismissed', 'host', 'theme', 'scale', 'lang', 'auth']) {
+    const o = localStorage.getItem(old + '-' + k)
     if (o !== null && localStorage.getItem(APP + '-' + k) === null) localStorage.setItem(APP + '-' + k, o)
-    localStorage.removeItem(APP + '-' + k)
+    localStorage.removeItem(old + '-' + k)
   }
 } catch {}
 
@@ -47,6 +48,8 @@ export const DEFAULT_SETTINGS = () => ({
     { section: 'bed_mesh', key: 'algorithm', unit: '' },
     { section: 'z_tilt', key: 'retries', unit: '' },
     { section: 'z_tilt', key: 'retry_tolerance', unit: 'mm' },
+    { section: 'quad_gantry_level', key: 'retries', unit: '' },
+    { section: 'quad_gantry_level', key: 'retry_tolerance', unit: 'mm' },
     { section: 'input_shaper', key: 'shaper_type_x', unit: '' },
     { section: 'input_shaper', key: 'shaper_freq_x', unit: 'hz' },
     { section: 'input_shaper', key: 'shaper_type_y', unit: '' },
@@ -69,11 +72,16 @@ export const DEFAULT_SETTINGS = () => ({
   layoutBackups: [],
   // layout used while printing (null = same as idle until edited)
   theme: 'dark', // dark | light | auto
+  searchContent: true, // Ctrl+K also searches inside .py .sh .txt files in the config folder
+  uiScale: 'auto', // 'auto' = looks the same as on a 1920 px wide screen, or a fixed percent (100 = no scaling)
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
   layoutPrint: null,
   hiddenCardsPrint: [],
   sound: { enabled: false, volume: 0.6, complete: true, error: true, paused: true, heated: false },
+  // jog / extrude presets, shared with Mainsail and Fluidd when sync is on
+  control: { feedXY: 100, feedZ: 25, stepsXY: [100, 10, 1], stepsZ: [25, 1, 0.1], dpad: [100, 50, 10, 1, 0.1], zOffset: [0.005, 0.01, 0.025, 0.05], extAmounts: [5, 10, 25, 50, 100], extFeeds: [1, 2, 5, 10] },
+  sync: true, // mirror shared settings (name, language, jog presets, temperature presets) into the Mainsail / Fluidd database
   errorToasts: true,
   maintenance: null, // filled with defaults on first visit of the Health page
   lang: '', // '' = not chosen yet (first run asks)
@@ -141,6 +149,12 @@ export const state = reactive({
   consoleDraft: '',
   jump: null, // { file, line } for the config editor
   anchor: '', // element id to scroll to after navigation
+  uiZoom: 1, // current page zoom, see applyScale
+  power: [], // Moonraker [power] devices: { device, status, locked_while_printing, type }
+  login: null, // { needed, sources, source } when Moonraker asks for a login
+  settingsOpen: null, // name of the settings dialog tab while it is open
+  dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
+  etaLearn: { k: null, n: 0 }, // how much real prints differ from the slicer estimate (median of past prints)
 })
 
 // local copies so the dashboard can be drawn before moonraker answers
@@ -149,7 +163,7 @@ function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch 
 function mergeSettings(v) {
   const def = DEFAULT_SETTINGS()
   v = v || {}
-  return { ...def, ...v, devices: { ...def.devices, ...(v.devices || {}) }, strip: { ...def.strip, ...(v.strip || {}) } }
+  return { ...def, ...v, devices: { ...def.devices, ...(v.devices || {}) }, strip: { ...def.strip, ...(v.strip || {}) }, control: { ...def.control, ...(v.control || {}) } }
 }
 function cachedSettings() { return mergeSettings(lsGet(APP + '-settings')) }
 state.objects = lsGet(APP + '-objects') || []
@@ -221,11 +235,17 @@ export const printTimes = computed(() => {
   const ps = S('print_stats')
   const dur = ps.print_duration || 0
   const p = progress.value
-  let left = null
+  // Smart estimate: the slicer time (corrected by what past prints showed and the speed override)
+  // counts most at the start, the measured pace from file progress takes over as the print goes on.
   const est = state.currentMeta?.estimated_time
-  if (p > 0.01 && dur > 0) left = dur / p - dur
-  else if (est) left = est - dur
-  return { elapsed: ps.total_duration || 0, print: dur, left, eta: left != null ? new Date(Date.now() + left * 1000) : null }
+  const k = state.etaLearn.k || 1
+  const sf = S('gcode_move').speed_factor || 1
+  const fileLeft = p > 0.01 && dur > 0 ? dur / p - dur : null
+  const slicerLeft = est ? (Math.max(0, est * (1 - p)) * k) / sf : null
+  let left = fileLeft ?? slicerLeft, w = fileLeft != null ? 1 : 0
+  if (fileLeft != null && slicerLeft != null) { w = Math.min(1, Math.max(0, (p - 0.03) / 0.5)); left = slicerLeft * (1 - w) + fileLeft * w }
+  return { elapsed: ps.total_duration || 0, print: dur, left, eta: left != null ? new Date(Date.now() + left * 1000) : null,
+    why: { slicerLeft, fileLeft, k: state.etaLearn.k, n: state.etaLearn.n, w, sf } }
 })
 export const layerInfo = computed(() => {
   const info = S('print_stats').info || {}
@@ -430,17 +450,20 @@ async function loadSettings() {
     missing = e.code === 404 || /not found|does not exist|no such/i.test(e.message || '')
     if (!missing && e.message === 'not connected') { state.settingsLoaded = false; return }
   }
-  // one-time carry-over from the old name (carbon-ui). Old values win over untouched defaults,
+  // one-time carry-over from the old names. Old values win over untouched defaults,
   // things that only exist in the new version (language, setup, sounds...) are kept.
   if (!cur?.migratedCarbon && (cur || missing)) {
-    try {
-      const old = (await api.call('server.database.get_item', { namespace: 'carbon-ui', key: 'settings' })).value
-      if (old && typeof old === 'object') {
-        const keep = cur ? { lang: cur.lang, setupDone: cur.setupDone, navMode: cur.navMode, sound: cur.sound, errorToasts: cur.errorToasts } : {}
-        for (const k of Object.keys(keep)) if (keep[k] === undefined) delete keep[k]
-        cur = { ...(cur || {}), ...old, ...keep }
-      }
-    } catch {}
+    for (const oldNs of OLD_APPS) {
+      try {
+        const old = (await api.call('server.database.get_item', { namespace: oldNs, key: 'settings' })).value
+        if (old && typeof old === 'object') {
+          const keep = cur ? { lang: cur.lang, setupDone: cur.setupDone, navMode: cur.navMode, sound: cur.sound, errorToasts: cur.errorToasts } : {}
+          for (const k of Object.keys(keep)) if (keep[k] === undefined) delete keep[k]
+          cur = { ...(cur || {}), ...old, ...keep }
+          break
+        }
+      } catch {}
+    }
     if (cur || missing) {
       cur = { ...(cur || {}), migratedCarbon: true }
       try { await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: cur }) } catch {}
@@ -461,6 +484,32 @@ function applyTheme() {
   try { localStorage.setItem(APP + '-theme', mode) } catch {}
 }
 watch(() => state.settings.theme, applyTheme, { immediate: true })
+// Interface size. The dashboard is laid out on a 1920 px wide screen; on a laptop (1440, 1512 ...) or a
+// 1440p monitor the whole UI is zoomed so cards keep the same proportions and the same number fits side by side.
+// Phones and small tablets (< 1100 px) keep 100 % and use the stacked layout.
+export const REF_WIDTH = 1920
+export function uiZoomFor(pref, w = window.innerWidth) {
+  if (w <= 1100) return 1
+  if (pref && pref !== 'auto') return Math.min(2, Math.max(0.5, +pref / 100 || 1))
+  return Math.min(1.6, Math.max(0.6, w / REF_WIDTH))
+}
+function applyScale() {
+  const pref = state.settings.uiScale ?? 'auto'
+  const z = +uiZoomFor(pref).toFixed(3)
+  const el = document.documentElement
+  if (z === 1) el.style.removeProperty('zoom'); else el.style.zoom = z
+  el.style.setProperty('--zoom', z)
+  window.__uiZoom = z
+  state.uiZoom = z
+  // width breakpoints above the phone layout follow the zoomed width, not the raw window width
+  const ew = window.innerWidth / z
+  for (const bp of [1200, 1300, 1750, 1900]) el.classList.toggle('ew-lt-' + bp, ew <= bp)
+  try { localStorage.setItem(APP + '-scale', String(pref)) } catch {}
+}
+watch(() => state.settings.uiScale, applyScale, { immediate: true })
+let rsz
+window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(applyScale, 120) })
+document.documentElement.dataset.look = 'panel'
 mqDark?.addEventListener?.('change', applyTheme)
 watch(() => state.settings.accent, (a) => document.documentElement.style.setProperty('--ac-raw', a || '#ff6b1a'), { immediate: true })
 
@@ -565,14 +614,27 @@ export async function loadSpool() {
   } catch { state.spoolman.spool = null }
 }
 
+// ---------- Moonraker power devices (smart plugs, relays) ----------
+export async function loadPower() {
+  try { state.power = (await api.call('machine.device_power.devices')).devices || [] } catch { state.power = [] }
+}
+export async function setPower(device, action) {
+  const r = await api.call('machine.device_power.post_device', { device, action })
+  const d = state.power.find((x) => x.device === device)
+  if (d && r?.[device]) d.status = r[device]
+  return r
+}
+
 async function onOpen() {
   state.connected = true
+  state.login = null
   state.conn = { attempts: 0, since: 0, probe: '' }
   // everything independent goes out at once
   api.call('server.connection.identify', { client_name: APP_NAME, version: VERSION, type: 'web', url: REPO_URL }).catch(() => {})
   const pSettings = loadSettings()
   api.call('server.database.get_item', { namespace: 'mainsail', key: 'general' }).then((m) => { state.printerName = m.value?.printername || state.printerName }).catch(() => {})
   api.call('server.webcams.list').then((r) => { state.webcams = r.webcams || [] }).catch(() => {})
+  loadPower()
   api.call('server.config').then((c) => {
     state.spoolman.server = c.config?.spoolman?.server || ''
     if (state.spoolman.server) loadSpool()
@@ -616,6 +678,7 @@ export function start() {
   try { host = localStorage.getItem(APP + '-host') || '' } catch {}
 
   api.on('open', onOpen)
+  api.on('auth-required', (info) => { state.login = { needed: true, sources: info.available_sources || ['moonraker'], source: info.default_source || 'moonraker' } })
   api.on('close', async () => {
     if (state.connected || !state.conn.since) state.conn.since = Date.now()
     state.connected = false
@@ -623,8 +686,9 @@ export function start() {
     state.conn.attempts++
     // find out why: is moonraker reachable over http?
     try {
-      const r = await fetch(api.url('/server/info'), { cache: 'no-store' })
+      const r = await api.fetch('/server/info')
       if (r.status === 502 || r.status === 504) state.conn.probe = t('Moonraker is not responding (nginx {status}). It may be restarting or crashed; check moonraker.log.', { status: r.status })
+      else if (r.status === 401 || r.status === 403) state.conn.probe = t('Moonraker asks for a login.')
       else if (r.ok) state.conn.probe = t('Moonraker answers over HTTP but the websocket closes. Usually a restart in progress; if it stays like this, reload the page.')
       else state.conn.probe = t('Moonraker returned HTTP {status}', { status: r.status })
     } catch { state.conn.probe = t('The printer host is not reachable from this browser (network / Pi down).') }
@@ -645,6 +709,7 @@ export function start() {
   api.on('notify_klippy_shutdown', () => { state.klippy = 'shutdown'; checkKlippy(); setTimeout(() => notify('klippy:shutdown', t('Klipper shutdown: {msg}', { msg: (state.klippyMessage || '').split('\n')[0] }), 'error'), 1500) })
   api.on('notify_klippy_disconnected', () => { state.klippy = 'disconnected'; state.objects = []; checkKlippy() })
   api.on('notify_active_spool_set', () => loadSpool())
+  api.on('notify_power_changed', ([d]) => { const x = state.power.find((p) => p.device === d?.device); if (x) Object.assign(x, d); else if (d?.device) state.power.push(d) })
   api.on('notify_webcams_changed', ([p]) => { state.webcams = p?.webcams || state.webcams })
   api.on('notify_update_response', ([r]) => {
     if (!state.update) state.update = { app: r.application, lines: [], complete: false }

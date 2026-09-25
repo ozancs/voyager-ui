@@ -12,6 +12,10 @@ import Dashboard from './views/Dashboard.vue'
 import Spotlight from './components/Spotlight.vue'
 import MachineDialogs from './components/MachineDialogs.vue'
 import FirstRun from './components/FirstRun.vue'
+import Handoff from './components/Handoff.vue'
+import LoginScreen from './components/LoginScreen.vue'
+import SettingsDialog from './components/SettingsDialog.vue'
+import { initSync } from './sync'
 import { initFeatures } from './features'
 import { nextTick } from 'vue'
 initFeatures()
@@ -29,8 +33,7 @@ const LOADERS = {
   history: ['History', () => import('./views/History.vue')],
   machine: ['Machine', () => import('./views/Machine.vue')],
   health: ['Health', () => import('./views/Health.vue')],
-  quick: ['Quick Config', () => import('./views/QuickConfig.vue')],
-  theme: ['Settings', () => import('./views/Theme.vue')],
+  quick: ['Printer settings', () => import('./views/QuickConfig.vue')],
   config: ['Editor', () => import('./views/ConfigEditor.vue')],
 }
 const VIEWS = { dashboard: Dashboard }
@@ -48,6 +51,8 @@ watch(() => state.booted, (b) => {
   })
 }, { immediate: true })
 // scroll to a section after navigating (settings found through Ctrl+K)
+// a new page starts at the top
+watch(() => route.name, () => { const m = document.querySelector('main.main'); if (m) m.scrollTop = 0 })
 watch([() => state.anchor, () => route.name], async () => {
   const a = state.anchor
   if (!a || a.startsWith('file:')) return
@@ -58,6 +63,9 @@ watch([() => state.anchor, () => route.name], async () => {
   }
 })
 const view = computed(() => VIEWS[route.name] || Dashboard)
+// the old settings page is a dialog now: old links and the first-run flow land on the dashboard with it open
+watch(() => route.name, (n) => { if (n === 'theme') { state.settingsOpen = state.settingsOpen || 'general'; go('dashboard') } }, { immediate: true })
+watch(() => state.settingsLoaded && state.connected, (ok) => { if (ok) initSync() }, { immediate: true })
 const showExclude = ref(false)
 const navOpen = ref(false)
 // side menu: pinned (in the layout), hidden (button opens it over the page), auto (opens when the mouse reaches the left edge)
@@ -80,6 +88,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
 <template>
   <div class="shell" :class="{ booting: state.connected && !state.booted }">
     <TopBar @exclude="state.showExclude = true" @menu="toggleNav" />
+    <SettingsDialog v-if="state.settingsOpen" />
     <FavoritesBar />
     <div class="body">
       <SideNav :open="navOpen" :mode="navMode" @close="navOpen = false" @pin="pinNav" @mouseenter="navMode === 'auto' && peek(true)" @mouseleave="navMode === 'auto' && peek(false)" />
@@ -103,6 +112,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
           <span v-if="state.versions.moonraker">Moonraker {{ state.versions.moonraker }}</span>
           <span v-if="state.versions.host">{{ state.versions.host }}</span>
           <span class="grow"></span>
+          <Handoff />
           <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">{{ t('Open {name}', { name: 'Mainsail' }) }}</a>
         </footer>
       </main>
@@ -110,6 +120,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready')
     <MachineDialogs />
     <Spotlight />
     <FirstRun />
+    <LoginScreen />
     <ExcludeModal v-if="state.showExclude" @close="state.showExclude = false" />
     <UpdateModal />
     <Transition name="fade"><div v-if="state.connected && !state.booted" class="bootpill"><Icon name="refresh" :size="15" class="spin" /><span>{{ bootTask }}</span></div></Transition>

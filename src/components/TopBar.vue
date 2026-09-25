@@ -1,8 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Icon from './Icon.vue'
+import Logo from './Logo.vue'
 import Modal from './Modal.vue'
-import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode, toast, printerName, dismiss, dismissAll } from '../store'
+import PowerList from './PowerList.vue'
+import { powerAsk, flipPower } from '../power'
+const pAsk = computed(() => powerAsk.value)
+const closeAsk = () => (powerAsk.value = null)
+import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode, toast, printerName, dismiss, dismissAll, prettyName } from '../store'
 import { api } from '../api/moonraker'
 import { go } from '../router'
 import { t } from '../i18n'
@@ -58,6 +63,7 @@ const POWER = [
   { k: 'reboot', label: 'Reboot Host', icon: 'rot', confirm: true, run: () => api.call('machine.reboot') },
   { k: 'off', label: 'Shutdown Host', icon: 'power', confirm: true, danger: true, run: () => api.call('machine.shutdown') },
 ]
+function customize() { go('dashboard'); state.dashEditReq = Date.now() }
 function doPower(p) {
   showPower.value = false
   if (p.confirm || active.value) confirm.value = p
@@ -75,7 +81,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
   <header class="tb">
     <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')"><Icon name="menu" :size="22" /></button>
     <a class="brand" href="#/dashboard">
-      <div class="logo"><Icon name="cube" :size="24" :stroke="2.4" /></div>
+      <Logo :size="40" />
       <div class="col" style="gap:0"><b class="pn">{{ printerName }}</b><span class="mono mu" style="font-size:11px">{{ hostName }}</span></div>
     </a>
     <div class="pill" :class="{ act: active }">
@@ -89,7 +95,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
         <span class="mono fn">{{ state.klippy !== 'ready' && state.klippyMessage ? state.klippyMessage.split('\n')[0] : S('print_stats').filename || t('No file loaded') }}</span>
       </div>
       <template v-if="active">
-        <div class="pb"><div class="bar" style="height:8px"><div :style="{ width: progress * 100 + '%' }"></div></div>
+        <div class="pb"><div class="bar state" :style="{ height: '8px', '--pst': stateColor }"><div :style="{ width: progress * 100 + '%' }"></div></div>
           <div class="row mono meta"><span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span><span class="hide-m">{{ t('ETA {time}', { time: eta }) }}</span></div>
         </div>
         <button v-if="printState === 'paused'" class="btn acc pbtn" :aria-label="t('Resume')" @click="gcode('RESUME')"><Icon name="play" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Resume') }}</span></button>
@@ -109,16 +115,18 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
     <input ref="fileInput" type="file" accept=".gcode,.g,.gco,.ufp,.nc" hidden @change="onFile" />
     <div class="rel">
       <button class="btn ibtn" :aria-label="t('Notifications')" @click="showBell = !showBell"><Icon name="bell" :size="22" :stroke="2.4" /><span v-if="state.notifications.length" class="badge" :style="{ background: state.notifications.some((n) => n.kind === 'error') ? 'var(--dg)' : state.notifications.some((n) => n.kind === 'warn') ? 'var(--wn)' : 'var(--bl)', color: '#111' }">{{ state.notifications.length }}</span></button>
-      <div v-if="showBell" class="dd card" @mouseleave="showBell = false">
+      <div v-if="showBell" class="dd card" v-away="() => (showBell = false)" @mouseleave="showBell = false">
         <div class="card-h"><h2>{{ t('Notifications') }}</h2><button class="btn" :disabled="!state.notifications.length" @click="dismissAll">{{ t('Dismiss all') }}</button></div>
         <div v-if="!state.notifications.length" class="empty">{{ t('No notifications') }}</div>
         <div v-for="n in state.notifications" :key="n.id" class="nt"><Icon :name="n.kind === 'info' ? 'info' : 'warn'" :size="16" :style="{ color: n.kind === 'error' ? 'var(--dg)' : n.kind === 'info' ? 'var(--bl)' : 'var(--wn)', flexShrink: 0 }" /><span class="grow">{{ n.msg }}</span><button class="btn clear ibtn sm" style="width:24px;height:24px" :aria-label="t('Dismiss')" @click="dismiss(n)"><Icon name="x" :size="14" /></button></div>
       </div>
     </div>
-    <button class="btn ibtn hide-s" :aria-label="t('Settings')" @click="go('theme')"><Icon name="gear" :size="22" :stroke="2.4" /></button>
+    <button v-if="!state.editDash" class="btn ibtn hide-s" :aria-label="t('Customize dashboard')" @click="customize"><Icon name="layout" :size="21" :stroke="2.2" /></button>
+    <button class="btn ibtn hide-s" :aria-label="t('Interface settings')" @click="state.settingsOpen = 'general'"><Icon name="gear" :size="22" :stroke="2.4" /></button>
     <div class="rel">
       <button class="btn ibtn" :aria-label="t('Power')" @click="showPower = !showPower"><Icon name="power" :size="22" :stroke="2.4" /></button>
-      <div v-if="showPower" class="dd card" style="width:240px" @mouseleave="showPower = false">
+      <div v-if="showPower" class="dd card" style="width:280px" v-away="() => (showPower = false)" @mouseleave="showPower = false">
+        <template v-if="state.power.length"><span class="sec-lbl" style="padding:2px 4px">{{ t('Power devices') }}</span><PowerList compact /><div style="height:1px;background:var(--bd);margin:4px 0"></div></template>
         <button v-for="p in POWER" :key="p.k" class="btn clear" :style="{ justifyContent: 'flex-start', height: '40px', color: p.danger ? 'var(--dg)' : 'var(--tx)' }" @click="doPower(p)"><Icon :name="p.icon" :size="18" />{{ t(p.label) }}</button>
       </div>
     </div>
@@ -127,6 +135,10 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
   <Modal v-if="askCancel" :title="t('Cancel print?')" @close="askCancel = false">
     <p class="mu" style="margin:0">{{ t('The current print will be cancelled.') }}</p>
     <template #foot><button class="btn lg" @click="askCancel = false">{{ t('Keep printing') }}</button><button class="btn lg dgf" @click="askCancel = false; gcode('CANCEL_PRINT')">{{ t('Cancel print') }}</button></template>
+  </Modal>
+  <Modal v-if="pAsk" :title="t('Turn off {name}?', { name: prettyName(pAsk.device) })" @close="closeAsk">
+    <p class="mu" style="margin:0">{{ active ? t('A print is running. Cutting the power stops it for good.') : t('This device is marked as locked while printing.') }}</p>
+    <template #foot><button class="btn lg" @click="closeAsk">{{ t('Cancel') }}</button><button class="btn lg dgf" @click="flipPower(pAsk, false, true)">{{ t('Turn off') }}</button></template>
   </Modal>
   <Modal v-if="confirm" :title="t('{action}?', { action: t(confirm.label) })" @close="confirm = null">
     <p class="mu" style="margin:0">{{ active ? t('A print is running. Are you sure?') : t('Are you sure?') }}</p>
@@ -152,12 +164,12 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
 .pbtn { height: 40px; flex-shrink: 0; }
 .dot { width: 10px; height: 10px; border-radius: 5px; flex-shrink: 0; }
 .fn { font-size: 12px; color: var(--mu); max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (max-width: 1750px) { .hide-m { display: none; } }
+:root.ew-lt-1750 .hide-m { display: none; }
 .msg { font-size: 12px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
 .rel { position: relative; }
 .badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 10px; background: var(--dg); color: #fff; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-.dd { position: absolute; right: 0; top: 52px; width: 380px; max-height: 420px; overflow: auto; z-index: 50; gap: 4px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
-.nt { display: flex; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--bd); font-size: 13px; font-family: var(--fm); word-break: break-word; }
+.dd { position: absolute; right: 0; top: 52px; width: 380px; max-width: calc(100vw - 20px); max-height: 420px; overflow: auto; z-index: 50; gap: 4px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+.nt { display: flex; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--bd); font-size: 13px; word-break: break-word; }
 .estop { letter-spacing: .06em; font-size: 15px; }
 .menu { display: none; }
 @media (max-width: 1100px) { .menu { display: inline-flex; } }
@@ -166,5 +178,16 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
   .brand .col { display: none; }
   .hide-s { display: none; }
   .tb { padding: 0 10px; gap: 8px; }
+  .pill > .col { overflow: hidden; }
+  .fn { max-width: 180px; }
 }
+/* phones: the pill keeps state, progress and the pause / cancel buttons, the rest goes */
+@media (max-width: 720px) {
+  .pb, .fn, .qb, .pbtn.out { display: none; }
+  .pill { gap: 8px; }
+  .pill > .col { min-width: 84px !important; }
+  .st { font-size: 13px; }
+  .estop span { display: none; }
+}
+@media (max-width: 480px) { .pth, .brand, .st2 { display: none; } .pill { padding: 0 6px; gap: 6px; } .pill > .col { min-width: 64px !important; } .pbtn { width: 36px; padding: 0; } .tb { gap: 6px; } }
 </style>

@@ -29,7 +29,7 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
   </div>
 </template>
 <style scoped>
-.cp { height: calc(100vh - 196px); min-height: 420px; flex: 0 0 auto; }
+.cp { height: calc(100vh / var(--zoom, 1) - 196px); min-height: 420px; flex: 0 0 auto; }
 .cp > .card { min-height: 0; }
 .ci { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; background: transparent; border: none; border-radius: 8px; text-align: left; }
 .ci:hover { background: var(--s2); }

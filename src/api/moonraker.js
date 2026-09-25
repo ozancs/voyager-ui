@@ -8,7 +8,15 @@ export class Moonraker {
     this.handlers = {}
     this.host = ''
     this.retry = null
+    // Moonraker login (only used when Moonraker asks for it, trusted clients never see a login)
+    this.auth = { token: '', refresh: '', user: '' }
+    try { Object.assign(this.auth, JSON.parse(localStorage.getItem('voyager-ui-auth') || '{}')) } catch {}
   }
+
+  saveAuth() { try { localStorage.setItem('voyager-ui-auth', JSON.stringify(this.auth)) } catch {} }
+  headers(extra = {}) { return this.auth.token ? { ...extra, Authorization: 'Bearer ' + this.auth.token } : extra }
+  // Moonraker endpoints get the token in the query when a header is impossible (<img>, downloads)
+  isMoonrakerPath(p) { return /^\/(server|printer|machine|access|api)\//.test(p) }
 
   // host '' = same origin (served by our nginx). host 'klipper.local' = dev mode.
   get httpBase() {
@@ -18,7 +26,53 @@ export class Moonraker {
   url(path) {
     if (!path) return ''
     if (/^https?:\/\//.test(path)) return path
-    return this.httpBase + (path.startsWith('/') ? path : '/' + path)
+    const p = path.startsWith('/') ? path : '/' + path
+    const tok = this.auth.token && this.isMoonrakerPath(p) ? (p.includes('?') ? '&' : '?') + 'access_token=' + encodeURIComponent(this.auth.token) : ''
+    return this.httpBase + p + tok
+  }
+
+  // fetch with the login token, refreshing it once when it expired
+  async fetch(path, opts = {}, retry = true) {
+    const r = await fetch(this.httpBase + (path.startsWith('/') ? path : '/' + path), { cache: 'no-store', ...opts, headers: this.headers(opts.headers) })
+    if (r.status === 401 && retry && this.auth.refresh && (await this.refreshToken())) return this.fetch(path, opts, false)
+    return r
+  }
+  async refreshToken() {
+    try {
+      const r = await fetch(this.httpBase + '/access/refresh_jwt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: this.auth.refresh }) })
+      if (!r.ok) return false
+      const j = (await r.json()).result
+      this.auth.token = j.token; this.saveAuth()
+      return true
+    } catch { return false }
+  }
+  async login(username, password, source = 'moonraker') {
+    const r = await fetch(this.httpBase + '/access/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password, source }) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error?.message || 'HTTP ' + r.status)
+    this.auth = { token: j.result.token, refresh: j.result.refresh_token, user: j.result.username }
+    this.saveAuth()
+    this.connect(this.host)
+  }
+  async logout() {
+    try { await this.fetch('/access/logout', { method: 'POST' }, false) } catch {}
+    this.auth = { token: '', refresh: '', user: '' }; this.saveAuth()
+    try { this.ws?.close() } catch {}
+  }
+  // Decide how to open the websocket: '' (trusted), '?token=…' (logged in) or null (login needed)
+  async wsQuery() {
+    let r
+    try { r = await this.fetch('/server/info') } catch { return '' } // network error: let the websocket fail and retry
+    if (r.status === 401 || r.status === 403) { this.emit('auth-required', await this.authInfo()); return null }
+    if (!this.auth.token) return ''
+    try {
+      const o = await this.fetch('/access/oneshot_token')
+      if (o.ok) return '?token=' + encodeURIComponent((await o.json()).result)
+    } catch {}
+    return ''
+  }
+  async authInfo() {
+    try { const r = await fetch(this.httpBase + '/access/info'); return (await r.json()).result || {} } catch { return {} }
   }
 
   on(method, fn) {
@@ -36,12 +90,14 @@ export class Moonraker {
     }
   }
 
-  connect(host = '') {
+  async connect(host = '') {
     this.host = host
     clearTimeout(this.retry)
+    const q = await this.wsQuery()
+    if (q === null) return // waiting for the user to log in, login() connects again
     const proto = location.protocol === 'https:' ? 'wss' : 'ws'
     const target = host || location.host
-    const ws = new WebSocket(`${proto}://${target}/websocket`)
+    const ws = new WebSocket(`${proto}://${target}/websocket${q}`)
     this.ws = ws
     ws.onopen = () => this.emit('open')
     ws.onclose = () => {
@@ -71,7 +127,7 @@ export class Moonraker {
   call(method, params) {
     const done = this.onTask ? this.onTask(method) : null
     const p = this._call(method, params)
-    if (done) p.then(done, done)
+    if (done) { const tm = setTimeout(done, 30000); const fin = () => { clearTimeout(tm); done() }; p.then(fin, fin) }
     return p
   }
 
@@ -93,7 +149,7 @@ export class Moonraker {
   async getText(path) {
     const done = this.onTask ? this.onTask('GET ' + path.split('/').pop()) : null
     try {
-      const r = await fetch(this.url(path), { cache: 'no-store' })
+      const r = await this.fetch(path)
       if (!r.ok) throw new Error(`${r.status} ${r.statusText}`)
       return await r.text()
     } finally { done && done() }
@@ -108,7 +164,8 @@ export class Moonraker {
       if (print) fd.append('print', 'true')
       fd.append('file', file, name || file.name)
       const xhr = new XMLHttpRequest()
-      xhr.open('POST', this.url('/server/files/upload'))
+      xhr.open('POST', this.httpBase + '/server/files/upload')
+      if (this.auth.token) xhr.setRequestHeader('Authorization', 'Bearer ' + this.auth.token)
       xhr.upload.onprogress = (e) => onProgress && e.lengthComputable && onProgress(e.loaded / e.total)
       xhr.onload = () => (xhr.status < 300 ? resolve(JSON.parse(xhr.responseText || '{}')) : reject(new Error(xhr.responseText || xhr.statusText)))
       xhr.onerror = () => reject(new Error('upload failed'))

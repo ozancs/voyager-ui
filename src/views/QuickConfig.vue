@@ -81,7 +81,7 @@ function addField() {
   <div class="page">
     <div class="head" :class="{ dirty: changes.length }">
       <span class="d"></span>
-      <b>{{ changes.length ? tn(changes.length, '{n} unsaved change', '{n} unsaved changes') : t('Quick Config') }}</b>
+      <b>{{ changes.length ? tn(changes.length, '{n} unsaved change', '{n} unsaved changes') : t('Printer settings') }}</b>
       <span class="mu">{{ t('Edits the matching line in your .cfg files (SAVE_CONFIG block first). Klipper needs a restart to apply.') }}</span>
       <div class="grow"></div>
       <button class="btn" @click="adding = { section: '', key: '', unit: '' }"><Icon name="plus" :size="16" />{{ t('Add field') }}</button>

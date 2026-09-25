@@ -12,7 +12,7 @@ function full() { wrap.value?.requestFullscreen?.() }
 function snapshot() { if (cam.value) window.open(api.url(cam.value.snapshot_url), '_blank') }
 </script>
 <template>
-  <div class="split" style="min-height:calc(100vh - 208px)">
+  <div class="split" style="min-height:calc(100vh / var(--zoom, 1) - 208px)">
     <section class="card grow" ref="wrap">
       <div class="card-h"><h2>{{ cam?.name || t('Webcam') }}</h2><div class="acts"><button class="btn" :disabled="!cam" @click="snapshot"><Icon name="snap" :size="16" :stroke="2.4" />{{ t('Snapshot') }}</button><button class="btn" @click="full"><Icon name="ext" :size="16" :stroke="2.4" />{{ t('Fullscreen') }}</button></div></div>
       <WebcamView :cam="cam" />

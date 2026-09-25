@@ -4,7 +4,7 @@ import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import { state, S, prettyName, gcode, toast } from '../store'
 import { api } from '../api/moonraker'
-import { t, tn } from '../i18n'
+import { t } from '../i18n'
 import { health, mcuHist, heaterLive, healthIssues, printStats, loadPrintStats, maintUsed, maintDueDays, MAINT_DEFAULTS } from '../features'
 
 onMounted(loadPrintStats)
@@ -31,7 +31,7 @@ const mcus = computed(() => {
       id: o, name: o === 'mcu' ? t('Main MCU') : o.slice(4), chip: s.mcu_constants?.MCU || '', ver: s.mcu_version || '',
       load: isFinite(load) ? load : null, srtt: st.srtt, re: st.bytes_retransmit ?? 0, inv: st.bytes_invalid ?? 0, dRe: d, dInv: di,
       mins: h.length > 1 ? Math.max(1, Math.round((h[h.length - 1].t - h[0].t) / 60)) : 0, inc, bus,
-      level: d > 500 || di > 0 ? 'error' : d > 0 || load > 80 ? 'warn' : 'ok',
+      level: healthIssues.value.some((i) => i.key === o && i.level === 'error') ? 'error' : healthIssues.value.some((i) => i.key === o) ? 'warn' : 'ok',
     }
   })
 })
@@ -46,20 +46,15 @@ const heaters = computed(() => {
   health.tick
   return (S('heaters').available_heaters || []).map((n) => {
     const s = S(n), l = heaterLive[n] || {}
-    const base = l.target ? state.settings.heaterBase?.[n + '@' + Math.round(l.target / 5) * 5] : null
     let level = 'ok', note = ''
     if (!s.target) { level = 'idle'; note = t('Off') }
     else if (!l.holding) { note = t('Heating or settling…') }
     else {
       note = t('Holding {target}° with {p}% power, swing ±{s}°', { target: l.target, p: Math.round(l.power * 100), s: l.std.toFixed(2) })
-      if (l.std > 0.6) level = 'warn'
-      if (base && l.power - base.power > 0.12 && l.power / base.power > 1.3) level = 'warn'
     }
-    return { n, name: prettyName(n), temp: s.temperature, target: s.target, power: s.power, l, base, level, note }
+    return { n, name: prettyName(n), temp: s.temperature, target: s.target, power: s.power, l, level, note }
   })
 })
-const baseList = computed(() => Object.entries(state.settings.heaterBase || {}).map(([k, v]) => ({ k, heater: k.split('@')[0], target: +k.split('@')[1], ...v })))
-function forgetBase(k) { const b = { ...state.settings.heaterBase }; delete b[k]; state.settings.heaterBase = b }
 const pidFor = ref(null)
 function runPid() {
   const h = pidFor.value; pidFor.value = null
@@ -71,8 +66,9 @@ function runPid() {
 const FLAG_TXT = { ot: 'overtemperature', otpw: 'overtemp warning', s2ga: 'short to GND A', s2gb: 'short to GND B', s2vsa: 'short to supply A', s2vsb: 'short to supply B', ola: 'open load A', olb: 'open load B', uv_cp: 'charge pump undervoltage' }
 const drivers = computed(() => state.objects.filter((o) => o.startsWith('tmc')).map((o) => {
   const s = S(o), ds = s.drv_status || {}
-  const flags = Object.keys(FLAG_TXT).filter((k) => ds[k])
-  return { id: o, model: o.split(' ')[0].toUpperCase(), stepper: o.split(' ').slice(1).join(' '), cur: s.run_current, temp: s.temperature, flags, level: flags.some((f) => !['otpw', 'ola', 'olb'].includes(f)) ? 'error' : flags.length ? 'warn' : 'ok' }
+  // open load (ola/olb) and undervoltage flags show up on healthy drivers at standstill or power up, so they are not listed
+  const flags = ['ot', 's2ga', 's2gb', 's2vsa', 's2vsb', 'otpw'].filter((k) => ds[k] && FLAG_TXT[k])
+  return { id: o, model: o.split(' ')[0].toUpperCase(), stepper: o.split(' ').slice(1).join(' '), cur: s.run_current, temp: s.temperature, flags, level: flags.some((f) => f !== 'otpw') ? 'error' : 'ok' }
 }))
 
 // ---------- maintenance ----------
@@ -97,22 +93,6 @@ const dueTxt = (tk) => {
   return t('due in ~{n} months', { n: Math.round(d / 30) })
 }
 const ago = (ts) => { const d = (Date.now() - ts) / 86400000; return d < 1 ? t('today') : d < 2 ? t('yesterday') : t('{n} days ago', { n: Math.round(d) }) }
-// one tile per area at the top: colour = area, dot = worst state in it
-const AREAS = [
-  { k: 'mcu', label: 'MCU & CAN links', icon: 'link', tint: 'cool', id: 'h-mcu' },
-  { k: 'heater', label: 'Heaters', icon: 'flame', tint: 'heat', id: 'h-heat' },
-  { k: 'tmc', label: 'Stepper drivers', icon: 'motor', tint: 'spool', id: 'h-tmc' },
-  { k: 'host', label: 'Host', icon: 'cpu', tint: 'sense', id: 'h-host' },
-  { k: 'maint', label: 'Maintenance', icon: 'wrench', tint: 'sand', id: 'h-maint' },
-]
-const RANK = { ok: 0, error: 3, warn: 2, info: 1 }
-const tiles = computed(() => AREAS.map((a) => {
-  const list = healthIssues.value.filter((i) => i.area === a.k)
-  if (a.k === 'host' && throttled.value.length) list.push({ level: 'warn' })
-  const worst = list.reduce((w, i) => (RANK[i.level] > RANK[w] ? i.level : w), 'ok')
-  return { ...a, n: list.length, level: list.length ? worst : 'ok' }
-}))
-const jumpTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 // maintenance ring
 const RING = 2 * Math.PI * 22
 const ringOff = (tk) => RING * (1 - Math.min(1, maintUsed(tk) / tk.hours))
@@ -121,22 +101,8 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
 
 <template>
   <div class="page">
-    <!-- summary -->
-    <section class="sum">
-      <div class="row" style="gap:14px">
-        <div class="big" :style="{ color: healthIssues.some((i) => i.level === 'error') ? 'var(--dg)' : healthIssues.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--ok)' }"><Icon name="heart" :size="28" :stroke="2.4" /></div>
-        <div class="col" style="gap:2px">
-          <h2 style="margin:0;font-size:20px">{{ healthIssues.length ? tn(healthIssues.length, '{n} thing to look at', '{n} things to look at') : t('Everything looks healthy') }}</h2>
-          <span class="mu">{{ t('Live data from Klipper, sampled every 2 s while this UI is open.') }}</span>
-        </div>
-      </div>
-      <div class="tiles">
-        <button v-for="a in tiles" :key="a.k" class="tile card tint" :style="{ '--tint': `var(--tn-${a.tint})` }" @click="jumpTo(a.id)">
-          <div class="row" style="justify-content:space-between"><Icon :name="a.icon" :size="20" class="ti" /><span class="d" :style="{ background: LV[a.level] || LV.ok }"></span></div>
-          <b class="tv" :style="{ color: a.n ? LV[a.level] : '' }">{{ a.n ? a.n : t('OK') }}</b>
-          <span class="tl">{{ t(a.label) }}</span>
-        </button>
-      </div>
+    <!-- open issues only; the page itself shows the live data below -->
+    <section v-if="healthIssues.length" class="sum">
       <div v-if="healthIssues.length" class="iss">
         <div v-for="i in healthIssues" :key="i.area + i.key + i.msg" class="is"><span class="d" :style="{ background: LV[i.level] }"></span>{{ i.msg }}</div>
       </div>
@@ -144,7 +110,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
 
     <div class="hg">
       <!-- MCU / CAN -->
-      <section id="h-mcu" class="card tint" style="--tint: var(--tn-cool)">
+      <section id="h-mcu" class="card">
         <div class="card-h"><h2>{{ t('MCU & CAN links') }}</h2><Icon name="link" :size="18" style="color:var(--mu)" /></div>
         <div v-for="m in mcus" :key="m.id" class="mc">
           <div class="row"><span class="d" :style="{ background: LV[m.level] }"></span><b class="grow">{{ m.name }}</b><span class="mono mu sm">{{ m.chip }}</span></div>
@@ -170,35 +136,30 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
             <div class="row"><b>{{ h.name }}</b><span class="mono mu sm">{{ h.temp?.toFixed(1) }}° / {{ h.target || 0 }}°</span></div>
             <div v-if="h.target" class="hb"><div :style="{ width: Math.min(100, (h.temp || 0) / h.target * 100) + '%' }"></div></div>
             <span class="mu sm">{{ h.note }}</span>
-            <span v-if="h.base && h.l.holding" class="mu sm">{{ t('First time at {target}° it needed {p}%', { target: h.l.target, p: Math.round(h.base.power * 100) }) }}</span>
           </div>
-          <button v-if="h.target && h.l.holding && h.l.std > 0.6" class="btn sm2" @click="pidFor = h">{{ t('PID tune') }}</button>
+          <button v-if="h.target && h.l.holding" class="btn sm2" @click="pidFor = h">{{ t('PID tune') }}</button>
         </div>
-        <details v-if="baseList.length" class="bl">
-          <summary class="mu sm">{{ t('Learned power baselines ({n})', { n: baseList.length }) }}</summary>
-          <div v-for="b in baseList" :key="b.k" class="row mono sm" style="justify-content:space-between"><span>{{ prettyName(b.heater) }} @ {{ b.target }}°</span><span>{{ Math.round(b.power * 100) }}%</span><button class="btn clear ibtn sm" :aria-label="t('Forget {name}', { name: b.k })" @click="forgetBase(b.k)"><Icon name="x" :size="13" /></button></div>
-        </details>
-        <p class="mu sm" style="margin:0">{{ t('The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.') }}</p>
+        <p class="mu sm" style="margin:0">{{ t('Shown for information only. How much power a heater needs depends on fans, enclosure and room temperature, so it is not judged here.') }}</p>
       </section>
 
       <!-- drivers -->
-      <section id="h-tmc" class="card tint" style="--tint: var(--tn-spool)">
+      <section id="h-tmc" class="card tint" style="--tint: var(--tn-slate)">
         <div class="card-h"><h2>{{ t('Stepper drivers') }}</h2><Icon name="motor" :size="18" style="color:var(--mu)" /></div>
         <div v-if="!drivers.length" class="empty">{{ t('No TMC drivers in the config.') }}</div>
-        <table v-else class="tbl">
+        <div v-else style="overflow:auto"><table class="tbl">
           <thead><tr><th></th><th>{{ t('Stepper') }}</th><th>{{ t('Driver') }}</th><th>{{ t('Current') }}</th><th>{{ t('Status') }}</th></tr></thead>
           <tbody><tr v-for="d in drivers" :key="d.id">
             <td style="width:14px"><span class="d" :style="{ background: LV[d.level] }"></span></td>
             <td><b>{{ d.stepper }}</b></td>
             <td class="mono mu sm">{{ d.model }}</td>
             <td class="mono sm">{{ d.cur != null ? d.cur.toFixed(2) + ' A' : '--' }}<span v-if="d.temp != null" class="mu"> · {{ d.temp.toFixed(0) }}°</span></td>
-            <td class="sm"><span v-if="!d.flags.length" class="mu">{{ t('OK') }}</span><span v-for="f in d.flags" :key="f" class="chip" style="margin-right:4px;color:var(--wn)">{{ t(FLAG_TXT[f]) }}</span></td>
+            <td class="sm"><span v-if="!d.flags.length" class="mu">{{ t('OK') }}</span><span v-for="f in d.flags" :key="f" class="chip" :style="{ marginRight: '4px', color: f === 'otpw' ? 'var(--mu)' : 'var(--dg)' }">{{ t(FLAG_TXT[f]) }}</span></td>
           </tr></tbody>
-        </table>
+        </table></div>
       </section>
 
       <!-- host -->
-      <section id="h-host" class="card tint" style="--tint: var(--tn-sense)">
+      <section id="h-host" class="card">
         <div class="card-h"><h2>{{ t('Host') }}</h2><button class="btn clear ibtn sm" :aria-label="t('Refresh')" @click="loadHost"><Icon name="refresh" :size="16" /></button></div>
         <div class="kv">
           <div><span class="lbl">{{ t('CPU temp') }}</span><b class="mono">{{ host?.cpu_temp != null ? host.cpu_temp.toFixed(1) + '°' : '--' }}</b></div>
@@ -211,7 +172,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
     </div>
 
     <!-- maintenance -->
-    <section id="h-maint" class="card tint" style="--tint: var(--tn-sand)">
+    <section id="h-maint" class="card">
       <div class="card-h">
         <h2>{{ t('Maintenance') }}</h2>
         <div class="acts">
@@ -249,21 +210,13 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
 </template>
 
 <style scoped>
-.sum { display: flex; flex-direction: column; gap: 18px; padding: 4px 2px 0; }
-.tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
-.tile { padding: 16px 18px; gap: 6px; text-align: left; border: none; color: var(--tx); cursor: pointer; }
-.tile:hover { filter: brightness(1.08); }
-.ti { color: var(--k); }
-.tv { font-size: 26px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; margin-top: 6px; }
-.tl { font-size: 12.5px; color: var(--mu); }
+.sum { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: var(--r); background: var(--s1); border: 1px solid var(--bd); }
 .hb { height: 4px; border-radius: 2px; background: var(--s3); overflow: hidden; margin: 4px 0 2px; max-width: 220px; }
 .hb > div { height: 100%; background: var(--k); }
 .ring { width: 52px; height: 52px; transform: rotate(-90deg); flex-shrink: 0; }
 .ring circle { fill: none; stroke-width: 5; }
 .ring .rt { stroke: var(--s3); }
 .ring .rv { stroke-linecap: round; transition: stroke-dashoffset .4s; }
-@media (max-width: 1100px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
-.big { width: 52px; height: 52px; border-radius: 14px; background: var(--shade); display: flex; align-items: center; justify-content: center; }
 .iss { display: flex; flex-direction: column; gap: 6px; }
 .is { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
 .d { width: 8px; height: 8px; border-radius: 4px; flex-shrink: 0; display: inline-block; }

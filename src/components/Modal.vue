@@ -3,6 +3,11 @@ import Icon from './Icon.vue'
 import { t } from '../i18n'
 defineProps({ title: String, width: { type: String, default: '520px' } })
 const emit = defineEmits(['close'])
+// Esc closes the dialog
+import { onMounted, onBeforeUnmount } from 'vue'
+const esc = (e) => { if (e.key === 'Escape') emit('close') }
+onMounted(() => window.addEventListener('keydown', esc))
+onBeforeUnmount(() => window.removeEventListener('keydown', esc))
 </script>
 <template>
   <Teleport to="body">
@@ -17,5 +22,5 @@ const emit = defineEmits(['close'])
 </template>
 <style scoped>
 .ov { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
-.md { max-width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.md { max-width: 100%; max-height: calc(90vh / var(--zoom, 1)); overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
 </style>

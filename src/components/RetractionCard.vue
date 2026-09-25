@@ -14,7 +14,7 @@ const set = (k, v) => gcode(`SET_RETRACTION ${k}=${v}`)
 </script>
 
 <template>
-  <section class="card">
+  <section class="card spread">
     <div class="card-h"><h2>{{ t('Firmware retraction') }}</h2></div>
     <div class="gr">
       <NumField v-for="[key, cmd, label, unit, step] in F" :key="key" :label="t(label)" :model-value="r[key]" :step="step" :decimals="step < 1 ? 2 : 0" :min="0" :unit="unit" @commit="(v) => set(cmd, v)" />

@@ -65,7 +65,7 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log']
   <div class="mg">
     <div class="left"><FileBrowser class="fb" /></div>
     <div class="col" style="gap:16px">
-      <SystemLoads />
+      <SystemLoads detailed />
     <section class="card">
       <div class="card-h"><h2>{{ t('Update Manager') }}</h2><div class="acts"><button v-if="updates.filter(([, v]) => needs(v)).length > 1" class="btn acc" :disabled="!!busy" @click="confirm = '__all'"><Icon name="download" :size="16" />{{ t('Update all') }}</button><button class="btn" :disabled="busy === 'check'" @click="loadUpd(true)"><Icon name="refresh" :size="16" />{{ busy === 'check' ? t('Checking…') : t('Check') }}</button></div></div>
       <div v-if="!upd" class="empty">{{ t('Loading…') }}</div>
@@ -107,5 +107,6 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log']
 .it { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--bd); min-height: 40px; }
 .it:last-child { border-bottom: none; }
 .it b { font-weight: 600; font-size: 13.5px; white-space: nowrap; }
-@media (max-width: 1200px) { .mg { grid-template-columns: 1fr; } .left { min-height: 600px; } }
+:root.ew-lt-1200 .mg { grid-template-columns: minmax(0, 1fr); }
+:root.ew-lt-1200 .left { min-height: 600px; }
 </style>

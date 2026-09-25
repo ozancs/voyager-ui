@@ -22,17 +22,17 @@ const presets = computed(() => state.settings.presets || [])
       <div class="acts">
         <div style="position:relative">
           <button class="btn" @click.stop="showPresets = !showPresets"><Icon name="flame" :size="16" :stroke="2.4" />{{ t('Presets') }}</button>
-          <div v-if="showPresets" class="pp card" @mouseleave="showPresets = false">
+          <div v-if="showPresets" class="pp card" v-away="() => (showPresets = false)" @mouseleave="showPresets = false">
             <button v-for="p in presets" :key="p.id" class="btn clear" style="justify-content:space-between;height:40px;color:var(--tx)" @click="applyPreset(p); showPresets = false">
               <b>{{ p.name }}</b><span class="mono mu" style="font-size:12px">{{ Object.values(p.temps).filter((v) => v).join(' / ') }}</span>
             </button>
-            <button class="btn clear" style="height:36px;justify-content:flex-start" @click="go('theme')"><Icon name="pencil" :size="14" />{{ t('Edit presets') }}</button>
+            <button class="btn clear" style="height:36px;justify-content:flex-start" @click="state.settingsOpen = 'presets'"><Icon name="pencil" :size="14" />{{ t('Edit presets') }}</button>
           </div>
         </div>
         <button class="btn out" @click="gcode('TURN_OFF_HEATERS')"><Icon name="fan" :size="16" :stroke="2.4" />{{ t('Cooldown') }}</button>
       </div>
     </div>
-    <div style="overflow:auto;min-height:0"><table class="tt">
+    <div data-fit style="overflow:auto;min-height:0"><table class="tt">
       <thead><tr><th>{{ t('Heater') }}</th><th>{{ t('Actual') }}</th><th>{{ t('Target') }}</th><th>{{ t('Power') }}</th></tr></thead>
       <tbody>
         <tr v-for="(s, i) in sensors" :key="s.name">

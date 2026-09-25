@@ -1,3 +1,4 @@
+import '@fontsource-variable/archivo/wdth.css'
 import '@fontsource/onest/400.css'
 import '@fontsource/onest/500.css'
 import '@fontsource/onest/600.css'
@@ -6,7 +7,11 @@ import '@fontsource/jetbrains-mono/400.css'
 import '@fontsource/jetbrains-mono/600.css'
 import { createApp } from 'vue'
 import './style.css'
+import './panel.css'
 import App from './App.vue'
 import { start } from './store'
-start()
-createApp(App).mount('#app')
+import { i18n, loadLang } from './i18n'
+import { away } from './away'
+import { vfit } from './fit'
+// the chosen language is fetched first so the UI does not flash in English
+loadLang(i18n.lang).finally(() => { start(); createApp(App).directive('away', away).directive('fit', vfit).mount('#app') })

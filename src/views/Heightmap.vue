@@ -41,7 +41,7 @@ function doSave() {
 }
 </script>
 <template>
-  <div class="split" style="min-height:calc(100vh - 208px)">
+  <div class="split" style="min-height:calc(100vh / var(--zoom, 1) - 208px)">
     <section class="card grow">
       <div class="card-h">
         <h2>{{ t('Heightmap') }} · {{ bm.profile_name || t('no mesh loaded') }}</h2>

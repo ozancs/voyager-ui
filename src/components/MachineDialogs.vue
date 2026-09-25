@@ -100,7 +100,7 @@ const tiltRows = computed(() => Object.entries(tilt.value?.results || {}).map(([
 
 <style scoped>
 .ov { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 120; padding: 16px; }
-.dlg { width: 460px; max-width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.dlg { width: 460px; max-width: 100%; max-height: calc(90vh / var(--zoom, 1)); overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
 .tx { margin: 0; line-height: 1.5; }
 .bg { display: flex; flex-wrap: wrap; gap: 8px; }
 .bg .btn { flex: 1 1 0; }

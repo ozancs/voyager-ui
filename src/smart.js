@@ -103,13 +103,13 @@ export function smartResults(raw) {
       const pn = norm(pr.name)
       if (name === pn || name === 'preheat ' + pn || name === pn + ' preheat' || name === pn + ' ısıt') {
         const txt = Object.entries(pr.temps || {}).filter(([h, v]) => v && state.objects.includes(h)).map(([h, v]) => `${prettyName(h)} ${v}°`).join(', ')
-        res({ t: t('Preheat {name}', { name: pr.name }), s: txt, icon: 'flame', run: () => applyPreset(pr), sc: 990 })
+        res({ t: t('Preheat {name}', { name: pr.name }), s: txt, icon: 'flame', run: () => applyPreset(pr), sc: 990, confirm: true })
       }
     }
     let m
     if ((m = name.match(/^(home|g28|homing)(?: (all|[xyz]{1,3}|[xyz](?: [xyz]){0,2}))?$/))) {
       const ax = (m[2] && m[2] !== 'all' ? m[2].replace(/ /g, '') : '').toUpperCase()
-      res({ t: ax ? t('Home {axes}', { axes: ax.split('').join(', ') }) : t('Home all axes'), s: 'G28' + (ax ? ' ' + ax.split('').join(' ') : ''), icon: 'home', run: () => gcode('G28' + (ax ? ' ' + ax.split('').join(' ') : '')), sc: 990 })
+      res({ t: ax ? t('Home {axes}', { axes: ax.split('').join(', ') }) : t('Home all axes'), s: 'G28' + (ax ? ' ' + ax.split('').join(' ') : ''), icon: 'home', run: () => gcode('G28' + (ax ? ' ' + ax.split('').join(' ') : '')), sc: 990, confirm: true })
     }
     return out
   }
@@ -131,7 +131,7 @@ export function smartResults(raw) {
       const mp = mainParam(macroParams(mname))
       if (mp) {
         const cmd = `${mname} ${mp.name}=${p.num}`
-        res({ t: t('Run {cmd}', { cmd }), s: t('Macro {name}', { name: mname }), icon: 'play', run: () => gcode(cmd), sc: 880 })
+        res({ t: t('Run {cmd}', { cmd }), s: t('Macro {name}', { name: mname }), icon: 'play', run: () => gcode(cmd), sc: 880, confirm: true })
       }
     }
   }
@@ -150,7 +150,7 @@ function build(tg, p, homed) {
       const s = S(tg.obj), max = cfg(tg.obj).max_temp, min = cfg(tg.obj).min_temp
       const cmd = tg.kind === 'tempfan' ? `SET_TEMPERATURE_FAN_TARGET TEMPERATURE_FAN=${shortName(tg.obj)} TARGET=${v}` : `SET_HEATER_TEMPERATURE HEATER=${shortName(tg.obj)} TARGET=${v}`
       const bad = max != null && v > max ? t('Above max_temp ({max}°)', { max }) : v > 0 && min != null && v < min ? t('Below min_temp ({min}°)', { min }) : ''
-      return { t: v === 0 ? t('Turn off {name}', { name: nm }) : t('Set {name} to {v}°', { name: nm, v: fmt(v) }), s: `${t('now')} ${fmt(s.temperature)}° → ${v}°  ·  ${cmd}`, icon: 'flame', run: () => setHeater(tg.obj, v), warn: bad, disabled: !!bad }
+      return { t: v === 0 ? t('Turn off {name}', { name: nm }) : t('Set {name} to {v}°', { name: nm, v: fmt(v) }), s: `${t('now')} ${fmt(s.temperature)}° → ${v}°  ·  ${cmd}`, icon: 'flame', run: () => setHeater(tg.obj, v), warn: bad, disabled: !!bad, confirm: v > 0 }
     }
     case 'fan': {
       if (p.word && !off && !on) return null
@@ -193,7 +193,7 @@ function build(tg, p, homed) {
       const cur = S('gcode_move').homing_origin?.[2] ?? 0
       const adjust = p.signed && /baby/.test(p.name)
       const cmd = adjust ? `SET_GCODE_OFFSET Z_ADJUST=${n} MOVE=1` : `SET_GCODE_OFFSET Z=${n} MOVE=1`
-      return { t: adjust ? t('Adjust Z offset by {v} mm', { v: (n > 0 ? '+' : '') + n }) : t('Set Z offset to {v} mm', { v: n }), s: `${t('now')} ${fmt(cur, 3)} → ${fmt(adjust ? cur + n : n, 3)}  ·  ${cmd}`, icon: 'target', run: () => gcode(cmd), warn: homed.includes('z') ? '' : t('Home Z first'), disabled: !homed.includes('z') }
+      return { t: adjust ? t('Adjust Z offset by {v} mm', { v: (n > 0 ? '+' : '') + n }) : t('Set Z offset to {v} mm', { v: n }), s: `${t('now')} ${fmt(cur, 3)} → ${fmt(adjust ? cur + n : n, 3)}  ·  ${cmd}`, icon: 'target', run: () => gcode(cmd), warn: homed.includes('z') ? '' : t('Home Z first'), disabled: !homed.includes('z'), confirm: true }
     }
     case 'accel':
     case 'velocity':
@@ -210,7 +210,7 @@ function build(tg, p, homed) {
       if (n == null || n <= 0 || n > 200) return null
       const d = tg.kind === 'extrude' ? n : -n
       const hot = S('extruder').can_extrude
-      return { t: t(tg.kind === 'extrude' ? 'Extrude {v} mm' : 'Retract {v} mm', { v: n }), s: `M83 · G1 E${d} F300`, icon: tg.kind === 'extrude' ? 'load' : 'unload', run: () => gcode(`M83\nG1 E${d} F300`), warn: hot ? '' : t('Hotend is too cold'), disabled: !hot }
+      return { t: t(tg.kind === 'extrude' ? 'Extrude {v} mm' : 'Retract {v} mm', { v: n }), s: `M83 · G1 E${d} F300`, icon: tg.kind === 'extrude' ? 'load' : 'unload', run: () => gcode(`M83\nG1 E${d} F300`), warn: hot ? '' : t('Hotend is too cold'), disabled: !hot, confirm: true }
     }
     case 'move': {
       if (n == null || p.word) return null
@@ -221,7 +221,7 @@ function build(tg, p, homed) {
       const F = tg.axis === 'z' ? 600 : 6000
       const bad = !homed.includes(tg.axis) ? t('Home {axes} first', { axes: A }) : (min != null && target < min) || (max != null && target > max) ? t('Outside {a} limits ({min} to {max})', { a: A, min: fmt(min), max: fmt(max) }) : ''
       const cmd = rel ? `G91\nG1 ${A}${n} F${F}\nG90` : `G90\nG1 ${A}${n} F${F}`
-      return { t: rel ? t('Move {a} by {v} mm', { a: A, v: (n > 0 ? '+' : '') + n }) : t('Move {a} to {v} mm', { a: A, v: n }), s: `${t('now')} ${fmt(pos, 2)} → ${fmt(target, 2)}`, icon: 'move', run: () => gcode(cmd), warn: bad, disabled: !!bad }
+      return { t: rel ? t('Move {a} by {v} mm', { a: A, v: (n > 0 ? '+' : '') + n }) : t('Move {a} to {v} mm', { a: A, v: n }), s: `${t('now')} ${fmt(pos, 2)} → ${fmt(target, 2)}`, icon: 'move', run: () => gcode(cmd), warn: bad, disabled: !!bad, confirm: true }
     }
   }
   return null
@@ -235,5 +235,5 @@ export function rawCommand(raw) {
   const known = Object.keys(state.commands).some((k) => k.toUpperCase() === first) || state.objects.includes('gcode_macro ' + first) || /^[GM]\d+$/.test(first)
   if (!known || !/\s/.test(q) && !/^[GM]\d+$/.test(first)) return null
   const cmd = first + q.slice(first.length)
-  return { t: t('Run {cmd}', { cmd }), s: t('Sends this line as typed'), icon: 'term', cat: t('Quick action'), dest: t('Runs command'), run: () => gcode(cmd), sc: 950 }
+  return { t: t('Run {cmd}', { cmd }), s: t('Sends this line as typed'), icon: 'term', cat: t('Quick action'), dest: t('Runs command'), run: () => gcode(cmd), sc: 950, confirm: true }
 }

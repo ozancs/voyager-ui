@@ -23,6 +23,17 @@ const remaining = computed(() => (eo.value.objects?.length || 0) - (eo.value.exc
 const z = computed(() => (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2))
 const filament = computed(() => ((ps.value.filament_used || 0) / 1000).toFixed(2) + ' m')
 const eta = computed(() => printTimes.value.eta ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '--')
+// the "why" of the finish time, shown when the ETA is clicked
+const showWhy = ref(false)
+const why = computed(() => {
+  const w = printTimes.value.why || {}
+  const out = []
+  if (w.slicerLeft != null) out.push(w.k ? t('Slicer {time} × {k} (learned from {n} prints)', { time: fmtTime(w.slicerLeft / (w.k || 1) * (w.sf || 1)), k: w.k.toFixed(2), n: w.n }) : t('Slicer {time}', { time: fmtTime(w.slicerLeft * (w.sf || 1)) }))
+  if (w.sf && Math.abs(w.sf - 1) > 0.01) out.push(t('speed {n}%', { n: Math.round(w.sf * 100) }))
+  if (w.fileLeft != null) out.push(t('measured pace {time}', { time: fmtTime(w.fileLeft) }))
+  if (w.slicerLeft != null && w.fileLeft != null) out.push(t('{n}% weight on pace', { n: Math.round(w.w * 100) }))
+  return out
+})
 function cancel() { ask.value = false; gcode('CANCEL_PRINT') }
 function reprint() { if (ps.value.filename) api.call('printer.print.start', { filename: ps.value.filename }) }
 </script>
@@ -43,9 +54,10 @@ function reprint() { if (ps.value.filename) api.call('printer.print.start', { fi
         <div><span class="lbl">{{ t('Filament') }}</span><b class="mono">{{ filament }}</b></div>
         <div><span class="lbl">{{ t('Print time') }}</span><b class="mono">{{ fmtTime(ps.print_duration) }}</b></div>
         <div><span class="lbl">{{ t('Left') }}</span><b class="mono">{{ active ? fmtTime(printTimes.left) : '--' }}</b></div>
-        <div><span class="lbl">{{ t('ETA') }}</span><b class="mono">{{ active ? eta : '--' }}</b></div>
+        <button class="etab" :class="{ on: showWhy }" :disabled="!active" :data-tip="active ? why.join(' · ') : ''" :aria-label="t('How the finish time is estimated')" @click="showWhy = !showWhy"><span class="lbl">{{ t('ETA') }} <Icon name="sparkle" :size="11" :stroke="2.4" /></span><b class="mono">{{ active ? '~' + eta : '--' }}</b></button>
       </div>
-      <div class="row" style="gap:12px"><div class="bar grow" style="height:12px"><div :style="{ width: progress * 100 + '%' }"></div></div><b class="mono" style="font-size:16px">{{ (progress * 100).toFixed(1) }}%</b></div>
+      <div v-if="showWhy && active" class="why">{{ why.join(' · ') }}</div>
+      <div class="row" style="gap:12px"><div class="bar grow state" :style="{ height: '12px', '--pst': color }"><div :style="{ width: progress * 100 + '%' }"></div></div><b class="mono" style="font-size:16px">{{ (progress * 100).toFixed(1) }}%</b></div>
     </div>
     <div class="acts">
       <template v-if="active">
@@ -76,6 +88,13 @@ function reprint() { if (ps.value.filename) api.call('printer.print.start', { fi
 .stats { display: flex; gap: 24px; flex-wrap: wrap; }
 .stats > div { display: flex; flex-direction: column; gap: 2px; }
 .stats b { font-size: 15px; }
+.etab { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; background: none; border: none; padding: 0; color: var(--tx); cursor: pointer; }
+.etab .lbl { display: inline-flex; align-items: center; gap: 3px; }
+.etab .lbl :deep(svg) { color: var(--ac); }
+.etab:disabled { opacity: 1; cursor: default; }
+.etab:disabled .lbl :deep(svg) { display: none; }
+.etab.on b, .etab:hover:not(:disabled) b { color: var(--ac); }
+.why { font-size: 12px; color: var(--mu); padding: 8px 10px; border-radius: 8px; background: var(--s2); }
 .acts { display: flex; flex-direction: column; gap: 8px; width: 230px; flex-shrink: 0; }
 .cnt { font-size: 11px; padding: 2px 6px; border-radius: 6px; background: var(--s2); color: var(--tx); }
 @media (max-width: 900px) { .pc { flex-wrap: wrap; } .acts { width: 100%; } }

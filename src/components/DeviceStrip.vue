@@ -8,7 +8,25 @@ import { state, S, stripAll, stripVisible, prettyName, shortName, setFan, setHea
 import { t } from '../i18n'
 const open = ref(null)
 const close = () => (open.value = null)
-const items = computed(() => (state.editDash ? stripAll.value : stripVisible.value))
+// tiles are grouped by what they are (heaters, sensors, fans, lights, filament, spool), keeping the
+// user's order inside each group, and rows are balanced so the last row is not left half empty
+const RANK = (d) => d.kind === 'temp' ? (d.obj.startsWith('temperature_fan ') ? 2 : canTarget(d) ? 0 : 1) : { fan: 2, pin: 3, led: 3, filament: 4, spoolman: 5 }[d.kind] ?? 6
+const items = computed(() => {
+  const list = state.editDash ? stripAll.value : stripVisible.value
+  return list.map((d, i) => [d, i]).sort((a, b) => RANK(a[0]) - RANK(b[0]) || a[1] - b[1]).map((x) => x[0])
+})
+const box = ref(null), boxW = ref(0)
+let ro
+onMounted(() => { ro = new ResizeObserver(([e]) => (boxW.value = e.contentRect.width)); if (box.value) ro.observe(box.value) })
+onBeforeUnmount(() => ro?.disconnect())
+const cols = computed(() => {
+  const n = items.value.length
+  if (!n || !boxW.value) return null
+  const max = Math.max(1, Math.floor((boxW.value + 4) / 154))
+  const rows = Math.ceil(n / max)
+  return Math.ceil(n / rows)
+})
+const groupStart = (i) => i > 0 && RANK(items.value[i]) !== RANK(items.value[i - 1])
 const isHidden = (d) => (state.settings.strip.hidden || []).includes(d.id) || state.settings.devices.hidden.includes(d.obj)
 function toggleHide(d) {
   const h = state.settings.strip.hidden
@@ -80,14 +98,29 @@ const spoolUrl = computed(() => {
   return spool.value ? `${u}/spool/show/${spool.value.id}` : u
 })
 const SWATCH = ['#ffffff', '#ff3d7f', '#ff6b1a', '#f5c451', '#3dd68c', '#3da5ff', '#8b5cf6']
+// how "full" a tile is, drawn as a level rising from the bottom in the panel style
+function level(d) {
+  const o = S(d.obj)
+  let v = 0
+  if (d.kind === 'temp') {
+    const cur = o.temperature || 0
+    const top = o.target > 0 ? o.target : (S('configfile').settings?.[d.obj.toLowerCase()]?.max_temp || 100)
+    v = cur / top
+  } else if (d.kind === 'fan') v = o.speed || 0
+  else if (d.kind === 'pin') v = o.value > 0 ? (isPwm(d.obj) ? o.value : 1) : 0
+  else if (d.kind === 'led') v = ledOn(d.obj) ? 1 : 0
+  else if (d.kind === 'filament') v = o.filament_detected || (o.filament_detected === undefined && o.enabled !== false) ? 1 : 0
+  else if (d.kind === 'spoolman' && spool.value) v = (spool.value.remaining_weight || 0) / (spool.value.initial_weight || spool.value.filament?.weight || 1000)
+  return Math.max(0, Math.min(1, v || 0))
+}
 function sensorExtra(id) {
   const s = S(id)
   return Object.entries(s).filter(([k, v]) => typeof v !== 'object' && !['enabled', 'filament_detected'].includes(k)).slice(0, 2)
 }
 </script>
 <template>
-  <div class="ds" :class="{ editing: state.editDash }">
-    <div v-for="d in items" :key="d.id" class="dc" :class="[tint(d), { click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]"
+  <div ref="box" class="ds" :class="{ editing: state.editDash }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : null">
+    <div v-for="(d, gi) in items" :key="d.id" class="dc" :class="[tint(d), { gs: groupStart(gi), click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]" :style="{ '--lvl': level(d), '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null }"
       :draggable="state.editDash" @dragstart="dragId = d.id" @dragend="dragId = null" @dragover.prevent @drop.prevent="onDrop(d)"
       @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id) : null">
       <div v-if="state.editDash" class="etools">
@@ -186,6 +219,8 @@ function sensorExtra(id) {
 .tt { font-size: 12px; color: var(--mu); flex-shrink: 0; }
 .tt.on { color: var(--heat); font-weight: 600; }
 .dc.click:hover, .dc.open { border-color: var(--k, var(--mu2)); }
+.dc.open { z-index: 60; }
+.pop .seg button { padding: 0 6px; }
 .hd { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
 .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .auto { display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 500; color: var(--mu); flex-shrink: 0; }
@@ -198,7 +233,7 @@ function sensorExtra(id) {
 .sm { font-size: 12px; font-weight: 700; }
 .sw { width: 34px; height: 34px; border-radius: 17px; border: 3px solid var(--s2); outline: 2px solid var(--bd); }
 .swb { width: 30px; height: 30px; border-radius: 15px; border: 2px solid var(--bd); }
-.pop { position: absolute; top: 102px; left: 0; width: 260px; z-index: 40; box-shadow: 0 12px 40px rgba(0,0,0,.5); cursor: default; }
+.pop { position: absolute; top: 102px; left: 0; width: 300px; z-index: 40; box-shadow: 0 12px 40px rgba(0,0,0,.5); cursor: default; }
 .spl { display: flex; flex-direction: column; justify-content: space-between; height: 100%; color: var(--tx); text-decoration: none; gap: 4px; }
 .spool { width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; border: 6px solid #3a3a3a; }
 .ell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

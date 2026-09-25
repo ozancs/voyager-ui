@@ -83,21 +83,23 @@ function onDrop(i) {
 </template>
 
 <style scoped>
-.fb { height: 72px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 0 20px; background: var(--bg); }
+/* its own band under the top bar: a touch lighter than the page and closed with a hairline, so the macro row reads as one thing */
+.fb { height: 72px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 0 20px; background: color-mix(in srgb, var(--s1) 45%, var(--bg)); border-bottom: 1px solid var(--bd); }
+.fb .fav { background: var(--s1); }
 .list { flex: 1; display: flex; gap: 8px; min-width: 0; overflow-x: auto; }
 .fav { flex: 1 0 auto; min-width: 120px; height: 48px; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--s1); color: var(--tx); border: none; border-radius: 12px; font-weight: 600; font-size: 13.5px; white-space: nowrap; transition: background .12s, transform .08s; padding: 0 16px; position: relative; }
 .fav:hover { background: var(--s2); }
 .fav:active { transform: scale(.97); }
 .fav .fi { color: var(--k); flex-shrink: 0; }
-.fav.hot { background: var(--ac); color: var(--oa); }
-.fav.hot:hover { filter: brightness(1.08); }
-.fav.hot .fi { color: var(--oa); }
+.fav.hot { background: var(--s1); color: var(--tx); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ac) 55%, transparent); }
+.fav.hot:hover { background: var(--s2); }
+.fav.hot .fi { color: var(--ac); }
 .fav.busy { opacity: .6; }
 .editing .fav { outline: 1px dashed var(--mu2); outline-offset: -1px; cursor: grab; }
 .fav.drag { opacity: .4; }
 .gr { color: var(--mu2); margin-left: -6px; }
 .pe { color: var(--mu); }
-.hot .gr, .hot .pe { color: var(--oa); }
+
 .hint { color: var(--mu2); font-size: 13px; display: flex; align-items: center; padding-left: 4px; }
 .side { width: 40px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: transparent; color: var(--mu2); border: 1px dashed var(--s3); border-radius: 12px; }
 .side:hover { color: var(--tx); border-color: var(--mu2); }

@@ -20,7 +20,7 @@ function reset() {
 }
 </script>
 <template>
-  <section class="card">
+  <section class="card spread">
     <div class="card-h"><h2>{{ t('Machine Limits') }}</h2><button class="btn" @click="reset"><Icon name="refresh" :size="16" :stroke="2.4" />{{ t('Reset') }}</button></div>
     <div class="g2">
       <NumField :label="t('Velocity')" unit="mm/s" :model-value="th.max_velocity" :step="10" :min="1" @commit="gcode(`SET_VELOCITY_LIMIT VELOCITY=${$event}`)" />
@@ -48,7 +48,7 @@ function reset() {
 .card { overflow: auto; }
 .fac { display: flex; flex-direction: column; gap: 6px; }
 .nl { font-size: 13px; font-weight: 700; }
-.nb { display: flex; align-items: center; gap: 4px; font-family: var(--fm); font-size: 13px; color: var(--mu); }
+.nb { display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--mu); }
 .nb input { width: 64px; height: 30px; text-align: right; background: var(--s2); border: 1px solid var(--bd); border-radius: 8px; padding: 0 8px; font-size: 14px; font-weight: 700; outline: none; -moz-appearance: textfield; }
 .nb input::-webkit-inner-spin-button { -webkit-appearance: none; }
 .nb input:focus { border-color: var(--ac); }

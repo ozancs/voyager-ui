@@ -11,7 +11,9 @@ function text(el) {
   const vis = (el.innerText || '').trim()
   return vis && vis.toLowerCase() === a.toLowerCase() ? '' : a
 }
+let touchAt = 0 // hover tooltips make no sense on a touch screen and would stick after a tap
 function over(e) {
+  if (Date.now() - touchAt < 1500) return
   const el = e.target.closest?.('[data-tip],button[aria-label],a[aria-label],label[aria-label]')
   if (el === cur) return
   cur = el
@@ -22,14 +24,17 @@ function over(e) {
   if (!t) return
   timer = setTimeout(() => {
     if (!document.body.contains(el)) return
+    // rects are in screen pixels, the tooltip is placed inside the zoomed page
+    const z = window.__uiZoom || 1
     const r = el.getBoundingClientRect()
     const below = r.top < 60
-    tip.value = { t, x: Math.min(window.innerWidth - 10, Math.max(10, r.left + r.width / 2)), y: below ? r.bottom + 8 : r.top - 8, below }
+    tip.value = { t, x: Math.min(window.innerWidth - 10, Math.max(10, r.left + r.width / 2)) / z, y: (below ? r.bottom + 8 : r.top - 8) / z, below }
   }, 800)
 }
 function hide() { clearTimeout(timer); tip.value = null; cur = null }
-onMounted(() => { document.addEventListener('mouseover', over); document.addEventListener('mousedown', hide, true); window.addEventListener('scroll', hide, true) })
-onBeforeUnmount(() => { document.removeEventListener('mouseover', over); document.removeEventListener('mousedown', hide, true); window.removeEventListener('scroll', hide, true) })
+function touch() { touchAt = Date.now(); hide() }
+onMounted(() => { document.addEventListener('mouseover', over); document.addEventListener('mousedown', hide, true); document.addEventListener('touchstart', touch, { capture: true, passive: true }); window.addEventListener('scroll', hide, true) })
+onBeforeUnmount(() => { document.removeEventListener('mouseover', over); document.removeEventListener('mousedown', hide, true); document.removeEventListener('touchstart', touch, true); window.removeEventListener('scroll', hide, true) })
 </script>
 <template>
   <div v-if="tip" class="tt" :class="{ below: tip.below }" :style="{ left: tip.x + 'px', top: tip.y + 'px' }">{{ tip.t }}</div>

@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import QueueCard from '../components/QueueCard.vue'
-import { queueApi } from '../features'
+import { queueApi, downloadMany } from '../features'
 import { state, fmtTime, fmtBytes, fmtDate, toast, isPrinting, gcode, useApiEvent } from '../store'
 import { api } from '../api/moonraker'
 import { t } from '../i18n'
@@ -101,6 +101,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
       <div class="grow"></div>
       <label class="row input" style="width:280px"><Icon name="search" :size="16" /><input v-model="q" :placeholder="t('Search files')" :aria-label="t('Search files')" style="flex:1;background:transparent;border:none;outline:none" /></label>
       <button v-if="picked.size && state.queue.enabled" class="btn" style="height:40px" @click="addQ(list.filter((f) => picked.has(f.filename)))"><Icon name="queue" :size="16" />{{ t('Queue ({n})', { n: picked.size }) }}</button>
+      <button v-if="picked.size" class="btn" style="height:40px" @click="downloadMany('gcodes', list.filter((f) => picked.has(f.filename)).map((f) => ({ path: rel(f) })), 'gcodes')"><Icon name="download" :size="16" />{{ t('Download ({n})', { n: picked.size }) }}</button>
       <button v-if="picked.size" class="btn dg" style="height:40px" @click="del = list.filter((f) => picked.has(f.filename))"><Icon name="trash" :size="16" />{{ t('Delete ({n})', { n: picked.size }) }}</button>
       <button class="btn" style="height:40px" @click="newDir = ''"><Icon name="folder" :size="16" />{{ t('New folder') }}</button>
       <button class="btn ibtn" style="width:40px;height:40px" :aria-label="t('Refresh')" @click="load"><Icon name="refresh" :size="18" /></button>
@@ -110,7 +111,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
     <div style="overflow:auto;flex:1">
       <table class="tbl">
         <thead><tr>
-          <th style="width:36px"><input type="checkbox" class="cb" :checked="allPicked" :aria-label="t('Select all')" @change="toggleAll" /></th>
+          <th style="width:36px"><input type="checkbox" class="cb" :checked="allPicked" :indeterminate="picked.size > 0 && !allPicked" :aria-label="t('Select all')" @change="toggleAll" /></th>
           <th style="width:60px"></th>
           <th class="s" @click="sortBy('filename')">{{ t('Name') }}</th><th class="s" @click="sortBy('size')">{{ t('Size') }}</th><th class="s" @click="sortBy('estimated_time')">{{ t('Print time') }}</th>
           <th class="s" @click="sortBy('filament_total')">{{ t('Filament') }}</th><th>{{ t('Layer') }}</th><th class="s" @click="sortBy('modified')">{{ t('Modified') }}</th><th style="width:190px"></th>
@@ -142,7 +143,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
     </div>
     <div class="row mono mu" style="justify-content:space-between;font-size:12px"><span>{{ t('{n} files · {d} folders', { n: list.length, d: dirs.length }) }}</span><span v-if="disk">{{ t('Disk: {free} free of {total}', { free: fmtBytes(disk.free), total: fmtBytes(disk.total) }) }}</span></div>
   </section>
-  <div class="side-col"><QueueCard class="tint" style="--tint: var(--tn-teal)" /></div>
+  <div class="side-col"><QueueCard /></div>
   </div>
   <Modal v-if="del" :title="del.length > 1 ? t('Delete {n} files?', { n: del.length }) : t('Delete file?')" @close="del = null">
     <div class="mono" style="max-height:220px;overflow:auto;font-size:12px"><div v-for="f in del" :key="f.filename">{{ f.filename }}</div></div>
@@ -154,7 +155,6 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
   </Modal>
 </template>
 <style scoped>
-.cb { width: 16px; height: 16px; accent-color: var(--ac); cursor: pointer; }
 .th { width: 44px; height: 44px; border-radius: 8px; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; color: var(--mu); overflow: hidden; }
 .th img { width: 100%; height: 100%; object-fit: contain; }
 .th.fo { color: var(--ac); }

@@ -2,8 +2,9 @@
 // First start: language, printer name, Z direction, alerts, job queue. Can be run again from Settings.
 import { ref, computed } from 'vue'
 import Icon from './Icon.vue'
+import Logo from './Logo.vue'
 import Toggle from './Toggle.vue'
-import { state, toast, DEFAULT_SETTINGS, APP } from '../store'
+import { state, toast, DEFAULT_SETTINGS, APP, OLD_APPS } from '../store'
 import { enableQueue, loadQueue, playSound } from '../features'
 import { t, LANGS, i18n } from '../i18n'
 
@@ -27,7 +28,7 @@ async function restore(e) {
   if (!f) return
   try {
     const d = JSON.parse(await f.text())
-    if (![APP, 'carbon-ui'].includes(d.app) || !d.settings) throw new Error('?')
+    if (![APP, ...OLD_APPS].includes(d.app) || !d.settings) throw new Error('?')
     const def = DEFAULT_SETTINGS()
     state.settings = { ...def, ...d.settings, lang: state.settings.lang || d.settings.lang || i18n.lang, setupDone: true, devices: { ...def.devices, ...(d.settings.devices || {}) }, strip: { ...def.strip, ...(d.settings.strip || {}) } }
     toast(t('Settings restored from {name}', { name: f.name }))
@@ -39,7 +40,7 @@ async function restore(e) {
   <div v-if="show" class="ov">
     <div class="wz card" role="dialog" :aria-label="t('Setup')">
       <div class="top">
-        <div class="logo"><Icon name="cube" :size="22" :stroke="2.4" /></div>
+        <Logo :size="44" />
         <div class="col" style="gap:0"><b style="font-size:18px">{{ t('Welcome') }}</b><span class="mu">{{ t('A few questions, you can change everything later in Settings.') }}</span></div>
       </div>
       <div class="dots"><span v-for="(s, i) in STEPS" :key="s" :class="{ on: i === step, done: i < step }">{{ t(s) }}</span></div>
@@ -101,7 +102,7 @@ async function restore(e) {
 
 <style scoped>
 .ov { position: fixed; inset: 0; background: rgba(8,9,11,.7); backdrop-filter: blur(4px); z-index: 160; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.wz { width: 620px; max-width: 100%; max-height: 92vh; overflow: auto; gap: 18px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.wz { width: 620px; max-width: 100%; max-height: calc(92vh / var(--zoom, 1)); overflow: auto; gap: 18px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
 .top { display: flex; align-items: center; gap: 14px; }
 .logo { width: 44px; height: 44px; border-radius: 12px; background: var(--ac); color: var(--oa); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .mu { color: var(--mu); font-size: 12.5px; font-weight: 400; }

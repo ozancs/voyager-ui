@@ -1,0 +1,81 @@
+# Changelog
+
+## 0.14.0
+
+- New name: Voyager UI, with the amber probe logo. Settings, favorites and layouts from the old names (oznlab_klipperui, carbon-ui) are carried over on first start; the installer removes the old nginx sites and update_manager entries and keeps the port
+- Install folder is `~/voyager-ui`, the Moonraker update_manager section is `[update_manager voyager-ui]`
+
+## 0.13.1
+
+- Favorites star and the accent hairlines around the favorites bar and the tiles are gone; the extra spacing under the tiles stays
+
+## 0.13.0
+
+- Interface settings are a dialog now (gear in the top bar, or the side menu), with categories: General, Dashboard, Control, Presets, Console, Appearance, Sounds, Phone notifications, Webcams, Mainsail / Fluidd, Backup. The separate settings page is gone
+- Control settings: jog speeds for XY and Z, step presets for the axis buttons, the arrow pad and Z-Offset, extrusion amount and speed presets. The toolhead and extruder cards use them
+- Shared settings are mirrored into the Mainsail and Fluidd database when they change (printer name, language, jog and extrusion presets, temperature presets) and taken over from there on first start. Can be turned off, or imported again by hand
+- Webcams can be added, edited and removed here; the list is Moonraker's, so it is the same in Mainsail and Fluidd
+- Customize moved from the tiles row to the top bar, next to the settings gear
+- Favorites bar has its own slightly lighter band, more room between the tiles and the cards
+- A card that is only a little too small for its content shrinks the content (up to 25%) instead of showing a scrollbar
+
+## 0.12.3
+
+- Machine page shows the detailed system loads again (version, load, frequency, temperature, network bandwidth); the compact tiles stay on the dashboard card
+- Health page: the summary header and status tiles are gone, open issues are listed in one line above the cards
+- Config editor: search hits are tinted and underlined, the current hit gets a ring, the text stays readable
+- Pop-ups (presets, notifications, power, add card) close on a tap outside, also on touch screens; pop-ups inside dashboard cards are no longer clipped by the card
+- Phone layout: top bar keeps state and progress without overlapping, file tables scroll sideways instead of squashing names, tooltips no longer stick after a tap
+- Search panel of the editor fully translated; several Turkish strings that were still English
+- Activity indicator no longer stays on "loading" if a request never answers
+
+## 0.12.2
+
+- One look only (Panel), the Classic style is gone
+- Calibration page removed. Probe paper tests, bed screws and screws tilt still open as dialogs when the command runs
+- Fan, heater and light pop-ups on the top tiles open above the cards below
+
+## 0.12.1
+
+- Power devices from Moonraker ([power]: smart plugs, relays) in the power menu, on a dashboard card and in Ctrl+K. Turning one off while printing asks first, devices locked while printing cannot be switched
+- Phone notifications: set up Telegram, Discord, ntfy, Pushover or any Apprise URL from Interface settings. Written to moonraker.conf after a backup, sent by Moonraker so they arrive with the browser closed. Optional webcam snapshot
+- Esc closes dialogs
+
+## 0.12.0
+
+- Config editor rebuilt on CodeMirror: Klipper syntax colours (sections, options, pins, G-code and Jinja in macros), file tree, tabs, search and replace, go to line, folding of sections, comment toggle, suggestions for sections, options and G-code commands
+- Config checks while typing: options outside a section, repeated options, missing include files, unbalanced `{% if %}` / `{% for %}` in macros, Klipper's deprecated option warnings and startup errors on the right line
+- Compare the editor with the saved file or with any backup, and load a backup back into the editor
+- Link to the Klipper documentation for the section under the cursor
+- MMU card for Happy Hare and Box Turtle (AFC), added to the dashboard by itself when an MMU is found
+- Moonraker login screen for printers with `force_logins` or outside `trusted_clients`
+- Webcams: WebRTC (camera-streamer, go2rtc, MediaMTX), HLS, plain video and iframe next to MJPEG; a message with what to check when no picture arrives
+- 14 languages: English, German, Spanish, French, Italian, Dutch, Polish, Portuguese (Brazil), Turkish, Russian, Ukrainian, Chinese (simplified), Japanese, Korean. Languages load on demand
+- Automatic tests for the config checks and the translations
+- License: GPL-3.0
+
+## 0.11.0
+
+- Health page reports only clear faults: sustained CAN retransmits, invalid bytes, TMC over temperature and shorts. Heater power guesses removed
+- Ctrl+K asks for a second Enter before heating, moving or running a macro
+- Ctrl+K can search inside .py, .sh and .txt files (can be turned off)
+- QGL button on Voron 2.4, Z Tilt on printers with z_tilt, hidden otherwise
+- Design: quieter favorites, accent colour only for actions, card colours follow meaning, top tiles grouped by kind with balanced rows, cards spread their content, clearer disabled buttons, better contrast, bigger touch targets, fewer monospace labels
+
+## 0.10.x
+
+- Installer: system check, finds every printer on the host, Moonraker port detection, free port per printer, trusted_clients check, webcam ports from crowsnest, rollback of nginx changes on failure
+- Smart finish time learned from past prints
+- Open on phone (QR code)
+- Interface scales with the screen so a laptop shows the same layout as a 1920 px monitor
+
+## 0.9.x
+
+- Panel look: filling instrument tiles, wide numerals, coloured card name plates
+- Scroll to bottom button in the console
+- Drag and drop upload and multi select download / delete in the file managers
+
+## 0.8.x
+
+- Dashboard auto scroll while dragging cards
+- Light theme, more icons, card colours, compact system loads

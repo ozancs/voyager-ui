@@ -151,9 +151,25 @@ export async function loadConfigIndex() {
   cfgIndex.loading = true
   try {
     const list = await api.call('server.files.list', { root: 'config' })
-    const files = list.map((f) => f.path).filter((p) => /\.(cfg|conf)$/i.test(p) && !p.startsWith('backups/') && !p.startsWith('.') && !/^printer-\d{8}_\d{6}\.cfg$/.test(p) && !p.includes('::TMPNAME')).slice(0, 60)
+    const okPath = (p) => !p.startsWith('backups/') && !p.startsWith('.') && !p.includes('/.') && !p.includes('::TMPNAME') && !/ShakeTune_results\//i.test(p)
+    const cfgs = list.filter((f) => /\.(cfg|conf)$/i.test(f.path) && okPath(f.path) && !/^printer-\d{8}_\d{6}\.cfg$/.test(f.path)).map((f) => f.path).slice(0, 60)
+    // scripts and notes: .py .sh .txt (not huge ones)
+    const code = state.settings.searchContent === false ? [] : list.filter((f) => /\.(py|sh|txt)$/i.test(f.path) && okPath(f.path) && (f.size || 0) < 400000).map((f) => f.path).slice(0, 40)
     const items = []
-    await Promise.all(files.map(async (file) => {
+    await Promise.all(code.map(async (file) => {
+      let txt = ''
+      try { txt = await api.getText('/server/files/config/' + file.split('/').map(encodeURIComponent).join('/')) } catch { return }
+      const py = /\.py$/i.test(file), sh = /\.sh$/i.test(file)
+      txt.replace(/\r/g, '').split('\n').forEach((l, i) => {
+        const tl = l.trim()
+        if (!tl || tl.length < 3) return
+        let m
+        if (py && (m = tl.match(/^(async\s+)?(def|class)\s+([A-Za-z_]\w*)/))) items.push({ kind: 'symbol', file, line: i + 1, key: m[3], text: `${m[2]} ${m[3]}` })
+        else if (sh && (m = tl.match(/^(?:function\s+)?([A-Za-z_][\w-]*)\s*\(\)\s*\{?/))) items.push({ kind: 'symbol', file, line: i + 1, key: m[1], text: `${m[1]}()` })
+        else items.push({ kind: 'line', file, line: i + 1, text: tl.slice(0, 90) })
+      })
+    }))
+    await Promise.all(cfgs.map(async (file) => {
       let txt = ''
       try { txt = await api.getText('/server/files/config/' + file.split('/').map(encodeURIComponent).join('/')) } catch { return }
       let sec = ''
@@ -199,10 +215,6 @@ function sampleHealth() {
       const mean = w.reduce((a, x) => a + x.temp, 0) / w.length
       const std = Math.sqrt(w.reduce((a, x) => a + (x.temp - mean) ** 2, 0) / w.length)
       heaterLive[n] = { target: tg, power: avg, std, holding: true }
-      // learn the power needed to hold this target the first time we see it
-      const key = n + '@' + Math.round(tg / 5) * 5
-      const base = state.settings.heaterBase || (state.settings.heaterBase = {})
-      if (!base[key]) base[key] = { power: +avg.toFixed(3), t: Date.now() }
     } else heaterLive[n] = { target: tg, power: s.power || 0, std: null, holding: false }
   }
   health.tick++
@@ -213,22 +225,20 @@ export const healthIssues = computed(() => {
   const out = []
   for (const [n, h] of Object.entries(mcuHist)) {
     if (h.length < 2) continue
-    const d = h[h.length - 1].re - h[0].re
-    if (d > 0) out.push({ area: 'mcu', key: n, level: d > 500 ? 'error' : 'warn', msg: t('{name}: {d} bytes retransmitted in the last {m} min', { name: n, d, m: Math.round((h[h.length - 1].t - h[0].t) / 60) || 1 }) })
-    const last = h[h.length - 1]
-    if (last.load > 80) out.push({ area: 'mcu', key: n, level: 'warn', msg: t('{name}: MCU load {p}%', { name: n, p: Math.round(last.load) }) })
-  }
-  for (const [n, l] of Object.entries(heaterLive)) {
-    if (!l.holding) continue
-    if (l.std > 0.6) out.push({ area: 'heater', key: n, level: 'warn', msg: t('{name}: temperature swings ±{s}°, a PID tune may help', { name: n, s: l.std.toFixed(1) }) })
-    const b = state.settings.heaterBase?.[n + '@' + Math.round(l.target / 5) * 5]
-    if (b && l.power - b.power > 0.12 && l.power / b.power > 1.3) out.push({ area: 'heater', key: n, level: 'warn', msg: t('{name}: needs {p}% power to hold {target}°, it used to need {b}%', { name: n, p: Math.round(l.power * 100), target: l.target, b: Math.round(b.power * 100) }) })
+    // Only facts that point at a real problem. A few retransmits happen on every healthy CAN bus,
+    // so warn on a sustained rate, and always on invalid bytes (corrupted data).
+    const first = h[0], last = h[h.length - 1]
+    const mins = Math.max(1, (last.t - first.t) / 60)
+    const d = last.re - first.re, inv = last.inv - first.inv
+    if (mins >= 3 && d / mins > 150) out.push({ area: 'mcu', key: n, level: d / mins > 1500 ? 'error' : 'warn', msg: t('{name}: {d} bytes retransmitted in the last {m} min', { name: n, d, m: Math.round(mins) }) })
+    if (inv > 0) out.push({ area: 'mcu', key: n, level: 'error', msg: t('{name}: {d} invalid bytes received, check the wiring', { name: n, d: inv }) })
   }
   for (const o of state.objects) {
     if (!o.startsWith('tmc')) continue
     const ds = S(o).drv_status || {}
-    const bad = ['ot', 'otpw', 's2ga', 's2gb', 's2vsa', 's2vsb', 'uv_cp'].filter((k) => ds[k])
-    if (bad.length) out.push({ area: 'tmc', key: o, level: bad.some((k) => k !== 'otpw') ? 'error' : 'warn', msg: t('{name}: driver flags {flags}', { name: o.split(' ').pop(), flags: bad.join(', ') }) })
+    // real driver faults only: over temperature, short to ground / supply. The pre-warning (otpw) is not listed.
+    const bad = ['ot', 's2ga', 's2gb', 's2vsa', 's2vsb'].filter((k) => ds[k])
+    if (bad.length) out.push({ area: 'tmc', key: o, level: 'error', msg: t('{name}: driver flags {flags}', { name: o.split(' ').pop(), flags: bad.join(', ') }) })
   }
   for (const mt of dueMaintenance.value) out.push({ area: 'maint', key: mt.id, level: 'info', msg: t('Maintenance due: {name}', { name: t(mt.name) }) })
   return out
@@ -254,6 +264,13 @@ export async function loadPrintStats() {
     const r = await api.call('server.history.list', { since, limit: 500, order: 'desc' })
     const sec = (r.jobs || []).reduce((a, j) => a + (j.print_duration || 0), 0)
     printStats.hoursPerDay = sec / 3600 / 30
+  } catch {}
+  // learn how far real print times drift from the slicer estimate
+  try {
+    const r = await api.call('server.history.list', { limit: 60, order: 'desc' })
+    const ratios = (r.jobs || []).filter((j) => j.status === 'completed' && j.metadata?.estimated_time > 300 && j.print_duration > 60)
+      .map((j) => j.print_duration / j.metadata.estimated_time).filter((x) => x > 0.4 && x < 2.5).sort((a, b) => a - b)
+    if (ratios.length >= 3) state.etaLearn = { k: Math.min(1.8, Math.max(0.6, ratios[Math.floor(ratios.length / 2)])), n: ratios.length }
   } catch {}
   if (!state.settings.maintenance && printStats.totalHours != null) {
     state.settings.maintenance = MAINT_DEFAULTS().map((t) => ({ ...t, doneAt: printStats.totalHours, doneDate: Date.now() }))
@@ -284,6 +301,7 @@ export function initFeatures() {
     if (p?.action === 'job_loaded') toast(t('Queue: starting next print'))
   })
   api.on('notify_filelist_changed', ([p]) => { if (p?.item?.root === 'config') cfgStale = true })
+  watch(() => state.settings.searchContent, () => { cfgStale = true; cfgIndex.items = [] })
   api.on('notify_history_changed', ([p]) => { if (p?.action === 'finished') loadPrintStats() })
   watch(() => state.booted, (b) => { if (b) { loadQueue(); loadPrintStats() } }, { immediate: true })
   setInterval(() => { if (state.klippy === 'ready') { sampleHealth(); checkHeated() } }, 2000)
@@ -293,3 +311,29 @@ export function initFeatures() {
   })
 }
 export { pushConsole }
+
+// Download several files at once. Moonraker packs them into one zip (server.files.zip), we fetch it
+// and remove the temporary zip again. Older Moonraker without zip: files are downloaded one by one.
+export async function downloadMany(root, items, base = 'files') {
+  const save = (href, name) => { const a = document.createElement('a'); a.href = href; a.download = name || ''; document.body.appendChild(a); a.click(); a.remove() }
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+  toast(t('Preparing {n} files…', { n: items.length }))
+  try {
+    const r = await api.call('server.files.zip', { items: items.map((i) => `${root}/${i.path}`), dest: `${root}/${base}-${stamp}.zip`, store_only: false })
+    const d = r.destination || {}
+    const p = `${d.root || root}/${d.path || `${base}-${stamp}.zip`}`
+    const res = await api.fetch(`/server/files/${p.split('/').map(encodeURIComponent).join('/')}`)
+    if (!res.ok) throw new Error(res.statusText)
+    const url = URL.createObjectURL(await res.blob())
+    save(url, p.split('/').pop())
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+    api.call('server.files.delete_file', { path: p }).catch(() => {})
+  } catch {
+    const files = items.filter((i) => !i.dir)
+    for (const f of files) {
+      save(api.url(`/server/files/${root}/${f.path.split('/').map(encodeURIComponent).join('/')}`), f.path.split('/').pop())
+      await new Promise((r) => setTimeout(r, 350))
+    }
+    if (files.length < items.length) toast(t('Folders are skipped, this Moonraker cannot zip them.'), 'error')
+  }
+}

@@ -1,197 +1,467 @@
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+// Config editor: file tree, tabs, CodeMirror with Klipper syntax, search and replace,
+// folding, autocomplete, checks, diff against the saved file or a backup, docs links.
+import { ref, shallowRef, computed, watch, onMounted, onBeforeUnmount, nextTick, markRaw } from 'vue'
+import { EditorState, Compartment, StateEffect, StateField, RangeSetBuilder } from '@codemirror/state'
+import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, rectangularSelection, crosshairCursor, highlightSpecialChars, Decoration } from '@codemirror/view'
+import { defaultKeymap, history, historyKeymap, indentWithTab, toggleComment } from '@codemirror/commands'
+import { searchKeymap, highlightSelectionMatches, openSearchPanel, gotoLine } from '@codemirror/search'
+import { foldGutter, foldKeymap, indentOnInput, bracketMatching, indentUnit } from '@codemirror/language'
+import { autocompletion, completionKeymap, closeBrackets } from '@codemirror/autocomplete'
+import { linter, lintGutter, lintKeymap, forEachDiagnostic } from '@codemirror/lint'
+import { MergeView } from '@codemirror/merge'
 import Icon from '../components/Icon.vue'
-import { state, toast, gcode, isPrinting, backupBeforeWrite } from '../store'
-import { route } from '../router'
+import Modal from '../components/Modal.vue'
+import { state, S, toast, gcode, isPrinting, backupBeforeWrite, useApiEvent } from '../store'
+import { route, go } from '../router'
 import { api } from '../api/moonraker'
 import { t } from '../i18n'
-const text = ref('')
-const orig = ref('')
-const loading = ref(false)
-const saving = ref(false)
-const ta = ref(null), pre = ref(null), gut = ref(null)
+import { klipper } from '../editor/klipperLang'
+import { lintKlipper } from '../editor/lint'
+import { SECTION_NAMES, optionsFor, docUrl, sectionType } from '../editor/klipperDocs'
+
 const ROOTS = ['config', 'gcodes', 'logs', 'config_examples', 'docs', 'timelapse']
 const loc = computed(() => {
   const a = route.arg || ''
   const i = a.indexOf('/')
   if (i > 0 && ROOTS.includes(a.slice(0, i))) return { root: a.slice(0, i), path: a.slice(i + 1) }
-  return { root: 'config', path: a }
+  return { root: 'config', path: a || 'printer.cfg' }
 })
-const file = computed(() => loc.value.path)
-let crlf = false
-const dirty = computed(() => text.value !== orig.value)
-async function load() {
-  if (!file.value) return
-  loading.value = true
-  // edit with LF only (the textarea does that anyway), write back with the file's own line endings
-  try { const raw = await api.getText(`/server/files/${loc.value.root}/${file.value}`); crlf = raw.includes('\r\n'); text.value = orig.value = raw.replace(/\r\n/g, '\n') } catch (e) { toast(e.message, 'error'); text.value = orig.value = '' }
-  loading.value = false
+const keyOf = (l) => l.root + '/' + l.path
+
+// ---------------------------------------------------------------- tabs (kept while the app is open)
+const TABS = (state.cache.editorTabs ||= { list: [], states: {} })
+const tabs = ref(TABS.list)
+const active = computed(() => tabs.value.find((x) => x.key === keyOf(loc.value)))
+const host = ref(null)
+const view = shallowRef(null)
+const lang = new Compartment(), ro = new Compartment()
+const cursor = ref({ line: 1, col: 1, section: '' })
+const counts = ref({ error: 0, warning: 0, info: 0 })
+
+// ---------------------------------------------------------------- files
+const files = ref([])
+async function loadFiles() {
+  try { files.value = (await api.call('server.files.list', { root: 'config' })).map((f) => f.path).filter((p, i, a) => !p.includes('::TMPNAME') && a.indexOf(p) === i).sort() } catch {}
+}
+useApiEvent('notify_filelist_changed', ([p]) => { if (p?.item?.root === 'config') loadFiles() })
+const treeQ = ref('')
+const openDirs = ref(new Set(['']))
+const tree = computed(() => {
+  const q = treeQ.value.toLowerCase()
+  const list = files.value.filter((f) => !q || f.toLowerCase().includes(q))
+  const rows = [], dirsSeen = new Set()
+  const pri = (f) => (f === 'printer.cfg' ? 0 : f === 'moonraker.conf' ? 1 : 2)
+  const sorted = [...list].sort((a, b) => {
+    const da = a.includes('/'), db = b.includes('/')
+    if (da !== db) return da ? 1 : -1
+    return pri(a) - pri(b) || a.localeCompare(b)
+  })
+  for (const f of sorted) {
+    const parts = f.split('/')
+    for (let d = 1; d < parts.length; d++) {
+      const dir = parts.slice(0, d).join('/')
+      if (!dirsSeen.has(dir)) { dirsSeen.add(dir); rows.push({ dir: true, path: dir, name: parts[d - 1], depth: d - 1 }) }
+    }
+    rows.push({ dir: false, path: f, name: parts[parts.length - 1], depth: parts.length - 1 })
+  }
+  // hide rows inside closed folders (a search opens everything)
+  return rows.filter((r) => {
+    if (q) return true
+    const parent = r.path.split('/').slice(0, -1)
+    for (let d = 1; d <= parent.length; d++) if (!openDirs.value.has(parent.slice(0, d).join('/'))) return false
+    return true
+  })
+})
+function toggleDir(p) { const s = new Set(openDirs.value); s.has(p) ? s.delete(p) : s.add(p); openDirs.value = s }
+const editable = (p) => /\.(cfg|conf|txt|py|sh|json|md|ini|yaml|yml|log|gcode_macro)$/i.test(p) || !/\.[a-z0-9]+$/i.test(p)
+function openFile(p, root = 'config') { go('config', root === 'config' ? p : root + '/' + p) }
+
+// ---------------------------------------------------------------- completion
+function complete(ctx) {
+  const line = ctx.state.doc.lineAt(ctx.pos)
+  const before = line.text.slice(0, ctx.pos - line.from)
+  // [section
+  let m = before.match(/^\[([\w ]*)$/)
+  if (m) return { from: line.from + 1, options: SECTION_NAMES.map((s) => ({ label: s, type: 'class', apply: s + ']' })), validFor: /^[\w ]*$/ }
+  const sec = sectionAt(ctx.state, line.number)
+  // option name at column 0
+  m = before.match(/^([A-Za-z0-9_]*)$/)
+  if (m && sec) {
+    const used = Object.keys(S('configfile').settings?.[sec.toLowerCase()] || {})
+    const opts = [...new Set([...optionsFor(sec), ...used])]
+    return { from: line.from, options: opts.map((o) => ({ label: o, type: 'property', apply: o + ': ' })), validFor: /^[\w]*$/ }
+  }
+  // G-code command at the start of an indented macro line
+  m = before.match(/^\s+([A-Z_0-9]*)$/i)
+  if (m && sec && /gcode|macro/i.test(sectionType(sec) + ' ' + sec)) {
+    const cmds = Object.entries(state.commands || {}).map(([k, d]) => ({ label: k, type: 'function', info: d }))
+    return { from: ctx.pos - m[1].length, options: cmds, validFor: /^[\w]*$/ }
+  }
+  return null
+}
+function sectionAt(st, lineNo) {
+  for (let n = lineNo; n >= 1; n--) { const mm = st.doc.line(n).text.match(/^\[([^\]]+)\]/); if (mm) return mm[1].trim() }
+  return ''
+}
+
+// ---------------------------------------------------------------- checks
+const lintExt = linter((v) => {
+  const a = active.value
+  if (!a || a.root !== 'config' || !/\.(cfg|conf)$/i.test(a.path)) return []
+  const isKlipper = !/moonraker\.conf$|crowsnest\.conf$|sonar\.conf$/i.test(a.path)
+  if (!isKlipper) return []
+  return lintKlipper(v.state.doc.toString(), {
+    files: files.value.length ? files.value : null, dir: a.path.split('/').slice(0, -1).join('/'),
+    warnings: S('configfile').warnings || [], klippyError: state.klippy === 'error' ? state.klippyMessage : '',
+  })
+}, { delay: 400 })
+
+// ---------------------------------------------------------------- flash a line after a jump
+const flashFx = StateEffect.define()
+const flashField = StateField.define({
+  create: () => Decoration.none,
+  update(deco, tr) {
+    deco = deco.map(tr.changes)
+    for (const e of tr.effects) if (e.is(flashFx)) {
+      if (e.value == null) return Decoration.none
+      const b = new RangeSetBuilder(); const l = tr.state.doc.line(e.value); b.add(l.from, l.from, Decoration.line({ class: 'cm-flash' })); return b.finish()
+    }
+    return deco
+  },
+  provide: (f) => EditorView.decorations.from(f),
+})
+
+// ---------------------------------------------------------------- editor setup
+function extensions(tab) {
+  return [
+    lineNumbers(), foldGutter(), lintGutter(), highlightSpecialChars(), history(), drawSelection(), EditorState.allowMultipleSelections.of(true),
+    indentOnInput(), bracketMatching(), closeBrackets(), rectangularSelection(), crosshairCursor(), highlightActiveLine(), highlightActiveLineGutter(),
+    highlightSelectionMatches(), indentUnit.of('  '), autocompletion({ override: [complete], activateOnTyping: true }), lintExt, flashField,
+    lang.of(/\.(cfg|conf)$/i.test(tab.path) ? klipper : []), ro.of(EditorState.readOnly.of(tab.root === 'logs')),
+    keymap.of([
+      { key: 'Mod-s', preventDefault: true, run: () => (save(false), true) },
+      { key: 'Mod-Shift-s', preventDefault: true, run: () => (save(true), true) },
+      { key: 'Mod-/', run: toggleComment }, { key: 'Mod-g', run: gotoLine }, { key: 'Mod-h', run: openSearchPanel },
+      indentWithTab, ...completionKeymap, ...searchKeymap, ...foldKeymap, ...lintKeymap, ...historyKeymap, ...defaultKeymap,
+    ]),
+    EditorView.updateListener.of((u) => {
+      if (u.docChanged) { tab.dirty = u.state.doc.toString() !== tab.orig; tabs.value = [...tabs.value] }
+      if (u.selectionSet || u.docChanged) {
+        const h = u.state.selection.main.head, l = u.state.doc.lineAt(h)
+        cursor.value = { line: l.number, col: h - l.from + 1, section: sectionAt(u.state, l.number) }
+      }
+      const c = { error: 0, warning: 0, info: 0 }
+      forEachDiagnostic(u.state, (d) => { c[d.severity] = (c[d.severity] || 0) + 1 })
+      counts.value = c
+    }),
+    EditorView.theme({}, { dark: true }),
+    EditorState.phrases.of(Object.fromEntries(['Find', 'Replace', 'next', 'previous', 'all', 'match case', 'regexp', 'by word', 'replace', 'replace all', 'close', 'Go to line', 'go', 'Folded lines', 'Unfolded lines', 'Fold line', 'Unfold line', 'Diagnostics', 'No diagnostics'].map((k) => [k, t(k)]))),
+  ]
+}
+function makeState(tab, doc) { return EditorState.create({ doc, extensions: extensions(tab) }) }
+
+async function openTab(l) {
+  const key = keyOf(l)
+  let tab = tabs.value.find((x) => x.key === key)
+  if (!tab) {
+    tab = { key, root: l.root, path: l.path, orig: '', crlf: false, dirty: false, loading: true }
+    tabs.value = [...tabs.value, tab]; TABS.list = tabs.value
+    try {
+      const raw = await api.getText(`/server/files/${l.root}/${l.path.split('/').map(encodeURIComponent).join('/')}`)
+      tab.crlf = raw.includes('\r\n'); tab.orig = raw.replace(/\r\n/g, '\n')
+    } catch (e) { toast(e.message, 'error'); tab.orig = '' }
+    tab.loading = false
+    TABS.states[key] = markRaw(makeState(tab, tab.orig))
+  }
+  if (!TABS.states[key]) TABS.states[key] = markRaw(makeState(tab, tab.orig))
+  state.lastCfg = l.root === 'config' ? l.path : state.lastCfg
+  await nextTick()
+  if (!view.value) view.value = markRaw(new EditorView({ state: TABS.states[key], parent: host.value }))
+  else if (view.value.state !== TABS.states[key]) view.value.setState(TABS.states[key])
   applyJump()
 }
-onMounted(load)
-watch(file, load)
-// jump to a line (from Ctrl+K search)
-const flash = ref(-1)
+function remember() { const a = active.value; if (a && view.value) TABS.states[a.key] = markRaw(view.value.state) }
+function closeTab(tab) {
+  if (tab.dirty && !confirm(t('{f} has unsaved changes. Close anyway?', { f: tab.path }))) return
+  const i = tabs.value.indexOf(tab)
+  tabs.value = tabs.value.filter((x) => x !== tab); TABS.list = tabs.value
+  delete TABS.states[tab.key]
+  if (active.value === undefined || tab.key === keyOf(loc.value)) {
+    const next = tabs.value[Math.max(0, i - 1)]
+    if (next) go('config', next.root === 'config' ? next.path : next.root + '/' + next.path)
+    else go('config', 'printer.cfg')
+  }
+}
+watch(() => keyOf(loc.value), (n, o) => { if (o) { const ot = tabs.value.find((x) => x.key === o); if (ot && view.value) TABS.states[o] = markRaw(view.value.state) } openTab(loc.value) })
+onMounted(() => { loadFiles(); openTab(loc.value) })
+watch(() => state.connected, (c) => { if (c) { loadFiles(); const a = active.value; if (a && !a.orig && !a.dirty) { delete TABS.states[a.key]; tabs.value = tabs.value.filter((x) => x !== a); TABS.list = tabs.value; openTab(loc.value) } } })
+onBeforeUnmount(() => { remember(); view.value?.destroy() })
+
+// ---------------------------------------------------------------- jump from Ctrl+K
 function applyJump() {
-  const j = state.jump
-  if (!j || j.file !== file.value || loading.value || !ta.value) return
+  const j = state.jump, v = view.value, a = active.value
+  if (!j || !v || !a || j.file !== a.path) return
   state.jump = null
-  requestAnimationFrame(() => {
-    // use the textarea's own value: browsers turn CRLF into LF there, so offsets from text.value drift
-    const lines = ta.value.value.split('\n')
-    const i = Math.max(0, Math.min(lines.length - 1, j.line - 1))
-    const start = lines.slice(0, i).reduce((a, l) => a + l.length + 1, 0)
-    const lh = parseFloat(getComputedStyle(ta.value).lineHeight) || 22.1
-    // focus first (without letting the browser scroll to the old caret), then select, then scroll
-    ta.value.focus({ preventScroll: true })
-    ta.value.setSelectionRange(start, start + lines[i].length)
-    ta.value.scrollTop = Math.max(0, i * lh - ta.value.clientHeight / 3)
-    sync()
-    requestAnimationFrame(() => { ta.value.scrollTop = Math.max(0, i * lh - ta.value.clientHeight / 3); sync() })
-    flash.value = i
-    setTimeout(() => (flash.value = -1), 2200)
-  })
+  const n = Math.max(1, Math.min(v.state.doc.lines, j.line))
+  const l = v.state.doc.line(n)
+  v.dispatch({ selection: { anchor: l.from, head: l.to }, effects: [EditorView.scrollIntoView(l.from, { y: 'center' }), flashFx.of(n)] })
+  v.focus()
+  setTimeout(() => view.value?.dispatch({ effects: flashFx.of(null) }), 2200)
 }
 watch(() => state.jump, applyJump)
+
+// ---------------------------------------------------------------- save
+const saving = ref(false)
 async function save(restart) {
+  const a = active.value, v = view.value
+  if (!a || !v || a.root === 'logs') return
   saving.value = true
+  const text = v.state.doc.toString()
   try {
-    await backupBeforeWrite(loc.value.root, file.value)
-    await api.upload(new Blob([crlf ? text.value.replace(/\n/g, '\r\n') : text.value], { type: 'text/plain' }), { root: loc.value.root, path: file.value.split('/').slice(0, -1).join('/'), name: file.value.split('/').pop() })
-    orig.value = text.value
-    toast(t('{f} saved', { f: file.value }))
+    await backupBeforeWrite(a.root, a.path)
+    await api.upload(new Blob([a.crlf ? text.replace(/\n/g, '\r\n') : text], { type: 'text/plain' }), { root: a.root, path: a.path.split('/').slice(0, -1).join('/'), name: a.path.split('/').pop() })
+    a.orig = text; a.dirty = false; tabs.value = [...tabs.value]
+    toast(t('{f} saved', { f: a.path }))
     if (restart) {
-      if (file.value === 'moonraker.conf') await api.call('server.restart')
-      else if (file.value === 'crowsnest.conf') await api.call('machine.services.restart', { service: 'crowsnest' })
+      if (a.path === 'moonraker.conf') await api.call('server.restart')
+      else if (a.path === 'crowsnest.conf') await api.call('machine.services.restart', { service: 'crowsnest' })
       else await gcode('FIRMWARE_RESTART')
     }
   } catch (e) { toast(t('Save failed: {e}', { e: e.message }), 'error') }
   saving.value = false
 }
-function key(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(false) }
-  if (e.key === 'Tab') {
-    e.preventDefault()
-    const t = e.target, s = t.selectionStart
-    text.value = text.value.slice(0, s) + '  ' + text.value.slice(t.selectionEnd)
-    requestAnimationFrame(() => { t.selectionStart = t.selectionEnd = s + 2 })
-  }
-}
-function sync() { pre.value.scrollTop = ta.value.scrollTop; pre.value.scrollLeft = ta.value.scrollLeft; gut.value.scrollTop = ta.value.scrollTop }
-const escH = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-const MK = '\u0002', ME = '\u0003'
-const marked = computed(() => {
-  if (!matches.value.length) return text.value
-  let out = '', last = 0
-  const L = q.value.length
-  matches.value.forEach((m, k) => { out += text.value.slice(last, m) + (k === qi.value ? '\u0004' : MK) + text.value.slice(m, m + L) + ME; last = m + L })
-  return out + text.value.slice(last)
-})
-const html = computed(() => marked.value.split('\n').map((l, i) => i === flash.value ? '\u0005' + hlLine(l) + '\u0006' : hlLine(l)).join('\n').replace(/\u0005/g, '<span class="fl">').replace(/\u0006/g, '</span>').replace(/\u0004/g, '<mark class="cur">').replace(/\u0002/g, '<mark>').replace(/\u0003/g, '</mark>') + '\n')
-function hlLine(l) {
-  let m
-  if ((m = l.match(/^(\s*)(\[[^\]]*\])(.*)$/))) return `${escH(m[1])}<span class="s">${escH(m[2])}</span><span class="c">${escH(m[3])}</span>`
-  if (/^\s*[#;]/.test(l)) return `<span class="c">${escH(l)}</span>`
-  if ((m = l.match(/^([A-Za-z0-9_.\-]+)(\s*[:=])(.*?)(\s[#;].*)?$/))) return `<span class="k">${escH(m[1])}</span><span class="p">${escH(m[2])}</span>${escH(m[3])}${m[4] ? `<span class="c">${escH(m[4])}</span>` : ''}`
-  if (/^\s+/.test(l)) return l.replace(/(\{[%{].*?[%}]\})/g, '\u0000$1\u0001').split(/[\u0000\u0001]/).map((x) => /^\{[%{]/.test(x) ? `<span class="j">${escH(x)}</span>` : `<span class="g">${escH(x)}</span>`).join('')
-  return escH(l)
-}
-const lineCount = computed(() => text.value.split('\n').length)
-const sections = computed(() => text.value.split('\n').map((l, i) => [l.match(/^\[([^\]]+)\]/)?.[1], i]).filter(([s]) => s))
-function jump(i) {
-  const lh = 22.1
-  ta.value.scrollTop = Math.max(0, i * lh - 40)
-  sync()
-}
-// ---- search ----
-const q = ref('')
-const qi = ref(0)
-const qin = ref(null)
-const matches = computed(() => {
-  const t = q.value.toLowerCase()
-  if (!t) return []
-  const out = [], hay = text.value.toLowerCase()
-  let i = hay.indexOf(t)
-  while (i >= 0 && out.length < 2000) { out.push(i); i = hay.indexOf(t, i + t.length) }
-  return out
-})
-function showMatch(focusEditor = false) {
-  const m = matches.value[qi.value]
-  if (m == null || !ta.value) return
-  const line = text.value.slice(0, m).split('\n').length - 1
-  const lh = parseFloat(getComputedStyle(ta.value).lineHeight) || 22.1
-  ta.value.scrollTop = Math.max(0, line * lh - ta.value.clientHeight / 3)
-  ta.value.setSelectionRange(m, m + q.value.length)
-  if (focusEditor) ta.value.focus()
-  sync()
-}
-watch(q, () => { qi.value = 0; showMatch() })
-function nextMatch(d) {
-  if (!matches.value.length) return
-  qi.value = (qi.value + d + matches.value.length) % matches.value.length
-  showMatch()
-}
-function globalKey(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); qin.value?.focus(); qin.value?.select() }
-}
-onMounted(() => window.addEventListener('keydown', globalKey))
-onBeforeUnmount(() => window.removeEventListener('keydown', globalKey))
-function beforeUnload(e) { if (dirty.value) { e.preventDefault(); e.returnValue = '' } }
+function revert() { const a = active.value; if (!a) return; view.value.dispatch({ changes: { from: 0, to: view.value.state.doc.length, insert: a.orig } }) }
+const dirtyCount = computed(() => tabs.value.filter((x) => x.dirty).length)
+function beforeUnload(e) { if (dirtyCount.value) { e.preventDefault(); e.returnValue = '' } }
 onMounted(() => window.addEventListener('beforeunload', beforeUnload))
 onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))
+
+// ---------------------------------------------------------------- outline
+const outlineQ = ref('')
+const outline = computed(() => {
+  tabs.value // refresh on edits
+  const v = view.value
+  if (!v || !active.value) return []
+  const out = []
+  const doc = v.state.doc
+  for (let n = 1; n <= doc.lines; n++) { const m = doc.line(n).text.match(/^\[([^\]]+)\]/); if (m) out.push({ name: m[1].trim(), line: n }) }
+  const q = outlineQ.value.toLowerCase()
+  return q ? out.filter((o) => o.name.toLowerCase().includes(q)) : out
+})
+function toLine(n) {
+  const v = view.value; const l = v.state.doc.line(n)
+  v.dispatch({ selection: { anchor: l.from }, effects: EditorView.scrollIntoView(l.from, { y: 'start', yMargin: 40 }) }); v.focus()
+}
+const showOutline = ref(true)
+
+// ---------------------------------------------------------------- diff and backups
+const diff = ref(null) // { title, a, b, from }
+const diffHost = ref(null)
+let mv = null
+const backups = computed(() => {
+  const a = active.value
+  if (!a || a.root !== 'config') return []
+  const base = a.path.split('/').pop().replace(/\.(cfg|conf)$/, '')
+  const list = files.value.filter((f) => f.startsWith('backups/' + base + '-klipperui-') || (a.path === 'printer.cfg' && /^printer-\d{8}_\d{6}\.cfg$/.test(f)))
+  return list.sort().reverse().slice(0, 30).map((f) => {
+    const m = f.match(/(\d{8})_(\d{4,6})/)
+    const when = m ? `${m[1].slice(0, 4)}-${m[1].slice(4, 6)}-${m[1].slice(6)} ${m[2].slice(0, 2)}:${m[2].slice(2, 4)}` : f
+    return { f, when, klipper: !f.startsWith('backups/') }
+  })
+})
+async function showDiff(backup) {
+  const cur = view.value.state.doc.toString()
+  let a = active.value.orig, title = t('Changes since the last save')
+  if (backup) {
+    try { a = (await api.getText('/server/files/config/' + backup.f.split('/').map(encodeURIComponent).join('/'))).replace(/\r\n/g, '\n') } catch (e) { return toast(e.message, 'error') }
+    title = t('Backup from {when} compared to the editor', { when: backup.when })
+  }
+  diff.value = { title, a, b: cur, from: backup || null }
+  await nextTick()
+  mv?.destroy()
+  const ext = [EditorView.editable.of(false), EditorState.readOnly.of(true), lineNumbers(), klipper, EditorView.theme({}, { dark: true })]
+  mv = new MergeView({ a: { doc: a, extensions: ext }, b: { doc: cur, extensions: ext }, parent: diffHost.value, collapseUnchanged: { margin: 3, minSize: 6 }, highlightChanges: true, gutter: true })
+}
+function closeDiff() { mv?.destroy(); mv = null; diff.value = null }
+function loadBackup() {
+  const d = diff.value
+  view.value.dispatch({ changes: { from: 0, to: view.value.state.doc.length, insert: d.a } })
+  closeDiff(); toast(t('Backup loaded into the editor. Save to keep it.'))
+}
+
+const curDoc = computed(() => cursor.value.section ? docUrl(cursor.value.section) : '')
+const isLog = computed(() => active.value?.root === 'logs')
+function openSearch() { if (view.value) { openSearchPanel(view.value); } }
 </script>
+
 <template>
-  <div class="split" style="height:calc(100vh - 208px)">
-    <div class="col grow" style="gap:0;min-height:0">
-      <div class="row" style="padding-bottom:10px">
-        <b class="mono" style="font-size:15px">{{ file }}</b><span v-if="dirty" class="chip" style="color:var(--ac)"><i></i>{{ t('unsaved') }}</span>
-        <div class="grow"></div>
-        <label class="sb"><input ref="qin" v-model="q" :placeholder="t('Search')" :aria-label="t('Search in file')" @keydown.enter.prevent="nextMatch($event.shiftKey ? -1 : 1)" @keydown.esc="q = ''" />
-          <span class="mono cnt">{{ q ? (matches.length ? qi + 1 + '/' + matches.length : '0/0') : '' }}</span>
-          <button class="btn clear ibtn sm" :aria-label="t('Previous match')" :disabled="!matches.length" @click="nextMatch(-1)"><Icon name="up" :size="14" /></button>
-          <button class="btn clear ibtn sm" :aria-label="t('Next match')" :disabled="!matches.length" @click="nextMatch(1)"><Icon name="down" :size="14" /></button>
-        </label>
-        <button class="btn" :disabled="!dirty" @click="text = orig">{{ t('Revert') }}</button>
-        <button class="btn" :disabled="!dirty || saving" @click="save(false)"><Icon name="save" :size="16" />{{ t('Save') }}</button>
-        <button class="btn acc" :disabled="saving || isPrinting" @click="save(true)"><Icon name="restart" :size="16" :stroke="2.4" />{{ t('Save & Restart') }}</button>
+  <div class="ce">
+    <!-- files -->
+    <aside class="tree card">
+      <div class="th"><Icon name="folder" :size="16" /><b>{{ t('Config files') }}</b></div>
+      <input v-model="treeQ" class="input tq" :placeholder="t('Filter')" :aria-label="t('Filter files')" />
+      <div class="tl">
+        <template v-for="r in tree" :key="(r.dir ? 'd:' : 'f:') + r.path">
+          <button v-if="r.dir" class="tr dir" :style="{ paddingLeft: 10 + r.depth * 14 + 'px' }" @click="toggleDir(r.path)"><Icon :name="openDirs.has(r.path) || treeQ ? 'down' : 'right'" :size="13" /><Icon name="folder" :size="15" /><span>{{ r.name }}</span></button>
+          <button v-else class="tr" :class="{ on: active?.root === 'config' && active?.path === r.path, dim: !editable(r.path) }" :style="{ paddingLeft: 10 + r.depth * 14 + 'px' }" :disabled="!editable(r.path)" @click="openFile(r.path)">
+            <Icon name="file" :size="15" /><span>{{ r.name }}</span><i v-if="tabs.find((x) => x.key === 'config/' + r.path)?.dirty" class="dd"></i>
+          </button>
+        </template>
       </div>
-      <div class="ed">
-        <div ref="gut" class="gut code"><div v-for="n in lineCount" :key="n">{{ n }}</div></div>
-        <div class="area">
-          <pre ref="pre" class="hl code" aria-hidden="true" v-html="html"></pre>
-          <textarea ref="ta" v-model="text" class="code" spellcheck="false" wrap="off" :aria-label="file" :disabled="loading" @scroll="sync" @keydown="key"></textarea>
+    </aside>
+
+    <!-- editor -->
+    <div class="main-col">
+      <div class="tabs" role="tablist">
+        <div v-for="x in tabs" :key="x.key" class="tab" :class="{ on: x.key === active?.key }" role="tab" :aria-selected="x.key === active?.key" @click="openFile(x.path, x.root)">
+          <span class="tn">{{ x.path.split('/').pop() }}</span><i v-if="x.dirty" class="dd"></i>
+          <button class="tx" :aria-label="t('Close {name}', { name: x.path })" @click.stop="closeTab(x)"><Icon name="x" :size="12" /></button>
         </div>
       </div>
+      <div class="tbar">
+        <button class="btn" :aria-label="t('Search and replace')" data-tip="Ctrl+F / Ctrl+H" @click="openSearch"><Icon name="search" :size="15" />{{ t('Find') }}</button>
+        <button class="btn" :disabled="!active?.dirty" @click="showDiff()"><Icon name="diff" :size="15" />{{ t('Changes') }}</button>
+        <div v-if="backups.length" class="dropdown">
+          <button class="btn"><Icon name="clock" :size="15" />{{ t('Backups') }}<Icon name="down" :size="12" /></button>
+          <div class="menu card"><button v-for="b in backups" :key="b.f" class="mi" @click="showDiff(b)"><span>{{ b.when }}</span><span class="mu">{{ b.klipper ? 'SAVE_CONFIG' : t('before save') }}</span></button></div>
+        </div>
+        <a v-if="curDoc" class="btn clear" :href="curDoc" target="_blank" rel="noopener" :data-tip="t('Klipper documentation for this section')"><Icon name="info" :size="15" />[{{ cursor.section }}]</a>
+        <span class="grow"></span>
+        <button class="btn" :disabled="!active?.dirty" @click="revert">{{ t('Revert') }}</button>
+        <button class="btn" :disabled="!active?.dirty || saving || isLog" data-tip="Ctrl+S" @click="save(false)"><Icon name="save" :size="16" />{{ t('Save') }}</button>
+        <button class="btn acc" :disabled="saving || isPrinting || isLog" data-tip="Ctrl+Shift+S" @click="save(true)"><Icon name="restart" :size="16" :stroke="2.4" />{{ t('Save & Restart') }}</button>
+        <button class="btn clear ibtn sm" :aria-label="t('Outline')" @click="showOutline = !showOutline"><Icon name="sidebar" :size="16" /></button>
+      </div>
+      <div ref="host" class="cm-host" :class="{ loading: active?.loading }"></div>
+      <div class="status">
+        <span>{{ t('Line {l}, column {c}', { l: cursor.line, c: cursor.col }) }}</span>
+        <span v-if="counts.error" class="e"><Icon name="warn" :size="12" />{{ counts.error }}</span>
+        <span v-if="counts.warning" class="w"><Icon name="warn" :size="12" />{{ counts.warning }}</span>
+        <span v-if="counts.info" class="i">{{ counts.info }} {{ t('notes') }}</span>
+        <span class="grow"></span>
+        <span v-if="isLog">{{ t('read only') }}</span>
+        <span>{{ active?.crlf ? 'CRLF' : 'LF' }}</span>
+        <span class="kb">Ctrl+F {{ t('find') }} · Ctrl+H {{ t('replace') }} · Ctrl+G {{ t('line') }} · Ctrl+/ {{ t('comment') }} · Ctrl+Space {{ t('suggest') }}</span>
+      </div>
     </div>
-    <section class="card side-col" style="width:260px;overflow:auto">
-      <div class="card-h"><h2>{{ t('Outline') }}</h2></div>
-      <button v-for="[s, i] in sections" :key="i" class="ol code" @click="jump(i)">[{{ s }}]</button>
-    </section>
+
+    <!-- outline -->
+    <aside v-if="showOutline" class="ol card">
+      <div class="th"><Icon name="list" :size="16" /><b>{{ t('Outline') }}</b><span class="mu">{{ outline.length }}</span></div>
+      <input v-model="outlineQ" class="input tq" :placeholder="t('Filter')" :aria-label="t('Filter sections')" />
+      <div class="tl">
+        <div v-for="o in outline" :key="o.line" class="oi" :class="{ on: o.name === cursor.section }">
+          <button class="on-l" @click="toLine(o.line)">[{{ o.name }}]</button>
+          <a class="doc" :href="docUrl(o.name)" target="_blank" rel="noopener" :aria-label="t('Klipper documentation for this section')"><Icon name="info" :size="13" /></a>
+        </div>
+        <div v-if="!outline.length" class="mu" style="padding:8px 10px;font-size:12px">{{ t('No sections') }}</div>
+      </div>
+    </aside>
   </div>
+
+  <Modal v-if="diff" :title="diff.title" width="1100px" @close="closeDiff">
+    <div class="dlg mu"><span>{{ diff.from ? t('Left: backup') : t('Left: saved file') }}</span><span>{{ t('Right: editor') }}</span></div>
+    <div ref="diffHost" class="diff"></div>
+    <template #foot>
+      <button v-if="diff.from" class="btn lg" @click="loadBackup"><Icon name="restart" :size="16" />{{ t('Load this backup') }}</button>
+      <button class="btn lg acc" @click="closeDiff">{{ t('Close') }}</button>
+    </template>
+  </Modal>
 </template>
+
 <style scoped>
-.ed { flex: 1; min-height: 0; display: flex; background: var(--s1); border: 1px solid var(--bd); border-radius: 12px; overflow: hidden; }
-.gut { width: 56px; flex-shrink: 0; overflow: hidden; padding: 14px 12px 14px 0; text-align: right; color: var(--mu2); font-size: 13px; line-height: 1.7; user-select: none; border-right: 1px solid var(--bd); }
-.area { position: relative; flex: 1; min-width: 0; }
-.hl, textarea { position: absolute; inset: 0; margin: 0; padding: 14px 16px; font-size: 13px; line-height: 1.7; white-space: pre; overflow: auto; tab-size: 2; border: none; }
-.hl { color: var(--tx); pointer-events: none; overflow: hidden; }
-textarea { background: transparent; color: transparent; caret-color: var(--ac); outline: none; resize: none; }
-textarea::selection { background: color-mix(in srgb, var(--ac) 30%, transparent); color: transparent; }
-.hl :deep(.s) { color: var(--ac); font-weight: 700; }
-.hl :deep(.k) { color: #5aa9ff; }
-.hl :deep(.p) { color: var(--mu); }
-.hl :deep(.c) { color: var(--comment); font-style: italic; }
-.hl :deep(.g) { color: var(--code); }
-.hl :deep(.j) { color: #c38bff; }
-.sb { display: flex; align-items: center; gap: 2px; height: 34px; padding: 0 4px 0 10px; background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; }
-.sb:focus-within { border-color: var(--ac); }
-.sb input { width: 180px; background: transparent; border: none; outline: none; font-size: 13px; }
-.sb .ibtn.sm { width: 26px; height: 26px; }
-.cnt { font-size: 11px; color: var(--mu); min-width: 44px; text-align: right; }
-.hl :deep(mark) { background: rgba(245, 196, 81, .28); color: inherit; border-radius: 2px; }
-.hl :deep(mark.cur) { background: var(--ac); color: var(--oa); }
-.hl :deep(.fl) { background: color-mix(in srgb, var(--ac) 22%, transparent); box-shadow: -4px 0 0 var(--ac); display: inline-block; min-width: 100%; animation: flfade 2.2s ease-out forwards; }
-@keyframes flfade { 70% { background: color-mix(in srgb, var(--ac) 22%, transparent); } 100% { background: transparent; box-shadow: none; } }
-.ol { height: 28px; padding: 0 8px; background: transparent; border: none; border-radius: 6px; text-align: left; font-size: 12px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ol:hover { background: var(--s2); color: var(--ac); }
+.ce { display: flex; gap: 16px; height: calc(100vh / var(--zoom, 1) - 208px); min-height: 480px; }
+.tree, .ol { width: 230px; flex-shrink: 0; padding: 12px; gap: 8px; min-height: 0; }
+.ol { width: 240px; }
+.th { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.th .mu { margin-left: auto; font-size: 12px; }
+.tq { height: 32px; font-size: 13px; }
+.tl { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 1px; margin: 0 -4px; }
+.tr { display: flex; align-items: center; gap: 7px; height: 30px; padding-right: 8px; border: none; background: transparent; color: var(--tx); border-radius: 8px; font-size: 13px; text-align: left; flex-shrink: 0; }
+.tr span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr :deep(svg) { color: var(--mu); flex-shrink: 0; }
+.tr:hover:not(:disabled) { background: var(--s2); }
+.tr.on { background: var(--s2); box-shadow: inset 3px 0 0 var(--ac); font-weight: 600; }
+.tr.dir { color: var(--mu); }
+.tr.dim { opacity: .45; }
+.dd { width: 7px; height: 7px; border-radius: 4px; background: var(--wn); display: inline-block; flex-shrink: 0; margin-left: auto; }
+.main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; flex-shrink: 0; }
+.tab { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 6px 0 12px; border-radius: 10px 10px 0 0; background: transparent; color: var(--mu); font-size: 13px; cursor: pointer; white-space: nowrap; }
+.tab:hover { color: var(--tx); }
+.tab.on { background: var(--s1); color: var(--tx); font-weight: 600; }
+.tab .dd { margin-left: 0; }
+.tx { width: 22px; height: 22px; border: none; background: transparent; color: var(--mu); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+.tx:hover { background: var(--s3); color: var(--tx); }
+.tbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--s1); border-radius: 0 12px 0 0; flex-wrap: wrap; }
+.dropdown { position: relative; }
+.dropdown .menu { position: absolute; top: 38px; left: 0; z-index: 20; width: 280px; max-height: 360px; overflow: auto; padding: 6px; gap: 2px; display: none; box-shadow: 0 12px 40px rgba(0,0,0,.45); }
+.dropdown:hover .menu, .dropdown:focus-within .menu { display: flex; }
+.mi { display: flex; justify-content: space-between; gap: 10px; height: 32px; padding: 0 10px; border: none; background: transparent; color: var(--tx); border-radius: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.mi:hover { background: var(--s2); }
+.mi .mu { color: var(--mu); font-size: 12px; }
+.cm-host { flex: 1; min-height: 0; background: var(--s1); overflow: hidden; }
+.cm-host.loading { opacity: .5; }
+.status { display: flex; align-items: center; gap: 14px; padding: 6px 12px; background: var(--s1); border-top: 1px solid var(--bd); border-radius: 0 0 12px 12px; font-size: 12px; color: var(--mu); font-variant-numeric: tabular-nums; }
+.status span { display: inline-flex; align-items: center; gap: 4px; }
+.status .e { color: var(--dg); } .status .w { color: var(--wn); } .status .i { color: var(--bl); }
+.status .kb { color: var(--mu2); }
+.oi { display: flex; align-items: center; border-radius: 8px; flex-shrink: 0; }
+.oi:hover { background: var(--s2); }
+.oi.on { background: var(--s2); box-shadow: inset 3px 0 0 var(--ac); }
+.on-l { flex: 1; min-width: 0; height: 28px; padding: 0 10px; border: none; background: transparent; color: var(--tx); text-align: left; font-family: var(--fm); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--mu2); opacity: 0; }
+.oi:hover .doc { opacity: 1; }
+.doc:hover { color: var(--ac); }
+.dlg { display: flex; justify-content: space-between; font-size: 12px; }
+.diff { height: calc(60vh / var(--zoom, 1)); overflow: auto; border-radius: 10px; background: var(--s2); }
+@media (max-width: 1100px) { .ce { flex-direction: column; height: auto; } .tree, .ol { width: auto; max-height: 220px; } .cm-host { height: calc(70vh / var(--zoom, 1)); flex: none; } .status .kb { display: none; } }
+</style>
+
+<style>
+/* CodeMirror theme from the app tokens (works for dark and light) */
+:root { --cm-key: #6fb0ec; --cm-num: #e8b86a; --cm-pin: #56d39a; --cm-kw: #c38bff; --cm-fn: #6fd6c6; --cm-var: #f0a0c0; --cm-attr: #9ec7f0; }
+:root[data-theme="light"] { --cm-key: #1f63a8; --cm-num: #a0620a; --cm-pin: #1d8656; --cm-kw: #7a3fc4; --cm-fn: #0f7f73; --cm-var: #b03a6c; --cm-attr: #2b5f94; }
+.cm-host .cm-editor, .diff .cm-editor { height: 100%; font-size: 13px; background: var(--s1); color: var(--tx); }
+.diff .cm-editor { background: var(--s2); height: auto; }
+.cm-editor .cm-scroller { font-family: var(--fm); line-height: 1.65; }
+.cm-editor.cm-focused { outline: none; }
+.cm-editor .cm-gutters { background: var(--s1); border-right: 1px solid var(--bd); color: var(--mu2); }
+.cm-editor .cm-activeLine { background: color-mix(in srgb, var(--tx) 4%, transparent); }
+.cm-editor .cm-activeLineGutter { background: transparent; color: var(--tx); }
+.cm-editor .cm-cursor { border-left-color: var(--ac); border-left-width: 2px; }
+.cm-editor .cm-selectionBackground, .cm-editor.cm-focused .cm-selectionBackground, .cm-editor ::selection { background: color-mix(in srgb, var(--ac) 28%, transparent) !important; }
+.cm-editor .cm-selectionMatch { background: color-mix(in srgb, var(--wn) 18%, transparent); }
+/* search hits: a soft tint plus underline so the coloured text stays readable, the current hit gets a ring */
+.cm-editor .cm-searchMatch { background: color-mix(in srgb, var(--wn) 18%, transparent); border-radius: 3px; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--wn) 70%, transparent); }
+.cm-editor .cm-searchMatch-selected { background: color-mix(in srgb, var(--ac) 20%, transparent); box-shadow: 0 0 0 1.5px var(--ac), inset 0 -2px 0 var(--ac); }
+.cm-editor .cm-matchingBracket { background: color-mix(in srgb, var(--ok) 25%, transparent); outline: none; }
+.cm-editor .cm-foldPlaceholder { background: var(--s3); border: none; color: var(--mu); padding: 0 6px; border-radius: 4px; }
+.cm-editor .cm-foldGutter span { color: var(--mu2); }
+.cm-editor .cm-panels { background: var(--s2); color: var(--tx); border-top: 1px solid var(--bd); }
+.cm-editor .cm-panels-bottom { border-top: 1px solid var(--bd); }
+.cm-editor .cm-panel.cm-search { padding: 8px 10px; font-family: var(--fd); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cm-editor .cm-panel.cm-search input.cm-textfield { background: var(--s1); border: 1px solid var(--bd); color: var(--tx); border-radius: 8px; height: 30px; padding: 0 10px; font-size: 13px; }
+.cm-editor .cm-panel.cm-search input.cm-textfield:focus { border-color: var(--ac); outline: none; }
+.cm-editor .cm-panel.cm-search button.cm-button { background: var(--s3); background-image: none; border: none; color: var(--tx); border-radius: 8px; height: 30px; padding: 0 10px; font-size: 12.5px; font-weight: 600; text-transform: none; }
+.cm-editor .cm-panel.cm-search button.cm-button:hover { background: var(--hover); }
+.cm-editor .cm-panel.cm-search label { color: var(--mu); font-size: 12.5px; display: inline-flex; gap: 4px; align-items: center; }
+.cm-editor .cm-panel.cm-search [name=close] { color: var(--mu); font-size: 18px; }
+.cm-editor .cm-tooltip { background: var(--s2); border: 1px solid var(--bd); color: var(--tx); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+.cm-editor .cm-tooltip-autocomplete ul li[aria-selected] { background: color-mix(in srgb, var(--ac) 22%, transparent); color: var(--tx); }
+.cm-editor .cm-completionInfo { background: var(--s2); border: 1px solid var(--bd); color: var(--mu); }
+.cm-editor .cm-diagnostic { padding: 6px 10px; }
+.cm-editor .cm-diagnostic-error { border-left: 3px solid var(--dg); }
+.cm-editor .cm-diagnostic-warning { border-left: 3px solid var(--wn); }
+.cm-editor .cm-diagnostic-info { border-left: 3px solid var(--bl); }
+.cm-editor .cm-lintRange-error { background-image: none; text-decoration: underline wavy var(--dg); text-underline-offset: 3px; }
+.cm-editor .cm-lintRange-warning { background-image: none; text-decoration: underline wavy var(--wn); text-underline-offset: 3px; }
+.cm-editor .cm-lintRange-info { background-image: none; text-decoration: underline dotted var(--bl); text-underline-offset: 3px; }
+.cm-editor .cm-flash { background: color-mix(in srgb, var(--ac) 22%, transparent); box-shadow: inset 3px 0 0 var(--ac); }
+.cm-mergeView .cm-changedLine, .cm-merge-b .cm-changedLine { background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.cm-merge-a .cm-changedLine { background: color-mix(in srgb, var(--dg) 12%, transparent); }
+.cm-merge-a .cm-changedText { background: color-mix(in srgb, var(--dg) 35%, transparent); }
+.cm-merge-b .cm-changedText { background: color-mix(in srgb, var(--ok) 35%, transparent); }
+.cm-merge-spacer, .cm-collapsedLines { background: var(--s3) !important; color: var(--mu) !important; }
 </style>

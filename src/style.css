@@ -1,7 +1,7 @@
 :root {
   /* neutrals: soft graphite, a touch of blue so it doesn't read as pure black */
   --bg: #16181c; --s1: #1e2126; --s2: #282c32; --s3: #31363d; --bd: #2c3037;
-  --tx: #ecebe7; --mu: #a4a8b0; --mu2: #737983;
+  --tx: #ecebe7; --mu: #a8acb4; --mu2: #8b919b;
   --ac-raw: #ff6b1a; --ac: var(--ac-raw); --oa: #1a0b02;
   --dg: #f06a6a; --ok: #56d39a; --wn: #f2c35b; --bl: #6fb0ec;
   /* category tints: background / line / ink */
@@ -21,7 +21,7 @@
 /* light theme: same structure, paper-white surfaces, deeper inks so tints stay readable */
 :root[data-theme="light"] {
   --bg: #eef0f3; --s1: #ffffff; --s2: #f0f2f5; --s3: #e2e6eb; --bd: #dde1e7;
-  --tx: #1b1e23; --mu: #5a6170; --mu2: #8a919c;
+  --tx: #1b1e23; --mu: #4f5664; --mu2: #6b7280;
   --dg: #d23f3f; --ok: #1f9a60; --wn: #b27a12; --bl: #2f7cc4;
   --heat-bg: #fdefe6; --heat-ln: #f6d6c3; --heat: #c2551a;
   --cool-bg: #e7f0fa; --cool-ln: #cadef3; --cool: #2b72b8;
@@ -41,7 +41,8 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--tx); f
 #app { height: 100%; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-button:disabled { opacity: .45; cursor: not-allowed; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+.btn:disabled { background: transparent !important; box-shadow: inset 0 0 0 1px var(--bd); color: var(--mu) !important; filter: none !important; }
 a { color: var(--ac); }
 ::placeholder { color: var(--mu2); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -81,7 +82,7 @@ a { color: var(--ac); }
 
 .seg { display: flex; gap: 4px; }
 .seg { background: var(--s2); border-radius: 10px; padding: 3px; gap: 2px; }
-.seg button { flex: 1; height: 28px; padding: 0 10px; background: transparent; color: var(--mu); border: none; border-radius: 7px; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.seg button { white-space: nowrap; flex: 1; height: 28px; padding: 0 10px; background: transparent; color: var(--mu); border: none; border-radius: 7px; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .seg button:hover { color: var(--tx); }
 .seg button.on { background: var(--s3); color: var(--tx); box-shadow: inset 0 -2px 0 var(--ac); }
 
@@ -110,6 +111,7 @@ input[type=range].rng::-moz-range-thumb { width: 16px; height: 16px; border-radi
 table.tbl { width: 100%; border-collapse: collapse; }
 table.tbl th { font-size: 12.5px; font-weight: 500; color: var(--mu2); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--bd); white-space: nowrap; }
 table.tbl td { padding: 11px 14px; border-bottom: 1px solid var(--bd); }
+table.tbl td.nm { min-width: 150px; overflow-wrap: anywhere; }
 table.tbl tr.sel td { background: var(--s2); }
 table.tbl tr.click { cursor: pointer; }
 table.tbl tr.click:hover td { background: var(--hover); }
@@ -175,3 +177,36 @@ body.dash-edit { user-select: none; -webkit-user-select: none; }
 :root[data-theme="light"] .tint-cell > .card, :root[data-theme="light"] .card.tint { --tint-d: color-mix(in srgb, var(--tint) 82%, #000); }
 /* dashboard cells: the card always fills its grid cell, also for components with several root nodes */
 .vgl-item .cell > .card { height: 100%; overflow: auto; }
+
+/* checkboxes follow the theme: rounded box, accent fill, white tick */
+input[type=checkbox] {
+  -webkit-appearance: none; appearance: none; margin: 0; flex-shrink: 0;
+  width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--mu2); background: var(--s2);
+  display: inline-grid; place-content: center; cursor: pointer; vertical-align: middle;
+  transition: background .12s, border-color .12s;
+}
+input[type=checkbox]:hover { border-color: var(--mu); }
+input[type=checkbox]::before {
+  content: ''; width: 10px; height: 10px; background: var(--oa); transform: scale(0); transition: transform .12s;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type=checkbox]:checked, input[type=checkbox]:indeterminate { background: var(--ac); border-color: var(--ac); }
+input[type=checkbox]:checked::before { transform: scale(1); }
+input[type=checkbox]:indeterminate::before { transform: scale(1); clip-path: inset(38% 5% 38% 5% round 2px); }
+input[type=checkbox]:focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { input[type=checkbox], input[type=checkbox]::before { transition: none; } }
+
+/* touch screens: bigger targets, desktop keeps its density */
+@media (pointer: coarse) {
+  .btn { min-height: 40px; }
+  .ibtn.sm { width: 40px; height: 40px; }
+  .seg button { height: 36px; }
+  .toggle { width: 52px; height: 30px; }
+  .toggle span { width: 24px; height: 24px; }
+  .toggle.on span { transform: translateX(22px); }
+  input[type=checkbox] { width: 22px; height: 22px; }
+}
+/* print progress shows state, not the accent */
+.bar.state > div { background: var(--pst, var(--ok)); }
+/* cards taller than their content spread the content instead of leaving the bottom empty */
+.vgl-item .cell > .card.spread { justify-content: space-between; }

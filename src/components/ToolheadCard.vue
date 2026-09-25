@@ -10,11 +10,25 @@ const pos = computed(() => gm.value.gcode_position || th.value.position || [0, 0
 const zoff = computed(() => gm.value.homing_origin?.[2] ?? 0)
 const can = (a) => homed.value.includes(a.toLowerCase())
 const hasProbe = computed(() => state.objects.some((o) => o === 'probe' || o.startsWith('probe_eddy') || o === 'bltouch' || o.startsWith('beacon') || o.startsWith('cartographer')))
-const AX = [
-  { a: 'X', steps: [100, 10, 1] },
-  { a: 'Y', steps: [100, 10, 1] },
-  { a: 'Z', steps: [25, 1, 0.1] },
-]
+// gantry levelling depends on the printer: QGL on a Voron 2.4, Z tilt on a Trident, nothing on a single Z
+const level = computed(() => {
+  const o = state.objects
+  if (o.includes('quad_gantry_level')) return { cmd: 'QUAD_GANTRY_LEVEL', label: 'QGL', applied: S('quad_gantry_level').applied }
+  if (o.includes('z_tilt_ng')) return { cmd: 'Z_TILT_ADJUST', label: 'Z Tilt', applied: S('z_tilt_ng').applied }
+  if (o.includes('z_tilt')) return { cmd: 'Z_TILT_ADJUST', label: 'Z Tilt', applied: S('z_tilt').applied }
+  return null
+})
+// step and speed presets come from Settings > Control (shared with Mainsail / Fluidd)
+const ctl = computed(() => state.settings.control || {})
+const desc = (a) => [...(a || [])].map(Number).filter((x) => x > 0).sort((x, y) => y - x)
+const AX = computed(() => [
+  { a: 'X', steps: desc(ctl.value.stepsXY) },
+  { a: 'Y', steps: desc(ctl.value.stepsXY) },
+  { a: 'Z', steps: desc(ctl.value.stepsZ) },
+])
+const dpadSteps = computed(() => desc(ctl.value.dpad))
+const zSteps = computed(() => [...(ctl.value.zOffset || [])].map(Number).filter((x) => x > 0).sort((x, y) => x - y))
+const feedOf = (axis) => Math.max(1, Math.round((axis === 'Z' ? ctl.value.feedZ || 25 : ctl.value.feedXY || 100) * 60))
 function jog(axis, d) {
   const i = 'XYZ'.indexOf(axis)
   const cur = th.value.position?.[i] ?? 0
@@ -22,8 +36,7 @@ function jog(axis, d) {
   const target = Math.min(hi, Math.max(lo, cur + d))
   const dd = Math.round((target - cur) * 1000) / 1000
   if (!dd) { toast(t('{axis} is at its limit', { axis })); return }
-  const f = axis === 'Z' ? 900 : 6000
-  gcode(`SAVE_GCODE_STATE NAME=_ui_jog\nG91\nG1 ${axis}${dd} F${f}\nRESTORE_GCODE_STATE NAME=_ui_jog`)
+  gcode(`SAVE_GCODE_STATE NAME=_ui_jog\nG91\nG1 ${axis}${dd} F${feedOf(axis)}\nRESTORE_GCODE_STATE NAME=_ui_jog`)
 }
 // editable position fields: keep showing the current value while editing
 const edit = ref({})
@@ -36,23 +49,23 @@ function moveTo(axis, e) {
   const i = 'XYZ'.indexOf(axis)
   const lo = th.value.axis_minimum?.[i], hi = th.value.axis_maximum?.[i]
   if ((lo != null && v < lo) || (hi != null && v > hi)) { toast(t('{axis}{v} is outside {lo}..{hi}', { axis, v, lo: String(lo), hi: String(hi) }), 'error'); return }
-  gcode(`SAVE_GCODE_STATE NAME=_ui_move\nG90\nG1 ${axis}${v} F${axis === 'Z' ? 900 : 6000}\nRESTORE_GCODE_STATE NAME=_ui_move`)
+  gcode(`SAVE_GCODE_STATE NAME=_ui_move\nG90\nG1 ${axis}${v} F${feedOf(axis)}\nRESTORE_GCODE_STATE NAME=_ui_move`)
 }
 const speed = computed(() => Math.round((gm.value.speed_factor ?? 1) * 100))
 const flow = computed(() => Math.round((gm.value.extrude_factor ?? 1) * 100))
 function setSpeed(v) { v = Math.max(1, Math.min(500, Math.round(v))); gcode(`M220 S${v}`) }
 function setFlow(v) { v = Math.max(1, Math.min(300, Math.round(v))); gcode(`M221 S${v}`) }
-const dstep = ref(10)
+const dstep = ref(dpadSteps.value.includes(10) ? 10 : dpadSteps.value[Math.floor(dpadSteps.value.length / 2)] || 10)
 const zdir = computed(() => (state.settings.invertZ ? -1 : 1))
 function saveZ() { gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APPLY_ENDSTOP') }
 </script>
 <template>
-  <section class="card">
+  <section class="card spread">
     <div class="card-h">
       <h2>{{ t('Toolhead') }}</h2>
       <div class="acts">
         <button class="btn acc" :disabled="isPrinting" @click="gcode('G28')"><Icon name="home" :size="16" :stroke="2.4" />{{ t('Home All') }}</button>
-        <button class="btn" :disabled="isPrinting" @click="gcode('Z_TILT_ADJUST')"><Icon name="tilt" :size="16" :stroke="2.4" />{{ t('Z Tilt') }}</button>
+        <button v-if="level" class="btn" :disabled="isPrinting || !homed.includes('z')" :data-tip="homed.includes('z') ? level.cmd : t('Home first')" @click="gcode(level.cmd)"><Icon name="tilt" :size="16" :stroke="2.4" />{{ t(level.label) }}<i v-if="level.applied" class="ap" :aria-label="t('applied')"></i></button>
         <button class="btn" :disabled="isPrinting" @click="gcode('M84')"><Icon name="power" :size="16" :stroke="2.4" />{{ t('Motors off') }}</button>
       </div>
     </div>
@@ -84,20 +97,21 @@ function saveZ() { gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
         <button class="jb" :aria-label="state.settings.invertZ ? t('Bed down (Z+{n})', { n: dstep }) : 'Z-' + dstep" :disabled="!can('Z') || isPrinting" @click="jog('Z', -zdir * Math.min(dstep, 25))"><Icon name="down" :stroke="2.6" /></button>
       </div>
       <div class="steps" role="group" :aria-label="t('D-pad step (mm)')">
-        <button v-for="v in [100, 50, 10, 1, 0.1]" :key="v" :class="{ on: dstep === v }" :aria-label="t('Step {n} mm', { n: v })" @click="dstep = v">{{ v }}</button>
+        <button v-for="v in dpadSteps" :key="v" :class="{ on: dstep === v }" :aria-label="t('Step {n} mm', { n: v })" @click="dstep = v">{{ v }}</button>
       </div>
       <div class="grp zo">
         <div class="zh">
           <span class="lbl"><Icon name="layers" :size="14" style="vertical-align:-2px" /> {{ t('Z-Offset') }} <b class="mono" style="color:var(--tx);font-size:14px">{{ zoff.toFixed(3) }}</b></span>
           <div class="row" style="gap:4px"><button class="btn clear" :disabled="!zoff" @click="gcode('SET_GCODE_OFFSET Z=0 MOVE=1')">{{ t('Clear') }}</button><button class="btn clear" style="color:var(--ac)" :disabled="!zoff || isPrinting" :aria-label="t('Save z offset to config')" @click="saveZ">{{ t('Save') }}</button></div>
         </div>
-        <div class="zr"><button v-for="z in [0.005, 0.01, 0.025, 0.05]" :key="'u' + z" class="jb" @click="gcode(`SET_GCODE_OFFSET Z_ADJUST=${z} MOVE=1`)"><Icon name="up" :size="12" :stroke="2.6" />{{ z }}</button></div>
-        <div class="zr"><button v-for="z in [0.005, 0.01, 0.025, 0.05]" :key="'d' + z" class="jb" @click="gcode(`SET_GCODE_OFFSET Z_ADJUST=-${z} MOVE=1`)"><Icon name="down" :size="12" :stroke="2.6" />{{ z }}</button></div>
+        <div class="zr"><button v-for="z in zSteps" :key="'u' + z" class="jb" @click="gcode(`SET_GCODE_OFFSET Z_ADJUST=${z} MOVE=1`)"><Icon name="up" :size="12" :stroke="2.6" />{{ z }}</button></div>
+        <div class="zr"><button v-for="z in zSteps" :key="'d' + z" class="jb" @click="gcode(`SET_GCODE_OFFSET Z_ADJUST=-${z} MOVE=1`)"><Icon name="down" :size="12" :stroke="2.6" />{{ z }}</button></div>
       </div>
     </div>
   </section>
 </template>
 <style scoped>
+.ap { width: 7px; height: 7px; border-radius: 4px; background: var(--ok); display: inline-block; margin-left: 2px; }
 .card { overflow: auto; }
 .body { --h: 44px; --g: 8px; display: flex; flex-wrap: wrap; gap: 16px 20px; align-items: flex-start; }
 .grp { height: calc(var(--h) * 3 + var(--g) * 2); display: grid; gap: var(--g); grid-template-rows: repeat(3, var(--h)); }

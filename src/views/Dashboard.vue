@@ -14,6 +14,8 @@ import ToolheadCard from '../components/ToolheadCard.vue'
 import ExtruderCard from '../components/ExtruderCard.vue'
 import LimitsCard from '../components/LimitsCard.vue'
 import PrintCard from '../components/PrintCard.vue'
+import MmuCard from '../components/MmuCard.vue'
+import PowerCard from '../components/PowerCard.vue'
 import ObjectsCard from '../components/ObjectsCard.vue'
 import MiniMeshCard from '../components/MiniMeshCard.vue'
 import SystemLoads from '../components/SystemLoads.vue'
@@ -27,6 +29,9 @@ import SpoolCard from '../components/SpoolCard.vue'
 import RetractionCard from '../components/RetractionCard.vue'
 import HealthCard from '../components/HealthCard.vue'
 import { t } from '../i18n'
+import { useEdgeAutoScroll } from '../autoscroll'
+import interact from 'interactjs'
+import { nextTick } from 'vue'
 import { state, isPrinting, DEFAULT_LAYOUT, DEFAULT_SETTINGS, layoutSnapshot, pushLayoutBackup, restoreLayout } from '../store'
 import { ICON_NAMES } from '../icons'
 
@@ -50,15 +55,47 @@ const MODULES = {
   spool: { c: SpoolCard, n: 'Spoolman', min: [3, 3], def: [4, 4], need: () => !!state.spoolman.server },
   retraction: { c: RetractionCard, n: 'Firmware retraction', min: [3, 3], def: [6, 4], need: () => state.objects.includes('firmware_retraction') },
   health: { c: HealthCard, n: 'Health', min: [3, 3], def: [4, 4] },
+  power: { c: PowerCard, n: 'Power devices', min: [3, 3], def: [4, 4], need: () => state.power.length > 0 },
+  mmu: { c: MmuCard, n: 'MMU (Happy Hare, Box Turtle)', min: [4, 5], def: [12, 7], need: () => hasMmu.value },
 }
 const isCustom = (i) => i.startsWith('c_')
-// default hue per module, so no two neighbours look the same out of the box
+// a multi material unit shows up on the dashboard by itself the first time it is found
+const hasMmu = computed(() => state.objects.includes('mmu') || state.objects.includes('AFC'))
+// Default hue per module follows meaning, the same as the top tiles: orange = heat, purple = filament,
+// blue = air and devices, slate = motion, green = health. Everything else stays neutral.
 const TINTS = ['heat', 'cool', 'light', 'sense', 'spool', 'rose', 'teal', 'sand', 'slate', 'lime']
-const DEFAULT_TINT = { console: 'slate', temps: 'heat', tempchart: 'rose', webcam: 'none', toolhead: 'cool', extruder: 'sand', limits: 'teal', print: 'sense', objects: 'light', mesh: 'spool', system: 'slate', queue: 'teal', macros: 'spool', devices: 'cool', files: 'sand', jobs: 'sense', spool: 'spool', retraction: 'rose', health: 'lime' }
-const tintKey = (i) => state.settings.cardColors?.[i] ?? (isCustom(i) ? 'none' : DEFAULT_TINT[i] || 'slate')
+const DEFAULT_TINT = { power: 'light', mmu: 'spool', temps: 'heat', tempchart: 'heat', extruder: 'spool', retraction: 'spool', spool: 'spool', toolhead: 'slate', limits: 'slate', mesh: 'slate', objects: 'slate', devices: 'cool', health: 'sense' }
+const tintKey = (i) => state.settings.cardColors?.[i] ?? (isCustom(i) ? 'none' : DEFAULT_TINT[i] || 'none')
 const tintVar = (i) => { const k = tintKey(i); return k === 'none' ? null : k.startsWith('#') ? k : `var(--tn-${k})` }
 function setTint(i, v) { state.settings.cardColors = { ...(state.settings.cardColors || {}), [i]: v } }
 function resetTint(i) { const c = { ...(state.settings.cardColors || {}) }; delete c[i]; state.settings.cardColors = c }
+// customize: scroll the page when a card is dragged to the top or bottom edge
+// interact.js (used by the grid) has its own auto-scroll: it scrolls and keeps the card under the pointer
+// our own edge scrolling: scroll the page, then ask interact.js to re-run the move with the
+// same pointer position so grid-layout recomputes the card position against the scrolled grid
+let dragI = null, jit = 0
+function nudge() {
+  const c = dragI?.coords?.cur
+  if (!c?.client) return
+  // same position with a sub-pixel wiggle so interact.js does not drop it as a duplicate move
+  jit = jit ? 0 : 0.01
+  const id = dragI.pointers?.[0]?.id ?? 1
+  const fake = { type: 'pointermove', pointerId: id, pointerType: 'mouse', isPrimary: true, buttons: 1,
+    clientX: c.client.x + jit, clientY: c.client.y, pageX: c.page.x + jit, pageY: c.page.y, screenX: c.client.x, screenY: c.client.y,
+    target: dragI.element, currentTarget: document, timeStamp: performance.now(), preventDefault() {}, stopPropagation() {} }
+  try { dragI.pointerMove(fake, fake, dragI.element) } catch {}
+}
+const hooked = new WeakSet()
+function hookAutoScroll() {
+  nextTick(() => document.querySelectorAll('.grid .vgl-item').forEach((el) => {
+    if (hooked.has(el)) return
+    hooked.add(el)
+    try { interact(el).on('dragstart resizestart', (e) => (dragI = e._interaction || e.interaction)).on('dragend resizeend', () => (dragI = null)) } catch {}
+  }))
+}
+const edge = useEdgeAutoScroll(() => document.querySelector('main.main'), () => state.editDash, { onScroll: nudge, getBox: () => document.querySelector('.grid .vgl-item--dragging, .grid .vgl-item--resizing')?.getBoundingClientRect() })
+onMounted(edge.start)
+onBeforeUnmount(edge.stop)
 const colorFor = ref(null)
 const closeColor = () => (colorFor.value = null)
 onMounted(() => document.addEventListener('click', closeColor))
@@ -87,6 +124,13 @@ function clean(l) {
   return out
 }
 const layout = ref(clean(srcLayout()))
+watch(() => hasMmu.value && state.settingsLoaded, (on) => {
+  if (!on || state.settings.mmuSeen) return
+  state.settings.mmuSeen = true
+  if (!layout.value.some((x) => x.i === 'mmu')) { layout.value = [{ i: 'mmu', x: 0, y: 0, w: 12, h: 7 }, ...layout.value.map((x) => ({ ...x, y: x.y + 7 }))]; persist() }
+}, { immediate: true })
+// hook the auto scroll into interact once the grid items exist
+watch(() => [state.editDash, layout.value.length], ([on]) => on && hookAutoScroll())
 function reload() { layout.value = clean(srcLayout()) }
 watch(mode, reload)
 watch(() => state.settingsLoaded, (v) => v && reload())
@@ -121,6 +165,7 @@ const addOpen = ref(false)
 const restoreOpen = ref(false)
 const askReset = ref(false)
 function startEdit() { entry = layoutSnapshot(); state.editDash = true }
+watch(() => state.dashEditReq, (v) => { if (v && !state.editDash) startEdit() }, { immediate: true })
 function done() {
   colorFor.value = null
   persist()
@@ -174,7 +219,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
         <div class="grow"></div>
         <div class="rel">
           <button class="btn acc" @click="addOpen = !addOpen; restoreOpen = false"><Icon name="plus" :size="16" :stroke="2.6" />{{ t('Add card') }}</button>
-          <div v-if="addOpen" class="dd card">
+          <div v-if="addOpen" class="dd card" v-away="() => (addOpen = false)">
             <span class="sec-lbl">{{ t('Modules') }}</span>
             <button v-for="k in available" :key="k" class="btn clear di" @click="addModule(k)">{{ t(MODULES[k].n) }}</button>
             <span v-if="!available.length" class="mu" style="font-size:12px">{{ t('All modules are on the dashboard') }}</span>
@@ -185,7 +230,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
         </div>
         <div class="rel">
           <button class="btn" :disabled="!(state.settings.layoutBackups || []).length" @click="restoreOpen = !restoreOpen; addOpen = false"><Icon name="clock" :size="16" />{{ t('Restore') }}</button>
-          <div v-if="restoreOpen" class="dd card" style="width:280px">
+          <div v-if="restoreOpen" class="dd card" style="width:280px" v-away="() => (restoreOpen = false)">
             <span class="sec-lbl">{{ t('Saved layouts') }}</span>
             <button v-for="(b, k) in state.settings.layoutBackups" :key="k" class="btn clear di" style="justify-content:space-between" @click="restore(b)"><span>{{ t(b.label) }}</span><span class="mono mu" style="font-size:11px">{{ fmtT(b.t) }}</span></button>
           </div>
@@ -199,13 +244,12 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
     <div class="top">
       <DeviceStrip v-if="state.klippy === 'ready'" />
       <div v-else class="grow"></div>
-      <button v-if="!state.editDash" class="btn cz" :aria-label="t('Customize dashboard')" @click="startEdit"><Icon name="layout" :size="18" /></button>
     </div>
-    <GridLayout v-if="wide" v-model:layout="layout" class="grid" :class="{ editing: state.editDash }" :col-num="12" :row-height="40" :margin="[20, 20]"
+    <GridLayout v-if="wide" v-model:layout="layout" class="grid" :class="{ editing: state.editDash }" :col-num="12" :row-height="40" :margin="[20, 20]" :transform-scale="state.uiZoom"
       :is-draggable="state.editDash" :is-resizable="state.editDash" vertical-compact use-css-transforms @layout-updated="persist">
       <GridItem v-for="it in layout" :key="it.i" :i="it.i" :x="it.x" :y="it.y" :w="it.w" :h="it.h" :min-w="minOf(it.i)[0]" :min-h="minOf(it.i)[1]"
         drag-ignore-from=".tools">
-        <div class="cell" :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i }" :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null">
+        <div v-fit class="cell" :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i }" :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null">
           <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
           <component v-else :is="MODULES[it.i].c" class="fill" />
           <div v-if="state.editDash" class="tools">
@@ -277,15 +321,14 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 
 <style scoped>
 .dbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.top { display: flex; gap: 10px; align-items: flex-start; }
-.cz { width: 34px; height: 96px; padding: 0; flex-shrink: 0; color: var(--mu); background: var(--s1); }
-.cz:hover { color: var(--ac); }
+/* device tiles: a strip of their own, separated from the cards below by an accent hairline */
+.top { display: flex; gap: 10px; align-items: flex-start; position: relative; z-index: 20; padding: 0 0 18px; }
 .dbar.on { padding: 10px 14px; background: var(--s1); border: 1px solid var(--ac); border-radius: 12px; position: sticky; top: -20px; z-index: 20; }
 .mu { color: var(--mu); font-size: 13px; }
 .mchip { height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: var(--cool-bg); color: var(--cool); font-size: 12px; }
 .mchip.off { background: var(--s2); color: var(--mu2); text-decoration: line-through; }
 .al { gap: 8px; font-size: 13px; color: var(--mu); margin-left: 10px; cursor: pointer; }
-@media (max-width: 1900px) { .hint { display: none; } }
+:root.ew-lt-1900 .hint { display: none; }
 .rel { position: relative; }
 .dd { position: absolute; right: 0; top: 40px; width: 240px; z-index: 40; gap: 2px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
 .di { justify-content: flex-start; height: 36px; color: var(--tx); }
@@ -302,7 +345,9 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .dot.none { background: var(--s2); background-image: linear-gradient(135deg, transparent 45%, var(--mu2) 45%, var(--mu2) 55%, transparent 55%); }
 .cpc { gap: 10px; font-size: 13px; cursor: pointer; }
 .cpc input { width: 34px; height: 28px; border: none; padding: 0; background: none; cursor: pointer; }
-.grid :deep(.vgl-item:has(.cpop)) { z-index: 40; }
+.grid :deep(.vgl-item:has(.cpop, .pp, .dd)) { z-index: 40; }
+/* a pop-up inside a card must not be clipped by the card's own scroll box */
+.grid :deep(.cell > .card:has(.pp, .dd)) { overflow: visible; }
 .editing :deep(.card) { border-style: dashed; border-color: var(--mu2); }
 .editing :deep(.vgl-item) { cursor: move; }
 /* while customizing the whole card is a drag handle: its own buttons, sliders and fields stay inert */

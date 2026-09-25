@@ -43,5 +43,5 @@ function commit() {
 .nf-b button { width: 36px; height: 38px; background: transparent; border: none; color: var(--mu); font-size: 18px; font-weight: 700; flex-shrink: 0; }
 .nf-b button:hover { color: var(--ac); }
 .nf-b input { flex: 1; min-width: 0; height: 38px; background: transparent; border: none; outline: none; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; }
-.u { font-family: var(--fm); font-size: 12px; color: var(--mu); }
+.u { font-size: 12px; color: var(--mu); }
 </style>

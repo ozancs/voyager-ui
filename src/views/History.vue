@@ -228,7 +228,7 @@ tr.gone td { color: var(--mu); }
 tr.gone .fn { font-weight: 500; }
 th.s { cursor: pointer; }
 th.s:hover { color: var(--tx); }
-.cb { width: 16px; height: 16px; accent-color: var(--ac); cursor: pointer; }
 .pg { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-@media (max-width: 1300px) { .stats { grid-template-columns: 1fr 1fr; } .bc { grid-column: span 2; } }
+:root.ew-lt-1300 .stats { grid-template-columns: 1fr 1fr; }
+:root.ew-lt-1300 .bc { grid-column: span 2; }
 </style>

@@ -100,6 +100,6 @@ load_on_startup: False</pre>
 .fn { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mu { color: var(--mu); font-size: 13px; }
 .pre { background: var(--s2); padding: 10px 12px; border-radius: 8px; margin: 0; font-size: 12.5px; }
-.pl { max-height: 50vh; overflow: auto; display: flex; flex-direction: column; }
+.pl { max-height: calc(50vh / var(--zoom, 1)); overflow: auto; display: flex; flex-direction: column; }
 .pi { justify-content: flex-start; height: 38px; font-weight: 500; color: var(--tx); }
 </style>

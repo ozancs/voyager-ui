@@ -60,7 +60,7 @@ async function pick(s) {
 .reel { width: 64px; height: 64px; border-radius: 32px; background: var(--c); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 0 0 6px rgba(0,0,0,.25); }
 .reel div { width: 20px; height: 20px; border-radius: 10px; background: var(--spool-bg); }
 .mu { color: var(--mu); font-size: 12.5px; font-weight: 400; }
-.pl { max-height: 50vh; overflow: auto; display: flex; flex-direction: column; }
+.pl { max-height: calc(50vh / var(--zoom, 1)); overflow: auto; display: flex; flex-direction: column; }
 .pi { justify-content: flex-start; height: 42px; font-weight: 500; color: var(--tx); gap: 10px; }
 .pi.on { background: var(--s2); }
 .sw { width: 16px; height: 16px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(255,255,255,.2); }

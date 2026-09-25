@@ -96,7 +96,7 @@ onMounted(async () => {
 onBeforeUnmount(() => { ro?.disconnect(); preview.value?.dispose?.() })
 </script>
 <template>
-  <div class="split" style="min-height:calc(100vh - 208px)">
+  <div class="split" style="min-height:calc(100vh / var(--zoom, 1) - 208px)">
     <section class="card grow">
       <div class="card-h">
         <h2>{{ t('G-code Viewer') }}</h2>
@@ -122,7 +122,7 @@ onBeforeUnmount(() => { ro?.disconnect(); preview.value?.dispose?.() })
     </section>
     <div class="side-col">
       <section class="card">
-        <div class="card-h"><h2>{{ t('Print') }}</h2><span class="chip" style="text-transform:capitalize"><i></i>{{ t(printState) }}</span></div>
+        <div class="card-h"><h2>{{ t('Current print') }}</h2><span class="chip" style="text-transform:capitalize"><i></i>{{ t(printState) }}</span></div>
         <div class="row" style="align-items:baseline"><b style="font-size:32px">{{ layerInfo.cur }}</b><span class="mono mu">/ {{ layerInfo.total || '--' }} · Z {{ (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2) }}</span></div>
         <div class="row" style="justify-content:space-between"><span>{{ t('Follow print') }}</span><Toggle v-model="follow" :label="t('Follow print')" @update:model-value="$event && printLayer && (layer = printLayer, update())" /></div>
         <div class="row" style="justify-content:space-between"><span>{{ t('Show travel moves') }}</span><Toggle v-model="travel" :label="t('Show travel')" /></div>
