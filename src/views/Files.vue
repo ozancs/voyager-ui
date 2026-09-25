@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import QueueCard from '../components/QueueCard.vue'
@@ -33,16 +33,17 @@ async function load() {
   } catch (e) { toast(e.message, 'error') }
   loading.value = false
 }
-onMounted(() => {
-  // opened from Ctrl+K search: jump to the file
-  if (state.anchor?.startsWith('file:')) {
-    const f = state.anchor.slice(5); state.anchor = ''
-    const dir = f.split('/').slice(0, -1).join('/')
-    if (dir) path.value = 'gcodes/' + dir
-    q.value = f.split('/').pop(); sel.value = q.value
-  }
-  load()
-})
+// opened from Ctrl+K search: jump to the file (also when this page is already showing)
+function takeAnchor() {
+  if (!state.anchor?.startsWith('file:')) return false
+  const f = state.anchor.slice(5); state.anchor = ''
+  const dir = f.split('/').slice(0, -1).join('/')
+  path.value = 'gcodes' + (dir ? '/' + dir : '')
+  q.value = f.split('/').pop(); sel.value = q.value
+  return true
+}
+onMounted(() => { takeAnchor(); load() })
+watch(() => state.anchor, () => { if (takeAnchor()) load() })
 const addQ = (fs) => queueApi.add(fs.map(rel)).catch((e) => toast(e.message, 'error'))
 let rt
 useApiEvent('notify_filelist_changed', ([p]) => { if (p?.item?.root !== 'gcodes') return; clearTimeout(rt); rt = setTimeout(load, 300) })
@@ -56,7 +57,7 @@ function thumb(f) {
   const t = (f.thumbnails || []).sort((a, b) => a.width - b.width).find((t) => t.width >= 32)
   if (!t) return null
   const dir = path.value === 'gcodes' ? '' : path.value.slice(7) + '/'
-  return api.url(`/server/files/gcodes/${dir}${encodeURI(t.relative_path)}`)
+  return api.fileUrl('gcodes', dir + t.relative_path)
 }
 function open(d) { path.value = path.value + '/' + d.dirname; sel.value = null; picked.value = new Set(); load() }
 function upDir() { path.value = path.value.split('/').slice(0, -1).join('/') || 'gcodes'; load() }
@@ -133,7 +134,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
               <button class="btn acc ibtn sm" :aria-label="t('Print')" :disabled="isPrinting" @click.stop="print(f)"><Icon name="play" :size="16" :stroke="2.4" /></button>
               <button v-if="state.queue.enabled" class="btn ibtn sm" :aria-label="t('Add to queue')" :title="t('Add to queue')" @click.stop="addQ([f])"><Icon name="queue" :size="16" /></button>
               <button class="btn ibtn sm" :aria-label="t('Preheat')" @click.stop="preheat(f)"><Icon name="flame" :size="16" /></button>
-              <a class="btn ibtn sm" :aria-label="t('Download')" :href="api.url(`/server/files/${path}/${f.filename}`)" download @click.stop><Icon name="download" :size="16" /></a>
+              <a class="btn ibtn sm" :aria-label="t('Download')" :href="api.fileUrl(path.split('/')[0], path.split('/').slice(1).concat(f.filename).join('/'))" download @click.stop><Icon name="download" :size="16" /></a>
               <button class="btn ibtn sm" :aria-label="t('Delete')" @click.stop="del = [f]"><Icon name="trash" :size="16" /></button>
             </div></td>
           </tr>

@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import Icon from './Icon.vue'
 import Modal from './Modal.vue'
-import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode } from '../store'
+import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode, toast } from '../store'
 import { api } from '../api/moonraker'
 import { go } from '../router'
 import { t } from '../i18n'
@@ -15,7 +15,7 @@ const thumb = computed(() => {
   if (!m?.thumbnails?.length) return null
   const t = [...m.thumbnails].sort((a, b) => b.width - a.width)[0]
   const dir = (ps.value.filename || '').split('/').slice(0, -1).join('/')
-  return api.url(`/server/files/gcodes/${dir ? dir + '/' : ''}${encodeURI(t.relative_path)}`)
+  return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path)
 })
 const color = computed(() => ({ printing: 'var(--ok)', paused: 'var(--wn)', error: 'var(--dg)', complete: 'var(--bl)', cancelled: 'var(--mu)' }[printState.value] || 'var(--mu)'))
 const eo = computed(() => S('exclude_object'))
@@ -35,7 +35,7 @@ const why = computed(() => {
   return out
 })
 function cancel() { ask.value = false; gcode('CANCEL_PRINT') }
-function reprint() { if (ps.value.filename) api.call('printer.print.start', { filename: ps.value.filename }) }
+function reprint() { if (ps.value.filename) api.call('printer.print.start', { filename: ps.value.filename }).catch((e) => toast(e.message, 'error')) }
 </script>
 <template>
   <section class="card pc">

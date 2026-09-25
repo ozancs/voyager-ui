@@ -1,7 +1,8 @@
 import { reactive } from 'vue'
 export const route = reactive({ name: 'dashboard', arg: '' })
 function parse() {
-  const h = decodeURIComponent(location.hash.replace(/^#\/?/, ''))
+  let h = location.hash.replace(/^#\/?/, '')
+  try { h = decodeURIComponent(h) } catch {} // a malformed % escape must not take the whole app down
   const [name, ...rest] = h.split('/')
   route.name = name || 'dashboard'
   route.arg = rest.join('/')

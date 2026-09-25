@@ -208,5 +208,6 @@ input[type=checkbox]:focus-visible { outline: 2px solid var(--ac); outline-offse
 }
 /* print progress shows state, not the accent */
 .bar.state > div { background: var(--pst, var(--ok)); }
-/* cards taller than their content spread the content instead of leaving the bottom empty */
-.vgl-item .cell > .card.spread { justify-content: space-between; }
+/* cards taller than their content spread the content evenly under the header instead of pinning it to the bottom */
+.vgl-item .cell > .card.spread { justify-content: flex-start; }
+.vgl-item .cell > .card.spread > :not(.card-h) { margin-block: auto; }

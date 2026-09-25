@@ -177,6 +177,7 @@ async function openTab(l) {
   if (!TABS.states[key]) TABS.states[key] = markRaw(makeState(tab, tab.orig))
   state.lastCfg = l.root === 'config' ? l.path : state.lastCfg
   await nextTick()
+  if (keyOf(loc.value) !== key) return // the user opened another file while this one was loading
   if (!view.value) view.value = markRaw(new EditorView({ state: TABS.states[key], parent: host.value }))
   else if (view.value.state !== TABS.states[key]) view.value.setState(TABS.states[key])
   applyJump()
@@ -189,11 +190,17 @@ function closeTab(tab) {
   delete TABS.states[tab.key]
   if (active.value === undefined || tab.key === keyOf(loc.value)) {
     const next = tabs.value[Math.max(0, i - 1)]
-    if (next) go('config', next.root === 'config' ? next.path : next.root + '/' + next.path)
-    else go('config', 'printer.cfg')
+    const target = next ? { root: next.root, path: next.path } : { root: 'config', path: 'printer.cfg' }
+    if (keyOf(target) === keyOf(loc.value)) openTab(target) // same hash: no hashchange, open it directly
+    else go('config', target.root === 'config' ? target.path : target.root + '/' + target.path)
   }
 }
-watch(() => keyOf(loc.value), (n, o) => { if (o) { const ot = tabs.value.find((x) => x.key === o); if (ot && view.value) TABS.states[o] = markRaw(view.value.state) } openTab(loc.value) })
+watch(() => keyOf(loc.value), (n, o) => { if (o) { const ot = tabs.value.find((x) => x.key === o); if (ot && !ot.loading && view.value && view.value.state === TABS.states[o]) TABS.states[o] = markRaw(view.value.state) } openTab(loc.value) })
+// EditorStates carry closures (save, cursor, lint) of the component instance that built them; after a remount
+// they are rebuilt from their document so Ctrl+S and the status bar keep working
+const OWNER = Symbol('editor')
+TABS.owner = OWNER
+TABS.states = Object.fromEntries(Object.entries(TABS.states).map(([k, st]) => [k, markRaw(EditorState.create({ doc: st.doc, selection: st.selection.main.empty ? undefined : st.selection, extensions: extensions(TABS.list.find((x) => x.key === k) || { key: k, root: 'config', path: k.split('/').slice(1).join('/') }) }))]))
 onMounted(() => { loadFiles(); openTab(loc.value) })
 watch(() => state.connected, (c) => { if (c) { loadFiles(); const a = active.value; if (a && !a.orig && !a.dirty) { delete TABS.states[a.key]; tabs.value = tabs.value.filter((x) => x !== a); TABS.list = tabs.value; openTab(loc.value) } } })
 onBeforeUnmount(() => { remember(); view.value?.destroy() })
@@ -262,12 +269,12 @@ let mv = null
 const backups = computed(() => {
   const a = active.value
   if (!a || a.root !== 'config') return []
-  const base = a.path.split('/').pop().replace(/\.(cfg|conf)$/, '')
-  const list = files.value.filter((f) => f.startsWith('backups/' + base + '-klipperui-') || (a.path === 'printer.cfg' && /^printer-\d{8}_\d{6}\.cfg$/.test(f)))
+  const base = a.path.replace(/\.(cfg|conf)$/, '').split('/').join('__'), oldBase = a.path.split('/').pop().replace(/\.(cfg|conf)$/, '')
+  const list = files.value.filter((f) => f.startsWith('backups/' + base + '-klipperui-') || f.startsWith('backups/' + oldBase + '-klipperui-') || (a.path === 'printer.cfg' && /^(backups\/)?printer-\d{8}_\d{6}\.cfg$/.test(f)))
   return list.sort().reverse().slice(0, 30).map((f) => {
     const m = f.match(/(\d{8})_(\d{4,6})/)
     const when = m ? `${m[1].slice(0, 4)}-${m[1].slice(4, 6)}-${m[1].slice(6)} ${m[2].slice(0, 2)}:${m[2].slice(2, 4)}` : f
-    return { f, when, klipper: !f.startsWith('backups/') }
+    return { f, when, klipper: !f.includes('-klipperui-') }
   })
 })
 async function showDiff(backup) {

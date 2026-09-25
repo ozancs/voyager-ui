@@ -41,7 +41,7 @@ while [ $# -gt 0 ]; do
     --uninstall) UNINSTALL=1; shift ;;
     [0-9]*) PORT="$1"; PORT_SET=1; shift ;;          # old style: install.sh 8000 [zip]
     *.zip) ZIP="$1"; shift ;;
-    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
+    -h|--help) if [ -f "$0" ]; then sed -n '2,19p' "$0"; else echo "options: see https://github.com/ozancs/voyager-ui#install"; fi; exit 0 ;;
     *) echo "unknown option: $1"; exit 1 ;;
   esac
 done
@@ -124,6 +124,9 @@ find_instances() {
   done
 }
 
+# port an nginx site listens on (listen 8000; / listen 0.0.0.0:8000; / listen [::]:8000;), empty when none
+site_port() { grep -m1 -oE 'listen +([0-9.]+:|\[::\]:)?[0-9]+' "$1" 2>/dev/null | grep -oE '[0-9]+$' || true; }
+
 # ---------------------------------------------------------------- uninstall
 remove_updater() {
   [ -f "$1" ] || return 0
@@ -140,7 +143,7 @@ if [ "$UNINSTALL" = 1 ]; then
   for s in /etc/nginx/sites-available/$NAME /etc/nginx/sites-available/$NAME-*; do
     [ -e "$s" ] || continue; $SUDO rm -f "$s" "/etc/nginx/sites-enabled/$(basename "$s")"; echo "  removed nginx site $(basename "$s")"
   done
-  $SUDO nginx -t >/dev/null 2>&1 && $SUDO systemctl reload nginx
+  { $SUDO nginx -t >/dev/null 2>&1 && $SUDO systemctl reload nginx; } || true
   for d in "$HOME/$NAME" "$HOME/$NAME"-*; do [ -d "$d" ] && rm -rf "$d" && echo "  removed $d"; done
   find_instances
   for i in "${!INST[@]}"; do
@@ -253,10 +256,12 @@ SRCDIR="$TMP/x"; [ -f "$TMP/x/www/index.html" ] && SRCDIR="$TMP/x/www"
 for OLD in carbon-ui oznlab_klipperui; do
   for f in /etc/nginx/sites-available/"$OLD"*; do
     [ -e "$f" ] || continue
-    [ "$(basename "$f")" = "$OLD" ] && CARBON_PORT="$(grep -m1 -oE 'listen [0-9]+' "$f" | grep -oE '[0-9]+')"
+    if [ "$(basename "$f")" = "$OLD" ]; then CARBON_PORT="$(site_port "$f")"; fi
     $SUDO rm -f "/etc/nginx/sites-enabled/$(basename "$f")" "$f"; say "removed old $(basename "$f") site"
   done
-  rm -rf "$HOME/$OLD" "$HOME/printer_data/config/$OLD" 2>/dev/null || true
+  # only a web root is removed, never a git checkout that happens to carry the old name
+  if [ -f "$HOME/$OLD/index.html" ] && [ ! -d "$HOME/$OLD/.git" ]; then rm -rf "$HOME/$OLD"; fi
+  rm -rf "$HOME/printer_data/config/$OLD" 2>/dev/null || true
 done
 
 # ---------------------------------------------------------------- ports
@@ -337,9 +342,10 @@ for i in "${CHOSEN[@]}"; do
   echo; echo "${B}$inst${N}"
 
   # port: keep the one from the last install, else the first free one
-  own=""; [ -f "$site" ] && own="$(grep -m1 -oE 'listen [0-9]+' "$site" | grep -oE '[0-9]+')"
-  [ -z "$own" ] && [ "$inst" = printer_data ] && own="$CARBON_PORT"
-  if [ -n "$own" ] && [ "$PORT_SET" = 0 ]; then p="$own"
+  own=""; if [ -f "$site" ]; then own="$(site_port "$site")"; fi
+  if [ -z "$own" ] && [ "$inst" = printer_data ]; then own="$CARBON_PORT"; fi
+  # keep the installed port; --port N with N already ours is also a keep, not a move to N+1
+  if [ -n "$own" ] && { [ "$PORT_SET" = 0 ] || [ "$own" = "$PORT" ]; }; then p="$own"
   else
     p=$(free_port_from "$PORT")
     if [ "$p" != "$PORT" ] && [ -z "$PORT_NOTED" ]; then

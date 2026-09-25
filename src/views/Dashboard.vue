@@ -115,8 +115,10 @@ const mode = computed(() => state.editDash ? (state.settings.autoLayout ? editMo
 const LK = () => (mode.value === 'print' ? 'layoutPrint' : 'layout')
 const HK = () => (mode.value === 'print' ? 'hiddenCardsPrint' : 'hiddenCards')
 const srcLayout = () => (mode.value === 'print' ? state.settings.layoutPrint || state.settings.layout : state.settings.layout) || DEFAULT_LAYOUT()
+// while printing without its own layout, the print dashboard is the idle one, hidden cards included
+const hiddenNow = () => (mode.value === 'print' && !state.settings.layoutPrint ? state.settings.hiddenCards : state.settings[HK()]) || []
 function clean(l) {
-  const hidden = state.settings[HK()] || []
+  const hidden = hiddenNow()
   const seen = new Set()
   const ok = (i) => MODULES[i] || (isCustom(i) && state.settings.customCards?.[i])
   const out = (l || []).filter((x) => ok(x.i) && !seen.has(x.i) && seen.add(x.i)).map(({ i, x, y, w, h }) => ({ i, x, y, w, h }))
@@ -127,7 +129,7 @@ const layout = ref(clean(srcLayout()))
 watch(() => hasMmu.value && state.settingsLoaded, (on) => {
   if (!on || state.settings.mmuSeen) return
   state.settings.mmuSeen = true
-  if (!layout.value.some((x) => x.i === 'mmu')) { layout.value = [{ i: 'mmu', x: 0, y: 0, w: 12, h: 7 }, ...layout.value.map((x) => ({ ...x, y: x.y + 7 }))]; persist() }
+  if (!layout.value.some((x) => x.i === 'mmu')) { layout.value = [{ i: 'mmu', x: 0, y: 0, w: 12, h: 7 }, ...layout.value.map((x) => ({ ...x, y: x.y + 7 }))]; persist(true) }
 }, { immediate: true })
 // hook the auto scroll into interact once the grid items exist
 watch(() => [state.editDash, layout.value.length], ([on]) => on && hookAutoScroll())
@@ -135,7 +137,8 @@ function reload() { layout.value = clean(srcLayout()) }
 watch(mode, reload)
 watch(() => state.settingsLoaded, (v) => v && reload())
 const sorted = computed(() => [...layout.value].sort((a, b) => a.y - b.y || a.x - b.x))
-function persist() { state.settings[LK()] = layout.value.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })) }
+// grid-layout-plus also emits layout-updated on mount and on resize; only a Customize session writes settings
+function persist(force = false) { if (!state.editDash && !force) return; state.settings[LK()] = layout.value.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })) }
 const bottom = () => Math.max(0, ...layout.value.map((x) => x.y + x.h))
 function removeCard(i) {
   if (MODULES[i] && DEFAULT_LAYOUT().some((d) => d.i === i)) state.settings[HK()] = [...new Set([...(state.settings[HK()] || []), i])]
@@ -165,7 +168,7 @@ const addOpen = ref(false)
 const restoreOpen = ref(false)
 const askReset = ref(false)
 function startEdit() { entry = layoutSnapshot(); state.editDash = true }
-watch(() => state.dashEditReq, (v) => { if (v && !state.editDash) startEdit() }, { immediate: true })
+watch(() => state.dashEditReq, (v) => { if (!v) return; state.dashEditReq = 0; if (!state.editDash) startEdit() }, { immediate: true })
 function done() {
   colorFor.value = null
   persist()

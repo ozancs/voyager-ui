@@ -61,6 +61,7 @@ watch([() => state.anchor, () => route.name], async () => {
     const el = document.getElementById(a)
     if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1800); state.anchor = ''; return }
   }
+  state.anchor = '' // not on this page: forget it instead of scrolling some later page
 })
 const view = computed(() => VIEWS[route.name] || Dashboard)
 // the old settings page is a dialog now: old links and the first-run flow land on the dashboard with it open

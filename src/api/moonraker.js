@@ -23,6 +23,12 @@ export class Moonraker {
     return this.host ? `${location.protocol}//${this.host}` : ''
   }
 
+  // /server/files/<root>/<path> with every path segment encoded (names with #, %, ? or spaces)
+  fileUrl(root, path) {
+    const enc = String(path || '').split('/').filter(Boolean).map(encodeURIComponent).join('/')
+    return this.url(`/server/files/${root}/${enc}`)
+  }
+
   url(path) {
     if (!path) return ''
     if (/^https?:\/\//.test(path)) return path

@@ -45,7 +45,7 @@ function open(it) {
   if (it.dir) { path.value = path.value ? path.value + '/' + it.name : it.name; picked.value = new Set(); load(); return }
   const rel = (path.value ? path.value + '/' : '') + it.name
   if (EDITABLE.test(it.name)) go('config', root.value + '/' + rel)
-  else window.open(api.url(`/server/files/${root.value}/${rel}`), '_blank')
+  else window.open(api.fileUrl(root.value, rel), '_blank')
 }
 function upDir() { path.value = path.value.split('/').slice(0, -1).join('/'); picked.value = new Set(); load() }
 async function upload(e, sub = '') {
@@ -92,7 +92,7 @@ const allPicked = computed(() => rows.value.length > 0 && rows.value.every((it) 
 function toggleAll() { picked.value = allPicked.value ? new Set() : new Set(rows.value.map(key)) }
 function dlPicked() {
   const its = pickedRows.value
-  if (its.length === 1 && !its[0].dir) { const a = document.createElement('a'); a.href = api.url(`/server/files/${full.value}/${its[0].name}`); a.download = its[0].name; a.click(); return }
+  if (its.length === 1 && !its[0].dir) { const a = document.createElement('a'); a.href = api.fileUrl(root.value, (path.value ? path.value + '/' : '') + its[0].name); a.download = its[0].name; a.click(); return }
   downloadMany(root.value, its.map((it) => ({ path: (path.value ? path.value + '/' : '') + it.name, dir: it.dir })), root.value)
 }
 async function deletePicked() {
@@ -144,7 +144,7 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
             <td class="mono mu r">{{ it.dir ? '--' : fmtBytes(it.size) }}</td>
             <td class="mono mu r">{{ fmtDate(it.modified) }}</td>
             <td><div class="acts">
-              <a v-if="!it.dir" class="btn clear ibtn sm" :href="api.url(`/server/files/${full}/${it.name}`)" download :aria-label="t('Download')" @click.stop><Icon name="download" :size="16" /></a>
+              <a v-if="!it.dir" class="btn clear ibtn sm" :href="api.fileUrl(root, (path ? path + '/' : '') + it.name)" download :aria-label="t('Download')" @click.stop><Icon name="download" :size="16" /></a>
               <button class="btn clear ibtn sm" :aria-label="t('Rename')" @click.stop="modal = { kind: 'rename', item: it, value: it.name }"><Icon name="pencil" :size="16" /></button>
               <button class="btn clear ibtn sm" :aria-label="t('Delete')" @click.stop="modal = { kind: 'delete', item: it }"><Icon name="trash" :size="16" /></button>
             </div></td>

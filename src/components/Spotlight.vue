@@ -47,7 +47,7 @@ const ACTIONS = computed(() => [
   { t: 'Cooldown', s: 'turn off all heaters', icon: 'fan', run: () => gcode('TURN_OFF_HEATERS'), dest: 'Runs TURN_OFF_HEATERS' },
   { t: 'Save config', s: 'SAVE_CONFIG, restarts Klipper', icon: 'save', run: () => gcode('SAVE_CONFIG'), dest: 'Runs SAVE_CONFIG', off: isPrinting.value },
   { t: 'Firmware restart', s: 'FIRMWARE_RESTART', icon: 'bolt', run: () => gcode('FIRMWARE_RESTART'), dest: 'Restarts Klipper + MCUs', off: isPrinting.value },
-  { t: 'Customize dashboard', s: 'layout cards edit move', icon: 'layout', run: () => { go('dashboard'); state.editDash = true }, dest: 'Dashboard' },
+  { t: 'Customize dashboard', s: 'layout cards edit move', icon: 'layout', run: () => { go('dashboard'); state.dashEditReq = Date.now() }, dest: 'Dashboard' },
   { t: state.settings.sound?.enabled ? 'Turn sounds off' : 'Turn sounds on', s: 'audio alerts mute', icon: state.settings.sound?.enabled ? 'mute' : 'volume', run: () => { state.settings.sound.enabled = !state.settings.sound.enabled; if (state.settings.sound.enabled) playSound('heated') }, dest: 'Setting' },
   { t: 'Job queue', s: 'queue next print jobs', icon: 'queue', run: () => go('files'), dest: 'G-code Files' },
   { t: 'Show / hide the side menu', s: 'sidebar navigation menu yan menü', icon: 'sidebar', run: () => { state.settings.navMode = state.settings.navMode === 'hidden' ? 'pinned' : 'hidden' }, dest: 'Setting' },
@@ -56,11 +56,12 @@ const ACTIONS = computed(() => [
 ])
 
 // ---- scoring ----
-function score(hay, tokens) {
+function score(hay, tokens, strict) {
   let total = 0
   for (const t of tokens) {
     const i = hay.indexOf(t)
     if (i < 0) {
+      if (strict) return -1 // file contents: the typed text has to be there, letter soup would match any long line
       // loose subsequence match ("bmc" -> bed_mesh_calibrate)
       // only when the letters sit close together, otherwise everything matches
       if (t.length < 3) return -1
@@ -85,9 +86,9 @@ const results = computed(() => {
   const raw = q.value.trim().toLowerCase()
   const tokens = raw.split(/\s+/).filter(Boolean)
   const out = [...smart.value]
-  const add = (item, hay, bonus = 0) => {
+  const add = (item, hay, bonus = 0, strict = false) => {
     if (!tokens.length) { if (item.cat === t('Page') || item.cat === t('Action')) out.push({ ...item, sc: bonus }); return }
-    const sc = score(hay.toLowerCase(), tokens)
+    const sc = score(hay.toLowerCase(), tokens, strict)
     if (sc >= 0) out.push({ ...item, sc: sc + bonus })
   }
   for (const [k, i, l] of PAGES) add({ t: t(l), icon: i, cat: t('Page'), dest: t('Page'), run: () => go(k) }, l + ' ' + t(l) + ' ' + k, 12)
@@ -110,7 +111,7 @@ const results = computed(() => {
       if (c.kind === 'section') add({ t: c.text, s: c.file, icon: 'file', cat: t('Config'), dest: t('{file} · line {line}', { file: c.file, line: c.line }), run: () => openCfg(c.file, c.line) }, c.section + ' ' + c.file, 6)
       else if (c.kind === 'option') add({ t: `${c.key}: ${c.value}`, s: `[${c.section}]`, icon: 'sliders', cat: t('Config'), dest: t('{file} · line {line}', { file: c.file, line: c.line }), run: () => openCfg(c.file, c.line) }, c.key + ' ' + c.section, 0)
       else if (c.kind === 'symbol') add({ t: c.text, s: c.file, icon: 'code', cat: t('Script'), dest: t('{file} · line {line}', { file: c.file, line: c.line }), run: () => openCfg(c.file, c.line) }, c.key + ' ' + c.file, 3)
-      else if (longQ.value) add({ t: c.text, s: `${c.file}:${c.line}`, icon: 'file', cat: t('In files'), dest: t('{file} · line {line}', { file: c.file, line: c.line }), run: () => openCfg(c.file, c.line) }, c.text, -2)
+      else if (longQ.value) add({ t: c.text, s: `${c.file}:${c.line}`, icon: 'file', cat: t('In files'), dest: t('{file} · line {line}', { file: c.file, line: c.line }), run: () => openCfg(c.file, c.line) }, c.text, -2, true)
     }
     for (const f of gfiles.value) add({ t: f.split('/').pop(), s: f.includes('/') ? f.split('/').slice(0, -1).join('/') : '', icon: 'cube', cat: t('G-code file'), dest: t('G-code Files'), run: () => { state.anchor = 'file:' + f; go('files') } }, f, 2)
   }

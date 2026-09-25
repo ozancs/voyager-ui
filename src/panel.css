@@ -51,14 +51,14 @@
 
 /* cards: a coloured name plate on top, a dark body below. The plate takes the card's tint
    and stays put while the card body scrolls. */
-[data-look="panel"] .card > .card-h:first-child {
+[data-look="panel"] .card:not(.cb) > .card-h:first-child {
   margin: -20px -20px 0; padding: 12px 20px; min-height: 58px;
   background: color-mix(in srgb, var(--k, var(--mu2)) 12%, var(--s1));
   border-radius: var(--r) var(--r) 0 0;
   position: sticky; top: -20px; z-index: 3;
 }
-[data-look="panel"] .card > .card-h:first-child h2 { color: color-mix(in srgb, var(--k, var(--tx)) 35%, var(--tx)); }
+[data-look="panel"] .card:not(.cb) > .card-h:first-child h2 { color: color-mix(in srgb, var(--k, var(--tx)) 35%, var(--tx)); }
 [data-look="panel"] .tint-cell > .card,
 [data-look="panel"] .card.tint { background: color-mix(in srgb, var(--tint-d) 5%, var(--s1)) !important; }
-[data-look="panel"] .card > .card-h:first-child .btn:not(.acc):not(.out):not(.dgf) { background: color-mix(in srgb, var(--k, var(--mu2)) 9%, var(--base-s2)); }
+[data-look="panel"] .card:not(.cb) > .card-h:first-child .btn:not(.acc):not(.out):not(.dgf) { background: color-mix(in srgb, var(--k, var(--mu2)) 9%, var(--base-s2)); }
 :root[data-look="panel"][data-theme="light"] .card > .card-h:first-child { background: color-mix(in srgb, var(--k, var(--mu2)) 8%, #fff); }

@@ -7,8 +7,8 @@ import { t } from '../i18n'
 const gm = computed(() => S('gcode_move'))
 const speed = computed(() => Math.round((gm.value.speed_factor ?? 1) * 100))
 const flow = computed(() => Math.round((gm.value.extrude_factor ?? 1) * 100))
-function setSpeed(v) { v = Math.max(1, Math.min(500, Math.round(v))); gcode(`M220 S${v}`) }
-function setFlow(v) { v = Math.max(1, Math.min(300, Math.round(v))); gcode(`M221 S${v}`) }
+function setSpeed(v) { if (v === '' || isNaN(v)) return; v = Math.max(1, Math.min(500, Math.round(v))); gcode(`M220 S${v}`) }
+function setFlow(v) { if (v === '' || isNaN(v)) return; v = Math.max(1, Math.min(300, Math.round(v))); gcode(`M221 S${v}`) }
 const th = computed(() => S('toolhead'))
 const cfg = computed(() => S('configfile').settings?.printer || {})
 const hasMcr = computed(() => th.value.minimum_cruise_ratio !== undefined)
@@ -31,12 +31,12 @@ function reset() {
     </div>
     <div class="g2">
       <div class="fac">
-        <div class="row" style="justify-content:space-between"><span class="nl">{{ t('Speed factor') }}</span><label class="nb"><input class="mono" type="number" :value="speed" @change="setSpeed(+$event.target.value)" :aria-label="t('Speed factor')" />%</label></div>
+        <div class="row" style="justify-content:space-between"><span class="nl">{{ t('Speed factor') }}</span><label class="nb"><input class="mono" type="number" :value="speed" @change="setSpeed($event.target.value === '' ? '' : +$event.target.value)" :aria-label="t('Speed factor')" />%</label></div>
         <div class="row"><button class="btn clear ibtn sm" :aria-label="t('Speed -5%')" @click="setSpeed(speed - 5)"><Icon name="minus" :size="16" :stroke="2.6" /></button><input class="rng" type="range" min="10" max="300" step="5" :value="speed" :style="{ '--f': (speed - 10) / 290 }" @change="setSpeed(+$event.target.value)" :aria-label="t('Speed factor')" /><button class="btn clear ibtn sm" :aria-label="t('Speed +5%')" @click="setSpeed(speed + 5)"><Icon name="plus" :size="16" :stroke="2.6" /></button></div>
       </div>
       <div class="fac">
-        <div class="row" style="justify-content:space-between"><span class="nl">{{ t('Flow') }}</span><label class="nb"><input class="mono" type="number" :value="flow" @change="setFlow(+$event.target.value)" :aria-label="t('Flow')" />%</label></div>
-        <div class="row"><button class="btn clear ibtn sm" :aria-label="t('Flow -1%')" @click="setFlow(flow - 1)"><Icon name="minus" :size="16" :stroke="2.6" /></button><input class="rng" type="range" min="50" max="150" :value="flow" :style="{ '--f': (flow - 50) / 100 }" @change="setFlow(+$event.target.value)" :aria-label="t('Flow')" /><button class="btn clear ibtn sm" :aria-label="t('Flow +1%')" @click="setFlow(flow + 1)"><Icon name="plus" :size="16" :stroke="2.6" /></button></div>
+        <div class="row" style="justify-content:space-between"><span class="nl">{{ t('Flow') }}</span><label class="nb"><input class="mono" type="number" :value="flow" @change="setFlow($event.target.value === '' ? '' : +$event.target.value)" :aria-label="t('Flow')" />%</label></div>
+        <div class="row"><button class="btn clear ibtn sm" :aria-label="t('Flow -1%')" @click="setFlow(flow - 1)"><Icon name="minus" :size="16" :stroke="2.6" /></button><input class="rng" type="range" min="50" max="150" :value="flow" :style="{ '--f': (flow - 50) / 100 }" @change="setFlow($event.target.value === '' ? '' : +$event.target.value)" :aria-label="t('Flow')" /><button class="btn clear ibtn sm" :aria-label="t('Flow +1%')" @click="setFlow(flow + 1)"><Icon name="plus" :size="16" :stroke="2.6" /></button></div>
       </div>
     </div>
     <span class="mu" style="font-size:12px">{{ t('Live values. Klipper resets them to printer.cfg on restart.') }}</span>

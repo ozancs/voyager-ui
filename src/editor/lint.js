@@ -36,7 +36,7 @@ export function lintKlipper(doc, ctx = {}) {
       if (sectionLines[low] != null && !low.startsWith('include ')) at(i, 'info', `[${section}] is also on line ${sectionLines[low] + 1}. Klipper merges them, later values win.`)
       else sectionLines[low] = i
       const inc = section.match(/^include\s+(.+)$/i)
-      if (inc && ctx.files) {
+      if (inc && ctx.files && !inc[1].trim().startsWith('/')) { // absolute includes point outside the config root, nothing to check
         const target = normPath((ctx.dir ? ctx.dir + '/' : '') + inc[1].trim())
         const re = globToRe(target)
         if (!ctx.files.some((f) => re.test(f))) at(i, 'warning', `No file matches "${inc[1].trim()}"`)
@@ -52,10 +52,10 @@ export function lintKlipper(doc, ctx = {}) {
       if (keys[k] != null) at(i, 'warning', `"${km[1]}" is already set on line ${keys[k] + 1}, this one wins`, 0, km[1].length)
       keys[k] = i
       optionLines[section.toLowerCase() + '|' + k] = i
-      if (GCODE_KEY.test(k)) block = { line: i, text: l.slice(km[0].length) + '\n' }
+      if (GCODE_KEY.test(k)) block = { line: i, text: l.slice(km[0].length).replace(/#.*$/, '') + '\n' } // Klipper drops # comments before Jinja sees the line
       continue
     }
-    if (/^\s/.test(l)) { if (block) block.text += l + '\n'; continue }
+    if (/^\s/.test(l)) { if (block) block.text += l.replace(/#.*$/, '') + '\n'; continue }
     closeBlock()
     if (section) at(i, 'error', 'Unexpected text. Options look like "name: value", continued lines must be indented.')
   }

@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 import Icon from './Icon.vue'
 import Logo from './Logo.vue'
 import Toggle from './Toggle.vue'
-import { state, toast, DEFAULT_SETTINGS, APP, OLD_APPS } from '../store'
+import { state, toast, DEFAULT_SETTINGS, APP, OLD_APPS, mergeSettings } from '../store'
 import { enableQueue, loadQueue, playSound } from '../features'
 import { t, LANGS, i18n } from '../i18n'
 
@@ -29,8 +29,7 @@ async function restore(e) {
   try {
     const d = JSON.parse(await f.text())
     if (![APP, ...OLD_APPS].includes(d.app) || !d.settings) throw new Error('?')
-    const def = DEFAULT_SETTINGS()
-    state.settings = { ...def, ...d.settings, lang: state.settings.lang || d.settings.lang || i18n.lang, setupDone: true, devices: { ...def.devices, ...(d.settings.devices || {}) }, strip: { ...def.strip, ...(d.settings.strip || {}) } }
+    state.settings = { ...mergeSettings(d.settings), lang: state.settings.lang || d.settings.lang || i18n.lang, setupDone: true }
     toast(t('Settings restored from {name}', { name: f.name }))
   } catch { toast(t('Could not read backup: {msg}', { msg: f.name }), 'error') }
 }

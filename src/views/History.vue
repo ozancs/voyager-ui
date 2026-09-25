@@ -86,7 +86,7 @@ function thumb(j) {
   const t = (j.metadata?.thumbnails || []).slice().sort((a, b) => a.width - b.width).find((t) => t.width >= 32)
   if (!t || !j.exists) return null
   const dir = j.filename.split('/').slice(0, -1).join('/')
-  return api.url(`/server/files/gcodes/${dir ? dir + '/' : ''}${encodeURI(t.relative_path)}`)
+  return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path)
 }
 async function reprint(j) { try { await api.call('printer.print.start', { filename: j.filename }) } catch (e) { toast(e.message, 'error') } }
 async function remove() {

@@ -38,7 +38,7 @@ const thumb = (fn) => {
   const t = (meta.value[fn]?.thumbnails || []).sort((a, b) => a.width - b.width).find((t) => t.width >= 32)
   if (!t) return null
   const dir = fn.split('/').slice(0, -1).join('/')
-  return api.url(`/server/files/gcodes/${dir ? dir + '/' : ''}${encodeURI(t.relative_path)}`)
+  return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path)
 }
 </script>
 

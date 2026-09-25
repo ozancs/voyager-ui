@@ -1,3 +1,4 @@
+import './legacy.js'
 import '@fontsource-variable/archivo/wdth.css'
 import '@fontsource/onest/400.css'
 import '@fontsource/onest/500.css'

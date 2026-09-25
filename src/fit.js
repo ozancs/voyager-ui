@@ -32,7 +32,7 @@ function fit(cell) {
 export const vfit = {
   mounted(el) {
     let t
-    const run = () => { cancelAnimationFrame(t); t = requestAnimationFrame(() => fit(el)) }
+    const run = () => { cancelAnimationFrame(t); t = requestAnimationFrame(() => fit(el)); el.__t = t }
     el.__fit = run
     el.__ro = new ResizeObserver(run); el.__ro.observe(el)
     el.__mo = new MutationObserver(run); el.__mo.observe(el, { childList: true, subtree: true, characterData: true })

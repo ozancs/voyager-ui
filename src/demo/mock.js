@@ -425,7 +425,7 @@ function handle(m){
     case 'server.config': return {config:{spoolman:{server:'http://127.0.0.1:7912'}}}
     case 'server.spoolman.get_spool_id': return {spool_id:12}
     case 'server.spoolman.proxy': return {response:{id:12,remaining_weight:642,initial_weight:1000,filament:{name:'ABS Black',material:'ABS',color_hex:'1c1c1c'}}}
-    case 'server.files.list': return p.root==='config'?Object.keys(cfgText).concat(['printer-20260923_121809.cfg','ShakeTune_results/belts/belts_20260920_101000.png','ShakeTune_results/input_shaper/IS_X_20260920_102000.png','ShakeTune_results/input_shaper/IS_Y_20260920_102500.png']).map((f,i)=>({path:f,modified:Date.now()/1000-i*3600,size:1000})):files.map(f=>({path:f.filename}))
+    case 'server.files.list': return p.root==='config'?Object.keys(cfgText).concat(['printer-20260923_121809.cfg','ShakeTune_results/belts/belts_20260920_101000.png','ShakeTune_results/input_shaper/IS_X_20260920_102000.png','ShakeTune_results/input_shaper/IS_Y_20260920_102500.png']).map((f,i)=>({path:f,modified:Date.now()/1000-i*3600,size:1000})):files.map(f=>({path:f.filename,modified:f.modified,size:f.size}))
     case 'server.files.get_directory': return {dirs:[{dirname:'archive',modified:Date.now()/1000,size:0}],files,disk_usage:{total:58e9,used:40e9,free:18e9}}
     case 'server.history.list': return {jobs:[...Array.from({length:30},(_,k)=>({job_id:'x'+k,filename:'Cube_ASA_'+k+'.gcode',status:k%5?'completed':'cancelled',start_time:Date.now()/1000-k*40000,total_duration:800,print_duration:700+k*10,filament_used:1200+k*50,exists:k%3>0,metadata:{estimated_time:660,slicer:'OrcaSlicer',slicer_version:'2.4.2'}})),{job_id:'1',filename:'bracket_v3.gcode',status:'completed',start_time:Date.now()/1000-86400,total_duration:7000,print_duration:6800,filament_used:16000,exists:true,metadata:{}},{job_id:'2',filename:'x.gcode',status:'cancelled',start_time:Date.now()/1000-3*86400,total_duration:700,print_duration:600,filament_used:1000,exists:false,metadata:{}}]}
     case 'server.history.totals': return {job_totals:{total_jobs:148,total_print_time:612*3600,total_filament_used:3270000,longest_print:30000}}
@@ -440,7 +440,8 @@ function handle(m){
     case 'server.job_queue.post_job': for(const f of p.filenames) queue.jobs.push({job_id:'q'+Math.random().toString(36).slice(2,6),filename:f}); wsAll({jsonrpc:'2.0',method:'notify_job_queue_changed',params:[{action:'jobs_added',updated_queue:queue.jobs,queue_state:queue.state}]}); return {queued_jobs:queue.jobs,queue_state:queue.state}
     case 'server.job_queue.delete_job': queue.jobs = p.all?[]:queue.jobs.filter(j=>!p.job_ids.includes(j.job_id)); wsAll({jsonrpc:'2.0',method:'notify_job_queue_changed',params:[{action:'jobs_removed',updated_queue:queue.jobs,queue_state:queue.state}]}); return {queued_jobs:queue.jobs,queue_state:queue.state}
     case 'server.job_queue.jump': { const i=queue.jobs.findIndex(j=>j.job_id===p.job_id); if(i>0){const [j]=queue.jobs.splice(i,1); queue.jobs.unshift(j)} wsAll({jsonrpc:'2.0',method:'notify_job_queue_changed',params:[{action:'jobs_removed',updated_queue:queue.jobs,queue_state:queue.state}]}); return {} }
-    default: return {}
+    case 'server.database.list': return { namespaces: ['moonraker', 'mainsail', 'voyager-ui', 'fluidd'] }
+    default: throw { code: -32601, message: 'Method not found' }
   }
 }
 cfgText['macros.cfg'] = cfgText['macros.cfg'] || `[gcode_macro PRINT_START]

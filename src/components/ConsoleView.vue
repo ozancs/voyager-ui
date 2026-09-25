@@ -21,7 +21,8 @@ const fmt = (t) => new Date(t * 1000).toLocaleTimeString(undefined, { hour12: fa
 function scroll() { if (auto.value && box.value) box.value.scrollTop = box.value.scrollHeight }
 // lines that arrived while scrolled up, shown on the jump button
 const unseen = ref(0)
-watch(() => lines.value.length, (n, o) => { if (!auto.value && n > o) unseen.value += n - o; nextTick(scroll) })
+// watch the last id, not the length: the list is capped, so the length stops changing once it is full
+watch(() => lines.value[lines.value.length - 1]?.id, (n, o) => { if (!auto.value && n != null && o != null) unseen.value += Math.max(1, Math.min(n - o, lines.value.length)); nextTick(scroll) })
 function toBottom() {
   const b = box.value
   if (!b) return

@@ -25,7 +25,7 @@ watch(() => JSON.stringify(st.value.results || {}), (j) => {
   lastTilt = j
 })
 // Klipper also prints the result to the console; "(base)" marks it. Covers a re-run with identical numbers.
-watch(() => state.console.length, () => {
+watch(() => state.console[state.console.length - 1]?.id, () => {
   const l = state.console[state.console.length - 1]
   if (l?.type === 'response' && /\(base\)\s*:/.test(l.message)) setTimeout(() => { if (Object.keys(st.value.results || {}).length) tilt.value = st.value }, 300)
 })

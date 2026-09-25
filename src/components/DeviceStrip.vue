@@ -30,10 +30,11 @@ const cols = computed(() => {
 const isHidden = (d) => (state.settings.strip.hidden || []).includes(d.id) || state.settings.devices.hidden.includes(d.obj)
 function toggleHide(d) {
   const h = state.settings.strip.hidden
-  const i = h.indexOf(d.id)
-  if (i >= 0) h.splice(i, 1); else h.push(d.id)
-  const j = state.settings.devices.hidden.indexOf(d.obj)
-  if (j >= 0) state.settings.devices.hidden.splice(j, 1)
+  if (isHidden(d)) {
+    // hidden through either list: show again
+    const i = h.indexOf(d.id); if (i >= 0) h.splice(i, 1)
+    const j = state.settings.devices.hidden.indexOf(d.obj); if (j >= 0) state.settings.devices.hidden.splice(j, 1)
+  } else h.push(d.id)
 }
 const dragId = ref(null)
 const renaming = ref(null)
@@ -84,7 +85,7 @@ function pUp() {
 }
 watch(() => state.editDash, (on) => { if (!on) pUp() })
 const tgt = ref('')
-function setT(d, v) { setHeater(d.obj, v); open.value = null }
+function setT(d, v) { if (v === '' || v == null || isNaN(+v)) return; setHeater(d.obj, +v); open.value = null }
 function tint(d) {
   if (d.kind === 'temp') return canTarget(d) ? 't-heat' : ''
   return { fan: 't-cool', pin: 't-light', led: 't-light', filament: 't-sense', spoolman: 't-spool' }[d.kind] || ''
@@ -92,7 +93,8 @@ function tint(d) {
 const canTarget = (d) => (S('heaters').available_heaters || []).includes(d.obj) || d.obj.startsWith('temperature_fan ')
 onMounted(() => document.addEventListener('click', close))
 onBeforeUnmount(() => document.removeEventListener('click', close))
-function toggleOpen(id) { open.value = open.value === id ? null : id }
+const popRight = ref(false) // pop-up opens to the left on tiles in the right half so it stays inside the page
+function toggleOpen(id, e) { tgt.value = ''; if (e?.currentTarget) { const r = e.currentTarget.getBoundingClientRect(); popRight.value = r.left + r.width / 2 > window.innerWidth / 2 } open.value = open.value === id ? null : id }
 
 const pct = (v) => Math.round((v || 0) * 100)
 function ledColor(id) {
@@ -152,7 +154,7 @@ function sensorExtra(id) {
   <TransitionGroup tag="div" ref="box" class="ds" :class="{ editing: state.editDash }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : null" move-class="mv">
     <div v-for="(d, gi) in items" :key="d.id" class="dc" :class="[tint(d), { click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, over: overId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]" :style="{ '--dx': dragId === d.id && state.editDash ? dragPos.x + 'px' : '0px', '--dy': dragId === d.id && state.editDash ? dragPos.y + 'px' : '0px', '--lvl': level(d), '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null }"
       :data-id="d.id" @pointerdown="pDown(d, $event)"
-      @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id) : null">
+      @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id, $event) : null">
       <div v-if="state.editDash" class="etools">
         <button v-if="d.kind !== 'spoolman'" class="btn clear ibtn sm" :aria-label="t('Rename card')" @click.stop="startRename(d)"><Icon name="pencil" :size="14" /></button>
         <button class="btn clear ibtn sm" :aria-label="isHidden(d) ? t('Show card') : t('Hide card')" @click.stop="toggleHide(d)"><Icon :name="isHidden(d) ? 'eyeoff' : 'eye'" :size="16" /></button>
@@ -162,7 +164,7 @@ function sensorExtra(id) {
         <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><span v-if="canTarget(d) && !state.editDash" class="mono tt" :class="{ on: S(d.obj).target > 0 }">{{ S(d.obj).target > 0 ? '→ ' + S(d.obj).target.toFixed(0) + '°' : t('off') }}</span></div>
         <div class="row" style="gap:4px;align-items:baseline"><span class="tbig">{{ S(d.obj).temperature != null ? S(d.obj).temperature.toFixed(1) : '--' }}</span><small class="mu" style="font-size:15px">°C</small></div>
         <div class="bar"><div :style="{ width: (S(d.obj).power != null ? S(d.obj).power * 100 : S(d.obj).speed != null ? S(d.obj).speed * 100 : 0) + '%', background: S(d.obj).target > 0 ? 'var(--heat)' : 'var(--mu2)' }"></div></div>
-        <div v-if="open === d.id" class="pop card" @click.stop>
+        <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
           <span class="lbl">{{ t('{name} target', { name: prettyName(d.obj) }) }}</span>
           <div class="row"><input class="input mono grow" type="number" v-model="tgt" :placeholder="String(S(d.obj).target ?? 0)" @keydown.enter="setT(d, tgt)" :aria-label="t('Target temperature')" /><button class="btn acc" style="height:40px" @click="setT(d, tgt)">{{ t('Set') }}</button></div>
           <div class="seg"><button @click="setT(d, 0)">{{ t('Off') }}</button><button v-for="p in state.settings.presets.filter((p) => p.temps[d.obj])" :key="p.id" @click="setT(d, p.temps[d.obj])">{{ p.name }} {{ p.temps[d.obj] }}</button></div>
@@ -176,7 +178,7 @@ function sensorExtra(id) {
           <span v-else-if="S(d.obj).rpm" class="mono mu" style="font-size:11px;margin-left:auto">{{ Math.round(S(d.obj).rpm) }} rpm</span>
         </div>
         <div class="bar"><div :style="{ width: pct(S(d.obj).speed) + '%' }"></div></div>
-        <div v-if="open === d.id" class="pop card" @click.stop>
+        <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
           <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).speed)" :display="pct(S(d.obj).speed) + '%'" @commit="setFan(d.obj, $event)" />
           <div class="seg"><button v-for="v in [0, 25, 50, 75, 100]" :key="v" :class="{ on: pct(S(d.obj).speed) === v }" @click="setFan(d.obj, v)">{{ v ? v + '%' : t('Off') }}</button></div>
         </div>
@@ -186,7 +188,7 @@ function sensorExtra(id) {
         <span class="lbl nm">{{ prettyName(d.obj) }}</span>
         <div class="row" style="justify-content:space-between"><Icon name="bulb" :size="30" :class="S(d.obj).value > 0 ? 'acc' : 'mu'" /><Toggle v-if="!isPwm(d.obj)" :model-value="S(d.obj).value > 0" :label="prettyName(d.obj)" @update:model-value="setPin(d.obj, $event ? 1 : 0)" /></div>
         <span class="mono sm">{{ S(d.obj).value > 0 ? t('ON') : t('OFF') }}<template v-if="isPwm(d.obj)"> · {{ pct(S(d.obj).value) }}%</template></span>
-        <div v-if="open === d.id" class="pop card" @click.stop>
+        <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
           <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).value)" :display="pct(S(d.obj).value) + '%'" @commit="setPin(d.obj, ($event / 100).toFixed(2))" />
         </div>
       </template>
@@ -195,7 +197,7 @@ function sensorExtra(id) {
         <span class="lbl nm">{{ prettyName(d.obj) }}</span>
         <div class="row" style="justify-content:space-between"><span class="sw" :style="{ background: ledOn(d.obj) ? ledHex(d.obj) : 'var(--s2)' }"></span><Toggle :model-value="ledOn(d.obj)" :label="prettyName(d.obj)" @update:model-value="ledToggle(d.obj, $event)" /></div>
         <span class="mono sm">{{ ledOn(d.obj) ? ledHex(d.obj).toUpperCase() : t('OFF') }}</span>
-        <div v-if="open === d.id" class="pop card" @click.stop>
+        <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
           <span class="lbl">{{ t('Color') }}</span>
           <div class="row" style="flex-wrap:wrap"><button v-for="c in SWATCH" :key="c" class="swb" :style="{ background: c }" :aria-label="c" @click="setLed(d.obj, c)"></button></div>
           <label class="row"><input type="color" :value="ledHex(d.obj)" @change="setLed(d.obj, $event.target.value)" style="width:48px;height:36px;border:none;background:none;padding:0" /><span class="mu" style="font-size:13px">{{ t('Custom') }}</span></label>
@@ -266,6 +268,7 @@ function sensorExtra(id) {
 .sm { font-size: 12px; font-weight: 700; }
 .sw { width: 34px; height: 34px; border-radius: 17px; border: 3px solid var(--s2); outline: 2px solid var(--bd); }
 .swb { width: 30px; height: 30px; border-radius: 15px; border: 2px solid var(--bd); }
+.pop.rt { left: auto; right: 0; }
 .pop { position: absolute; top: 102px; left: 0; width: 300px; z-index: 40; box-shadow: 0 12px 40px rgba(0,0,0,.5); cursor: default; }
 .spl { display: flex; flex-direction: column; justify-content: space-between; height: 100%; color: var(--tx); text-decoration: none; gap: 4px; }
 .spool { width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; border: 6px solid #3a3a3a; }

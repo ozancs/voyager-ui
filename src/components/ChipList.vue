@@ -10,7 +10,7 @@ function set(list) { emit('update:modelValue', [...new Set(list.filter((x) => x 
 function add() {
   const v = parseFloat(String(draft.value).replace(',', '.'))
   draft.value = ''
-  if (!isNaN(v) && v > 0 && (props.modelValue || []).length < props.max) set([...(props.modelValue || []), v])
+  if (!isNaN(v) && v > 0 && !(props.modelValue || []).includes(v) && (props.modelValue || []).length < props.max) set([...(props.modelValue || []), v])
 }
 </script>
 <template>

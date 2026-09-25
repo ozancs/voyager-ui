@@ -2,20 +2,12 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.14.5'
+export const VERSION = '0.15.0'
 export const APP = 'voyager-ui'
 export const APP_NAME = 'Voyager UI'
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui'
 export const OLD_APPS = ['oznlab_klipperui', 'carbon-ui'] // earlier names, their data is carried over once
 const NS = APP
-// carry over browser data from the old names
-try {
-  for (const old of OLD_APPS) for (const k of ['settings', 'objects', 'heaters', 'dismissed', 'host', 'theme', 'scale', 'lang', 'auth']) {
-    const o = localStorage.getItem(old + '-' + k)
-    if (o !== null && localStorage.getItem(APP + '-' + k) === null) localStorage.setItem(APP + '-' + k, o)
-    localStorage.removeItem(old + '-' + k)
-  }
-} catch {}
 
 export const DEFAULT_SETTINGS = () => ({
   accent: '#ff6b1a',
@@ -160,7 +152,7 @@ export const state = reactive({
 // local copies so the dashboard can be drawn before moonraker answers
 function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || 'null') } catch { return null } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} }
-function mergeSettings(v) {
+export function mergeSettings(v) {
   const def = DEFAULT_SETTINGS()
   v = v || {}
   return { ...def, ...v, devices: { ...def.devices, ...(v.devices || {}) }, strip: { ...def.strip, ...(v.strip || {}) }, control: { ...def.control, ...(v.control || {}) } }
@@ -341,8 +333,9 @@ export const gcode = async (script, { quiet = false } = {}) => {
   }
 }
 
+let consoleSeq = 0 // ids stay unique after the 600 line cap, several lines can share a timestamp
 export function pushConsole(message, type = 'response', time = Date.now() / 1000) {
-  state.console.push({ message, type, time, id: state.console.length + '-' + time })
+  state.console.push({ message, type, time, id: ++consoleSeq })
   if (state.console.length > 600) state.console.splice(0, state.console.length - 600)
 }
 
@@ -375,6 +368,7 @@ async function checkHealth() {
   try {
     const u = await api.call('machine.update.status', {})
     const n = Object.entries(u.version_info || {}).filter(([k, v]) => k !== 'system' && (v.commits_behind?.length || (v.remote_version && v.version && v.remote_version !== '?' && v.version !== v.remote_version))).map(([k]) => k)
+    unnotify('upd:')
     if (n.length) notify('upd:' + n.join(','), t('Updates available: {list}', { list: n.join(', ') }), 'info')
   } catch {}
 }
@@ -396,8 +390,9 @@ export async function tidyBackups() {
 // copy a config file into config/backups before we overwrite it
 export async function backupBeforeWrite(root, path) {
   if (root !== 'config') return
-  const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15)
-  const base = path.split('/').pop().replace(/\.(cfg|conf)$/, '')
+  const d = new Date(), p2 = (n) => String(n).padStart(2, '0')
+  const ts = `${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}` // local time, like Klipper's own backups
+  const base = path.replace(/\.(cfg|conf)$/, '').split('/').join('__') // folder kept in the name so hardware/x.cfg and other/x.cfg do not collide
   const ext = (path.match(/\.(cfg|conf)$/) || ['', 'cfg'])[1]
   try {
     try { await api.call('server.files.post_directory', { path: 'config/backups' }) } catch {}
@@ -427,16 +422,20 @@ export function setFan(id, pct) {
 
 // ---------- settings persistence ----------
 let saveTimer = null
+let settingsDirty = false // changed here but not yet confirmed by Moonraker: a reload from the DB must not undo it
 export function saveSettings() {
   clearTimeout(saveTimer)
+  settingsDirty = true
+  const value = JSON.parse(JSON.stringify(state.settings))
+  value.migratedCarbon = true
+  lsSet(APP + '-settings', value) // the local copy is written at once, the DB write is debounced
   saveTimer = setTimeout(async () => {
     try {
-      const value = JSON.parse(JSON.stringify(state.settings))
-      value.migratedCarbon = true
-      lsSet(APP + '-settings', value)
-      await api.call('server.database.post_item', { namespace: NS, key: 'settings', value })
+      const v = JSON.parse(JSON.stringify(state.settings)); v.migratedCarbon = true
+      await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: v })
+      settingsDirty = false
     } catch (e) {
-      toast(t('Settings could not be saved: {err}', { err: e.message }), 'error')
+      if (!/not connected|disconnected/.test(e.message || '')) toast(t('Settings could not be saved: {err}', { err: e.message }), 'error')
     }
   }, 400)
 }
@@ -448,20 +447,15 @@ async function loadSettings() {
   } catch (e) {
     // "not found" comes back with different codes depending on the Moonraker version
     missing = e.code === 404 || /not found|does not exist|no such/i.test(e.message || '')
-    if (!missing && e.message === 'not connected') { state.settingsLoaded = false; return }
+    if (!missing && /^(not connected|disconnected)$/.test(e.message || '')) { state.settingsLoaded = false; return }
   }
-  // one-time carry-over from the old names. Old values win over untouched defaults,
-  // things that only exist in the new version (language, setup, sounds...) are kept.
+  // one-time carry-over from the old names: their values fill in whatever the new record does not have yet,
+  // anything already set under the new name wins
   if (!cur?.migratedCarbon && (cur || missing)) {
     for (const oldNs of OLD_APPS) {
       try {
         const old = (await api.call('server.database.get_item', { namespace: oldNs, key: 'settings' })).value
-        if (old && typeof old === 'object') {
-          const keep = cur ? { lang: cur.lang, setupDone: cur.setupDone, navMode: cur.navMode, sound: cur.sound, errorToasts: cur.errorToasts } : {}
-          for (const k of Object.keys(keep)) if (keep[k] === undefined) delete keep[k]
-          cur = { ...(cur || {}), ...old, ...keep }
-          break
-        }
+        if (old && typeof old === 'object') { cur = { ...old, ...(cur || {}) }; break }
       } catch {}
     }
     if (cur || missing) {
@@ -469,12 +463,18 @@ async function loadSettings() {
       try { await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: cur }) } catch {}
     }
   }
+  if (settingsDirty) {
+    // changed while offline or within the save debounce: this browser's copy is newer than the DB, push it instead
+    state.settingsLoaded = true
+    saveSettings()
+    return
+  }
   if (cur) { state.settings = mergeSettings(cur); lsSet(APP + '-settings', cur) }
-  else if (missing) state.settings = DEFAULT_SETTINGS()
+  else if (missing) state.settings = mergeSettings(lsGet(APP + '-settings')) // fresh Moonraker DB: seed it from the browser copy
   state.settingsLoaded = true
 }
 watch(() => state.settings, () => { if (state.settingsLoaded) saveSettings() }, { deep: true })
-watch(() => state.settings.lang, (l) => { if (l) setLang(l) })
+watch(() => state.settings.lang, (l) => { if (l) setLang(l) }, { immediate: true })
 // light / dark: 'auto' follows the operating system
 const mqDark = window.matchMedia?.('(prefers-color-scheme: dark)')
 function applyTheme() {
@@ -541,7 +541,9 @@ async function checkKlippy() {
   klippyTimer = setTimeout(checkKlippy, 2000)
 }
 
-async function initKlippy() {
+let initP = null
+function initKlippy() { return initP || (initP = initKlippyOnce().finally(() => { initP = null })) }
+async function initKlippyOnce() {
   try {
     const { objects } = await api.call('printer.objects.list')
     state.objects = objects

@@ -23,7 +23,7 @@ function thumb(f) {
   const th = (f.meta?.thumbnails || []).sort((a, b) => a.width - b.width).find((x) => x.width >= 32)
   if (!th) return null
   const dir = f.path.split('/').slice(0, -1).join('/')
-  return api.url(`/server/files/gcodes/${dir ? dir + '/' : ''}${encodeURI(th.relative_path)}`)
+  return api.fileUrl('gcodes', (dir ? dir + '/' : '') + th.relative_path)
 }
 const print = (f) => api.call('printer.print.start', { filename: f.path }).then(() => toast(t('Print started'))).catch((e) => toast(e.message, 'error'))
 </script>

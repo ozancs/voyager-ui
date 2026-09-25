@@ -46,7 +46,7 @@ async function save(restart) {
       const v = drafts.value[id(f)]
       let done = false
       for (const fn of files) {
-        if (texts[fn] === undefined) texts[fn] = await api.getText(`/server/files/config/${fn}`)
+        if (texts[fn] === undefined) texts[fn] = await api.getText(`/server/files/config/${fn.split('/').map(encodeURIComponent).join('/')}`)
         if (!hasSection(texts[fn], f.section)) continue
         const r = setOption(texts[fn], f.section, f.key, v)
         if (r) { texts[fn] = r.text; texts['__dirty_' + fn] = true; log.push({ f, v, file: fn, where: r.where }); done = true; break }
@@ -56,7 +56,7 @@ async function save(restart) {
     for (const fn of Object.keys(texts)) {
       if (!texts['__dirty_' + fn]) continue
       await backupBeforeWrite('config', fn)
-      await api.upload(new Blob([texts[fn]], { type: 'text/plain' }), { root: 'config', name: fn })
+      await api.upload(new Blob([texts[fn]], { type: 'text/plain' }), { root: 'config', path: fn.split('/').slice(0, -1).join('/'), name: fn.split('/').pop() })
     }
     drafts.value = {}
     result.value = log

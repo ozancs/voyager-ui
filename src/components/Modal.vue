@@ -3,11 +3,13 @@ import Icon from './Icon.vue'
 import { t } from '../i18n'
 defineProps({ title: String, width: { type: String, default: '520px' } })
 const emit = defineEmits(['close'])
-// Esc closes the dialog
+// Esc closes the topmost dialog only (a confirm on top of another dialog must not close both)
 import { onMounted, onBeforeUnmount } from 'vue'
-const esc = (e) => { if (e.key === 'Escape') emit('close') }
-onMounted(() => window.addEventListener('keydown', esc))
-onBeforeUnmount(() => window.removeEventListener('keydown', esc))
+const stack = (window.__modalStack ||= [])
+const me = {}
+const esc = (e) => { if (e.key === 'Escape' && stack[stack.length - 1] === me) { e.stopPropagation(); emit('close') } }
+onMounted(() => { stack.push(me); window.addEventListener('keydown', esc) })
+onBeforeUnmount(() => { const i = stack.indexOf(me); if (i >= 0) stack.splice(i, 1); window.removeEventListener('keydown', esc) })
 </script>
 <template>
   <Teleport to="body">

@@ -25,7 +25,7 @@ const thumb = computed(() => {
   const t = [...m.thumbnails].sort((a, b) => b.width - a.width)[0]
   const fn = S('print_stats').filename || ''
   const dir = fn.split('/').slice(0, -1).join('/')
-  return api.url(`/server/files/gcodes/${dir ? dir + '/' : ''}${encodeURI(t.relative_path)}`)
+  return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path)
 })
 const eo = computed(() => S('exclude_object'))
 const eta = computed(() => printTimes.value.eta ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '--')
@@ -67,7 +67,7 @@ const POWER = [
 const nameEl = ref(null)
 const over = ref(0)
 function measureName() { const el = nameEl.value; if (!el) return; over.value = Math.max(0, el.scrollWidth - el.clientWidth) }
-onMounted(() => { measureName(); nameRo = new ResizeObserver(measureName); nameRo.observe(nameEl.value) })
+onMounted(() => { measureName(); nameRo = new ResizeObserver(measureName); nameRo.observe(nameEl.value); document.fonts?.ready.then(measureName) })
 onBeforeUnmount(() => nameRo?.disconnect())
 let nameRo
 watch(printerName, () => nextTick(measureName))

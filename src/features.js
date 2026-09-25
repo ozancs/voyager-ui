@@ -110,6 +110,7 @@ function checkHeated() {
     const s = S(n)
     if (!s.target) { reached[n] = 0; continue }
     if (reached[n] === s.target) continue
+    if (!(n in reached)) { reached[n] = Math.abs(s.temperature - s.target) < 1 ? s.target : -1; continue } // first sample after connecting: no sound for heaters that were already there
     if (Math.abs(s.temperature - s.target) < 1) { reached[n] = s.target; if (want('heated')) playSound('heated') }
   }
 }

@@ -20,7 +20,7 @@ function bump(d) {
 function commit() {
   editing.value = false
   const v = Number(local.value)
-  if (isNaN(v)) { local.value = props.modelValue; return }
+  if (String(local.value).trim() === '' || isNaN(v)) { local.value = props.modelValue; return } // an emptied field is not 0
   emit('update:modelValue', clamp(v)); emit('commit', clamp(v))
 }
 </script>

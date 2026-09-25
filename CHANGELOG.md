@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.15.0
+
+Bug sweep over the whole code base. Fixed:
+
+- Settings: a change made while Moonraker was unreachable, or right before a reload, is no longer thrown away by the next load from the database; a fresh Moonraker database is seeded from the browser copy instead of defaults; the carry-over from the old names can no longer overwrite newer settings
+- Language and login token from the old names are picked up on the first load after the rename
+- Klipper restart: init no longer runs twice at once (double subscribe, console wiped, temperature history loaded twice)
+- A malformed link (`#/files/100%`) no longer leaves a blank page
+- Update notifications are refreshed instead of piling up; the "heater reached" sound no longer plays on page load
+- Dashboard: the print layout is no longer silently copied from the idle layout on the first print, cards hidden on the idle dashboard stay hidden while printing, window resizes no longer save settings, Customize from Ctrl+K has a working Undo / Cancel
+- Console: scroll-to-bottom and the unseen counter keep working after 600 lines; screw tilt results pop up on a re-run
+- Number fields: an emptied field no longer sends 0 (or 1%) to Klipper; the heater pop-up no longer turns the heater off on an empty Set, and the typed target is not carried over to the next heater
+- Tiles: showing a device hidden from the old device list takes one click; the pop-up of tiles on the right opens to the left
+- Esc closes only the topmost dialog; nested modals no longer close their parent
+- File names with `#`, `%` or spaces work for downloads, thumbnails and nested config files
+- Config editor: Ctrl+S saves the current text after coming back from another page (not the text from before), opening a second file while the first is loading no longer shows the wrong text under the wrong name, closing the last tab reopens printer.cfg, Klipper's own backups moved to backups/ show up in the Backups menu, backup names use local time and keep the folder, inline `#` comments in macros are no longer counted as Jinja, absolute includes are not flagged
+- Installer: never removes a git checkout with the old name, handles `listen 0.0.0.0:8000` and IPv6 listen lines, `--port N` on an installed instance keeps N, uninstall completes when nginx is stopped; release_info.json names the asset so multi printer sections update too
+
+## 0.14.7
+
+- Coming back to the dashboard no longer reopens Customize after it was closed with Done
+- Ctrl+K: hits inside files need the typed text to be in the line; the loose letter matching stays for macros and commands only
+
+## 0.14.6
+
+- Toolhead, extruder, limits and retraction cards: content is spread evenly under the header when the card is taller than needed, instead of sitting at the bottom
+
 ## 0.14.5
 
 - Top tiles can be put anywhere, the grouping by kind only applies until you reorder them
