@@ -1,5 +1,6 @@
 // v-fit: when a dashboard card is only a little too small for its content, shrink the content (CSS zoom) instead of
-// showing a scrollbar. Up to 25% smaller; beyond that the card scrolls as before. Measured on the card itself and on
+// showing a scrollbar. Up to 25% smaller; beyond that the card stays at 75% and scrolls (it used to jump back to
+// 100%, so opening something inside a card, like an MMU gate menu, suddenly blew the whole card up). Measured on the card itself and on
 // inner scroll areas marked data-fit (the temperatures table). Console logs and editors are not touched.
 const MIN = 0.75
 function measure(card) {
@@ -24,7 +25,7 @@ function fit(cell) {
   const need = measure(card)
   let z = 1
   if (need > 1.005) z = 1 / need
-  if (z < MIN) z = 1 // too much: let it scroll
+  if (z < MIN) z = MIN // too much: smallest size, the rest scrolls
   z = Math.floor(z * 200) / 200
   card.style.zoom = z === 1 ? '' : String(z)
   if (z !== cur) card.classList.toggle('fitted', z !== 1)
