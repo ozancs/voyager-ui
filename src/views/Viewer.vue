@@ -21,6 +21,7 @@ const travel = ref(false)
 const tab = ref('3d')
 let offsets = null
 let lineLayer = null
+const parsed = ref(0) // bumped when a file is parsed: offsets/lineLayer are plain variables, not reactive
 const files = ref([])
 
 async function ensurePreview() {
@@ -60,6 +61,7 @@ async function load(fn) {
     let i = 0
     for (let k = 0; k < text.length; k++) if (text.charCodeAt(k) === 10) offsets[++i] = k + 1
     lineLayer = p.layers.map((l) => l.lineNumber)
+    parsed.value++
     layers.value = p.layers.length
     layer.value = layers.value
     update()
@@ -76,15 +78,16 @@ function update() {
 const curPrint = computed(() => S('print_stats').filename)
 const active = computed(() => ['printing', 'paused'].includes(printState.value))
 const printLayer = computed(() => {
-  if (!offsets || !lineLayer || file.value !== curPrint.value) return null
+  // read the reactive inputs first, so the computed keeps tracking them even while nothing is loaded yet
   const pos = S('virtual_sdcard').file_position || 0
+  if (!parsed.value || !offsets || !lineLayer || file.value !== curPrint.value) return null
   let lo = 0, hi = offsets.length - 1
   while (lo < hi) { const m = (lo + hi + 1) >> 1; if (offsets[m] <= pos) lo = m; else hi = m - 1 }
   let li = 0
   for (let k = 0; k < lineLayer.length; k++) if (lineLayer[k] <= lo) li = k; else break
   return li + 1
 })
-watch(printLayer, (v) => { if (follow.value && v && v !== layer.value) { layer.value = v; update() } })
+watch([printLayer, follow], ([v]) => { if (follow.value && v && v !== layer.value) { layer.value = v; update() } })
 watch(travel, update)
 function onResize() { preview.value?.resize() }
 let ro

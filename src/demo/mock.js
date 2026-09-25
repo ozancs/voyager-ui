@@ -472,7 +472,7 @@ gcode:
   G90
 `;
 // ---- live printer: progress, layers, temperatures, occasional console lines ----
-let tk = 0
+let tk = 0, GLEN = 0
 function tick() {
   tk++
   const st = status
@@ -484,6 +484,7 @@ function tick() {
   if (ps.state === 'printing') {
     ps.print_duration += 1; ps.total_duration += 1; ps.filament_used += 4
     vs.progress = Math.min(0.999, vs.progress + 1 / 7400); st.display_status.progress = vs.progress
+    vs.file_position = Math.floor(vs.progress * (GLEN ||= gcodeFile().length)) // lets the G-code viewer follow the print
     if (tk % 35 === 0 && ps.info.current_layer < ps.info.total_layer) ps.info.current_layer++
   }
   const eb = st['mcu EBBCan'].last_stats; if (tk % 3 === 0) eb.bytes_retransmit += Math.round(Math.random() * 40)
@@ -494,7 +495,7 @@ function tick() {
     extruder: { temperature: st.extruder.temperature, power: st.extruder.power }, heater_bed: { temperature: st.heater_bed.temperature },
     'heater_generic chamber': { temperature: st['heater_generic chamber'].temperature }, 'temperature_sensor EBB_MCU': { temperature: st['temperature_sensor EBB_MCU'].temperature },
     print_stats: { print_duration: ps.print_duration, total_duration: ps.total_duration, filament_used: ps.filament_used, info: { ...ps.info } },
-    virtual_sdcard: { progress: vs.progress }, display_status: { progress: vs.progress },
+    virtual_sdcard: { progress: vs.progress, file_position: vs.file_position }, display_status: { progress: vs.progress },
     gcode_move: { gcode_position: st.gcode_move.gcode_position }, toolhead: { position: st.toolhead.position },
     'mcu EBBCan': { last_stats: { ...eb } }, mcu: { last_stats: { ...mcu } },
   }, tk] })
