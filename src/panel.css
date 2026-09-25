@@ -65,9 +65,10 @@
 
 /* compact dashboard (default): less padding, a thinner title bar, smaller header buttons */
 :root.compact .grid .card { padding: 12px; gap: 10px; }
-:root.compact[data-look="panel"] .grid .card:not(.cb) > .card-h:first-child { margin: -12px -12px 0; padding: 5px 8px 5px 12px; min-height: 42px; top: -12px; }
-:root.compact .grid .card-h { min-height: 30px; }
-:root.compact .grid .card-h h2 { font-size: 14.5px; }
-:root.compact .grid .card-h .btn { height: 30px; padding: 0 9px; font-size: 12.5px; gap: 5px; }
-:root.compact .grid .card-h .btn.ibtn { width: 30px; padding: 0; }
-:root.compact .grid .card-h .seg button { height: 28px; }
+:root.compact[data-look="panel"] .grid .card:not(.cb) > .card-h:first-child { margin: -12px -12px 0; padding: 3px 6px 3px 12px; min-height: 34px; top: -12px; }
+:root.compact .grid .card-h { min-height: 28px; }
+:root.compact .grid .card-h h2 { font-size: 13.5px; }
+:root.compact .grid .card-h .btn { height: 26px; padding: 0 8px; font-size: 12px; gap: 5px; }
+:root.compact .grid .card-h .btn.ibtn { width: 26px; padding: 0; }
+:root.compact .grid .card-h .seg button { height: 24px; font-size: 12px; }
+:root.compact .grid .card-h .input, :root.compact .grid .card-h select { height: 26px; font-size: 12.5px; }
