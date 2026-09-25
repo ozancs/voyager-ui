@@ -1,4 +1,5 @@
 <script setup>
+import SensorPicker from './SensorPicker.vue'
 import { computed } from 'vue'
 import { state, sensors, hist } from '../store'
 import { t } from '../i18n'
@@ -50,7 +51,7 @@ const lines = computed(() => {
   <section class="card">
     <div class="card-h">
       <h2>{{ t('Temperature Graph') }}</h2>
-      <div class="seg" style="width:200px"><button v-for="r in [300, 600, 1200]" :key="r" :class="{ on: range === r }" @click="state.settings.tempRange = r">{{ r / 60 }}m</button></div>
+      <div class="acts"><div class="seg" style="width:180px"><button v-for="r in [300, 600, 1200]" :key="r" :class="{ on: range === r }" @click="state.settings.tempRange = r">{{ r / 60 }}m</button></div><SensorPicker lines /></div>
     </div>
     <div class="lg"><span v-for="(s, i) in sensors" :key="s.name"><i :style="{ background: colorOf(i) }"></i>{{ s.label }} <b class="mono">{{ s.temperature?.toFixed(1) }}°</b></span></div>
     <div class="chart">
@@ -58,7 +59,7 @@ const lines = computed(() => {
         <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" :aria-label="t('Temperature graph')">
           <line v-for="g in scale.ticks" :key="g" x1="0" :x2="W" :y1="y(g)" :y2="y(g)" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke" />
           <path v-for="l in lines" :key="l.name + 't'" v-show="l.dt" :d="l.dt" fill="none" :stroke="l.color" stroke-width="1" stroke-dasharray="4 4" opacity=".5" vector-effect="non-scaling-stroke" />
-          <path v-for="l in lines" :key="l.name" :d="l.d" fill="none" :stroke="l.color" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+          <path v-for="l in lines" :key="l.name" :d="l.d" fill="none" :stroke="l.color" :stroke-width="state.settings.graphLine || 2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
         </svg>
         <span v-for="g in scale.ticks" :key="'l' + g" class="yl mono" :style="{ top: (y(g) / H) * 100 + '%' }">{{ g }}°</span>
       </div>

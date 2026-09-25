@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import Icon from './Icon.vue'
+import SensorPicker from './SensorPicker.vue'
 import { state, sensors, setHeater, applyPreset, gcode } from '../store'
 import { go } from '../router'
 import { t } from '../i18n'
@@ -20,6 +21,7 @@ const presets = computed(() => state.settings.presets || [])
     <div class="card-h">
       <h2>{{ t('Temperatures') }}</h2>
       <div class="acts">
+        <SensorPicker />
         <div style="position:relative">
           <button class="btn" @click.stop="showPresets = !showPresets"><Icon name="flame" :size="16" :stroke="2.4" />{{ t('Presets') }}</button>
           <div v-if="showPresets" class="pp card" v-away="() => (showPresets = false)" @mouseleave="showPresets = false">
