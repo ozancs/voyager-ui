@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.19.1
+
+- Calmer look: accent buttons are tinted instead of filled (only a dialog's main button stays filled), no accent stripe in the side menu
+- Compact dashboard cards have a slimmer title bar and smaller header buttons
+
 ## 0.19.0
 
 Changes from a long round of feedback.
