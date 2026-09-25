@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.18.4
+
+- Console shows the colours Happy Hare prints (gate map, logo) instead of raw HTML
+- Downloading a folder (for example a config backup) includes all sub-folders, also the ones that are symlinks like Happy Hare's mmu/base
+
 ## 0.18.3
 
 - MMU card: set the filament of a gate or lane (material, colour, name, temperature, Spoolman spool). Happy Hare uses MMU_GATE_MAP, AFC uses SET_MATERIAL / SET_COLOR / SET_SPOOL_ID
