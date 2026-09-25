@@ -1124,5 +1124,6 @@ export default {
  "Manual": "Manuel",
  "Colour range ±": "Renk aralığı ±",
  "3D z axis": "3B z ekseni",
- "Z axis max ±": "Z ekseni maks ±"
+ "Z axis max ±": "Z ekseni maks ±",
+ "Since boot: {list}": "Açılıştan beri: {list}"
 }

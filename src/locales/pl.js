@@ -1123,5 +1123,6 @@ export default {
  "Manual": "Ręcznie",
  "Colour range ±": "Zakres kolorów ±",
  "3D z axis": "Oś Z 3D",
- "Z axis max ±": "Oś Z maks ±"
+ "Z axis max ±": "Oś Z maks ±",
+ "Since boot: {list}": "Od uruchomienia: {list}"
 }

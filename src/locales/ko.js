@@ -1123,5 +1123,6 @@ export default {
  "Manual": "수동",
  "Colour range ±": "색상 범위 ±",
  "3D z axis": "3D Z축",
- "Z axis max ±": "Z축 최대 ±"
+ "Z axis max ±": "Z축 최대 ±",
+ "Since boot: {list}": "부팅 이후: {list}"
 }

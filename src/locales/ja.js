@@ -1123,5 +1123,6 @@ export default {
  "Manual": "手動",
  "Colour range ±": "色の範囲 ±",
  "3D z axis": "3D Z軸",
- "Z axis max ±": "Z軸 最大 ±"
+ "Z axis max ±": "Z軸 最大 ±",
+ "Since boot: {list}": "起動以降: {list}"
 }

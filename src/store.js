@@ -143,6 +143,7 @@ export const state = reactive({
   consoleDraft: '',
   jump: null, // { file, line } for the config editor
   anchor: '', // element id to scroll to after navigation
+  updStatus: null, // last machine.update.status
   uiZoom: 1, // current page zoom, see applyScale
   power: [], // Moonraker [power] devices: { device, status, locked_while_printing, type }
   login: null, // { needed, sources, source } when Moonraker asks for a login
@@ -355,6 +356,19 @@ export function dismiss(n) {
 }
 export function dismissAll() { for (const n of [...state.notifications]) dismiss(n) }
 const THROTTLE = { 0: 'Under-voltage detected', 1: 'Frequency capped', 2: 'Currently throttled', 3: 'Soft temperature limit active', 16: 'Under-voltage has occurred', 17: 'Frequency capping has occurred', 18: 'Throttling has occurred', 19: 'Soft temperature limit has occurred' }
+// update manager status: notification, the side menu hint, and state.updStatus for the Machine page. Called on
+// the periodic check and whenever Moonraker pushes a fresh status (after a check or an update), so a finished
+// update clears its labels without pressing Check
+export function applyUpd(u) {
+  if (!u?.version_info) return
+  state.updStatus = u
+  const n = Object.entries(u.version_info).filter(([k, v]) => k !== 'system' && (v.commits_behind?.length || (v.remote_version && v.version && v.remote_version !== '?' && v.version !== v.remote_version))).map(([k]) => k)
+  unnotify('upd:')
+  if (n.length) notify('upd:' + n.join(','), t('Updates available: {list}', { list: n.join(', ') }), 'info')
+  // our own entry gets a hint in the side menu, one click away from the update button
+  const me = Object.entries(u.version_info).find(([k]) => k === APP || k.startsWith(APP + '-'))
+  state.uiUpdate = me && n.includes(me[0]) ? { name: me[0], version: me[1].version, remote: me[1].remote_version } : null
+}
 async function checkHealth() {
   try {
     const info = await api.call('server.info')
@@ -365,17 +379,12 @@ async function checkHealth() {
   try {
     const p = await api.call('machine.proc_stats')
     const bits = p.throttled_state?.bits || 0
-    for (const [b, txt] of Object.entries(THROTTLE)) if (bits & (1 << b)) notify('thr:' + b, t('Raspberry Pi: {msg}', { msg: t(txt) }), +b < 4 ? 'error' : 'warn')
+    // bits 0-3 are happening now, 16-19 only mean it happened at some point since boot (a short dip at power on is
+    // common). Only the current ones are worth a notification, the Health page lists both
+    unnotify('thr:')
+    for (const [b, txt] of Object.entries(THROTTLE)) if (+b < 4 && bits & (1 << b)) notify('thr:' + b, t('Raspberry Pi: {msg}', { msg: t(txt) }), 'error')
   } catch {}
-  try {
-    const u = await api.call('machine.update.status', {})
-    const n = Object.entries(u.version_info || {}).filter(([k, v]) => k !== 'system' && (v.commits_behind?.length || (v.remote_version && v.version && v.remote_version !== '?' && v.version !== v.remote_version))).map(([k]) => k)
-    unnotify('upd:')
-    if (n.length) notify('upd:' + n.join(','), t('Updates available: {list}', { list: n.join(', ') }), 'info')
-    // our own entry gets a hint in the side menu, one click away from the update button
-    const me = Object.entries(u.version_info || {}).find(([k]) => k === APP || k.startsWith(APP + '-'))
-    state.uiUpdate = me && n.includes(me[0]) ? { name: me[0], version: me[1].version, remote: me[1].remote_version } : null
-  } catch {}
+  try { applyUpd(await api.call('machine.update.status', {})) } catch {}
 }
 
 // ---------- SAVE_CONFIG backups -> config/backups ----------
@@ -729,8 +738,9 @@ export function start() {
     if (!state.update) state.update = { app: r.application, lines: [], complete: false }
     if (r.application) state.update.app = r.application
     state.update.lines.push(r.message)
-    if (r.complete) state.update.complete = true
+    if (r.complete) { state.update.complete = true; setTimeout(() => api.call('machine.update.status', {}).then(applyUpd, () => {}), 1500) }
   })
+  api.on('notify_update_refreshed', ([u]) => applyUpd(u))
   api.connect(host)
 
   // sample temperatures every second (same as moonraker's store)

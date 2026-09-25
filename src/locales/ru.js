@@ -1123,5 +1123,6 @@ export default {
  "Manual": "Вручную",
  "Colour range ±": "Цветовой диапазон ±",
  "3D z axis": "Ось Z в 3D",
- "Z axis max ±": "Ось Z макс ±"
+ "Z axis max ±": "Ось Z макс ±",
+ "Since boot: {list}": "С момента загрузки: {list}"
 }

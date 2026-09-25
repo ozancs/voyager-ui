@@ -1123,5 +1123,6 @@ export default {
  "Manual": "Manuel",
  "Colour range ±": "Plage de couleurs ±",
  "3D z axis": "Axe Z 3D",
- "Z axis max ±": "Axe Z max ±"
+ "Z axis max ±": "Axe Z max ±",
+ "Since boot: {list}": "Depuis le démarrage : {list}"
 }

@@ -1,10 +1,10 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import SystemLoads from '../components/SystemLoads.vue'
 import FileBrowser from '../components/FileBrowser.vue'
-import { state, S, gcode, toast, fmtBytes, useApiEvent } from '../store'
+import { state, S, gcode, toast, fmtBytes, useApiEvent, applyUpd } from '../store'
 import { api } from '../api/moonraker'
 import { t } from '../i18n'
 const C = (state.cache.machine ||= {})
@@ -19,12 +19,15 @@ async function loadUpd(refresh = false) {
     if (refresh) { try { r = await api.call('machine.update.refresh', {}) } catch { r = await api.call('machine.update.status', { refresh: true }) } }
     else r = await api.call('machine.update.status', {})
     upd.value = C.upd = r
+    applyUpd(r) // also clears the side menu hint and the notification
   } catch (e) { if (refresh) toast(e.message, 'error') }
   busy.value = ''
 }
 async function query() { try { ends.value = await api.call('printer.query_endstops.status') } catch (e) { toast(e.message, 'error') } }
 let tmr
 onMounted(() => { loadUpd() })
+// fresh status pushed by Moonraker (after a check or an update) or read by the periodic check
+watch(() => state.updStatus, (u) => { if (u?.version_info) upd.value = C.upd = u })
 onBeforeUnmount(() => clearInterval(tmr))
 useApiEvent('notify_proc_stat_update', ([p]) => { if (proc.value) Object.assign(proc.value, { cpu_temp: p.cpu_temp, system_cpu_usage: p.system_cpu_usage, system_memory: p.system_memory ?? proc.value.system_memory }) })
 const cpu = computed(() => proc.value?.system_cpu_usage?.cpu ?? null)

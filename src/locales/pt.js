@@ -1123,5 +1123,6 @@ export default {
  "Manual": "Manual",
  "Colour range ±": "Faixa de cores ±",
  "3D z axis": "Eixo Z 3D",
- "Z axis max ±": "Eixo Z máx ±"
+ "Z axis max ±": "Eixo Z máx ±",
+ "Since boot: {list}": "Desde a inicialização: {list}"
 }

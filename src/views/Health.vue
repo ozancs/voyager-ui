@@ -13,7 +13,10 @@ onMounted(loadPrintStats)
 const host = ref(null)
 async function loadHost() { try { host.value = await api.call('machine.proc_stats') } catch {} }
 onMounted(loadHost)
-const throttled = computed(() => host.value?.throttled_state?.flags || [])
+// Moonraker's flags: the first four are happening now, 'Previously …' ones happened at some point since boot
+const thrFlags = computed(() => host.value?.throttled_state?.flags || [])
+const throttled = computed(() => thrFlags.value.filter((f) => !/^previously/i.test(f)))
+const thrPast = computed(() => thrFlags.value.filter((f) => /^previously/i.test(f)))
 
 // ---------- MCUs / CAN ----------
 const mcus = computed(() => {
@@ -168,6 +171,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
           <div><span class="lbl">{{ t('Power') }}</span><b :style="{ color: throttled.length ? 'var(--wn)' : 'var(--ok)' }">{{ throttled.length ? t('throttled') : t('OK') }}</b></div>
         </div>
         <span v-for="f in throttled" :key="f" class="mu sm">{{ f }}</span>
+        <span v-if="thrPast.length" class="mu sm">{{ t('Since boot: {list}', { list: thrPast.join(', ') }) }}</span>
       </section>
     </div>
 

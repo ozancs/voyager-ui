@@ -1123,5 +1123,6 @@ export default {
  "Manual": "Handmatig",
  "Colour range ±": "Kleurbereik ±",
  "3D z axis": "3D Z-as",
- "Z axis max ±": "Z-as max ±"
+ "Z axis max ±": "Z-as max ±",
+ "Since boot: {list}": "Sinds opstarten: {list}"
 }
