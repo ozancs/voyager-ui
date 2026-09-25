@@ -5,6 +5,7 @@ import Modal from '../components/Modal.vue'
 import { defineAsyncComponent } from 'vue'
 const Surface3D = defineAsyncComponent(() => import('../components/Surface3D.vue'))
 import NumField from '../components/NumField.vue'
+import Rng from '../components/Rng.vue'
 import { state, S, gcode, isPrinting } from '../store'
 import { t } from '../i18n'
 const bm = computed(() => S('bed_mesh'))
@@ -97,9 +98,15 @@ function doSave() {
         <div class="card-h"><h2>{{ t('View') }}</h2></div>
         <div class="vo">
           <div class="row" style="justify-content:space-between"><span>{{ t('Colour range') }}</span><div class="seg" style="width:150px"><button :class="{ on: hv.colorAuto }" @click="hv.colorAuto = true">{{ t('Auto') }}</button><button :class="{ on: !hv.colorAuto }" @click="hv.colorAuto = false">{{ t('Manual') }}</button></div></div>
-          <NumField v-if="!hv.colorAuto" v-model="hv.colorLim" :label="t('Colour range ±')" unit="mm" :step="0.01" :min="0.005" :max="5" :decimals="3" />
+          <template v-if="!hv.colorAuto">
+            <NumField v-model="hv.colorLim" :label="t('Colour range ±')" unit="mm" :step="0.01" :min="0.005" :max="5" :decimals="3" />
+            <Rng :value="Math.min(hv.colorLim, 1)" :min="0.005" :max="1" :step="0.005" :label="t('Colour range ±')" @input="hv.colorLim = $event" />
+          </template>
           <div class="row" style="justify-content:space-between"><span>{{ t('3D z axis') }}</span><div class="seg" style="width:150px"><button :class="{ on: hv.zAuto }" @click="hv.zAuto = true">{{ t('Auto') }}</button><button :class="{ on: !hv.zAuto }" @click="hv.zAuto = false">{{ t('Manual') }}</button></div></div>
-          <NumField v-if="!hv.zAuto" v-model="hv.zMax" :label="t('Z axis max ±')" unit="mm" :step="0.05" :min="0.01" :max="10" :decimals="2" />
+          <template v-if="!hv.zAuto">
+            <NumField v-model="hv.zMax" :label="t('Z axis max ±')" unit="mm" :step="0.05" :min="0.01" :max="10" :decimals="2" />
+            <Rng :value="Math.min(hv.zMax, 3)" :min="0.05" :max="3" :step="0.05" :label="t('Z axis max ±')" @input="hv.zMax = $event" />
+          </template>
         </div>
       </section>
     </div>
