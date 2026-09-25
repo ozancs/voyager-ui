@@ -4,6 +4,7 @@ import Icon from './Icon.vue'
 import CmdInput from './CmdInput.vue'
 import { state, gcode } from '../store'
 import { t } from '../i18n'
+import { richHtml, hasMarkup } from '../richText'
 const props = defineProps({ limit: { type: Number, default: 400 } })
 const box = ref(null)
 const cmd = ref('')
@@ -60,7 +61,7 @@ defineExpose({ setCmd: (c) => (cmd.value = c) })
   <div class="cv">
     <div class="wrap">
       <div ref="box" class="out" @scroll="onScroll">
-        <div v-for="l in lines" :key="l.id" class="ln" :class="cls(l)"><span class="t">{{ fmt(l.time) }}</span><span class="m">{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span></div>
+        <div v-for="l in lines" :key="l.id" class="ln" :class="cls(l)"><span class="t">{{ fmt(l.time) }}</span><span v-if="l.type !== 'command' && hasMarkup(l.message)" class="m" v-html="richHtml(l.message)"></span><span v-else class="m">{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span></div>
       </div>
       <Transition name="jb">
         <button v-if="!auto" class="jump" :aria-label="t('Scroll to bottom')" @click="toBottom">
