@@ -190,7 +190,7 @@ function sensorExtra(id) {
         </div>
         <div class="bar"><div :style="{ width: pct(S(d.obj).speed) + '%' }"></div></div>
         <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
-          <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).speed)" :display="pct(S(d.obj).speed) + '%'" @commit="setFan(d.obj, $event)" />
+          <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).speed)" :display="pct(S(d.obj).speed) + '%'" unit="%" @commit="setFan(d.obj, $event)" />
           <div class="seg"><button v-for="v in [0, 25, 50, 75, 100]" :key="v" :class="{ on: pct(S(d.obj).speed) === v }" @click="setFan(d.obj, v)">{{ v ? v + '%' : t('Off') }}</button></div>
         </div>
       </template>
@@ -200,7 +200,7 @@ function sensorExtra(id) {
         <div class="row" style="justify-content:space-between"><Icon name="bulb" :size="30" :class="S(d.obj).value > 0 ? 'acc' : 'mu'" /><Toggle v-if="!isPwm(d.obj)" :model-value="S(d.obj).value > 0" :label="prettyName(d.obj)" @update:model-value="setPin(d.obj, $event ? 1 : 0)" /></div>
         <span class="mono sm">{{ S(d.obj).value > 0 ? t('ON') : t('OFF') }}<template v-if="isPwm(d.obj)"> · {{ pct(S(d.obj).value) }}%</template></span>
         <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
-          <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).value)" :display="pct(S(d.obj).value) + '%'" @commit="setPin(d.obj, ($event / 100).toFixed(2))" />
+          <RangeSlider :label="prettyName(d.obj)" :model-value="pct(S(d.obj).value)" :display="pct(S(d.obj).value) + '%'" unit="%" @commit="setPin(d.obj, ($event / 100).toFixed(2))" />
         </div>
       </template>
       <!-- LED -->

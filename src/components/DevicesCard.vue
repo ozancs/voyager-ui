@@ -1,12 +1,14 @@
 <script setup>
 // Fans, output pins, LEDs and filament sensors as a list (Mainsail's "Miscellaneous" panel).
-import { computed } from 'vue'
+import { computed, reactive } from 'vue'
+import Rng from './Rng.vue'
 import Icon from './Icon.vue'
 import Toggle from './Toggle.vue'
 import { state, S, devices, prettyName, shortName, setFan, gcode } from '../store'
 import { t } from '../i18n'
 
 const list = computed(() => devices.value.filter((d) => d.kind !== 'spoolman' && !state.settings.devices.hidden.includes(d.id)))
+const live = reactive({}) // value under the thumb while a slider is being dragged
 const pct = (v) => Math.round((v || 0) * 100)
 const cfg = (id) => S('configfile').settings?.[id.toLowerCase()] || {}
 let tm = {}
@@ -28,14 +30,14 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' }
         <Icon :name="ICON[d.kind]" :size="18" class="ic" :class="d.kind" />
         <span class="nm">{{ prettyName(d.id) }}</span>
         <template v-if="d.kind === 'fan'">
-          <input v-if="d.controllable" type="range" class="rng" min="0" max="100" :value="pct(S(d.id).speed)" :style="{ '--f': pct(S(d.id).speed) / 100 }" :aria-label="prettyName(d.id)" @input="fan(d, +$event.target.value)" />
+          <Rng v-if="d.controllable" :value="pct(S(d.id).speed)" :label="prettyName(d.id)" @input="fan(d, $event)" @live="live[d.id] = $event" />
           <span v-else class="grow mu sm">{{ t('auto') }}</span>
-          <b class="mono v">{{ pct(S(d.id).speed) }}%</b>
+          <b class="mono v">{{ live[d.id] ?? pct(S(d.id).speed) }}%</b>
         </template>
         <template v-else-if="d.kind === 'pin'">
           <template v-if="cfg(d.id).pwm">
-            <input type="range" class="rng" min="0" max="100" :value="pinVal(d)" :style="{ '--f': pinVal(d) / 100 }" :aria-label="prettyName(d.id)" @input="pin(d, +$event.target.value)" />
-            <b class="mono v">{{ pinVal(d) }}%</b>
+            <Rng :value="pinVal(d)" :label="prettyName(d.id)" @input="pin(d, $event)" @live="live[d.id] = $event" />
+            <b class="mono v">{{ live[d.id] ?? pinVal(d) }}%</b>
           </template>
           <template v-else><span class="grow"></span><Toggle :model-value="!!S(d.id).value" :label="prettyName(d.id)" @update:model-value="(v) => pin(d, v ? 100 : 0)" /></template>
         </template>
