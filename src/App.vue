@@ -55,7 +55,7 @@ watch(() => state.booted, (b) => {
 watch(() => route.name, () => { const m = document.querySelector('main.main'); if (m) m.scrollTop = 0 })
 watch([() => state.anchor, () => route.name], async () => {
   const a = state.anchor
-  if (!a || a.startsWith('file:')) return
+  if (!a || a.startsWith('file:') || a.startsWith('cam:')) return
   for (let i = 0; i < 20; i++) {
     await new Promise((r) => setTimeout(r, 100))
     const el = document.getElementById(a)

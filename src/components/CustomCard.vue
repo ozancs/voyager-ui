@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import Icon from './Icon.vue'
+import WebcamCard from './WebcamCard.vue'
 import { state, gcode } from '../store'
 import { t } from '../i18n'
 const props = defineProps({ id: String })
@@ -17,13 +18,14 @@ async function run(g, k) {
 <template>
   <section v-if="c.type === 'btn'" class="card cb" :class="{ hot: c.highlight, busy: busy === 'x' }" @click="run(c.gcode, 'x')" :data-tip="state.editDash ? '' : c.gcode">
     <div class="card-h ch"></div>
-    <div class="bi"><Icon :name="c.icon" :size="40" :stroke="2.2" /><b>{{ c.name }}</b></div>
+    <div class="bi"><Icon :name="c.icon" :size="40" :stroke="2.2" :style="c.color && !c.highlight ? { color: c.color } : null" /><b>{{ c.name }}</b></div>
   </section>
+  <WebcamCard v-else-if="c.type === 'cam'" :id="id" />
   <section v-else class="card">
     <div class="card-h"><h2>{{ c.name }}</h2></div>
     <div class="mg">
       <button v-for="(b, k) in c.buttons || []" :key="k" class="mb" :class="{ hot: b.highlight, busy: busy === k }" :data-tip="b.gcode" @click="run(b.gcode, k)">
-        <Icon :name="b.icon || 'star'" :size="24" :stroke="2.4" /><span>{{ b.name }}</span>
+        <Icon :name="b.icon || 'star'" :size="24" :stroke="2.4" :style="b.color && !b.highlight ? { color: b.color } : null" /><span>{{ b.name }}</span>
       </button>
       <div v-if="!(c.buttons || []).length" class="mu" style="font-size:13px">{{ t('No buttons yet. Edit this card to add some.') }}</div>
     </div>

@@ -33,7 +33,7 @@ import { useEdgeAutoScroll } from '../autoscroll'
 import interact from 'interactjs'
 import { nextTick } from 'vue'
 import { state, isPrinting, DEFAULT_LAYOUT, DEFAULT_SETTINGS, layoutSnapshot, pushLayoutBackup, restoreLayout } from '../store'
-import { ICON_NAMES } from '../icons'
+import IconPicker from '../components/IconPicker.vue'
 
 const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7] },
@@ -100,7 +100,7 @@ const colorFor = ref(null)
 const closeColor = () => (colorFor.value = null)
 onMounted(() => document.addEventListener('click', closeColor))
 onBeforeUnmount(() => document.removeEventListener('click', closeColor))
-const minOf = (i) => (isCustom(i) ? (state.settings.customCards?.[i]?.type === 'btn' ? [1, 2] : [2, 3]) : MODULES[i]?.min || [2, 2])
+const minOf = (i) => (isCustom(i) ? ({ btn: [1, 2], cam: [3, 4] }[state.settings.customCards?.[i]?.type] || [2, 3]) : MODULES[i]?.min || [2, 2])
 const nameOf = (i) => (isCustom(i) ? state.settings.customCards?.[i]?.name || 'Custom' : MODULES[i]?.n)
 
 const width = ref(window.innerWidth)
@@ -155,11 +155,12 @@ function addModule(k) {
 }
 function addCustom(type) {
   const id = 'c_' + Date.now().toString(36)
-  state.settings.customCards = { ...(state.settings.customCards || {}), [id]: type === 'btn' ? { type, name: 'Button', icon: 'star', gcode: '', highlight: false } : { type, name: 'Macros', buttons: [] } }
-  const [w, h] = type === 'btn' ? [2, 3] : [4, 4]
+  const data = type === 'btn' ? { type, name: 'Button', icon: 'star', gcode: '', highlight: false } : type === 'cam' ? { type, name: 'Webcam' } : { type, name: 'Macros', buttons: [] }
+  state.settings.customCards = { ...(state.settings.customCards || {}), [id]: data }
+  const [w, h] = { btn: [2, 3], cam: [6, 8] }[type] || [4, 4]
   layout.value = [...layout.value, { i: id, x: 0, y: bottom(), w, h }]
   persist(); addOpen.value = false
-  editCard(id)
+  if (type !== 'cam') editCard(id) // a webcam card picks its camera in its own header
 }
 
 // ---- customize session with undo / backups ----
@@ -229,6 +230,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
             <span class="sec-lbl" style="margin-top:8px">{{ t('Custom') }}</span>
             <button class="btn clear di" @click="addCustom('btn')"><Icon name="star" :size="16" />{{ t('Command button (square)') }}</button>
             <button class="btn clear di" @click="addCustom('macros')"><Icon name="dash" :size="16" />{{ t('Macro group') }}</button>
+            <button v-if="state.webcams.length" class="btn clear di" @click="addCustom('cam')"><Icon name="snap" :size="16" />{{ t('Another webcam') }}</button>
           </div>
         </div>
         <div class="rel">
@@ -256,7 +258,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
           <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
           <component v-else :is="MODULES[it.i].c" class="fill" />
           <div v-if="state.editDash" class="tools">
-            <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit {name}', { name: t(nameOf(it.i)) })" @click="editCard(it.i)"><Icon name="pencil" :size="14" /></button>
+            <button v-if="isCustom(it.i) && state.settings.customCards?.[it.i]?.type !== 'cam'" class="btn ibtn sm" :aria-label="t('Edit {name}', { name: t(nameOf(it.i)) })" @click="editCard(it.i)"><Icon name="pencil" :size="14" /></button>
             <button v-if="MODULES[it.i]?.opts" class="btn ibtn sm" :aria-label="t('Options {name}', { name: t(nameOf(it.i)) })" @click="optsFor = it.i"><Icon name="gear" :size="15" /></button>
             <button class="btn ibtn sm sw" :aria-label="t('Card color')" @click.stop="colorFor = colorFor === it.i ? null : it.i"><i :style="{ background: tintVar(it.i) || 'var(--s3)' }"></i></button>
             <button class="btn ibtn sm" :aria-label="t('Remove {name}', { name: t(nameOf(it.i)) })" @click="removeCard(it.i)"><Icon name="x" :size="16" /></button>
@@ -300,14 +302,14 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
     <label class="col"><span class="lbl">{{ editing.data.type === 'btn' ? t('Label') : t('Title') }}</span><input v-model="editing.data.name" class="input" /></label>
     <template v-if="editing.data.type === 'btn'">
       <div class="row">
-        <button class="btn ibtn" :aria-label="t('Change icon')" @click="iconFor = editing.data"><Icon :name="editing.data.icon" :size="22" style="color:var(--ac)" /></button>
+        <button class="btn ibtn" :aria-label="t('Change icon')" @click="iconFor = editing.data"><Icon :name="editing.data.icon" :size="22" :style="{ color: editing.data.color || 'var(--ac)' }" /></button>
         <CmdInput v-model="editing.data.gcode" input-class="input" :placeholder="t('G-code or macro, e.g. CHAMBER TEMP=50')" :aria-label="t('Command')" />
         <Toggle v-model="editing.data.highlight" :label="t('Highlight')" />
       </div>
     </template>
     <template v-else>
       <div v-for="(b, k) in editing.data.buttons" :key="k" class="row">
-        <button class="btn ibtn" style="width:40px;height:40px" :aria-label="t('Change icon')" @click="iconFor = b"><Icon :name="b.icon || 'star'" :size="20" style="color:var(--ac)" /></button>
+        <button class="btn ibtn" style="width:40px;height:40px" :aria-label="t('Change icon')" @click="iconFor = b"><Icon :name="b.icon || 'star'" :size="20" :style="{ color: b.color || 'var(--ac)' }" /></button>
         <input v-model="b.name" class="input" style="width:130px" :aria-label="t('Button name')" />
         <CmdInput v-model="b.gcode" input-class="input" :placeholder="t('command')" :aria-label="t('Command')" />
         <Toggle v-model="b.highlight" :label="t('Highlight')" />
@@ -317,9 +319,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
     </template>
     <template #foot><button class="btn lg dg" style="margin-right:auto" @click="removeCard(editing.id); editing = null">{{ t('Delete card') }}</button><button class="btn lg" @click="editing = null">{{ t('Cancel') }}</button><button class="btn lg acc" @click="saveCard">{{ t('Save') }}</button></template>
   </Modal>
-  <Modal v-if="iconFor" :title="t('Choose icon')" width="560px" @close="iconFor = null">
-    <div class="ig"><button v-for="n in ICON_NAMES" :key="n" class="btn" :class="{ acc: iconFor.icon === n }" style="height:48px" :aria-label="n" @click="iconFor.icon = n; iconFor = null"><Icon :name="n" :size="22" /></button></div>
-  </Modal>
+  <IconPicker v-if="iconFor" :icon="iconFor.icon" :color="iconFor.color" @pick="iconFor.icon = $event" @color="iconFor.color = $event" @close="iconFor = null" />
 </template>
 
 <style scoped>

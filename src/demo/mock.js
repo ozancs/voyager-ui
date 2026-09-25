@@ -424,7 +424,7 @@ function handle(m){
     case 'server.files.metadata': return {estimated_time:7400,layer_height:0.2,object_height:42,thumbnails:[]}
     case 'server.database.get_item': { if(p.namespace==='mainsail') return {value:{printername:'Voyager Demo'}}; const k=p.namespace+'/'+p.key; if(!db[k]) throw {code:404,message:"Namespace '"+p.namespace+"' not found"}; return {value:db[k]} }
     case 'server.database.post_item': db[p.namespace+'/'+p.key]=p.value; return {value:p.value}
-    case 'server.webcams.list': return {webcams:[{name:'cam1',service:'mjpegstreamer-adaptive',target_fps:15,stream_url:'/webcam/?action=stream',snapshot_url:'/webcam/?action=snapshot'}]}
+    case 'server.webcams.list': return {webcams:[{name:'Chamber',service:'mjpegstreamer-adaptive',target_fps:15,stream_url:'/webcam/?action=stream',snapshot_url:'/webcam/?action=snapshot'},{name:'Nozzle',service:'mjpegstreamer-adaptive',target_fps:10,stream_url:'/webcam2/?action=stream',snapshot_url:'/webcam2/?action=snapshot'},{name:'Bed',service:'mjpegstreamer-adaptive',target_fps:5,stream_url:'/webcam3/?action=stream',snapshot_url:'/webcam3/?action=snapshot'}]}
     case 'server.config': return {config:{spoolman:{server:'http://127.0.0.1:7912'}}}
     case 'server.spoolman.get_spool_id': return {spool_id:12}
     case 'server.spoolman.proxy': return {response:{id:12,remaining_weight:642,initial_weight:1000,filament:{name:'ABS Black',material:'ABS',color_hex:'1c1c1c'}}}
@@ -541,7 +541,11 @@ class FakeSocket {
   addEventListener(t, f) { this['on' + t] = f }
   removeEventListener(t) { this['on' + t] = null }
 }
-const camSvg = (n) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2027"/><stop offset="1" stop-color="#0d0f12"/></linearGradient></defs><rect width="640" height="360" fill="url(#g)"/><rect x="120" y="230" width="400" height="14" rx="3" fill="#3a3f47"/><rect x="250" y="150" width="140" height="80" rx="6" fill="#f5b23a" opacity=".85"/><rect x="300" y="60" width="40" height="90" fill="#4a5058"/><path d="M310 150 h20 l-10 14z" fill="#8b919b"/><text x="20" y="340" fill="#8b919b" font-family="monospace" font-size="16">demo camera · ${new Date().toLocaleTimeString()} · frame ${n}</text></svg>`
+const camSvg = (n, v = 1) => v === 2
+  ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#101317"/><rect x="200" y="0" width="240" height="190" rx="10" fill="#2a2f36"/><path d="M280 190 h80 l-22 70 h-36z" fill="#c9a24a"/><circle cx="320" cy="${272 + (n % 6)}" r="${6 + (n % 3)}" fill="#ff6b1a"/><rect x="0" y="300" width="640" height="60" fill="#2c3138"/><text x="20" y="30" fill="#8b919b" font-family="monospace" font-size="16">nozzle cam · frame ${n}</text></svg>`
+  : v === 3
+  ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#15181c"/><rect x="80" y="40" width="480" height="280" rx="8" fill="#3b3a34"/><g fill="#f5b23a" opacity=".9"><rect x="${150 + (n % 40)}" y="120" width="60" height="60" rx="4"/><rect x="330" y="140" width="90" height="40" rx="4"/></g><text x="20" y="345" fill="#8b919b" font-family="monospace" font-size="16">bed cam · frame ${n}</text></svg>`
+  : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2027"/><stop offset="1" stop-color="#0d0f12"/></linearGradient></defs><rect width="640" height="360" fill="url(#g)"/><rect x="120" y="230" width="400" height="14" rx="3" fill="#3a3f47"/><rect x="250" y="150" width="140" height="80" rx="6" fill="#f5b23a" opacity=".85"/><rect x="300" y="60" width="40" height="90" fill="#4a5058"/><path d="M310 150 h20 l-10 14z" fill="#8b919b"/><text x="20" y="340" fill="#8b919b" font-family="monospace" font-size="16">demo camera · ${new Date().toLocaleTimeString()} · frame ${n}</text></svg>`
 let frame = 0
 function gcodeFile() { let g = ';gcode\nG28\nG90\nM83\n'; for (let z = 1; z <= 40; z++) { g += `;LAYER_CHANGE\n;Z:${(z * 0.2).toFixed(2)}\nG1 Z${(z * 0.2).toFixed(2)} F600\n`; for (let k = 0; k < 4; k++) { const r = 30 + 10 * Math.sin(z / 5); g += `G1 X${150 + r} Y150 F3000\nG1 X${150 + r} Y${150 + r} E1\nG1 X150 Y${150 + r} E1\nG1 X150 Y150 E1\n` } } return g }
 let realFetch
@@ -556,7 +560,7 @@ function fakeFetch(input, init) {
   if (p.startsWith('/server/files/config/')) { const n = decodeURIComponent(p.slice(21)); const body = cfgText[n] ?? (/^printer-\d{8}_\d{6}\.cfg$/.test(n) ? cfgText['printer.cfg'].replace('shaper_freq_x: 58.2', 'shaper_freq_x: 55.0') : undefined); return Promise.resolve(new Response(body || '', { status: body != null ? 200 : 404, headers: { 'content-type': 'text/plain' } })) }
   if (p.startsWith('/server/files/gcodes/')) return Promise.resolve(new Response(gcodeFile(), { headers: { 'content-type': 'text/plain' } }))
   if (p.startsWith('/server/files/')) return json({ error: { code: 404, message: 'not in the demo' } }, 404)
-  if (p.startsWith('/webcam')) return Promise.resolve(new Response(camSvg(++frame), { headers: { 'content-type': 'image/svg+xml' } }))
+  if (p.startsWith('/webcam')) return Promise.resolve(new Response(camSvg(++frame, +(p.match(/^\/webcam(\d)/)?.[1] || 1)), { headers: { 'content-type': 'image/svg+xml' } }))
   if (p.startsWith('/printer/') || p.startsWith('/machine/') || p.startsWith('/api/')) return json({ result: {} })
   return realFetch(input, init)
 }
@@ -571,7 +575,7 @@ export function installDemo() {
   Object.defineProperty(HTMLImageElement.prototype, 'src', {
     get() { return desc.get.call(this) },
     set(v) {
-      if (typeof v === 'string' && /\/webcam/.test(v)) v = 'data:image/svg+xml;utf8,' + encodeURIComponent(camSvg(++frame))
+      if (typeof v === 'string' && /\/webcam/.test(v)) v = 'data:image/svg+xml;utf8,' + encodeURIComponent(camSvg(++frame, +(v.match(/\/webcam(\d)/)?.[1] || 1)))
       desc.set.call(this, v)
     },
   })
