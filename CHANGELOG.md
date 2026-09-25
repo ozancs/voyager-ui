@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.0
+
+- Icon picker for favorites and custom buttons: search by name or keyword, about 750 more icons (Lucide), and a colour per icon
+- Webcam page: all cameras side by side when there is more than one
+- Dashboard: the webcam card has a camera picker, and more webcam cards can be added (Customize, Add card, Another webcam), each showing its own camera
+
 ## 0.17.2
 
 - Status tiles are narrower (at most 144 px) and clicking one no longer selects its name
