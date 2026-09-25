@@ -1139,5 +1139,12 @@ export default {
  "{n} side by side": "{n} 个并排显示",
  "Check for updates automatically": "自动检查更新",
  "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "每 6 小时让 Moonraker 检查新版本（打印时不检查）。关闭：仅在点击检查时。",
- "Moonraker cannot read the power state on this host": "Moonraker 无法读取此主机的电源状态"
+ "Moonraker cannot read the power state on this host": "Moonraker 无法读取此主机的电源状态",
+ "Spoolman spool": "Spoolman 料卷",
+ "None": "无",
+ "Material": "材料",
+ "Colour": "颜色",
+ "e.g. Galaxy Black": "例如 Galaxy Black",
+ "Temp": "温度",
+ "Set filament": "设置耗材"
 }

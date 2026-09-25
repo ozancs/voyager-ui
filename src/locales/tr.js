@@ -1140,5 +1140,12 @@ export default {
  "{n} side by side": "{n} kamera yan yana",
  "Check for updates automatically": "Güncellemeleri otomatik denetle",
  "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Moonraker'a 6 saatte bir yeni sürüm olup olmadığını sorar, baskı sırasında sormaz. Kapalı: sadece Denetle'ye bastığında.",
- "Moonraker cannot read the power state on this host": "Moonraker bu cihazda güç durumunu okuyamıyor"
+ "Moonraker cannot read the power state on this host": "Moonraker bu cihazda güç durumunu okuyamıyor",
+ "Spoolman spool": "Spoolman makarası",
+ "None": "Yok",
+ "Material": "Malzeme",
+ "Colour": "Renk",
+ "e.g. Galaxy Black": "ör. Galaxy Black",
+ "Temp": "Sıcaklık",
+ "Set filament": "Filament ayarla"
 }

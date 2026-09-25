@@ -1139,5 +1139,12 @@ export default {
  "{n} side by side": "{n}대 나란히",
  "Check for updates automatically": "자동으로 업데이트 확인",
  "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "6시간마다 Moonraker에 새 버전을 확인하게 합니다(출력 중 제외). 끄기: 확인을 누를 때만.",
- "Moonraker cannot read the power state on this host": "이 호스트에서 Moonraker가 전원 상태를 읽을 수 없습니다"
+ "Moonraker cannot read the power state on this host": "이 호스트에서 Moonraker가 전원 상태를 읽을 수 없습니다",
+ "Spoolman spool": "Spoolman 스풀",
+ "None": "없음",
+ "Material": "재료",
+ "Colour": "색상",
+ "e.g. Galaxy Black": "예: Galaxy Black",
+ "Temp": "온도",
+ "Set filament": "필라멘트 설정"
 }

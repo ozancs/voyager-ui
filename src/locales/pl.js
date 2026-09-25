@@ -1139,5 +1139,12 @@ export default {
  "{n} side by side": "{n} obok siebie",
  "Check for updates automatically": "Automatycznie sprawdzaj aktualizacje",
  "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Moonraker sprawdza nowe wersje co 6 godzin, nie podczas druku. Wyłączone: tylko po kliknięciu Sprawdź.",
- "Moonraker cannot read the power state on this host": "Moonraker nie może odczytać stanu zasilania na tym hoście"
+ "Moonraker cannot read the power state on this host": "Moonraker nie może odczytać stanu zasilania na tym hoście",
+ "Spoolman spool": "Szpula Spoolman",
+ "None": "Brak",
+ "Material": "Materiał",
+ "Colour": "Kolor",
+ "e.g. Galaxy Black": "np. Galaxy Black",
+ "Temp": "Temp.",
+ "Set filament": "Ustaw filament"
 }

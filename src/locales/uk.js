@@ -1139,5 +1139,12 @@ export default {
  "{n} side by side": "{n} поруч",
  "Check for updates automatically": "Перевіряти оновлення автоматично",
  "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Moonraker перевіряє нові версії кожні 6 годин, окрім часу друку. Вимк.: лише за кнопкою «Перевірити».",
- "Moonraker cannot read the power state on this host": "Moonraker не може прочитати стан живлення на цьому хості"
+ "Moonraker cannot read the power state on this host": "Moonraker не може прочитати стан живлення на цьому хості",
+ "Spoolman spool": "Котушка Spoolman",
+ "None": "Немає",
+ "Material": "Матеріал",
+ "Colour": "Колір",
+ "e.g. Galaxy Black": "напр. Galaxy Black",
+ "Temp": "Темп.",
+ "Set filament": "Задати філамент"
 }

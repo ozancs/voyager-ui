@@ -5,6 +5,7 @@
 // Gates show colour, material and which tool uses them. Anything that moves filament needs a second click.
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import Icon from './Icon.vue'
+import GateFilament from './GateFilament.vue'
 import { state, S, gcode, toast, isPrinting } from '../store'
 import { t } from '../i18n'
 
@@ -43,6 +44,7 @@ const gates = computed(() => {
     material: x.gate_material?.[g] || '',
     name: x.gate_name?.[g] || '',
     temp: x.gate_temperature?.[g],
+    spoolId: x.gate_spool_id?.[g],
     tools: ttg.map((gg, tool) => (gg === g ? tool : null)).filter((v) => v != null),
     current: x.gate === g,
   }))
@@ -58,7 +60,7 @@ const lanes = computed(() => {
     const ready = l.prep && l.load
     return {
       id: name, label: name.replace(/^lane/i, ''), status: l.tool_loaded ? 1 : ready ? 1 : l.prep ? 2 : 0,
-      color: rgb(l.color), material: l.material || '', weight: l.weight, tools: l.map ? [String(l.map).replace(/^T/i, '')] : [],
+      color: rgb(l.color), material: l.material || '', weight: l.weight, spoolId: l.spool_id, tools: l.map ? [String(l.map).replace(/^T/i, '')] : [],
       current: cur === name || l.tool_loaded, loaded: !!l.tool_loaded, unit: l.unit, lstatus: l.status,
     }
   })
@@ -91,6 +93,9 @@ const mainActions = computed(() => {
   }
   return [['TOOL_UNLOAD', 'Unload', 'unload'], ['AFC_CALIBRATION', 'Calibrate', 'target']].filter(([c]) => has(c))
 })
+// editing what is loaded in a gate / lane
+const editGate = ref(null)
+const canSetFilament = computed(() => (kind.value === 'hh' ? has('MMU_GATE_MAP') : has('SET_COLOR') || has('SET_MATERIAL')))
 const busy = computed(() => (kind.value === 'hh' ? m.value.action && m.value.action !== 'Idle' : false))
 </script>
 
@@ -129,12 +134,14 @@ const busy = computed(() => (kind.value === 'hh' ? m.value.action && m.value.act
       <div v-if="openGate" class="gm"  @click.stop>
         <div class="row" style="justify-content:space-between"><b>{{ openGate.name || openGate.material || (kind === 'hh' ? t('Gate {n}', { n: openGate.label }) : openGate.id) }}</b><span class="mu sm">{{ t((STATUS[openGate.status] || STATUS[-1])[0]) }}<template v-if="openGate.temp"> · {{ openGate.temp }}°</template><template v-if="openGate.weight"> · {{ Math.round(openGate.weight) }} g</template></span></div>
         <button v-for="a in gateActions(openGate)" :key="a.cmd" class="btn" :class="{ acc: armed === a.cmd }" :disabled="isPrinting" @click="run(a.cmd)">{{ armed === a.cmd ? t('Press again to run') : a.label }}</button>
-        <span v-if="!gateActions(openGate).length" class="mu sm">{{ t('No commands available for this unit.') }}</span>
+        <button v-if="canSetFilament" class="btn" @click="editGate = openGate; open = null"><Icon name="pencil" :size="14" />{{ t('Set filament') }}</button>
+        <span v-if="!gateActions(openGate).length && !canSetFilament" class="mu sm">{{ t('No commands available for this unit.') }}</span>
       </div>
       <div class="acts2">
         <button v-for="[c, l, ic] in mainActions" :key="c" class="btn" :class="{ acc: armed === c }" :disabled="isPrinting && !/RECOVER|UNLOCK/.test(c)" @click="run(c)"><Icon :name="ic" :size="15" />{{ armed === c ? t('Again') : t(l) }}</button>
       </div>
     </template>
+    <GateFilament v-if="editGate" :gate="editGate" :kind="kind" @close="editGate = null" />
   </section>
 </template>
 
