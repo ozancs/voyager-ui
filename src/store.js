@@ -356,7 +356,7 @@ export function dismiss(n) {
   if (!String(n.id).startsWith('klippy:')) { dismissed.add(n.id); try { localStorage.setItem(APP + '-dismissed', JSON.stringify([...dismissed].slice(-200))) } catch {} }
 }
 export function dismissAll() { for (const n of [...state.notifications]) dismiss(n) }
-const THROTTLE = { 0: 'Under-voltage detected', 1: 'Frequency capped', 2: 'Currently throttled', 3: 'Soft temperature limit active', 16: 'Under-voltage has occurred', 17: 'Frequency capping has occurred', 18: 'Throttling has occurred', 19: 'Soft temperature limit has occurred' }
+export const THROTTLE = { 0: 'Under-voltage detected', 1: 'Frequency capped', 2: 'Currently throttled', 3: 'Soft temperature limit active', 16: 'Under-voltage has occurred', 17: 'Frequency capping has occurred', 18: 'Throttling has occurred', 19: 'Soft temperature limit has occurred' }
 // update manager status: notification, the side menu hint, and state.updStatus for the Machine page. Called on
 // the periodic check and whenever Moonraker pushes a fresh status (after a check or an update), so a finished
 // update clears its labels without pressing Check

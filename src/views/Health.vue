@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
-import { state, S, prettyName, gcode, toast } from '../store'
+import { state, S, prettyName, gcode, toast, THROTTLE } from '../store'
 import { api } from '../api/moonraker'
 import { t } from '../i18n'
 import { health, mcuHist, heaterLive, healthIssues, printStats, loadPrintStats, maintUsed, maintDueDays, MAINT_DEFAULTS } from '../features'
@@ -14,9 +14,13 @@ const host = ref(null)
 async function loadHost() { try { host.value = await api.call('machine.proc_stats') } catch {} }
 onMounted(loadHost)
 // Moonraker's flags: the first four are happening now, 'Previously …' ones happened at some point since boot
-const thrFlags = computed(() => host.value?.throttled_state?.flags || [])
-const throttled = computed(() => thrFlags.value.filter((f) => !/^previously/i.test(f)))
-const thrPast = computed(() => thrFlags.value.filter((f) => /^previously/i.test(f)))
+// Read from the bits, not the flag names: bits 0-3 are happening now, 16-19 happened at some point since boot.
+// Moonraker sends flags ['?'] with bits 0 when it cannot read the state (no vcgencmd, not a Raspberry Pi).
+const thr = computed(() => host.value?.throttled_state || null)
+const thrUnknown = computed(() => !thr.value || (!thr.value.bits && (thr.value.flags || []).includes('?')))
+const thrNames = (lo, hi) => Object.entries(THROTTLE).filter(([b]) => +b >= lo && +b <= hi && (thr.value?.bits || 0) & (1 << b)).map(([, txt]) => t(txt))
+const throttled = computed(() => thrNames(0, 3))
+const thrPast = computed(() => thrNames(16, 19))
 
 // ---------- MCUs / CAN ----------
 const mcus = computed(() => {
@@ -168,7 +172,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
           <div><span class="lbl">{{ t('CPU temp') }}</span><b class="mono">{{ host?.cpu_temp != null ? host.cpu_temp.toFixed(1) + '°' : '--' }}</b></div>
           <div><span class="lbl">CPU</span><b class="mono">{{ host?.system_cpu_usage?.cpu != null ? host.system_cpu_usage.cpu.toFixed(0) + '%' : '--' }}</b></div>
           <div><span class="lbl">{{ t('Memory') }}</span><b class="mono">{{ host?.system_memory ? Math.round(host.system_memory.used / host.system_memory.total * 100) + '%' : '--' }}</b></div>
-          <div><span class="lbl">{{ t('Power') }}</span><b :style="{ color: throttled.length ? 'var(--wn)' : 'var(--ok)' }">{{ throttled.length ? t('throttled') : t('OK') }}</b></div>
+          <div><span class="lbl">{{ t('Power') }}</span><b :style="{ color: thrUnknown ? 'var(--mu)' : throttled.length ? 'var(--wn)' : 'var(--ok)' }" :data-tip="thrUnknown ? t('Moonraker cannot read the power state on this host') : ''">{{ thrUnknown ? '--' : throttled.length ? t('throttled') : t('OK') }}</b></div>
         </div>
         <span v-for="f in throttled" :key="f" class="mu sm">{{ f }}</span>
         <span v-if="thrPast.length" class="mu sm">{{ t('Since boot: {list}', { list: thrPast.join(', ') }) }}</span>

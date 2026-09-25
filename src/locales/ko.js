@@ -1138,5 +1138,6 @@ export default {
  "All cameras": "모든 카메라",
  "{n} side by side": "{n}대 나란히",
  "Check for updates automatically": "자동으로 업데이트 확인",
- "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "6시간마다 Moonraker에 새 버전을 확인하게 합니다(출력 중 제외). 끄기: 확인을 누를 때만."
+ "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "6시간마다 Moonraker에 새 버전을 확인하게 합니다(출력 중 제외). 끄기: 확인을 누를 때만.",
+ "Moonraker cannot read the power state on this host": "이 호스트에서 Moonraker가 전원 상태를 읽을 수 없습니다"
 }

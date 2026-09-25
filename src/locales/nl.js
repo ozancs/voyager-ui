@@ -1138,5 +1138,6 @@ export default {
  "All cameras": "Alle camera's",
  "{n} side by side": "{n} naast elkaar",
  "Check for updates automatically": "Automatisch op updates controleren",
- "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Laat Moonraker elke 6 uur naar nieuwe versies kijken, niet tijdens een print. Uit: alleen als je op Controleren drukt."
+ "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Laat Moonraker elke 6 uur naar nieuwe versies kijken, niet tijdens een print. Uit: alleen als je op Controleren drukt.",
+ "Moonraker cannot read the power state on this host": "Moonraker kan de voedingsstatus op deze host niet lezen"
 }

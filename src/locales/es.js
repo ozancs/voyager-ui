@@ -1138,5 +1138,6 @@ export default {
  "All cameras": "Todas las cámaras",
  "{n} side by side": "{n} lado a lado",
  "Check for updates automatically": "Buscar actualizaciones automáticamente",
- "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Pide a Moonraker buscar versiones nuevas cada 6 horas, nunca durante una impresión. Apagado: solo al pulsar Comprobar."
+ "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Pide a Moonraker buscar versiones nuevas cada 6 horas, nunca durante una impresión. Apagado: solo al pulsar Comprobar.",
+ "Moonraker cannot read the power state on this host": "Moonraker no puede leer el estado de alimentación en este equipo"
 }
