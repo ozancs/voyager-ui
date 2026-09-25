@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.4
+
+- Customize works on phones: side menu > Customize dashboard, then move cards up or down or remove them. The phone order is separate from the desktop layout
+
 ## 0.19.3
 
 - Temperature graph: the line no longer jumps on the 10m and 20m ranges

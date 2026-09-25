@@ -1169,5 +1169,8 @@
 "Ctrl+click: Klipper documentation for this section",
 "Macro buttons under the top bar. Also available as a Favorites card for the dashboard.",
 "Everywhere",
-"Dashboard only"
+"Dashboard only",
+"Move up",
+"Move down",
+"Remove card"
 ]
