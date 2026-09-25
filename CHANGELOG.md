@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.19.0
+
+Changes from a long round of feedback.
+
+- Dashboard: compact cards by default (less padding, thinner title bar, smaller gaps), can be turned off in Settings > Dashboard
+- Dashboard: cards can be resized from the bottom-left corner too
+- Dashboard: dragging a card near the page edge scrolls gently instead of jumping to the bottom
+- New Live Z card: live X/Y/Z, Z offset and baby-step buttons, small enough for the print layout
+- New Favorites card; the favorites bar can show everywhere, on the dashboard only or not at all
+- Temperature cards: eye button to pick the shown sensors, line width for the graph
+- TMC2240 driver temperatures show up as sensors
+- Heightmap: colour palettes and a wireframe overlay (3D)
+- Config editor: click the error/warning counter for a list that jumps to each line; Ctrl+click a [section] name opens its Klipper docs
+- G-code files can be opened in the editor (up to 8 MB, not while that file prints)
+- Fixed: retransmit counts on the Health page went negative after a Klipper restart
+- Fixed: top tiles dragged in the wrong place with an interface scale other than 100%
+- Fixed: Follow print in the G-code viewer did nothing
+- Fixed: Toolhead card showed a scrollbar at its smallest size
+
 ## 0.18.4
 
 - Console shows the colours Happy Hare prints (gate map, logo) instead of raw HTML
