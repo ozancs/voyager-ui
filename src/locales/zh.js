@@ -1136,5 +1136,7 @@ export default {
  "Camera": "摄像头",
  "Another webcam": "另一个摄像头",
  "All cameras": "所有摄像头",
- "{n} side by side": "{n} 个并排显示"
+ "{n} side by side": "{n} 个并排显示",
+ "Check for updates automatically": "自动检查更新",
+ "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "每 6 小时让 Moonraker 检查新版本（打印时不检查）。关闭：仅在点击检查时。"
 }

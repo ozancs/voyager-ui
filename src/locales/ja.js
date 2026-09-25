@@ -1136,5 +1136,7 @@ export default {
  "Camera": "カメラ",
  "Another webcam": "別のウェブカメラ",
  "All cameras": "すべてのカメラ",
- "{n} side by side": "{n}台を並べて表示"
+ "{n} side by side": "{n}台を並べて表示",
+ "Check for updates automatically": "自動で更新を確認",
+ "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "6時間ごとにMoonrakerに新しいバージョンを確認させます（印刷中は除く）。オフ: 確認を押したときだけ。"
 }

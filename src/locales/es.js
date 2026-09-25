@@ -1136,5 +1136,7 @@ export default {
  "Camera": "Cámara",
  "Another webcam": "Otra webcam",
  "All cameras": "Todas las cámaras",
- "{n} side by side": "{n} lado a lado"
+ "{n} side by side": "{n} lado a lado",
+ "Check for updates automatically": "Buscar actualizaciones automáticamente",
+ "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Pide a Moonraker buscar versiones nuevas cada 6 horas, nunca durante una impresión. Apagado: solo al pulsar Comprobar."
 }

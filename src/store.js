@@ -74,6 +74,7 @@ export const DEFAULT_SETTINGS = () => ({
   sound: { enabled: false, volume: 0.6, complete: true, error: true, paused: true, heated: false },
   // jog / extrude presets, shared with Mainsail and Fluidd when sync is on
   control: { feedXY: 100, feedZ: 25, stepsXY: [100, 10, 1], stepsZ: [25, 1, 0.1], dpad: [100, 50, 10, 1, 0.1], zOffset: [0.005, 0.01, 0.025, 0.05], extAmounts: [5, 10, 25, 50, 100], extFeeds: [1, 2, 5, 10] },
+  autoUpdateCheck: true, // ask Moonraker to check GitHub for updates every 6 hours (it only does so by itself every 4 weeks)
   sync: true, // mirror shared settings (name, language, jog presets, temperature presets) into the Mainsail / Fluidd database
   errorToasts: true,
   maintenance: null, // filled with defaults on first visit of the Health page
@@ -384,7 +385,17 @@ async function checkHealth() {
     unnotify('thr:')
     for (const [b, txt] of Object.entries(THROTTLE)) if (+b < 4 && bits & (1 << b)) notify('thr:' + b, t('Raspberry Pi: {msg}', { msg: t(txt) }), 'error')
   } catch {}
-  try { applyUpd(await api.call('machine.update.status', {})) } catch {}
+  try {
+    // Moonraker refreshes its update info from GitHub on its own only every few weeks (refresh_interval), so a new
+    // release would not show until someone presses Check. Do that check here every 6 hours, not while printing
+    // (Moonraker refuses then), and only from one open tab: the time of the last check is shared in localStorage.
+    let u = null
+    const KEY = APP + '-updcheck', last = +lsGet(KEY) || 0
+    if (state.settings.autoUpdateCheck !== false && !isPrinting.value && Date.now() - last > 6 * 3600e3) {
+      try { u = await api.call('machine.update.refresh', {}); try { localStorage.setItem(KEY, String(Date.now())) } catch {} } catch {}
+    }
+    applyUpd(u?.version_info ? u : await api.call('machine.update.status', {}))
+  } catch {}
 }
 
 // ---------- SAVE_CONFIG backups -> config/backups ----------

@@ -1135,5 +1135,7 @@
 "Camera",
 "Another webcam",
 "All cameras",
-"{n} side by side"
+"{n} side by side",
+"Check for updates automatically",
+"Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check."
 ]

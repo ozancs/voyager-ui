@@ -1137,5 +1137,7 @@ export default {
  "Camera": "Kamera",
  "Another webcam": "Bir webcam daha",
  "All cameras": "Tüm kameralar",
- "{n} side by side": "{n} kamera yan yana"
+ "{n} side by side": "{n} kamera yan yana",
+ "Check for updates automatically": "Güncellemeleri otomatik denetle",
+ "Asks Moonraker to look for new versions every 6 hours, not while printing. Off: only when you press Check.": "Moonraker'a 6 saatte bir yeni sürüm olup olmadığını sorar, baskı sırasında sormaz. Kapalı: sadece Denetle'ye bastığında."
 }
