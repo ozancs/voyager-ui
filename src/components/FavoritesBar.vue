@@ -53,7 +53,7 @@ function onDrop(i) {
       <button v-for="(f, i) in favs" :key="f.id" class="fav" :class="{ hot: f.highlight, busy: busy === f.id, drag: dragI === i }" :style="{ '--k': INKS[i % INKS.length] }"
         :data-tip="state.favEdit ? '' : f.gcode" :draggable="state.favEdit" @dragstart="dragI = i" @dragend="dragI = null" @dragover.prevent @drop.prevent="onDrop(i)" @click="run(f)">
         <Icon v-if="state.favEdit" name="grip" :size="14" :stroke="3" class="gr" />
-        <Icon :name="f.icon" :size="20" :stroke="2.3" class="fi" />
+        <Icon :name="f.icon" :size="17" :stroke="2.3" class="fi" />
         <span>{{ f.name }}</span>
         <Icon v-if="state.favEdit" name="pencil" :size="13" class="pe" />
       </button>
@@ -84,10 +84,10 @@ function onDrop(i) {
 
 <style scoped>
 /* its own band under the top bar: a touch lighter than the page and closed with a hairline, so the macro row reads as one thing */
-.fb { height: 72px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 0 20px; background: color-mix(in srgb, var(--s1) 45%, var(--bg)); border-bottom: 1px solid var(--bd); }
+.fb { height: 60px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 0 20px; background: color-mix(in srgb, var(--s1) 45%, var(--bg)); border-bottom: 1px solid var(--bd); }
 .fb .fav { background: var(--s1); }
 .list { flex: 1; display: flex; gap: 8px; min-width: 0; overflow-x: auto; }
-.fav { flex: 1 0 auto; min-width: 120px; height: 48px; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--s1); color: var(--tx); border: none; border-radius: 12px; font-weight: 600; font-size: 13.5px; white-space: nowrap; transition: background .12s, transform .08s; padding: 0 16px; position: relative; }
+.fav { flex: 0 0 auto; min-width: 0; padding: 0 16px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--s1); color: var(--tx); border: none; border-radius: 10px; font-weight: 600; font-size: 13px; white-space: nowrap; transition: background .12s, transform .08s; padding: 0 16px; position: relative; }
 .fav:hover { background: var(--s2); }
 .fav:active { transform: scale(.97); }
 .fav .fi { color: var(--k); flex-shrink: 0; }
@@ -101,7 +101,7 @@ function onDrop(i) {
 .pe { color: var(--mu); }
 
 .hint { color: var(--mu2); font-size: 13px; display: flex; align-items: center; padding-left: 4px; }
-.side { width: 40px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: transparent; color: var(--mu2); border: 1px dashed var(--s3); border-radius: 12px; }
+.side { width: 36px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: transparent; color: var(--mu2); border: 1px dashed var(--s3); border-radius: 12px; }
 .side:hover { color: var(--tx); border-color: var(--mu2); }
 .side.on { background: var(--ac); color: var(--oa); border: none; }
 .ig { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
