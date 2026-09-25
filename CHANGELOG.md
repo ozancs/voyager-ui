@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.2
+
+- Health: the Power tile no longer says "throttled" when Moonraker cannot read the power state (it shows -- instead)
+
 ## 0.18.1
 
 - New versions show up without pressing Check: the UI asks Moonraker to look for updates every 6 hours (not while printing). Can be turned off under Settings, General
