@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.17.0
+
+- Sliders (speed, flow, fans, output pins) show the value and fill while dragging, not only after release
+- Cards that fit their content by shrinking no longer jump back to full size when something opens inside them (MMU gate menu)
+- Heightmap: sliders next to the manual colour range and z axis fields
+- Update Manager rows, the side menu hint and the update notification refresh on their own after an update
+- Host throttling: only a current problem raises a notification, earlier events since boot are listed on the Health page
+
+## 0.16.1
+
+- Status tiles: while dragging, the target tile already slides into the dragged tile's slot, so the swap is visible before you let go
+
 ## 0.16.0
 
 - Status tiles: dropping a tile on another now swaps the two, the rest stay where they were
