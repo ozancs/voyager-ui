@@ -51,7 +51,12 @@ function saveRename() {
 // cannot lose the pointer half way. Any tile can go anywhere.
 const dragPos = ref({ x: 0, y: 0 })
 const overId = ref(null)
-let dragStart = null, dragEl = null
+let dragStart = null, dragEl = null, slots = []
+// where every tile sits when the drag starts (offset coords, untouched by the preview translations), so the
+// target is found by slot and not by whatever element happens to be under the pointer while tiles slide
+const slotOf = (id) => slots.find((x) => x.id === id)
+const swapOff = ref({ x: 0, y: 0 })
+const settle = ref(false) // on drop: no slide back, the reorder itself puts every tile where it was shown
 function moveTo(id, targetId) {
   const ids = items.value.map((x) => x.id).concat(stripAll.value.map((x) => x.id).filter((i) => !items.value.some((y) => y.id === i)))
   const from = ids.indexOf(id), to = ids.indexOf(targetId)
@@ -75,13 +80,19 @@ function pMove(e) {
   if (!dragId.value) { if (Math.hypot(e.clientX - dragStart.x, e.clientY - dragStart.y) < 6) return; dragId.value = dragStart.id }
   const b = basePos(dragEl)
   dragPos.value = { x: e.clientX - dragStart.ox - b.x, y: e.clientY - dragStart.oy - b.y }
-  const under = document.elementsFromPoint(e.clientX, e.clientY).find((x) => x.classList?.contains('dc') && !x.classList.contains('drag'))
-  overId.value = under?.dataset.id || null
+  if (!slots.length) slots = [...dragEl.parentElement.children].filter((x) => x.classList?.contains('dc')).map((x) => ({ id: x.dataset.id, x: x.offsetLeft, y: x.offsetTop, w: x.offsetWidth, h: x.offsetHeight }))
+  const pr = dragEl.offsetParent?.getBoundingClientRect() || { left: 0, top: 0 }
+  const px = e.clientX - pr.left, py = e.clientY - pr.top
+  const hit = slots.find((x) => x.id !== dragId.value && px >= x.x && px < x.x + x.w && py >= x.y && py < x.y + x.h)
+  overId.value = hit?.id || null
+  // preview the swap: the target slides into the dragged tile's slot
+  const me = slotOf(dragId.value)
+  swapOff.value = hit && me ? { x: me.x - hit.x, y: me.y - hit.y } : { x: 0, y: 0 }
 }
 function pUp() {
   window.removeEventListener('pointermove', pMove); window.removeEventListener('pointerup', pUp); window.removeEventListener('pointercancel', pUp)
-  if (dragId.value && overId.value) moveTo(dragId.value, overId.value)
-  dragStart = null; dragEl = null; dragId.value = null; overId.value = null; dragPos.value = { x: 0, y: 0 }
+  if (dragId.value && overId.value) { settle.value = true; moveTo(dragId.value, overId.value); requestAnimationFrame(() => requestAnimationFrame(() => (settle.value = false))) }
+  dragStart = null; dragEl = null; slots = []; dragId.value = null; overId.value = null; dragPos.value = { x: 0, y: 0 }; swapOff.value = { x: 0, y: 0 }
 }
 watch(() => state.editDash, (on) => { if (!on) pUp() })
 const tgt = ref('')
@@ -151,8 +162,8 @@ function sensorExtra(id) {
 }
 </script>
 <template>
-  <TransitionGroup tag="div" ref="box" class="ds" :class="{ editing: state.editDash }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : null" move-class="mv">
-    <div v-for="(d, gi) in items" :key="d.id" class="dc" :class="[tint(d), { click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, over: overId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]" :style="{ '--dx': dragId === d.id && state.editDash ? dragPos.x + 'px' : '0px', '--dy': dragId === d.id && state.editDash ? dragPos.y + 'px' : '0px', '--lvl': level(d), '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null }"
+  <TransitionGroup tag="div" ref="box" class="ds" :class="{ editing: state.editDash, settle }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : null" move-class="mv">
+    <div v-for="(d, gi) in items" :key="d.id" class="dc" :class="[tint(d), { click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, over: overId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]" :style="{ '--dx': dragId === d.id && state.editDash ? dragPos.x + 'px' : overId === d.id ? swapOff.x + 'px' : '0px', '--dy': dragId === d.id && state.editDash ? dragPos.y + 'px' : overId === d.id ? swapOff.y + 'px' : '0px', '--lvl': level(d), '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null }"
       :data-id="d.id" @pointerdown="pDown(d, $event)"
       @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id, $event) : null">
       <div v-if="state.editDash" class="etools">
@@ -244,7 +255,9 @@ function sensorExtra(id) {
 .dc.hid { opacity: .35; }
 .dc.drag { translate: var(--dx) var(--dy); opacity: .85; border-color: var(--ac); z-index: 30; box-shadow: 0 12px 30px rgba(0,0,0,.45); cursor: grabbing; }
 .mv { transition: transform .25s ease; }
-.dc.over { outline: 2px solid var(--ac); outline-offset: -2px; }
+.ds.editing .dc:not(.drag) { translate: var(--dx) var(--dy); transition: translate .18s ease; }
+.ds.settle .dc { transition: none; }
+.dc.over { outline: 2px solid var(--ac); outline-offset: -2px; z-index: 20; }
 .ds.editing .dc { cursor: grab; touch-action: none; user-select: none; }
 .dc.hot { box-shadow: inset 0 0 0 1px var(--heat-ln); }
 .dc.edit .spl { pointer-events: none; }
