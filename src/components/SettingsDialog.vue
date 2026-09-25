@@ -6,7 +6,7 @@ import Modal from './Modal.vue'
 import Toggle from './Toggle.vue'
 import ChipList from './ChipList.vue'
 import NotifierSettings from './NotifierSettings.vue'
-import { state, saveSettings, prettyName, DEFAULT_SETTINGS, S, VERSION, toast, APP, OLD_APPS, APP_NAME, uiZoomFor } from '../store'
+import { state, saveSettings, prettyName, tempSensors, DEFAULT_SETTINGS, S, VERSION, toast, APP, OLD_APPS, APP_NAME, uiZoomFor } from '../store'
 import { api } from '../api/moonraker'
 import { playSound } from '../features'
 import { sync, detect, importFrom, push } from '../sync'
@@ -133,10 +133,11 @@ function reset() { confirmReset.value = false; apply({ ...DEFAULT_SETTINGS(), la
             <!-- Dashboard -->
             <template v-else-if="tab === 'dashboard'">
               <div class="rw"><div class="k"><b>{{ t('Cards and layout') }}</b><span>{{ t('Add, remove, move and resize cards, choose card colours, hide top tiles.') }}</span></div><button class="btn acc" @click="customize"><Icon name="layout" :size="16" />{{ t('Customize') }}</button></div>
+              <div class="rw"><div class="k"><b>{{ t('Compact cards') }}</b><span>{{ t('Less padding, a thinner title bar and smaller gaps, so more fits on the screen.') }}</span></div><Toggle :model-value="state.settings.compactCards !== false" :label="t('Compact cards')" @update:model-value="state.settings.compactCards = $event" /></div>
               <div class="rw"><div class="k"><b>{{ t('Separate dashboard while printing') }}</b><span>{{ t('A second layout that is shown while a print runs.') }}</span></div><Toggle v-model="state.settings.autoLayout" :label="t('Separate dashboard while printing')" /></div>
-              <div class="rw"><div class="k"><b>{{ t('Favorites bar') }}</b><span>{{ t('Macro buttons under the top bar.') }}</span></div><button class="btn" @click="editFavs"><Icon name="pencil" :size="15" />{{ t('Edit') }}</button></div>
+              <div class="rw"><div class="k"><b>{{ t('Favorites bar') }}</b><span>{{ t('Macro buttons under the top bar. Also available as a Favorites card for the dashboard.') }}</span></div><div class="row" style="gap:8px"><div class="seg"><button v-for="[k, l] in [['always', 'Everywhere'], ['dashboard', 'Dashboard only'], ['off', 'Off']]" :key="k" :class="{ on: (state.settings.favBar || 'always') === k }" @click="state.settings.favBar = k">{{ t(l) }}</button></div><button class="btn" @click="editFavs"><Icon name="pencil" :size="15" />{{ t('Edit') }}</button></div></div>
               <div class="rw col"><div class="k"><b>{{ t('Temperatures card & graph') }}</b><span>{{ t('Sensors shown in the temperatures card and graph.') }}</span></div>
-                <div class="row" style="flex-wrap:wrap;gap:6px"><button v-for="s in S('heaters').available_sensors || []" :key="s" class="sch" :class="{ on: !state.settings.hiddenSensors.includes(s) }" :aria-pressed="!state.settings.hiddenSensors.includes(s)" @click="toggleHidden(state.settings.hiddenSensors, s)">{{ prettyName(s) }}</button></div>
+                <div class="row" style="flex-wrap:wrap;gap:6px"><button v-for="s in tempSensors" :key="s" class="sch" :class="{ on: !state.settings.hiddenSensors.includes(s) }" :aria-pressed="!state.settings.hiddenSensors.includes(s)" @click="toggleHidden(state.settings.hiddenSensors, s)">{{ prettyName(s) }}</button></div>
               </div>
               <div class="rw"><div class="k"><b>{{ t('Graph range') }}</b></div><div class="seg v"><button v-for="r in [300, 600, 1200]" :key="r" :class="{ on: (state.settings.tempRange || 600) === r }" @click="state.settings.tempRange = r">{{ r / 60 }} {{ t('min') }}</button></div></div>
             </template>

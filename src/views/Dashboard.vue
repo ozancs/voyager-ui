@@ -34,13 +34,18 @@ import interact from 'interactjs'
 import { nextTick } from 'vue'
 import { state, isPrinting, DEFAULT_LAYOUT, DEFAULT_SETTINGS, layoutSnapshot, pushLayoutBackup, restoreLayout } from '../store'
 import IconPicker from '../components/IconPicker.vue'
+import LiveZCard from '../components/LiveZCard.vue'
+import FavoritesCard from '../components/FavoritesCard.vue'
+import { pushDown } from '../calc'
 
 const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7] },
-  temps: { c: TempsCard, n: 'Temperatures', min: [3, 4], def: [6, 8] },
+  temps: { c: TempsCard, n: 'Temperatures', min: [3, 3], def: [6, 8] },
   tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [3, 4], def: [12, 6] },
   webcam: { c: WebcamCard, n: 'Webcam', min: [3, 4], def: [6, 8] },
-  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [5, 5], def: [12, 5] },
+  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [5, 6], def: [12, 6] }, // below 6 rows the controls no longer fit even shrunk
+  favorites: { c: FavoritesCard, n: 'Favorites', min: [2, 2], def: [6, 3] },
+  livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 3], def: [3, 4] },
   extruder: { c: ExtruderCard, n: 'Extruder', min: [3, 5], def: [6, 7] },
   limits: { c: LimitsCard, n: 'Machine Limits', min: [3, 5], def: [6, 7] },
   print: { c: PrintCard, n: 'Print Status', min: [5, 3], def: [12, 3] },
@@ -108,6 +113,16 @@ const onResize = () => (width.value = window.innerWidth)
 onMounted(() => window.addEventListener('resize', onResize))
 onBeforeUnmount(() => window.removeEventListener('resize', onResize))
 const wide = computed(() => width.value > 1000)
+// how many screen pixels one CSS pixel of the grid is (interface scale). Measured instead of taken from the setting,
+// because browsers disagree on how CSS zoom shows up in pointer and element coordinates.
+const gridScale = ref(1)
+const gap = computed(() => (state.settings.compactCards !== false ? [10, 10] : [20, 20]))
+function measureScale() {
+  const g = document.querySelector('.grid')
+  if (g && g.offsetWidth) gridScale.value = g.getBoundingClientRect().width / g.offsetWidth || 1
+}
+watch(() => [state.editDash, state.uiZoom, width.value], () => nextTick(measureScale))
+onMounted(() => nextTick(measureScale))
 
 // two layouts: normal and while printing (optional). In Customize both can be edited.
 const editMode = ref('idle')
@@ -121,7 +136,7 @@ function clean(l) {
   const hidden = hiddenNow()
   const seen = new Set()
   const ok = (i) => MODULES[i] || (isCustom(i) && state.settings.customCards?.[i])
-  const out = (l || []).filter((x) => ok(x.i) && !seen.has(x.i) && seen.add(x.i)).map(({ i, x, y, w, h }) => ({ i, x, y, w, h }))
+  const out = (l || []).filter((x) => ok(x.i) && !seen.has(x.i) && seen.add(x.i)).map(({ i, x, y, w, h }) => ({ i, x, y, w: Math.max(w, minOf(i)[0]), h: Math.max(h, minOf(i)[1]) })) // a raised minimum applies to saved layouts too
   for (const d of DEFAULT_LAYOUT()) if (!seen.has(d.i) && !hidden.includes(d.i)) out.push({ ...d, y: 999 })
   return out
 }
@@ -162,6 +177,43 @@ function addCustom(type) {
   persist(); addOpen.value = false
   if (type !== 'cam') editCard(id) // a webcam card picks its camera in its own header
 }
+
+// ---- resize from the bottom-left corner too (the grid library only has the bottom-right one) ----
+// Pointer moves are turned into whole grid cells; the left edge moves the card's x so its right side stays put.
+// Top corners are left out on purpose: the grid packs cards upwards, so growing a card upwards cannot hold.
+let rz = null
+function rzStart(it, corner, e) {
+  const g = document.querySelector('.grid')
+  if (!g) return
+  const colW = (g.offsetWidth - gap.value[0] * 13) / 12
+  rz = { it, corner, x0: e.clientX, y0: e.clientY, start: { x: it.x, y: it.y, w: it.w, h: it.h }, base: layout.value.map((l) => ({ ...l })), last: '', stepX: colW + gap.value[0], stepY: 40 + gap.value[1] }
+  window.addEventListener('pointermove', rzMove)
+  window.addEventListener('pointerup', rzEnd)
+  window.addEventListener('pointercancel', rzEnd)
+}
+function rzMove(e) {
+  if (!rz) return
+  const k = gridScale.value || 1
+  const dc = Math.round((e.clientX - rz.x0) / k / rz.stepX), dr = Math.round((e.clientY - rz.y0) / k / rz.stepY)
+  const s = rz.start, [mw, mh] = minOf(rz.it.i)
+  let { x, y, w, h } = s
+  if (rz.corner[1] === 'l') { const nx = Math.max(0, Math.min(s.x + s.w - mw, s.x + dc)); w = s.w + (s.x - nx); x = nx }
+  else w = Math.max(mw, Math.min(12 - s.x, s.w + dc))
+  if (rz.corner[0] === 't') { const ny = Math.max(0, Math.min(s.y + s.h - mh, s.y + dr)); h = s.h + (s.y - ny); y = ny }
+  else h = Math.max(mh, s.h + dr)
+  const sig = [x, y, w, h].join()
+  if (sig === rz.last) return
+  rz.last = sig
+  // always start from the layout as it was when the resize began, so shrinking back undoes the pushes
+  const L = rz.base.map((l) => ({ ...l }))
+  Object.assign(L.find((l) => l.i === rz.it.i), { x, y, w, h })
+  layout.value = pushDown(L, rz.it.i)
+}
+function rzEnd() {
+  window.removeEventListener('pointermove', rzMove); window.removeEventListener('pointerup', rzEnd); window.removeEventListener('pointercancel', rzEnd)
+  if (rz) { rz = null; persist() }
+}
+onBeforeUnmount(rzEnd)
 
 // ---- customize session with undo / backups ----
 let entry = null
@@ -250,13 +302,14 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
       <DeviceStrip v-if="state.klippy === 'ready'" />
       <div v-else class="grow"></div>
     </div>
-    <GridLayout v-if="wide" v-model:layout="layout" class="grid" :class="{ editing: state.editDash }" :col-num="12" :row-height="40" :margin="[20, 20]" :transform-scale="state.uiZoom"
+    <GridLayout v-if="wide" v-model:layout="layout" class="grid" :class="{ editing: state.editDash }" :col-num="12" :row-height="40" :margin="gap" :style="{ margin: -(gap[0] - 4) + 'px' }" :transform-scale="gridScale"
       :is-draggable="state.editDash" :is-resizable="state.editDash" vertical-compact use-css-transforms @layout-updated="persist">
       <GridItem v-for="it in layout" :key="it.i" :i="it.i" :x="it.x" :y="it.y" :w="it.w" :h="it.h" :min-w="minOf(it.i)[0]" :min-h="minOf(it.i)[1]"
-        drag-ignore-from=".tools">
+        drag-ignore-from=".tools, .rz">
         <div v-fit class="cell" :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i }" :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null">
           <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
           <component v-else :is="MODULES[it.i].c" class="fill" />
+          <template v-if="state.editDash"><span class="rz bl" @pointerdown.stop.prevent="rzStart(it, 'bl', $event)"></span></template>
           <div v-if="state.editDash" class="tools">
             <button v-if="isCustom(it.i) && state.settings.customCards?.[it.i]?.type !== 'cam'" class="btn ibtn sm" :aria-label="t('Edit {name}', { name: t(nameOf(it.i)) })" @click="editCard(it.i)"><Icon name="pencil" :size="14" /></button>
             <button v-if="MODULES[it.i]?.opts" class="btn ibtn sm" :aria-label="t('Options {name}', { name: t(nameOf(it.i)) })" @click="optsFor = it.i"><Icon name="gear" :size="15" /></button>
@@ -336,6 +389,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .dd { position: absolute; right: 0; top: 40px; width: 240px; z-index: 40; gap: 2px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
 .di { justify-content: flex-start; height: 36px; color: var(--tx); }
 .grid { margin: -16px; }
+:global(:root.compact) .top { padding-bottom: 6px; }
 .cell { position: relative; height: 100%; }
 
 .tools { position: absolute; top: 8px; right: 8px; z-index: 5; display: flex; gap: 4px; }
@@ -362,5 +416,11 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .grid :deep(.vgl-item--placeholder) { background: var(--ac); opacity: .15; border-radius: 12px; }
 .grid :deep(.vgl-item__resizer) { display: none; }
 .grid.editing :deep(.vgl-item__resizer) { display: block; }
+/* the three extra resize corners, drawn like the library's bottom-right one */
+.rz { position: absolute; width: 22px; height: 22px; z-index: 6; touch-action: none; }
+.rz::before { content: ''; position: absolute; width: 9px; height: 9px; border: 0 solid var(--ac); }
+.rz.tl { left: 0; top: 0; cursor: nwse-resize; } .rz.tl::before { left: 4px; top: 4px; border-left-width: 3px; border-top-width: 3px; }
+.rz.tr { right: 0; top: 0; cursor: nesw-resize; } .rz.tr::before { right: 4px; top: 4px; border-right-width: 3px; border-top-width: 3px; }
+.rz.bl { left: 0; bottom: 0; cursor: nesw-resize; } .rz.bl::before { left: 4px; bottom: 4px; border-left-width: 3px; border-bottom-width: 3px; }
 .ig { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
 </style>

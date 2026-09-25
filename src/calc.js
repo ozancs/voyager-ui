@@ -7,3 +7,16 @@ export function counterGrowth(h, key) {
   return sum
 }
 
+// Grid layout: after a card was resized from a left or top corner, push every card it now overlaps (and what
+// those then overlap) down below it, the way the grid does it for the bottom-right corner. Mutates the items.
+const hit = (a, b) => a !== b && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+export function pushDown(layout, id) {
+  const moved = layout.find((l) => l.i === id)
+  if (!moved) return layout
+  const queue = [moved]
+  for (let guard = 0; queue.length && guard < 500; guard++) {
+    const a = queue.shift()
+    for (const b of layout) if (b !== moved && hit(a, b) && b.y < a.y + a.h) { b.y = a.y + a.h; queue.push(b) }
+  }
+  return layout
+}

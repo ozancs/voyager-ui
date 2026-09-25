@@ -36,3 +36,13 @@ describe('mcu counters', () => {
   })
 })
 
+import { pushDown } from '../src/calc.js'
+describe('grid resize from the left or top', () => {
+  it('pushes overlapped cards below the resized one', () => {
+    const l = [{ i: 'a', x: 0, y: 0, w: 6, h: 4 }, { i: 'b', x: 6, y: 0, w: 6, h: 4 }, { i: 'c', x: 6, y: 4, w: 6, h: 2 }]
+    l[0].w = 8 // a grew over b
+    pushDown(l, 'a')
+    expect(l.find((x) => x.i === 'b').y).toBe(4)
+    expect(l.find((x) => x.i === 'c').y).toBe(8)
+  })
+})

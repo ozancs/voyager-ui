@@ -62,3 +62,12 @@
 [data-look="panel"] .card.tint { background: color-mix(in srgb, var(--tint-d) 5%, var(--s1)) !important; }
 [data-look="panel"] .card:not(.cb) > .card-h:first-child .btn:not(.acc):not(.out):not(.dgf) { background: color-mix(in srgb, var(--k, var(--mu2)) 9%, var(--base-s2)); }
 :root[data-look="panel"][data-theme="light"] .card > .card-h:first-child { background: color-mix(in srgb, var(--k, var(--mu2)) 8%, #fff); }
+
+/* compact dashboard (default): less padding, a thinner title bar, smaller header buttons */
+:root.compact .grid .card { padding: 12px; gap: 10px; }
+:root.compact[data-look="panel"] .grid .card:not(.cb) > .card-h:first-child { margin: -12px -12px 0; padding: 5px 8px 5px 12px; min-height: 42px; top: -12px; }
+:root.compact .grid .card-h { min-height: 30px; }
+:root.compact .grid .card-h h2 { font-size: 14.5px; }
+:root.compact .grid .card-h .btn { height: 30px; padding: 0 9px; font-size: 12.5px; gap: 5px; }
+:root.compact .grid .card-h .btn.ibtn { width: 30px; padding: 0; }
+:root.compact .grid .card-h .seg button { height: 28px; }

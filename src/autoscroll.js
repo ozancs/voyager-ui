@@ -2,18 +2,23 @@
 // of the page. After each scroll step the last pointer event is replayed so the dragged card follows.
 export function useEdgeAutoScroll(getScroller, active, { pointer = true, onScroll = null, getBox = null } = {}) {
   let last = null, raf = 0, down = false
-  const EDGE = 80, MAX = 22
+  // Gentle on purpose: only the pointer counts (a tall dragged card touched the bottom edge at once and sent the
+  // page flying), the speed ramps up with how deep the pointer is in the edge band, and it waits a moment first.
+  const EDGE = 56, MAX = 14, DELAY = 250
+  let inEdgeSince = 0
   function speed() {
     const el = getScroller()
     if (!el || !last) return 0
     const r = el.getBoundingClientRect()
-    // use the dragged card's own edges when we know it (and it fits on screen), else the pointer
-    let top = last.clientY, bot = last.clientY
-    const b = getBox?.()
-    if (b && b.height < r.height - EDGE) { top = b.top; bot = b.bottom }
-    if (top < r.top + EDGE) return -MAX * Math.min(1, (r.top + EDGE - top) / EDGE)
-    if (bot > r.bottom - EDGE) return MAX * Math.min(1, (bot - (r.bottom - EDGE)) / EDGE)
-    return 0
+    const y = last.clientY
+    let f = 0
+    if (y < r.top + EDGE) f = -Math.min(1, (r.top + EDGE - y) / EDGE)
+    else if (y > r.bottom - EDGE) f = Math.min(1, (y - (r.bottom - EDGE)) / EDGE)
+    if (!f) { inEdgeSince = 0; return 0 }
+    const now = performance.now()
+    if (!inEdgeSince) inEdgeSince = now
+    if (now - inEdgeSince < DELAY) return 0
+    return Math.sign(f) * Math.max(1, MAX * f * f)
   }
   function tick() {
     raf = 0

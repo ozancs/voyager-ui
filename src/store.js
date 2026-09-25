@@ -65,7 +65,9 @@ export const DEFAULT_SETTINGS = () => ({
   // layout used while printing (null = same as idle until edited)
   theme: 'dark', // dark | light | auto
   searchContent: true, // Ctrl+K also searches inside .py .sh .txt files in the config folder
-  heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5 }, // colour range and 3D z axis, auto = from the mesh
+  heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false }, // colour range and 3D z axis, auto = from the mesh
+  favBar: 'always', // favorites bar under the top bar: always | dashboard | off (a Favorites card can go on the dashboard)
+  compactCards: true, // dashboard cards with less padding, a thinner title bar and a tighter grid
   uiScale: 100, // percent; 'auto' = looks the same as on a 1920 px wide screen
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
@@ -91,7 +93,7 @@ export const DEFAULT_LAYOUT = () => [
   { i: 'temps', x: 0, y: 7, w: 6, h: 8 },
   { i: 'webcam', x: 6, y: 7, w: 6, h: 8 },
   { i: 'tempchart', x: 0, y: 15, w: 12, h: 6 },
-  { i: 'toolhead', x: 0, y: 21, w: 12, h: 5 },
+  { i: 'toolhead', x: 0, y: 21, w: 12, h: 6 },
   { i: 'extruder', x: 0, y: 26, w: 6, h: 7 },
   { i: 'limits', x: 6, y: 26, w: 6, h: 7 },
 ]
@@ -180,6 +182,7 @@ export function prettyName(obj) {
   if (obj === 'fan') return t('Part Fan')
   if (obj === 'extruder') return t('Extruder')
   if (obj === 'heater_bed') return t('Heater Bed')
+  if (/^tmc\d+ /.test(obj)) return t('{name} driver', { name: shortName(obj).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) })
   return shortName(obj).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 export function fmtTime(sec) {
@@ -256,9 +259,15 @@ export const layerInfo = computed(() => {
   return { cur: cur ?? 0, total: total ?? 0 }
 })
 
+// every temperature the UI can show: Klipper's sensors plus stepper drivers that report their own temperature
+// (TMC2240). Those are not temperature sensors in Klipper, so they are not in heaters.available_sensors.
+export const tempSensors = computed(() => [
+  ...(S('heaters').available_sensors || []),
+  ...state.objects.filter((o) => /^tmc2240 /.test(o) && typeof S(o).temperature === 'number'),
+])
 export const sensors = computed(() => {
   const h = S('heaters')
-  const list = h.available_sensors || []
+  const list = tempSensors.value
   const heaters = new Set(h.available_heaters || [])
   return list
     .filter((n) => !state.settings.hiddenSensors.includes(n))
@@ -295,7 +304,7 @@ export const devices = computed(() => {
 
 // items for the top card strip: temperatures first, then devices. Order + hidden persisted.
 export const stripAll = computed(() => {
-  const temps = (S('heaters').available_sensors || []).map((n) => ({ id: 'temp:' + n, kind: 'temp', obj: n }))
+  const temps = tempSensors.value.map((n) => ({ id: 'temp:' + n, kind: 'temp', obj: n }))
   const items = [...temps, ...devices.value.map((d) => ({ ...d, obj: d.id, id: 'dev:' + d.id }))]
   const order = state.settings.strip?.order || []
   const idx = (id) => { const i = order.indexOf(id); return i < 0 ? 1000 + items.findIndex((x) => x.id === id) : i }
@@ -535,6 +544,7 @@ watch(() => state.settings.uiScale, applyScale, { immediate: true })
 let rsz
 window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(applyScale, 120) })
 document.documentElement.dataset.look = 'panel'
+watch(() => state.settings.compactCards !== false, (c) => document.documentElement.classList.toggle('compact', c), { immediate: true })
 mqDark?.addEventListener?.('change', applyTheme)
 watch(() => state.settings.accent, (a) => document.documentElement.style.setProperty('--ac-raw', a || '#ff6b1a'), { immediate: true })
 
@@ -757,7 +767,7 @@ export function start() {
   // sample temperatures every second (same as moonraker's store)
   setInterval(() => {
     if (state.klippy !== 'ready') return
-    const names = S('heaters').available_sensors || []
+    const names = tempSensors.value
     for (const n of names) {
       const s = state.status[n]
       if (!s || s.temperature == null) continue
