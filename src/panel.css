@@ -60,7 +60,7 @@
 [data-look="panel"] .card:not(.cb) > .card-h:first-child h2 { color: color-mix(in srgb, var(--k, var(--tx)) 35%, var(--tx)); }
 [data-look="panel"] .tint-cell > .card,
 [data-look="panel"] .card.tint { background: color-mix(in srgb, var(--tint-d) 5%, var(--s1)) !important; }
-[data-look="panel"] .card:not(.cb) > .card-h:first-child .btn:not(.acc):not(.out):not(.dgf) { background: color-mix(in srgb, var(--k, var(--mu2)) 9%, var(--base-s2)); }
+[data-look="panel"] .card:not(.cb) > .card-h:first-child .btn:not(.dgf):not(.on) { background: color-mix(in srgb, var(--k, var(--mu2)) 9%, var(--base-s2)); }
 :root[data-look="panel"][data-theme="light"] .card > .card-h:first-child { background: color-mix(in srgb, var(--k, var(--mu2)) 8%, #fff); }
 
 /* compact dashboard (default): less padding, a thinner title bar, smaller header buttons */

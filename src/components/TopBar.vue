@@ -31,7 +31,7 @@ const eo = computed(() => S('exclude_object'))
 const eta = computed(() => printTimes.value.eta ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '--')
 function reprint() { const f = S('print_stats').filename; if (f) api.call('printer.print.start', { filename: f }).catch((e) => toast(e.message, 'error')) }
 
-const stateColor = computed(() => ({ printing: 'var(--ok)', paused: 'var(--wn)', error: 'var(--dg)', complete: 'var(--bl)', cancelled: 'var(--mu)' }[printState.value] || 'var(--mu)'))
+const stateColor = computed(() => ({ printing: 'var(--ac)', paused: 'var(--wn)', error: 'var(--dg)', complete: 'var(--bl)', cancelled: 'var(--mu)' }[printState.value] || 'var(--mu)'))
 const label = computed(() => {
   if (!state.connected) return t('Disconnected')
   if (state.klippy !== 'ready') return t('Klipper {state}', { state: state.klippy })
@@ -96,8 +96,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
       <div class="pth"><img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon v-else name="cube" :size="20" :stroke="1.8" /></div>
       <div class="col" style="gap:1px;min-width:0;flex-shrink:1">
         <div class="row" style="gap:8px;min-width:0">
-          <span class="dot" :style="{ background: state.connected && state.klippy === 'ready' ? stateColor : 'var(--dg)' }"></span>
-          <b class="st">{{ label }}</b>
+          <b class="st" :class="{ bad: !state.connected || state.klippy !== 'ready' || printState === 'error' }">{{ label }}</b>
           <span v-if="active" class="mono st2">{{ (progress * 100).toFixed(1) }}%</span>
         </div>
         <span class="mono fn">{{ state.klippy !== 'ready' && state.klippyMessage ? state.klippyMessage.split('\n')[0] : S('print_stats').filename || t('No file loaded') }}</span>
@@ -106,10 +105,10 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
         <div class="pb"><div class="bar state" :style="{ height: '8px', '--pst': stateColor }"><div :style="{ width: progress * 100 + '%' }"></div></div>
           <div class="row mono meta"><span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span><span class="hide-m">{{ t('ETA {time}', { time: eta }) }}</span></div>
         </div>
-        <button v-if="printState === 'paused'" class="btn acc pbtn" :aria-label="t('Resume')" @click="gcode('RESUME')"><Icon name="play" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Resume') }}</span></button>
+        <button v-if="printState === 'paused'" class="btn pbtn" :aria-label="t('Resume')" @click="gcode('RESUME')"><Icon name="play" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Resume') }}</span></button>
         <button v-else class="btn pbtn" :aria-label="t('Pause')" @click="gcode('PAUSE')"><Icon name="pause" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Pause') }}</span></button>
-        <button class="btn dg pbtn" :aria-label="t('Cancel print')" @click="askCancel = true"><Icon name="sq" :size="16" :stroke="2.4" /></button>
-        <button class="btn out pbtn" :aria-label="t('Exclude object')" :disabled="!eo.objects?.length" @click="emit('exclude')"><Icon name="excl" :size="16" :stroke="2.4" /><span v-if="eo.objects?.length" class="mono" style="font-size:11px">{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span></button>
+        <button class="btn pbtn" :aria-label="t('Cancel print')" @click="askCancel = true"><Icon name="sq" :size="16" :stroke="2.4" /></button>
+        <button class="btn pbtn exo" :aria-label="t('Exclude object')" :disabled="!eo.objects?.length" @click="emit('exclude')"><Icon name="excl" :size="16" :stroke="2.4" /><span v-if="eo.objects?.length" class="mono" style="font-size:11px">{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span></button>
       </template>
       <button v-if="state.queue.jobs?.length" class="btn pbtn qb" :title="t('{n} jobs queued', { n: state.queue.jobs.length })" @click="go('files')"><Icon name="queue" :size="16" /><span class="mono">{{ state.queue.jobs.length }}</span></button>
       <template v-if="!active">
@@ -118,11 +117,11 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
       </template>
     </div>
     <button class="btn lg srch hide-s" :aria-label="t('Search (Ctrl+K)')" @click="state.spotlight = true"><Icon name="search" :size="18" :stroke="2.4" /><kbd class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd></button>
-    <button class="btn lg hide-s" :class="{ acc: savePending }" :disabled="!savePending" :aria-label="t('Save Config')" @click="gcode('SAVE_CONFIG')"><Icon name="save" :stroke="2.4" /><span class="hide-m">{{ t('Save Config') }}</span></button>
-    <button class="btn lg acc hide-s" :aria-label="t('Upload & Print')" :disabled="uploading !== null" @click="fileInput.click()"><Icon name="upload" :stroke="2.4" /><span v-if="uploading !== null">{{ Math.round(uploading * 100) + '%' }}</span><span v-else class="hide-m">{{ t('Upload & Print') }}</span></button>
+    <button class="btn lg hide-s" :disabled="!savePending" :aria-label="t('Save Config')" @click="gcode('SAVE_CONFIG')"><Icon name="save" :stroke="2.4" /><span class="hide-m">{{ t('Save Config') }}</span></button>
+    <button class="btn lg hide-s" :aria-label="t('Upload & Print')" :disabled="uploading !== null" @click="fileInput.click()"><Icon name="upload" :stroke="2.4" /><span v-if="uploading !== null">{{ Math.round(uploading * 100) + '%' }}</span><span v-else class="hide-m">{{ t('Upload & Print') }}</span></button>
     <input ref="fileInput" type="file" accept=".gcode,.g,.gco,.ufp,.nc" hidden @change="onFile" />
     <div class="rel">
-      <button class="btn ibtn" :aria-label="t('Notifications')" @click="showBell = !showBell"><Icon name="bell" :size="22" :stroke="2.4" /><span v-if="state.notifications.length" class="badge" :style="{ background: state.notifications.some((n) => n.kind === 'error') ? 'var(--dg)' : state.notifications.some((n) => n.kind === 'warn') ? 'var(--wn)' : 'var(--bl)', color: '#111' }">{{ state.notifications.length }}</span></button>
+      <button class="btn ibtn" :aria-label="t('Notifications')" @click="showBell = !showBell"><Icon name="bell" :size="22" :stroke="2.4" /><span v-if="state.notifications.length" class="badge" :style="state.notifications.some((n) => n.kind === 'error') ? { background: 'var(--dg)', color: '#111' } : state.notifications.some((n) => n.kind === 'warn') ? { background: 'var(--wn)', color: '#111' } : { background: 'var(--s3)', color: 'var(--tx)' }">{{ state.notifications.length }}</span></button>
       <div v-if="showBell" class="dd card" v-away="() => (showBell = false)" @mouseleave="showBell = false">
         <div class="card-h"><h2>{{ t('Notifications') }}</h2><button class="btn" :disabled="!state.notifications.length" @click="dismissAll">{{ t('Dismiss all') }}</button></div>
         <div v-if="!state.notifications.length" class="empty">{{ t('No notifications') }}</div>
@@ -166,16 +165,15 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
 .logo { width: 40px; height: 40px; border-radius: 10px; background: var(--ac); color: var(--oa); display: flex; align-items: center; justify-content: center; }
 .srch { gap: 10px; color: var(--mu); }
 .srch kbd { font-family: var(--fm); font-size: 11px; background: var(--s3); padding: 2px 6px; border-radius: 5px; }
-.qb { color: var(--cool); }
 .pill { flex: 1; display: flex; align-items: center; gap: 12px; padding: 0 6px 0 5px; height: 52px; background: var(--s1); border: none; border-radius: 14px; min-width: 0; }
 .pth { width: 42px; height: 42px; flex-shrink: 0; border-radius: 10px; background: var(--s2); display: flex; align-items: center; justify-content: center; color: var(--mu); overflow: hidden; }
 .pth img { width: 100%; height: 100%; object-fit: contain; }
 .st { font-size: 14px; white-space: nowrap; }
-.st2 { font-size: 13px; font-weight: 600; color: var(--heat); }
+.st2 { font-size: 13px; font-weight: 600; color: var(--mu); }
+.st.bad { color: var(--dg); }
 .pb { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px; }
 .meta { gap: 14px; font-size: 11px; color: var(--mu); white-space: nowrap; overflow: hidden; }
 .pbtn { height: 40px; flex-shrink: 0; }
-.dot { width: 10px; height: 10px; border-radius: 5px; flex-shrink: 0; }
 .fn { font-size: 12px; color: var(--mu); max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 :root.ew-lt-1750 .hide-m { display: none; }
 .msg { font-size: 12px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
@@ -196,7 +194,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
 }
 /* phones: the pill keeps state, progress and the pause / cancel buttons, the rest goes */
 @media (max-width: 720px) {
-  .pb, .fn, .qb, .pbtn.out { display: none; }
+  .pb, .fn, .qb, .pbtn.exo { display: none; }
   .pill { gap: 8px; }
   .pill > .col { min-width: 84px !important; }
   .st { font-size: 13px; }

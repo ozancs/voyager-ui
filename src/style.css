@@ -64,32 +64,32 @@ a { color: var(--ac); }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 12px; background: var(--s2); color: var(--tx); border: 1px solid transparent; border-radius: var(--rb); font-weight: 600; font-size: 13px; white-space: nowrap; transition: filter .12s, background .12s; }
 .btn:hover:not(:disabled) { background: var(--s3); }
-.btn.acc:hover:not(:disabled) { background: color-mix(in srgb, var(--ac) 26%, var(--s2)); }
-.btn.dgf:hover:not(:disabled) { background: var(--ac); filter: brightness(1.08); }
 .btn.dgf:hover:not(:disabled) { background: var(--dg); }
 .btn.clear:hover:not(:disabled) { background: var(--s2); color: var(--tx); }
 :focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
 .btn.lg { height: 44px; padding: 0 16px; font-size: 14px; }
-/* accent buttons are tinted, not filled: a filled accent everywhere (top bar, card headers) was loud and
-   pulled the eye away from the printer values. Only the main action of a dialog stays filled. */
-.btn.acc { background: color-mix(in srgb, var(--ac) 15%, var(--s2)); color: var(--ac); border-color: transparent; }
+/* coloured buttons only where colour means something: the main action of a dialog (filled accent) and a
+   destructive choice inside a confirm dialog (red text). Everywhere else acc/out/dg buttons look like any
+   other button, so the top bar and card headers stay calm and the printer values stand out. */
+.btn.acc, .btn.out, .btn.dg { background: var(--s2); color: var(--tx); border-color: transparent; }
+.btn.acc:hover:not(:disabled), .btn.out:hover:not(:disabled), .btn.dg:hover:not(:disabled) { background: var(--s3); }
 .md .row > .btn.lg.acc, .md .row > .btn.lg.acc:hover:not(:disabled) { background: var(--ac); color: var(--oa); filter: none; }
 .md .row > .btn.lg.acc:hover:not(:disabled) { filter: brightness(1.08); }
-.btn.out { background: var(--heat-bg); color: var(--heat); border-color: transparent; }
-.btn.dg { background: rgba(240,106,106,.12); color: var(--dg); border-color: transparent; }
+.md .btn.dg { color: var(--dg); }
+.btn.on { background: var(--s3); color: var(--tx); }
 .btn.dgf { background: var(--dg); color: #fff; border-color: var(--dg); }
 .btn.clear { background: transparent; border-color: transparent; color: var(--mu); }
 .ibtn { width: 44px; height: 44px; padding: 0; flex-shrink: 0; }
 .ibtn.sm { width: 32px; height: 32px; }
 
 .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--s2); font-size: 12px; font-weight: 600; white-space: nowrap; }
-.chip i { width: 7px; height: 7px; border-radius: 4px; background: currentColor; display: block; }
+.chip i { display: none; }
 
 .seg { display: flex; gap: 4px; }
 .seg { background: var(--s2); border-radius: 10px; padding: 3px; gap: 2px; }
 .seg button { white-space: nowrap; flex: 1; height: 28px; padding: 0 10px; background: transparent; color: var(--mu); border: none; border-radius: 7px; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .seg button:hover { color: var(--tx); }
-.seg button.on { background: var(--s3); color: var(--tx); box-shadow: inset 0 -2px 0 var(--ac); }
+.seg button.on { background: var(--s3); color: var(--tx); }
 
 .toggle { width: 46px; height: 26px; flex-shrink: 0; border-radius: 13px; background: var(--s3); border: none; padding: 3px; display: flex; justify-content: flex-start; }
 .toggle span { width: 20px; height: 20px; border-radius: 10px; background: var(--mu); display: block; transition: transform .15s; }

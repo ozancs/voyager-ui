@@ -16,7 +16,7 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
 <template>
   <div class="split cp">
     <section class="card grow" style="min-height:0">
-      <div class="card-h"><h2>{{ t('Console') }}</h2><div class="acts"><button class="btn" :class="{ out: state.settings.consoleHideTemps }" @click="state.settings.consoleHideTemps = !state.settings.consoleHideTemps">{{ t('Hide temps') }}</button><button class="btn" @click="state.console = []"><Icon name="trash" :size="16" />{{ t('Clear') }}</button></div></div>
+      <div class="card-h"><h2>{{ t('Console') }}</h2><div class="acts"><button class="btn" :class="{ on: state.settings.consoleHideTemps }" :aria-pressed="!!state.settings.consoleHideTemps" @click="state.settings.consoleHideTemps = !state.settings.consoleHideTemps">{{ t('Hide temps') }}</button><button class="btn" @click="state.console = []"><Icon name="trash" :size="16" />{{ t('Clear') }}</button></div></div>
       <ConsoleView ref="cv" :limit="600" />
     </section>
     <section class="card side-col">
