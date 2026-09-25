@@ -86,7 +86,7 @@ defineExpose({ setCmd: (c) => (cmd.value = c) })
 .ln { display: flex; gap: 14px; color: var(--mu); }
 .ln .t { color: var(--mu2); flex-shrink: 0; }
 .ln .m { white-space: pre-wrap; word-break: break-word; }
-.ln.c { color: var(--heat); }
+.ln.c { color: var(--tx); font-weight: 600; }
 .ln.e { color: var(--dg); }
 .ln.i { color: var(--tx); }
 .ln.h { color: var(--bl); }

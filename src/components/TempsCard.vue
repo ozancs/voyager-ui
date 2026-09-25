@@ -59,7 +59,7 @@ const presets = computed(() => state.settings.presets || [])
 .tg { width: 76px; height: 30px; background: var(--s2); border: 1px solid transparent; border-radius: 10px; padding: 0 10px; font-size: 14px; font-weight: 700; outline: none; -moz-appearance: textfield; }
 .tg::-webkit-inner-spin-button { -webkit-appearance: none; }
 .tg:focus { border-color: var(--ac); }
-.tg.on { color: var(--heat); background: var(--heat-bg); }
+.tg.on { color: var(--tx); }
 .mu { color: var(--mu); font-size: 13px; }
 .chart { position: relative; flex: 1; min-height: 140px; padding-left: 30px; }
 .chart svg { width: 100%; height: 100%; display: block; }

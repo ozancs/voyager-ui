@@ -18,7 +18,7 @@ function move(dir) {
   <section class="card spread">
     <div class="card-h">
       <h2>{{ t('Extruder') }}</h2>
-      <span class="chip" :style="{ color: e.can_extrude ? 'var(--ok)' : 'var(--wn)' }"><i></i>{{ e.temperature?.toFixed(1) }}° / {{ e.target?.toFixed(0) }}°</span>
+      <span class="chip" :style="{ color: e.can_extrude ? 'var(--mu)' : 'var(--wn)' }"><i></i>{{ e.temperature?.toFixed(1) }}° / {{ e.target?.toFixed(0) }}°</span>
     </div>
     <div class="g2">
       <div class="col" style="gap:6px"><span class="lbl">{{ t('Length (mm)') }}</span><div class="seg"><button v-for="v in amounts" :key="v" :class="{ on: len === v }" @click="len = v">{{ v }}</button></div></div>

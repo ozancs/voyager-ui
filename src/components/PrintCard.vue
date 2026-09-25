@@ -17,7 +17,7 @@ const thumb = computed(() => {
   const dir = (ps.value.filename || '').split('/').slice(0, -1).join('/')
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path)
 })
-const color = computed(() => ({ printing: 'var(--ok)', paused: 'var(--wn)', error: 'var(--dg)', complete: 'var(--bl)', cancelled: 'var(--mu)' }[printState.value] || 'var(--mu)'))
+const color = computed(() => ({ printing: 'var(--ac)', paused: 'var(--wn)', error: 'var(--dg)', complete: 'var(--bl)', cancelled: 'var(--mu)' }[printState.value] || 'var(--mu)'))
 const eo = computed(() => S('exclude_object'))
 const remaining = computed(() => (eo.value.objects?.length || 0) - (eo.value.excluded_objects?.length || 0))
 const z = computed(() => (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2))

@@ -54,8 +54,8 @@ const details = ref(false)
 // one small tile per MCU plus CPU and memory of the host
 const tiles = computed(() => [
   ...mcus.value.map((m) => ({ k: m.name, name: m.name === 'mcu' ? 'MCU' : m.name.slice(4), sub: m.temp != null ? m.temp.toFixed(0) + '°C' : m.chip, v: m.load * 100, color: 'var(--ac)', tip: [m.chip, m.version, m.freq && m.freq + ' MHz'].filter(Boolean).join('\n') })),
-  { k: 'cpu', name: t('CPU'), sub: proc.value?.cpu_temp != null ? proc.value.cpu_temp.toFixed(0) + '°C' : cpu.value.processor || '', v: cpuPct.value, color: 'var(--cool)', tip: [cpu.value.model, sys.value?.distribution?.name].filter(Boolean).join('\n') },
-  { k: 'mem', name: t('MEM'), sub: mem.value ? fmtBytes(mem.value.used * 1024) : '', v: memPct.value, color: 'var(--sense)', tip: mem.value ? fmtBytes(mem.value.used * 1024) + ' / ' + fmtBytes(mem.value.total * 1024) : '' },
+  { k: 'cpu', name: t('CPU'), sub: proc.value?.cpu_temp != null ? proc.value.cpu_temp.toFixed(0) + '°C' : cpu.value.processor || '', v: cpuPct.value, color: 'var(--mu)', tip: [cpu.value.model, sys.value?.distribution?.name].filter(Boolean).join('\n') },
+  { k: 'mem', name: t('MEM'), sub: mem.value ? fmtBytes(mem.value.used * 1024) : '', v: memPct.value, color: 'var(--mu)', tip: mem.value ? fmtBytes(mem.value.used * 1024) + ' / ' + fmtBytes(mem.value.total * 1024) : '' },
 ])
 </script>
 <template>
@@ -78,8 +78,8 @@ const tiles = computed(() => [
         <span class="sm">{{ t('Load: {l}', { l: S('system_stats').sysload?.toFixed(1) ?? '--' }) }}<template v-if="mem">, {{ t('Mem: {used} / {total}', { used: fmtBytes(mem.used * 1024), total: fmtBytes(mem.total * 1024) }) }}</template><template v-if="proc?.cpu_temp != null">, {{ t('Temp: {n}°C', { n: proc.cpu_temp.toFixed(0) }) }}</template></span>
         <span v-for="n in nets" :key="n.name" class="sm mu net">{{ n.name }}<template v-if="n.ip"> ({{ n.ip }})</template>: {{ t('Bandwidth: {bw}/s, Received: {rx}, Transmitted: {tx}', { bw: fmtBytes(n.bw), rx: fmtBytes(n.rx), tx: fmtBytes(n.tx) }) }}</span>
       </div>
-      <Donut :value="cpuPct" :label="t('CPU')" color="var(--cool)" />
-      <Donut :value="memPct" :label="t('MEM')" color="var(--sense)" />
+      <Donut :value="cpuPct" :label="t('CPU')" color="var(--mu)" />
+      <Donut :value="memPct" :label="t('MEM')" color="var(--mu)" />
     </div>
   </section>
   <section v-else class="card sl">

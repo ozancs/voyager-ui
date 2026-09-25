@@ -69,7 +69,8 @@ const hasMmu = computed(() => state.objects.includes('mmu') || state.objects.inc
 // Default hue per module follows meaning, the same as the top tiles: orange = heat, purple = filament,
 // blue = air and devices, slate = motion, green = health. Everything else stays neutral.
 const TINTS = ['heat', 'cool', 'light', 'sense', 'spool', 'rose', 'teal', 'sand', 'slate', 'lime']
-const DEFAULT_TINT = { power: 'light', mmu: 'spool', temps: 'heat', tempchart: 'heat', extruder: 'spool', retraction: 'spool', spool: 'spool', toolhead: 'slate', limits: 'slate', mesh: 'slate', objects: 'slate', devices: 'cool', health: 'sense' }
+// cards start without a colour; a colour is something the user adds in Customize
+const DEFAULT_TINT = {}
 const tintKey = (i) => state.settings.cardColors?.[i] ?? (isCustom(i) ? 'none' : DEFAULT_TINT[i] || 'none')
 const tintVar = (i) => { const k = tintKey(i); return k === 'none' ? null : k.startsWith('#') ? k : `var(--tn-${k})` }
 function setTint(i, v) { state.settings.cardColors = { ...(state.settings.cardColors || {}), [i]: v } }
@@ -381,7 +382,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .top { display: flex; gap: 10px; align-items: flex-start; position: relative; z-index: 20; padding: 0 0 18px; }
 .dbar.on { padding: 10px 14px; background: var(--s1); border: 1px solid var(--ac); border-radius: 12px; position: sticky; top: -20px; z-index: 30; }
 .mu { color: var(--mu); font-size: 13px; }
-.mchip { height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: var(--cool-bg); color: var(--cool); font-size: 12px; }
+.mchip { height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: var(--s2); color: var(--tx); font-size: 12px; }
 .mchip.off { background: var(--s2); color: var(--mu2); text-decoration: line-through; }
 .al { gap: 8px; font-size: 13px; color: var(--mu); margin-left: 10px; cursor: pointer; }
 :root.ew-lt-1900 .hint { display: none; }

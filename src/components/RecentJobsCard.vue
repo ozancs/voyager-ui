@@ -10,7 +10,7 @@ const jobs = ref([])
 async function load() { try { jobs.value = (await api.call('server.history.list', { limit: 12, order: 'desc' })).jobs || [] } catch {} }
 onMounted(load)
 useApiEvent('notify_history_changed', () => setTimeout(load, 500))
-const COL = { completed: 'var(--ok)', cancelled: 'var(--mu2)', error: 'var(--dg)', klippy_shutdown: 'var(--dg)', in_progress: 'var(--bl)', interrupted: 'var(--wn)' }
+const COL = { completed: 'var(--mu)', cancelled: 'var(--mu2)', error: 'var(--dg)', klippy_shutdown: 'var(--dg)', in_progress: 'var(--tx)', interrupted: 'var(--wn)' }
 const reprint = (j) => api.call('printer.print.start', { filename: j.filename }).then(() => toast(t('Print started'))).catch((e) => toast(e.message, 'error'))
 </script>
 

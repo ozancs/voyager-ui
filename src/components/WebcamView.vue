@@ -176,7 +176,7 @@ defineExpose({ retry: start })
     </div>
 
     <template v-if="overlay && cam && status === 'live'">
-      <span class="live"><i></i>{{ t('LIVE') }}</span>
+      <span class="live">{{ t('LIVE') }}</span>
       <span class="info">{{ cam.name }}<template v-if="mode === 'snapshot'"> · {{ fps }} fps</template><template v-else-if="isVideo"> · {{ mode.startsWith('webrtc') ? 'WebRTC' : mode === 'hls' ? 'HLS' : 'video' }}</template></span>
     </template>
   </div>
@@ -190,6 +190,5 @@ defineExpose({ retry: start })
 .msg .em { font-size: 11px; color: #e58a8a; }
 .msg .btn { margin-top: 4px; }
 .live { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(0,0,0,.6); color: #fff; border-radius: 4px; font-size: 11px; font-weight: 700; }
-.live i { width: 8px; height: 8px; border-radius: 4px; background: #ff3b30; }
 .info { position: absolute; bottom: 10px; right: 10px; padding: 4px 8px; background: rgba(0,0,0,.6); color: #fff; border-radius: 4px; font-size: 11px; }
 </style>

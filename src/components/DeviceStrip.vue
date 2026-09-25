@@ -102,8 +102,8 @@ watch(() => state.editDash, (on) => { if (!on) pUp() })
 const tgt = ref('')
 function setT(d, v) { if (v === '' || v == null || isNaN(+v)) return; setHeater(d.obj, +v); open.value = null }
 function tint(d) {
-  if (d.kind === 'temp') return canTarget(d) ? 't-heat' : ''
-  return { fan: 't-cool', pin: 't-light', led: 't-light', filament: 't-sense', spoolman: 't-spool' }[d.kind] || ''
+  // colour only when it tells something: a heater that is on. LEDs show their own colour through --lc.
+  return d.kind === 'temp' && (S('heaters').available_heaters || []).includes(d.obj) && S(d.obj).target > 0 ? 't-heat' : ''
 }
 const canTarget = (d) => (S('heaters').available_heaters || []).includes(d.obj) || d.obj.startsWith('temperature_fan ')
 onMounted(() => document.addEventListener('click', close))
@@ -223,8 +223,8 @@ function sensorExtra(id) {
       <template v-else-if="d.kind === 'filament'">
         <div class="hd"><span class="lbl nm">{{ prettyName(d.obj) }}</span><Toggle v-if="!d.custom && S(d.obj).enabled !== undefined" :model-value="!!S(d.obj).enabled" :label="t('Enable sensor')" @update:model-value="gcode(`SET_FILAMENT_SENSOR SENSOR=${shortName(d.obj)} ENABLE=${$event ? 1 : 0}`)" /></div>
         <div class="row" style="gap:10px" v-if="S(d.obj).filament_detected !== undefined">
-          <Icon name="sensor" :size="24" :stroke="2.4" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }" />
-          <b style="font-size:17px" :style="{ color: S(d.obj).filament_detected ? 'var(--ok)' : 'var(--dg)' }">{{ S(d.obj).filament_detected ? t('Detected') : t('Empty') }}</b>
+          <Icon name="sensor" :size="24" :stroke="2.4" :style="{ color: S(d.obj).filament_detected ? null : 'var(--dg)' }" />
+          <b style="font-size:17px" :style="{ color: S(d.obj).filament_detected ? null : 'var(--dg)' }">{{ S(d.obj).filament_detected ? t('Detected') : t('Empty') }}</b>
         </div>
         <div v-else class="row" style="gap:10px"><Icon name="sensor" :size="24" :stroke="2.4" class="ki" /><b style="font-size:15px">{{ S(d.obj).enabled === false ? t('Disabled') : t('Active') }}</b></div>
         <span class="mono sm mu">{{ S(d.obj).enabled === false ? t('disabled') : sensorExtra(d.obj).map(([k, v]) => `${k}: ${typeof v === 'number' ? +v.toFixed(2) : v}`).join(' · ') || t('enabled') }}</span>

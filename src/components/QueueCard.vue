@@ -47,7 +47,7 @@ const thumb = (fn) => {
     <div class="card-h">
       <h2>{{ t('Job queue') }}</h2>
       <div v-if="q.enabled" class="acts">
-        <span class="chip" :style="{ color: q.state === 'ready' ? 'var(--ok)' : 'var(--wn)' }"><i></i>{{ q.state === 'ready' ? t('running') : t(q.state || '…') }}</span>
+        <span class="chip" :style="{ color: q.state === 'ready' ? 'var(--mu)' : 'var(--wn)' }"><i></i>{{ q.state === 'ready' ? t('running') : t(q.state || '…') }}</span>
         <button class="btn ibtn sm" :aria-label="t('Add file to queue')" @click="openPicker"><Icon name="plus" :size="16" /></button>
       </div>
     </div>

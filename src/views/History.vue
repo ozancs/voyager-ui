@@ -32,7 +32,7 @@ onMounted(load)
 let rt
 useApiEvent('notify_history_changed', () => { clearTimeout(rt); rt = setTimeout(load, 500) })
 const STATUS = {
-  completed: { c: 'var(--ok)', i: 'check' }, cancelled: { c: 'var(--wn)', i: 'x' }, error: { c: 'var(--dg)', i: 'warn' },
+  completed: { c: 'var(--mu)', i: 'check' }, cancelled: { c: 'var(--wn)', i: 'x' }, error: { c: 'var(--dg)', i: 'warn' },
   klippy_shutdown: { c: 'var(--dg)', i: 'warn' }, klippy_disconnect: { c: 'var(--dg)', i: 'warn' }, interrupted: { c: 'var(--dg)', i: 'warn' },
   server_exit: { c: 'var(--dg)', i: 'warn' }, in_progress: { c: 'var(--bl)', i: 'play' },
 }

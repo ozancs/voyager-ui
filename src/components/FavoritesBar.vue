@@ -11,7 +11,6 @@ import { t } from '../i18n'
 
 defineProps({ card: Boolean }) // card: the same buttons as a dashboard card instead of the bar
 const busy = ref(null)
-const INKS = ['var(--heat)', 'var(--cool)', 'var(--sense)', 'var(--light)', 'var(--spool)']
 const favs = computed(() => state.settings.favorites)
 async function run(f) {
   if (state.favEdit) { edit(f); return }
@@ -52,7 +51,7 @@ function onDrop(i) {
   <component :is="card ? 'section' : 'div'" :class="[card ? 'card fcard' : 'fb', { editing: state.favEdit }]">
     <div v-if="card" class="card-h"><h2>{{ t('Favorites') }}</h2><div class="acts"><button class="btn ibtn" :aria-label="t('Add favorite')" @click="add"><Icon name="plus" :size="16" :stroke="2.4" /></button><button class="btn ibtn" :class="{ acc: state.favEdit }" :aria-label="state.favEdit ? t('Done') : t('Edit favorites')" @click="state.favEdit = !state.favEdit"><Icon :name="state.favEdit ? 'check' : 'pencil'" :size="15" :stroke="2.4" /></button></div></div>
     <div class="list">
-      <button v-for="(f, i) in favs" :key="f.id" class="fav" :class="{ hot: f.highlight, busy: busy === f.id, drag: dragI === i }" :style="{ '--k': f.color || INKS[i % INKS.length] }"
+      <button v-for="(f, i) in favs" :key="f.id" class="fav" :class="{ hot: f.highlight, busy: busy === f.id, drag: dragI === i }" :style="{ '--k': f.color || null }"
         :data-tip="state.favEdit ? '' : f.gcode" :draggable="state.favEdit" @dragstart="dragI = i" @dragend="dragI = null" @dragover.prevent @drop.prevent="onDrop(i)" @click="run(f)">
         <Icon v-if="state.favEdit" name="grip" :size="14" :stroke="3" class="gr" />
         <Icon :name="f.icon" :size="17" :stroke="2.3" class="fi" :style="f.color ? { color: f.color } : null" />
@@ -90,7 +89,7 @@ function onDrop(i) {
 .fav { flex: 0 0 auto; min-width: 0; padding: 0 16px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--s1); color: var(--tx); border: none; border-radius: 10px; font-weight: 600; font-size: 13px; white-space: nowrap; transition: background .12s, transform .08s; padding: 0 16px; position: relative; }
 .fav:hover { background: var(--s2); }
 .fav:active { transform: scale(.97); }
-.fav .fi { color: var(--k); flex-shrink: 0; }
+.fav .fi { color: var(--k, var(--mu)); flex-shrink: 0; }
 .fav.hot { background: var(--s1); color: var(--tx); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ac) 55%, transparent); }
 .fav.hot:hover { background: var(--s2); }
 .fav.hot .fi { color: var(--ac); }

@@ -72,7 +72,7 @@ function saveZ() { gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
     <div class="body">
       <div class="grp pos3">
         <div v-for="(a, i) in ['X', 'Y', 'Z']" :key="a" class="pos" :data-tip="!can(a) ? t('{axis} must be homed first', { axis: a }) : isPrinting ? t('Not while printing') : t('Type a position and press Enter')">
-          <span class="ax">{{ a }}<i :style="{ background: can(a) ? 'var(--ok)' : 'var(--dg)' }"></i></span>
+          <span class="ax">{{ a }}<i v-if="!can(a)" style="background:var(--dg)"></i></span>
           <input class="mono pin" :value="edit[a] ?? (pos[i] ?? 0).toFixed(a === 'Z' ? 3 : 2)" :disabled="!can(a) || isPrinting" :aria-label="t('Move {axis} to position', { axis: a })"
             @focus="onFocus(a, i, $event)" @input="edit[a] = $event.target.value" @keydown.enter="moveTo(a, $event)" @keydown.esc="edit[a] = undefined; $event.target.blur()" @blur="edit[a] = undefined" />
         </div>
@@ -111,7 +111,7 @@ function saveZ() { gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
   </section>
 </template>
 <style scoped>
-.ap { width: 7px; height: 7px; border-radius: 4px; background: var(--ok); display: inline-block; margin-left: 2px; }
+.ap { width: 7px; height: 7px; border-radius: 4px; background: var(--mu); display: inline-block; margin-left: 2px; }
 .card { overflow: auto; }
 .body { --h: 44px; --g: 8px; display: flex; flex-wrap: wrap; gap: 16px 20px; align-items: flex-start; }
 .grp { height: calc(var(--h) * 3 + var(--g) * 2); display: grid; gap: var(--g); grid-template-rows: repeat(3, var(--h)); }
@@ -129,7 +129,7 @@ function saveZ() { gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
 .jb:hover:not(:disabled) { background: var(--s3); }
 .jb:disabled, .axb:disabled { pointer-events: none; }
 .axb { height: 100%; border-radius: 8px; border: none; background: var(--s3); color: var(--mu); font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.axb.homed { background: var(--cool-bg); color: var(--cool); box-shadow: inset 0 0 0 1px var(--cool-ln); }
+.axb.homed { color: var(--tx); }
 .dpad { grid-template-columns: repeat(3, var(--h)); }
 .zcol { grid-template-columns: var(--h); }
 .steps { height: calc(var(--h) * 3 + var(--g) * 2); width: 52px; display: flex; flex-direction: column; gap: 4px; margin-left: -8px; }

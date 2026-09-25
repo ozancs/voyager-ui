@@ -83,7 +83,7 @@ function doSave() {
         <div v-if="!profiles.length" class="empty">{{ t('No saved profiles') }}</div>
         <div v-for="p in profiles" :key="p" class="pr">
           <b class="grow">{{ p }}</b>
-          <span v-if="p === bm.profile_name" class="chip" style="color:var(--ok)"><i></i>{{ t('Active') }}</span>
+          <span v-if="p === bm.profile_name" class="chip" style="color:var(--tx)"><i></i>{{ t('Active') }}</span>
           <button v-else class="btn" @click="gcode(`BED_MESH_PROFILE LOAD=${p}`)">{{ t('Load') }}</button>
           <button class="btn clear ibtn sm" :aria-label="t('Remove')" @click="gcode(`BED_MESH_PROFILE REMOVE=${p}`)"><Icon name="trash" :size="16" /></button>
         </div>

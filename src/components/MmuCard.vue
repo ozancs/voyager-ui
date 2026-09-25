@@ -104,7 +104,7 @@ const busy = computed(() => (kind.value === 'hh' ? m.value.action && m.value.act
     <div class="card-h">
       <h2>{{ kind === 'afc' ? 'Box Turtle / AFC' : 'MMU' }}</h2>
       <div class="acts">
-        <span v-if="kind === 'hh'" class="chip" :style="{ color: busy ? 'var(--wn)' : m.enabled === false ? 'var(--mu)' : 'var(--ok)' }"><i></i>{{ m.enabled === false ? t('Disabled') : t(m.action || 'Idle') }}</span>
+        <span v-if="kind === 'hh'" class="chip" :style="{ color: busy ? 'var(--wn)' : 'var(--mu)' }"><i></i>{{ m.enabled === false ? t('Disabled') : t(m.action || 'Idle') }}</span>
         <span v-if="kind === 'hh' && m.sync_drive" class="chip" :data-tip="t('Gear motor synced to the extruder')">sync</span>
       </div>
     </div>
@@ -113,7 +113,7 @@ const busy = computed(() => (kind.value === 'hh' ? m.value.action && m.value.act
       <div class="now">
         <div class="big"><span class="lbl">{{ t('Tool') }}</span><b>{{ kind === 'hh' ? hhTool : current ? 'T' + (current.tools[0] ?? '?') : '-' }}</b></div>
         <div class="big"><span class="lbl">{{ kind === 'hh' ? t('Gate') : t('Lane') }}</span><b>{{ current?.label ?? (kind === 'hh' && m.gate === -2 ? t('Bypass') : '-') }}</b></div>
-        <div class="big"><span class="lbl">{{ t('Filament') }}</span><b :style="{ color: (kind === 'hh' ? m.filament === 'Loaded' : current?.loaded) ? 'var(--ok)' : 'var(--mu)' }">{{ kind === 'hh' ? t(m.filament || 'Unknown') : current?.loaded ? t('Loaded') : t('Unloaded') }}</b></div>
+        <div class="big"><span class="lbl">{{ t('Filament') }}</span><b :style="{ color: (kind === 'hh' ? m.filament === 'Loaded' : current?.loaded) ? 'var(--tx)' : 'var(--mu)' }">{{ kind === 'hh' ? t(m.filament || 'Unknown') : current?.loaded ? t('Loaded') : t('Unloaded') }}</b></div>
         <div v-if="current" class="sw big-sw" :style="{ background: current.color || 'var(--s3)' }"></div>
       </div>
       <div v-if="kind === 'hh' && m.bowden_progress >= 0 && busy" class="bar state" :style="{ '--pst': 'var(--wn)' }"><div :style="{ width: m.bowden_progress + '%' }"></div></div>

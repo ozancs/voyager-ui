@@ -43,7 +43,7 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' }
         </template>
         <template v-else-if="d.kind === 'led'"><span class="grow"></span><Toggle :model-value="ledOn(d.id)" :label="prettyName(d.id)" @update:model-value="(v) => led(d.id, v)" /></template>
         <template v-else-if="d.kind === 'filament'">
-          <span class="grow sm" :style="{ color: S(d.id).filament_detected ? 'var(--ok)' : 'var(--wn)' }">{{ S(d.id).filament_detected ? t('Detected') : t('Empty') }}</span>
+          <span class="grow sm" :style="{ color: S(d.id).filament_detected ? null : 'var(--wn)' }">{{ S(d.id).filament_detected ? t('Detected') : t('Empty') }}</span>
           <Toggle :model-value="!!S(d.id).enabled" :label="prettyName(d.id)" @update:model-value="(v) => sensor(d.id, v)" />
         </template>
       </div>
@@ -57,7 +57,7 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' }
 .dv { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 4px; border-bottom: 1px solid var(--bd); }
 .dv:last-child { border-bottom: none; }
 .ic { flex-shrink: 0; color: var(--mu); }
-.ic.fan { color: var(--cool); } .ic.pin, .ic.led { color: var(--light); } .ic.filament { color: var(--sense); }
+
 .nm { width: 36%; min-width: 90px; font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rng { flex: 1; min-width: 60px; }
 .v { width: 44px; text-align: right; font-size: 13px; }

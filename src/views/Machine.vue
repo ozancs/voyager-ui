@@ -75,18 +75,18 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log']
       <div v-for="[name, v] in updates" :key="name" :id="'upd-' + name" class="it">
         <div class="grow row" style="gap:10px;min-width:0;align-items:baseline"><b>{{ name }}</b><span class="mono mu" style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ verText(v) }}<template v-if="needs(v)"> → {{ v.remote_version }}</template><template v-if="v.is_dirty"> · {{ t('dirty') }}</template><template v-if="v.detached"> · {{ t('detached') }}</template></span></div>
         <button v-if="needs(v)" class="btn acc" :disabled="!!busy" @click="confirm = name"><Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}</button>
-        <span v-else class="chip" :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--ok)' }"><i></i>{{ v.detached ? t('Pinned') : t('Up to date') }}</span>
+        <span v-else class="chip" :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"><i></i>{{ v.detached ? t('Pinned') : t('Up to date') }}</span>
       </div>
       <div v-if="sysUpd" class="it">
         <div class="grow col" style="gap:2px"><b>{{ t('System') }}</b><span class="mono mu" style="font-size:11px">{{ t('{n} packages', { n: sysUpd.package_count }) }}</span></div>
         <button v-if="sysUpd.package_count" class="btn" :disabled="!!busy" @click="confirm = 'system'">{{ t('Update') }}</button>
-        <span v-else class="chip" style="color:var(--ok)"><i></i>{{ t('Up to date') }}</span>
+        <span v-else class="chip" style="color:var(--mu)"><i></i>{{ t('Up to date') }}</span>
       </div>
     </section>
       <section class="card">
         <div class="card-h"><h2>{{ t('Endstops') }}</h2><button class="btn" @click="query"><Icon name="refresh" :size="16" />{{ t('Query') }}</button></div>
         <div v-if="!ends" class="mu" style="font-size:13px">{{ t('Press query to read endstop states.') }}</div>
-        <div v-for="(v, k) in ends" :key="k" class="row sb" style="height:30px"><span class="mono">{{ k }}</span><span class="chip" :style="{ color: v === 'open' ? 'var(--ok)' : 'var(--ac)' }"><i></i>{{ t(v) }}</span></div>
+        <div v-for="(v, k) in ends" :key="k" class="row sb" style="height:30px"><span class="mono">{{ k }}</span><span class="chip" :style="{ color: v === 'open' ? 'var(--mu)' : 'var(--tx)' }"><i></i>{{ t(v) }}</span></div>
       </section>
       <section class="card">
         <div class="card-h"><h2>{{ t('Logs') }}</h2><button class="btn" @click="gcode('FIRMWARE_RESTART')"><Icon name="restart" :size="16" />{{ t('Firmware restart') }}</button></div>

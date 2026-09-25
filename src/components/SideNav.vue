@@ -18,7 +18,7 @@ function nav(n, a) { go(n, a ?? (n === 'config' ? state.lastCfg || 'printer.cfg'
 const hBadge = computed(() => {
   const l = healthIssues.value
   if (!l.length) return null
-  return { n: l.length, c: l.some((i) => i.level === 'error') ? 'var(--dg)' : l.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--bl)' }
+  return { n: l.length, c: l.some((i) => i.level === 'error') ? 'var(--dg)' : l.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--s3)' }
 })
 const tick = ref(Date.now())
 setInterval(() => (tick.value = Date.now()), 250)
@@ -27,14 +27,14 @@ const slowTasks = computed(() => state.booted ? activeTasks.value.filter((t) => 
 <template>
   <nav v-bind="$attrs" class="sn" :class="[{ open }, mode !== 'pinned' && 'float', mode]" :aria-label="t('Main')">
     <div class="pinrow"><button class="pin" :aria-label="t('Show / hide the side menu')" :data-tip="mode === 'pinned' ? t('Hide menu') : t('Keep menu open')" @click="emit('pin')"><Icon :name="mode === 'pinned' ? 'chevl2' : 'sidebar'" :size="16" :stroke="2.4" /></button></div>
-    <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span><span v-if="k === 'health' && hBadge" class="nb" :style="{ background: hBadge.c }">{{ hBadge.n }}</span></button>
+    <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span><span v-if="k === 'health' && hBadge" class="nb" :style="{ background: hBadge.c, color: hBadge.c === 'var(--s3)' ? 'var(--tx)' : null }">{{ hBadge.n }}</span></button>
     <div class="sep"></div>
     <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span></button>
     <button class="it" :class="{ on: !!state.settingsOpen }" @click="state.settingsOpen = 'general'; emit('close')"><Icon name="gear" /><span>{{ t('Interface settings') }}</span></button>
     <div class="ft">
-      <template v-if="slowTasks.length"><Icon name="refresh" :size="13" class="spin" style="color:var(--heat)" /><span class="tk">{{ slowTasks[0].label }}…<template v-if="slowTasks.length > 1"> +{{ slowTasks.length - 1 }}</template></span></template>
+      <template v-if="slowTasks.length"><Icon name="refresh" :size="13" class="spin" /><span class="tk">{{ slowTasks[0].label }}…<template v-if="slowTasks.length > 1"> +{{ slowTasks.length - 1 }}</template></span></template>
       <button v-else-if="state.uiUpdate && state.connected" class="up" :data-tip="t('Open the update manager')" @click="state.anchor = 'upd-' + state.uiUpdate.name; nav('machine')"><Icon name="download" :size="13" /><span class="tk">{{ t('Voyager UI {v} is out', { v: state.uiUpdate.remote }) }}</span></button>
-      <template v-else><span class="d" :style="{ background: state.connected ? 'var(--ok)' : 'var(--dg)' }"></span>{{ state.connected ? t('Moonraker connected') : t('Connecting…') }}</template>
+      <template v-else><span v-if="!state.connected" class="d" style="background:var(--dg)"></span>{{ state.connected ? t('Moonraker connected') : t('Connecting…') }}</template>
     </div>
   </nav>
   <div v-if="open && mode === 'hidden'" class="scrim" @click="emit('close')"></div>
