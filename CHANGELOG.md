@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.17.1
+
+- Status tiles are smaller and no longer stretch across the whole row
+- Favorite buttons keep their own width instead of filling the bar when there are only a few
+
 ## 0.17.0
 
 - Sliders (speed, flow, fans, output pins) show the value and fill while dragging, not only after release
