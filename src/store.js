@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.14.2'
+export const VERSION = '0.14.5'
 export const APP = 'voyager-ui'
 export const APP_NAME = 'Voyager UI'
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui'
@@ -73,7 +73,7 @@ export const DEFAULT_SETTINGS = () => ({
   // layout used while printing (null = same as idle until edited)
   theme: 'dark', // dark | light | auto
   searchContent: true, // Ctrl+K also searches inside .py .sh .txt files in the config folder
-  uiScale: 'auto', // 'auto' = looks the same as on a 1920 px wide screen, or a fixed percent (100 = no scaling)
+  uiScale: 100, // percent; 'auto' = looks the same as on a 1920 px wide screen
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
   layoutPrint: null,
@@ -494,7 +494,7 @@ export function uiZoomFor(pref, w = window.innerWidth) {
   return Math.min(1.6, Math.max(0.6, w / REF_WIDTH))
 }
 function applyScale() {
-  const pref = state.settings.uiScale ?? 'auto'
+  const pref = state.settings.uiScale ?? 100
   const z = +uiZoomFor(pref).toFixed(3)
   const el = document.documentElement
   if (z === 1) el.style.removeProperty('zoom'); else el.style.zoom = z

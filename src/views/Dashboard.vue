@@ -323,7 +323,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 .dbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 /* device tiles: a strip of their own, separated from the cards below by an accent hairline */
 .top { display: flex; gap: 10px; align-items: flex-start; position: relative; z-index: 20; padding: 0 0 18px; }
-.dbar.on { padding: 10px 14px; background: var(--s1); border: 1px solid var(--ac); border-radius: 12px; position: sticky; top: -20px; z-index: 20; }
+.dbar.on { padding: 10px 14px; background: var(--s1); border: 1px solid var(--ac); border-radius: 12px; position: sticky; top: -20px; z-index: 30; }
 .mu { color: var(--mu); font-size: 13px; }
 .mchip { height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: var(--cool-bg); color: var(--cool); font-size: 12px; }
 .mchip.off { background: var(--s2); color: var(--mu2); text-decoration: line-through; }

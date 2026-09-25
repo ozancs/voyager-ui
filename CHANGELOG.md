@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.14.5
+
+- Top tiles can be put anywhere, the grouping by kind only applies until you reorder them
+
+## 0.14.4
+
+- Top tiles: dragging is simpler and sturdier. The tile follows the pointer, the tile under it is outlined, on release it takes that slot and the group slides into place. Nothing moves while the pointer is down, which is what broke the drag in Opera / Chrome
+
+## 0.14.3
+
+- Interface size defaults to 100% (Auto is still there in Appearance)
+- A long printer name slides back and forth in the top bar instead of being cut off; the DEMO badge is gone
+- Customize: the Add card menu is no longer hidden behind the tiles
+- Demo: realistic config files for the editor and Ctrl+K, a tidier tile strip, every card on the dashboard
+
 ## 0.14.2
 
 - Live demo: `npm run build:demo` builds the UI with a fake Moonraker running in the page (simulated print, temperatures, console, files, config, MMU). Published on GitHub Pages from main. A DEMO badge sits next to the logo

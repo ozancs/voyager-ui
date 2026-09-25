@@ -29,7 +29,7 @@ if (!state.settings.sound) state.settings.sound = DEFAULT_SETTINGS().sound
 if (!state.settings.control) state.settings.control = DEFAULT_SETTINGS().control
 const snd = computed(() => state.settings.sound)
 const ctl = computed(() => state.settings.control)
-const zoomNow = computed(() => uiZoomFor(state.settings.uiScale ?? 'auto'))
+const zoomNow = computed(() => uiZoomFor(state.settings.uiScale ?? 100))
 const SOUNDS = [['complete', 'Print finished', 'complete'], ['paused', 'Print paused (e.g. runout)', 'paused'], ['error', 'Error / Klipper shutdown', 'error'], ['heated', 'Heater reached target', 'heated']]
 const ACCENTS = ['#ff6b1a', '#f5b23a', '#38d6ff', '#3dd68c', '#f5c451', '#8b6cff', '#ff3d7f', '#e5484d']
 const heaters = computed(() => S('heaters').available_heaters || [])
@@ -177,7 +177,7 @@ function reset() { confirmReset.value = false; apply({ ...DEFAULT_SETTINGS(), la
                 <div class="row v" style="flex-wrap:wrap;gap:10px;justify-content:flex-end"><button v-for="c in ACCENTS" :key="c" class="swc" :class="{ on: state.settings.accent === c }" :style="{ background: c }" :aria-label="t('Accent') + ' ' + c" @click="state.settings.accent = c"></button><label class="swc cu" :aria-label="t('Custom accent')"><input v-model="state.settings.accent" type="color" /></label></div>
               </div>
               <div class="rw"><div class="k"><b>{{ t('Interface size') }}</b><span>{{ t('Auto keeps the layout the same on every screen: a laptop shows the same cards side by side as a 1920 px monitor, only smaller.') }} <span class="mono">{{ Math.round(zoomNow * 100) }}%</span></span></div>
-                <div class="seg v"><button v-for="k in ['auto', 80, 90, 100, 110, 125]" :key="k" :class="{ on: String(state.settings.uiScale ?? 'auto') === String(k) }" @click="state.settings.uiScale = k">{{ k === 'auto' ? t('Auto') : k + '%' }}</button></div>
+                <div class="seg v"><button v-for="k in [80, 90, 100, 110, 125, 'auto']" :key="k" :class="{ on: String(state.settings.uiScale ?? 100) === String(k) }" @click="state.settings.uiScale = k">{{ k === 'auto' ? t('Auto') : k + '%' }}</button></div>
               </div>
               <div class="rw"><div class="k"><b>{{ t('Side menu') }}</b><span>{{ t('Auto-hide: move the mouse to the left edge and the menu opens over the page.') }}</span></div>
                 <div class="seg v"><button v-for="[k, l] in [['pinned', 'Always visible'], ['hidden', 'Hidden'], ['auto', 'Auto-hide']]" :key="k" :class="{ on: (state.settings.navMode || 'pinned') === k }" @click="state.settings.navMode = k">{{ t(l) }}</button></div>

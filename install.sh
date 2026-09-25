@@ -391,7 +391,7 @@ $V6
     gzip_types text/css application/javascript text/javascript application/json image/svg+xml font/woff2;
 
     location /assets/ { expires 1y; add_header Cache-Control "public, immutable"; }
-    location / { try_files \$uri \$uri/ /index.html; }
+    location / { try_files \$uri \$uri/ /index.html; add_header Cache-Control "no-store, no-cache, must-revalidate"; }
     location = /index.html { add_header Cache-Control "no-store, no-cache, must-revalidate"; }
     location /websocket {
         proxy_pass http://127.0.0.1:$mrp/websocket;

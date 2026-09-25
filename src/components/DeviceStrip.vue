@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import Icon from './Icon.vue'
 import Toggle from './Toggle.vue'
 import Modal from './Modal.vue'
@@ -8,16 +8,17 @@ import { state, S, stripAll, stripVisible, prettyName, shortName, setFan, setHea
 import { t } from '../i18n'
 const open = ref(null)
 const close = () => (open.value = null)
-// tiles are grouped by what they are (heaters, sensors, fans, lights, filament, spool), keeping the
-// user's order inside each group, and rows are balanced so the last row is not left half empty
+// tiles come in the user's order (drag them in Customize). Until an order is set they are grouped by kind:
+// heaters, sensors, fans, lights, filament, spool. Rows are balanced so the last row is not left half empty
 const RANK = (d) => d.kind === 'temp' ? (d.obj.startsWith('temperature_fan ') ? 2 : canTarget(d) ? 0 : 1) : { fan: 2, pin: 3, led: 3, filament: 4, spoolman: 5 }[d.kind] ?? 6
 const items = computed(() => {
   const list = state.editDash ? stripAll.value : stripVisible.value
+  if ((state.settings.strip?.order || []).length) return list
   return list.map((d, i) => [d, i]).sort((a, b) => RANK(a[0]) - RANK(b[0]) || a[1] - b[1]).map((x) => x[0])
 })
 const box = ref(null), boxW = ref(0)
 let ro
-onMounted(() => { ro = new ResizeObserver(([e]) => (boxW.value = e.contentRect.width)); if (box.value) ro.observe(box.value) })
+onMounted(() => { ro = new ResizeObserver(([e]) => (boxW.value = e.contentRect.width)); if (box.value) ro.observe(box.value.$el || box.value) })
 onBeforeUnmount(() => ro?.disconnect())
 const cols = computed(() => {
   const n = items.value.length
@@ -26,7 +27,6 @@ const cols = computed(() => {
   const rows = Math.ceil(n / max)
   return Math.ceil(n / rows)
 })
-const groupStart = (i) => i > 0 && RANK(items.value[i]) !== RANK(items.value[i - 1])
 const isHidden = (d) => (state.settings.strip.hidden || []).includes(d.id) || state.settings.devices.hidden.includes(d.obj)
 function toggleHide(d) {
   const h = state.settings.strip.hidden
@@ -45,14 +45,44 @@ function saveRename() {
   else delete state.settings.devices.names[r.obj]
   renaming.value = null
 }
-function onDrop(target) {
-  if (!dragId.value || dragId.value === target.id) return
-  const ids = stripAll.value.map((x) => x.id)
-  const from = ids.indexOf(dragId.value), to = ids.indexOf(target.id)
+// Reordering in Customize: the tile follows the pointer, the tile under it lights up, and on release the
+// dragged tile takes that slot (the others slide into place). Nothing moves in the DOM while dragging, so the
+// browser cannot lose the pointer half way. Any tile can go anywhere.
+const dragPos = ref({ x: 0, y: 0 })
+const overId = ref(null)
+let dragStart = null, dragEl = null
+function moveTo(id, targetId) {
+  const ids = items.value.map((x) => x.id).concat(stripAll.value.map((x) => x.id).filter((i) => !items.value.some((y) => y.id === i)))
+  const from = ids.indexOf(id), to = ids.indexOf(targetId)
+  if (from < 0 || to < 0 || from === to) return
   ids.splice(to, 0, ids.splice(from, 1)[0])
   state.settings.strip.order = ids
-  dragId.value = null
 }
+const basePos = (el) => { const pr = el.offsetParent?.getBoundingClientRect() || { left: 0, top: 0 }; return { x: pr.left + el.offsetLeft, y: pr.top + el.offsetTop } }
+function pDown(d, e) {
+  if (!state.editDash || e.button !== 0 || e.target.closest('button, input, a')) return
+  const el = e.currentTarget, b = basePos(el)
+  dragEl = el
+  dragStart = { x: e.clientX, y: e.clientY, id: d.id, ox: e.clientX - b.x, oy: e.clientY - b.y }
+  window.addEventListener('pointermove', pMove)
+  window.addEventListener('pointerup', pUp)
+  window.addEventListener('pointercancel', pUp)
+  e.preventDefault()
+}
+function pMove(e) {
+  if (!dragStart || !dragEl) return
+  if (!dragId.value) { if (Math.hypot(e.clientX - dragStart.x, e.clientY - dragStart.y) < 6) return; dragId.value = dragStart.id }
+  const b = basePos(dragEl)
+  dragPos.value = { x: e.clientX - dragStart.ox - b.x, y: e.clientY - dragStart.oy - b.y }
+  const under = document.elementsFromPoint(e.clientX, e.clientY).find((x) => x.classList?.contains('dc') && !x.classList.contains('drag'))
+  overId.value = under?.dataset.id || null
+}
+function pUp() {
+  window.removeEventListener('pointermove', pMove); window.removeEventListener('pointerup', pUp); window.removeEventListener('pointercancel', pUp)
+  if (dragId.value && overId.value) moveTo(dragId.value, overId.value)
+  dragStart = null; dragEl = null; dragId.value = null; overId.value = null; dragPos.value = { x: 0, y: 0 }
+}
+watch(() => state.editDash, (on) => { if (!on) pUp() })
 const tgt = ref('')
 function setT(d, v) { setHeater(d.obj, v); open.value = null }
 function tint(d) {
@@ -119,9 +149,9 @@ function sensorExtra(id) {
 }
 </script>
 <template>
-  <div ref="box" class="ds" :class="{ editing: state.editDash }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : null">
-    <div v-for="(d, gi) in items" :key="d.id" class="dc" :class="[tint(d), { gs: groupStart(gi), click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]" :style="{ '--lvl': level(d), '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null }"
-      :draggable="state.editDash" @dragstart="dragId = d.id" @dragend="dragId = null" @dragover.prevent @drop.prevent="onDrop(d)"
+  <TransitionGroup tag="div" ref="box" class="ds" :class="{ editing: state.editDash }" :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : null" move-class="mv">
+    <div v-for="(d, gi) in items" :key="d.id" class="dc" :class="[tint(d), { click: !state.editDash && (d.kind !== 'fan' || d.controllable), open: open === d.id, edit: state.editDash, hid: state.editDash && isHidden(d), drag: dragId === d.id, over: overId === d.id, wide: d.kind === 'temp' && canTarget(d), hot: d.kind === 'temp' && S(d.obj).target > 0 }]" :style="{ '--dx': dragId === d.id && state.editDash ? dragPos.x + 'px' : '0px', '--dy': dragId === d.id && state.editDash ? dragPos.y + 'px' : '0px', '--lvl': level(d), '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null }"
+      :data-id="d.id" @pointerdown="pDown(d, $event)"
       @click.stop="state.editDash ? null : (d.kind === 'temp' && canTarget(d)) || (d.kind === 'fan' && d.controllable) || d.kind === 'led' || (d.kind === 'pin' && isPwm(d.obj)) ? toggleOpen(d.id) : null">
       <div v-if="state.editDash" class="etools">
         <button v-if="d.kind !== 'spoolman'" class="btn clear ibtn sm" :aria-label="t('Rename card')" @click.stop="startRename(d)"><Icon name="pencil" :size="14" /></button>
@@ -195,7 +225,7 @@ function sensorExtra(id) {
         </a>
       </template>
     </div>
-  </div>
+  </TransitionGroup>
   <Modal v-if="renaming" :title="t('Card name')" @close="renaming = null">
     <input v-model="renaming.value" class="input" :placeholder="prettyName(renaming.obj)" :aria-label="t('Card name')" @keydown.enter="saveRename" />
     <span class="mu" style="font-size:12px">{{ t('Empty uses the name from printer.cfg ({name}).', { name: renaming.obj }) }}</span>
@@ -210,7 +240,10 @@ function sensorExtra(id) {
 .dc.edit .hd { padding-right: 56px; }
 .dc.edit { cursor: grab; border-style: dashed; border-color: var(--mu2); }
 .dc.hid { opacity: .35; }
-.dc.drag { opacity: .5; border-color: var(--ac); }
+.dc.drag { translate: var(--dx) var(--dy); opacity: .85; border-color: var(--ac); z-index: 30; box-shadow: 0 12px 30px rgba(0,0,0,.45); cursor: grabbing; }
+.mv { transition: transform .25s ease; }
+.dc.over { outline: 2px solid var(--ac); outline-offset: -2px; }
+.ds.editing .dc { cursor: grab; touch-action: none; user-select: none; }
 .dc.hot { box-shadow: inset 0 0 0 1px var(--heat-ln); }
 .dc.edit .spl { pointer-events: none; }
 .etools { position: absolute; top: 4px; right: 4px; z-index: 2; display: flex; gap: 2px; }

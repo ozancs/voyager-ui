@@ -41,7 +41,18 @@ const status = {
   firmware_retraction:{retract_length:0.8,retract_speed:35,unretract_extra_length:0,unretract_speed:30},'gcode_macro BED_MESH_AUTO':{},'gcode_macro CLEAN_NOZZLE':{},'gcode_macro HEAT_SOAK':{},'gcode_macro PARK':{},'gcode_macro LOAD_PLA':{},'gcode_macro LOAD_ABS':{},'gcode_macro M600':{},'gcode_macro TEST_SPEED':{},'gcode_macro PID_ALL':{},'gcode_macro SHAPER_ALL':{},'gcode_macro LIGHTS_ON':{},'gcode_macro LIGHTS_OFF':{},'gcode_macro _HOME_CHECK':{},
   'gcode_macro CHAMBER':{},'gcode_macro FILAMENT_LOAD':{},'gcode_macro FILAMENT_UNLOAD':{},'gcode_macro PRINT_START':{},
 }
-let db = { 'carbon-ui/settings': { favorites:[{id:'x1',name:'Brush Nozzle',icon:'brush',gcode:'BRUSH_ONLY',highlight:false},{id:'x2',name:'Sensor Menu',icon:'grip',gcode:'OZNLAB_SENSOR_MENU',highlight:true},{id:'x3',name:'Load',icon:'load',gcode:'FILAMENT_LOAD',highlight:false},{id:'x4',name:'Unload',icon:'unload',gcode:'FILAMENT_UNLOAD',highlight:false},{id:'x5',name:'Heat soak',icon:'flame',gcode:'HEAT_SOAK',highlight:false},{id:'x6',name:'Park',icon:'park',gcode:'PARK',highlight:false}], accent:'#03b597', devices:{hidden:[],names:{'output_pin Chamber_Light':'Chamber light'}} }, 'voyager-ui/settings': { setupDone:true, lang:'en', autoLayout: true, sound: { enabled: true, volume: .6, complete: true, error: true, paused: true, heated: false },
+let db = { 'carbon-ui/settings': { favorites:[{id:'x1',name:'Brush Nozzle',icon:'brush',gcode:'BRUSH_ONLY',highlight:false},{id:'x2',name:'Sensor Menu',icon:'grip',gcode:'OZNLAB_SENSOR_MENU',highlight:true},{id:'x3',name:'Load',icon:'load',gcode:'FILAMENT_LOAD',highlight:false},{id:'x4',name:'Unload',icon:'unload',gcode:'FILAMENT_UNLOAD',highlight:false},{id:'x5',name:'Heat soak',icon:'flame',gcode:'HEAT_SOAK',highlight:false},{id:'x6',name:'Park',icon:'park',gcode:'PARK',highlight:false}], accent:'#03b597', devices:{hidden:[],names:{'output_pin Chamber_Light':'Chamber light'}} }, 'voyager-ui/settings': { setupDone:true, lang:'en', autoLayout: false, uiScale: 100, mmuSeen: true, hiddenCards: [],
+  strip: { order: [], hidden: ['dev:neopixel hotend_rgb', 'dev:filament_switch_sensor filament_sensor', 'dev:smart_filament_sensor sfs', 'dev:fan_generic Aux_Fan'] },
+  layout: [
+    { i: 'temps', x: 0, y: 0, w: 3, h: 6 }, { i: 'console', x: 3, y: 0, w: 6, h: 11 }, { i: 'webcam', x: 9, y: 0, w: 3, h: 11 },
+    { i: 'tempchart', x: 0, y: 6, w: 3, h: 5 }, { i: 'system', x: 0, y: 11, w: 3, h: 4 },
+    { i: 'toolhead', x: 3, y: 11, w: 6, h: 8 }, { i: 'extruder', x: 9, y: 11, w: 3, h: 8 },
+    { i: 'mmu', x: 0, y: 15, w: 3, h: 7 }, { i: 'print', x: 3, y: 19, w: 4, h: 7 }, { i: 'limits', x: 7, y: 19, w: 5, h: 7 },
+    { i: 'objects', x: 0, y: 22, w: 3, h: 7 }, { i: 'mesh', x: 3, y: 26, w: 4, h: 7 }, { i: 'macros', x: 7, y: 26, w: 5, h: 7 },
+    { i: 'queue', x: 0, y: 29, w: 3, h: 6 }, { i: 'devices', x: 3, y: 33, w: 4, h: 7 }, { i: 'health', x: 7, y: 33, w: 5, h: 7 },
+    { i: 'spool', x: 0, y: 35, w: 3, h: 6 }, { i: 'files', x: 3, y: 40, w: 4, h: 7 }, { i: 'jobs', x: 7, y: 40, w: 5, h: 7 },
+    { i: 'retraction', x: 0, y: 41, w: 3, h: 6 }, { i: 'power', x: 0, y: 47, w: 3, h: 5 },
+  ], sound: { enabled: true, volume: .6, complete: true, error: true, paused: true, heated: false },
   heaterBase: { 'extruder@250': { power: 0.28, t: Date.now() - 40*86400e3 } },
   maintenance: [
     { id:'m1', name:'Clean the bed / build plate', hours:50, doneAt:560, doneDate:Date.now()-20*86400e3 },
@@ -65,7 +76,333 @@ let gcodeScript = function(sc){
   return 'ok'
 }
 const files = [{filename:'bracket_v3.gcode',modified:Date.now()/1000-3600,size:2400000,estimated_time:7400,filament_total:16200,layer_height:0.2,thumbnails:[]},{filename:'fan_duct.gcode',modified:Date.now()/1000-86400,size:3200000,estimated_time:10000,filament_total:21900,layer_height:0.2}]
-const big = Array.from({length:1500},(_,i)=>'# filler line '+i).join('\r\n'); const cfgText = {'printer.cfg': '[include macros.cfg]\r\n' + Array.from({length:27},(_,i)=>'# head '+i).join('\r\n') + '\r\n[oznlab_sensor hotend]\r\ni2c_mcu: EBBCan\r\n' + big + '\r\n' + '[printer]\nkinematics: corexy\nmax_velocity: 500  # fast\nmax_accel: 10000\n\n[bed_mesh]\nprobe_count: 9,9\n\n#*# <---------------------- SAVE_CONFIG ---------------------->\n#*# [input_shaper]\n#*# shaper_freq_x = 58.2\n','moonraker.conf':'[server]\nport: 7125\n'}
+const cfgText = {
+'printer.cfg': `# Voyager demo printer: CoreXY 350, Octopus + EBB36 on CAN
+[include mainsail.cfg]
+[include macros.cfg]
+[include hardware/steppers.cfg]
+[include hardware/toolhead.cfg]
+[include hardware/fans_and_leds.cfg]
+
+[mcu]
+canbus_uuid: 0e5f3b2a1c4d
+
+[mcu EBBCan]
+canbus_uuid: 7a19c2e4b0f3
+
+[printer]
+kinematics: corexy
+max_velocity: 500
+max_accel: 10000
+max_z_velocity: 30
+max_z_accel: 350
+square_corner_velocity: 5.0
+
+[idle_timeout]
+timeout: 1800
+
+[heater_bed]
+heater_pin: PA3
+sensor_type: Generic 3950
+sensor_pin: PF3
+max_power: 0.8
+min_temp: 0
+max_temp: 120
+control: pid
+pid_kp: 38.4
+pid_ki: 1.6
+pid_kd: 460.2
+
+[heater_generic chamber]
+heater_pin: PA1
+sensor_type: Generic 3950
+sensor_pin: PF6
+control: watermark
+min_temp: 0
+max_temp: 70
+
+[temperature_sensor EBB_MCU]
+sensor_type: temperature_mcu
+sensor_mcu: EBBCan
+
+[temperature_sensor Chamber_Top]
+sensor_type: Generic 3950
+sensor_pin: PF5
+
+[probe_eddy_current btt_eddy]
+sensor_type: ldc1612
+i2c_mcu: EBBCan
+i2c_bus: i2c1_PB8_PB9
+x_offset: 0
+y_offset: 21.4
+speed: 10
+lift_speed: 15
+
+[bed_mesh]
+speed: 300
+horizontal_move_z: 2
+mesh_min: 20, 20
+mesh_max: 330, 330
+probe_count: 9, 9
+algorithm: bicubic
+adaptive_margin: 5
+
+[quad_gantry_level]
+gantry_corners:
+    -60, -10
+    410, 420
+points:
+    50, 25
+    50, 275
+    300, 275
+    300, 25
+speed: 300
+horizontal_move_z: 10
+retries: 5
+retry_tolerance: 0.0075
+max_adjust: 10
+
+[input_shaper]
+shaper_freq_x: 58.2
+shaper_type_x: mzv
+shaper_freq_y: 38.4
+shaper_type_y: mzv
+
+[firmware_retraction]
+retract_length: 0.8
+retract_speed: 35
+unretract_speed: 30
+
+[exclude_object]
+[virtual_sdcard]
+path: ~/printer_data/gcodes
+
+#*# <---------------------- SAVE_CONFIG ---------------------->
+#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated.
+#*#
+#*# [extruder]
+#*# control = pid
+#*# pid_kp = 26.213
+#*# pid_ki = 1.304
+#*# pid_kd = 131.721
+#*#
+#*# [probe_eddy_current btt_eddy]
+#*# reg_drive_current = 15
+#*# calibrate =
+#*#	0.050000:3211235.612,0.090000:3210689.101,0.130000:3210143.887
+`,
+'hardware/steppers.cfg': `[stepper_x]
+step_pin: PF13
+dir_pin: PF12
+enable_pin: !PF14
+rotation_distance: 40
+microsteps: 32
+full_steps_per_rotation: 200
+endstop_pin: EBBCan:PB6
+position_min: 0
+position_endstop: 350
+position_max: 350
+homing_speed: 60
+homing_retract_dist: 5
+
+[tmc2209 stepper_x]
+uart_pin: PC4
+interpolate: false
+run_current: 1.2
+sense_resistor: 0.110
+stealthchop_threshold: 0
+
+[stepper_y]
+step_pin: PG0
+dir_pin: PG1
+enable_pin: !PF15
+rotation_distance: 40
+microsteps: 32
+endstop_pin: PG9
+position_min: 0
+position_endstop: 355
+position_max: 355
+homing_speed: 60
+
+[tmc2209 stepper_y]
+uart_pin: PD11
+interpolate: false
+run_current: 1.2
+sense_resistor: 0.110
+stealthchop_threshold: 0
+
+[stepper_z]
+step_pin: PF11
+dir_pin: PG3
+enable_pin: !PG5
+rotation_distance: 40
+gear_ratio: 80:16
+microsteps: 32
+endstop_pin: probe:z_virtual_endstop
+position_max: 340
+position_min: -5
+homing_speed: 8
+second_homing_speed: 3
+
+[tmc2209 stepper_z]
+uart_pin: PC6
+run_current: 0.8
+stealthchop_threshold: 999999
+`,
+'hardware/toolhead.cfg': `[extruder]
+step_pin: EBBCan:PD0
+dir_pin: PD1
+enable_pin: !EBBCan:PD2
+rotation_distance: 47.088
+gear_ratio: 9:1
+microsteps: 16
+nozzle_diameter: 0.400
+filament_diameter: 1.750
+heater_pin: EBBCan:PB13
+sensor_type: PT1000
+sensor_pin: EBBCan:PA3
+min_temp: 0
+max_temp: 300
+max_extrude_only_distance: 150
+max_extrude_cross_section: 5
+pressure_advance: 0.035
+pressure_advance_smooth_time: 0.040
+
+[tmc2240 extruder]
+cs_pin: EBBCan:PA15
+spi_software_sclk_pin: EBBCan:PB10
+spi_software_mosi_pin: EBBCan:PB11
+spi_software_miso_pin: EBBCan:PB2
+run_current: 0.65
+stealthchop_threshold: 0
+
+[adxl345]
+cs_pin: EBBCan:PB12
+spi_software_sclk_pin: EBBCan:PB10
+spi_software_mosi_pin: EBBCan:PB11
+spi_software_miso_pin: EBBCan:PB2
+
+[resonance_tester]
+accel_chip: adxl345
+probe_points: 175, 175, 20
+
+[filament_switch_sensor filament_sensor]
+switch_pin: ^EBBCan:PB3
+pause_on_runout: true
+runout_gcode: M600
+`,
+'hardware/fans_and_leds.cfg': `[fan]
+pin: EBBCan:PA0
+kick_start_time: 0.5
+
+[heater_fan hotend_fan]
+pin: EBBCan:PA1
+heater: extruder
+heater_temp: 50.0
+
+[fan_generic chamber_fan]
+pin: PD12
+max_power: 1.0
+
+[fan_generic Intake_Fan]
+pin: PD13
+
+[fan_generic Aux_Fan]
+pin: PD14
+
+[temperature_fan XY_Driver_Fan]
+pin: PD15
+sensor_type: temperature_host
+control: watermark
+min_temp: 0
+max_temp: 80
+target_temp: 40
+
+[temperature_fan PSU_Fan]
+pin: PE5
+sensor_type: Generic 3950
+sensor_pin: PF7
+control: watermark
+min_temp: 0
+max_temp: 80
+target_temp: 40
+
+[neopixel hotend_rgb]
+pin: EBBCan:PD3
+chain_count: 3
+color_order: GRBW
+initial_RED: 0.5
+initial_BLUE: 0.5
+
+[output_pin Chamber_Light]
+pin: PB10
+pwm: true
+cycle_time: 0.01
+value: 1
+`,
+'moonraker.conf': `[server]
+host: 0.0.0.0
+port: 7125
+klippy_uds_address: ~/printer_data/comms/klippy.sock
+
+[authorization]
+trusted_clients:
+    10.0.0.0/8
+    127.0.0.0/8
+    192.168.0.0/16
+cors_domains:
+    *.lan
+    *.local
+    *://localhost
+    *://localhost:*
+
+[octoprint_compat]
+[history]
+[file_manager]
+enable_object_processing: true
+
+[spoolman]
+server: http://192.168.1.20:7912
+
+[update_manager]
+channel: dev
+refresh_interval: 168
+
+[update_manager voyager-ui]
+type: web
+channel: stable
+repo: ozancs/voyager-ui
+path: ~/voyager-ui
+
+[power printer]
+type: tasmota
+address: 192.168.1.31
+locked_while_printing: true
+
+[notifier telegram]
+url: tgram://123:ABC/456
+events: complete, error
+title: Voyager Demo: {event_name}
+body: {event_message}
+`,
+'esp_bridge.py': ['# demo python module for the Ctrl+K content search','import json','','class EspBridge:','    def __init__(self, config):','        self.printer = config.get_printer()','        self.state = {}','','    def cmd_EB_SET(self, gcmd):','        key = gcmd.get("KEY")','        value = gcmd.get("VALUE")','        self.state[key] = value','','def load_config(config):','    return EspBridge(config)'].join('\n'),
+'mainsail.cfg': `# Mainsail client macros (shortened for the demo)
+[virtual_sdcard]
+path: ~/printer_data/gcodes
+
+[pause_resume]
+[display_status]
+[respond]
+
+[gcode_macro CANCEL_PRINT]
+description: Cancel the actual running print
+rename_existing: CANCEL_PRINT_BASE
+gcode:
+  TURN_OFF_HEATERS
+  CANCEL_PRINT_BASE
+`,
+'README.txt': 'Voyager demo config folder. Nothing here reaches a real printer.\nTry Ctrl+K and type: pressure, shaper, retract, EB_SET, stealthchop\n',
+}
 function handle(m){
   const p=m.params||{}
   switch(m.method){
@@ -88,7 +425,7 @@ function handle(m){
     case 'server.config': return {config:{spoolman:{server:'http://127.0.0.1:7912'}}}
     case 'server.spoolman.get_spool_id': return {spool_id:12}
     case 'server.spoolman.proxy': return {response:{id:12,remaining_weight:642,initial_weight:1000,filament:{name:'ABS Black',material:'ABS',color_hex:'1c1c1c'}}}
-    case 'server.files.list':  cfgText['esp_bridge.py'] = cfgText['esp_bridge.py'] || ['import json','','class EspBridge:','    def __init__(self, config):','        self.printer = config.get_printer()','','    def cmd_EB_SET(self, gcmd):','        key = gcmd.get("KEY")','        value = gcmd.get("VALUE")','        self.state[key] = value','','def load_config(config):','    return EspBridge(config)'].join('\n'); return p.root==='config'?Object.keys(cfgText).concat(['printer-20260923_121809.cfg','ShakeTune_results/belts/belts_20260920_101000.png','ShakeTune_results/input_shaper/IS_X_20260920_102000.png','ShakeTune_results/input_shaper/IS_Y_20260920_102500.png']).map((f,i)=>({path:f,modified:Date.now()/1000-i*3600,size:1000})):files.map(f=>({path:f.filename}))
+    case 'server.files.list': return p.root==='config'?Object.keys(cfgText).concat(['printer-20260923_121809.cfg','ShakeTune_results/belts/belts_20260920_101000.png','ShakeTune_results/input_shaper/IS_X_20260920_102000.png','ShakeTune_results/input_shaper/IS_Y_20260920_102500.png']).map((f,i)=>({path:f,modified:Date.now()/1000-i*3600,size:1000})):files.map(f=>({path:f.filename}))
     case 'server.files.get_directory': return {dirs:[{dirname:'archive',modified:Date.now()/1000,size:0}],files,disk_usage:{total:58e9,used:40e9,free:18e9}}
     case 'server.history.list': return {jobs:[...Array.from({length:30},(_,k)=>({job_id:'x'+k,filename:'Cube_ASA_'+k+'.gcode',status:k%5?'completed':'cancelled',start_time:Date.now()/1000-k*40000,total_duration:800,print_duration:700+k*10,filament_used:1200+k*50,exists:k%3>0,metadata:{estimated_time:660,slicer:'OrcaSlicer',slicer_version:'2.4.2'}})),{job_id:'1',filename:'bracket_v3.gcode',status:'completed',start_time:Date.now()/1000-86400,total_duration:7000,print_duration:6800,filament_used:16000,exists:true,metadata:{}},{job_id:'2',filename:'x.gcode',status:'cancelled',start_time:Date.now()/1000-3*86400,total_duration:700,print_duration:600,filament_used:1000,exists:false,metadata:{}}]}
     case 'server.history.totals': return {job_totals:{total_jobs:148,total_print_time:612*3600,total_filament_used:3270000,longest_print:30000}}
@@ -212,7 +549,7 @@ function fakeFetch(input, init) {
   if (p === '/access/info') return json({ result: { default_source: 'moonraker', available_sources: ['moonraker'] } })
   if (p === '/access/oneshot_token') return json({ result: 'demo' })
   if (p.startsWith('/server/files/upload')) { emitLines(['// demo: uploads are not stored']); return json({ result: {} }) }
-  if (p.startsWith('/server/files/config/')) { const n = decodeURIComponent(p.slice(21)); return Promise.resolve(new Response(cfgText[n] || '', { status: cfgText[n] != null ? 200 : 404, headers: { 'content-type': 'text/plain' } })) }
+  if (p.startsWith('/server/files/config/')) { const n = decodeURIComponent(p.slice(21)); const body = cfgText[n] ?? (/^printer-\d{8}_\d{6}\.cfg$/.test(n) ? cfgText['printer.cfg'].replace('shaper_freq_x: 58.2', 'shaper_freq_x: 55.0') : undefined); return Promise.resolve(new Response(body || '', { status: body != null ? 200 : 404, headers: { 'content-type': 'text/plain' } })) }
   if (p.startsWith('/server/files/gcodes/')) return Promise.resolve(new Response(gcodeFile(), { headers: { 'content-type': 'text/plain' } }))
   if (p.startsWith('/server/files/')) return json({ error: { code: 404, message: 'not in the demo' } }, 404)
   if (p.startsWith('/webcam')) return Promise.resolve(new Response(camSvg(++frame), { headers: { 'content-type': 'image/svg+xml' } }))
