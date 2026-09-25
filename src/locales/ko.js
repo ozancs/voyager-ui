@@ -1170,5 +1170,8 @@ export default {
  "Ctrl+click: Klipper documentation for this section": "Ctrl+클릭: 이 섹션의 Klipper 문서",
  "Macro buttons under the top bar. Also available as a Favorites card for the dashboard.": "상단 바 아래의 매크로 버튼. 대시보드에 즐겨찾기 카드로도 추가할 수 있습니다.",
  "Everywhere": "모든 곳",
- "Dashboard only": "대시보드에서만"
+ "Dashboard only": "대시보드에서만",
+ "Move up": "위로 이동",
+ "Move down": "아래로 이동",
+ "Remove card": "카드 제거"
 }

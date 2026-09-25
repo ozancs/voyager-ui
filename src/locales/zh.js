@@ -1170,5 +1170,8 @@ export default {
  "Ctrl+click: Klipper documentation for this section": "Ctrl+点击：此段的 Klipper 文档",
  "Macro buttons under the top bar. Also available as a Favorites card for the dashboard.": "顶栏下方的宏按钮。也可以作为收藏卡片放到仪表盘。",
  "Everywhere": "所有页面",
- "Dashboard only": "仅仪表盘"
+ "Dashboard only": "仅仪表盘",
+ "Move up": "上移",
+ "Move down": "下移",
+ "Remove card": "移除卡片"
 }

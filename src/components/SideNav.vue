@@ -30,6 +30,7 @@ const slowTasks = computed(() => state.booted ? activeTasks.value.filter((t) => 
     <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span><span v-if="k === 'health' && hBadge" class="nb" :style="{ background: hBadge.c, color: hBadge.c === 'var(--s3)' ? 'var(--tx)' : null }">{{ hBadge.n }}</span></button>
     <div class="sep"></div>
     <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)"><Icon :name="i" /><span>{{ t(l) }}</span></button>
+    <button class="it cz" :class="{ on: state.editDash }" @click="state.dashEditReq = Date.now(); nav('dashboard')"><Icon name="layout" /><span>{{ t('Customize dashboard') }}</span></button>
     <button class="it" :class="{ on: !!state.settingsOpen }" @click="state.settingsOpen = 'general'; emit('close')"><Icon name="gear" /><span>{{ t('Interface settings') }}</span></button>
     <div class="ft">
       <template v-if="slowTasks.length"><Icon name="refresh" :size="13" class="spin" /><span class="tk">{{ slowTasks[0].label }}…<template v-if="slowTasks.length > 1"> +{{ slowTasks.length - 1 }}</template></span></template>
@@ -51,6 +52,9 @@ const slowTasks = computed(() => state.booted ? activeTasks.value.filter((t) => 
 .pin { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--bd); background: var(--s1); color: var(--mu); display: flex; align-items: center; justify-content: center; }
 .pin:hover { color: var(--tx); border-color: var(--mu2); }
 @media (max-width: 1100px) { .pinrow { display: none; } }
+/* the top bar has no room for the Customize button on small screens, the menu has it instead */
+.cz { display: none; }
+@media (max-width: 1100px) { .cz { display: flex; } }
 .sep { height: 1px; background: var(--bd); margin: 6px 4px; flex-shrink: 0; }
 .ft { flex-shrink: 0; margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 10px 12px 0; font-size: 12px; color: var(--mu); }
 .up { display: flex; align-items: center; gap: 8px; border: none; background: color-mix(in srgb, #f5b23a 14%, transparent); color: #f5b23a; font-weight: 600; font-size: 12px; padding: 6px 10px; margin: 0 -4px; border-radius: 8px; cursor: pointer; text-align: left; }

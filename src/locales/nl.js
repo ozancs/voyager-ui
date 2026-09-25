@@ -1170,5 +1170,8 @@ export default {
  "Ctrl+click: Klipper documentation for this section": "Ctrl+klik: Klipper-documentatie van deze sectie",
  "Macro buttons under the top bar. Also available as a Favorites card for the dashboard.": "Macroknoppen onder de bovenbalk. Ook als Favorieten-kaart voor het dashboard.",
  "Everywhere": "Overal",
- "Dashboard only": "Alleen dashboard"
+ "Dashboard only": "Alleen dashboard",
+ "Move up": "Omhoog",
+ "Move down": "Omlaag",
+ "Remove card": "Kaart verwijderen"
 }

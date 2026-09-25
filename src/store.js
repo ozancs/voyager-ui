@@ -72,6 +72,7 @@ export const DEFAULT_SETTINGS = () => ({
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
   layoutPrint: null,
+  mobileOrder: null, // card order of the one-column phone dashboard, set in Customize on a phone
   hiddenCardsPrint: [],
   sound: { enabled: false, volume: 0.6, complete: true, error: true, paused: true, heated: false },
   // jog / extrude presets, shared with Mainsail and Fluidd when sync is on
@@ -97,7 +98,7 @@ export const DEFAULT_LAYOUT = () => [
   { i: 'extruder', x: 0, y: 26, w: 6, h: 7 },
   { i: 'limits', x: 6, y: 26, w: 6, h: 7 },
 ]
-export const LAYOUT_KEYS = ['layout', 'hiddenCards', 'strip', 'customCards', 'layoutPrint', 'hiddenCardsPrint', 'autoLayout', 'cardColors']
+export const LAYOUT_KEYS = ['layout', 'hiddenCards', 'strip', 'customCards', 'layoutPrint', 'hiddenCardsPrint', 'autoLayout', 'cardColors', 'mobileOrder']
 export function layoutSnapshot() {
   const o = {}
   for (const k of LAYOUT_KEYS) o[k] = JSON.parse(JSON.stringify(state.settings[k] ?? null))

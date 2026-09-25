@@ -1170,5 +1170,8 @@ export default {
  "Ctrl+click: Klipper documentation for this section": "Ctrl+clic : documentation Klipper de cette section",
  "Macro buttons under the top bar. Also available as a Favorites card for the dashboard.": "Boutons de macros sous la barre du haut. Aussi disponible en carte Favoris pour le tableau de bord.",
  "Everywhere": "Partout",
- "Dashboard only": "Tableau de bord seulement"
+ "Dashboard only": "Tableau de bord seulement",
+ "Move up": "Monter",
+ "Move down": "Descendre",
+ "Remove card": "Retirer la carte"
 }

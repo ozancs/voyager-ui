@@ -153,6 +153,20 @@ function reload() { layout.value = clean(srcLayout()) }
 watch(mode, reload)
 watch(() => state.settingsLoaded, (v) => v && reload())
 const sorted = computed(() => [...layout.value].sort((a, b) => a.y - b.y || a.x - b.x))
+// phone / narrow window: one column. Its order is kept on its own (mobileOrder), so moving a card here does not
+// shuffle the desktop grid. Cards not in the list yet follow in desktop order.
+const column = computed(() => {
+  const ord = state.settings.mobileOrder || []
+  const has = (i) => layout.value.some((x) => x.i === i)
+  const ids = [...ord.filter(has), ...sorted.value.map((x) => x.i).filter((i) => !ord.includes(i))]
+  return ids.map((i) => layout.value.find((x) => x.i === i))
+})
+function moveCol(i, d) {
+  const ids = column.value.map((x) => x.i), k = ids.indexOf(i), j = k + d
+  if (k < 0 || j < 0 || j >= ids.length) return
+  ;[ids[k], ids[j]] = [ids[j], ids[k]]
+  state.settings.mobileOrder = ids
+}
 // grid-layout-plus also emits layout-updated on mount and on resize; only a Customize session writes settings
 function persist(force = false) { if (!state.editDash && !force) return; state.settings[LK()] = layout.value.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })) }
 const bottom = () => Math.max(0, ...layout.value.map((x) => x.y + x.h))
@@ -272,7 +286,7 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
           <button :class="{ on: editMode === 'idle' }" @click="persist(); editMode = 'idle'">{{ t('Idle') }}</button>
           <button :class="{ on: editMode === 'print' }" @click="persist(); editMode = 'print'">{{ t('Printing') }}</button>
         </div>
-        <span class="mu hint">{{ t('Drag by title, resize from the corner. Top cards: drag to reorder, eye to hide.') }}</span>
+        <span v-if="wide" class="mu hint">{{ t('Drag by title, resize from the corner. Top cards: drag to reorder, eye to hide.') }}</span>
         <div class="grow"></div>
         <div class="rel">
           <button class="btn acc" @click="addOpen = !addOpen; restoreOpen = false"><Icon name="plus" :size="16" :stroke="2.6" />{{ t('Add card') }}</button>
@@ -330,7 +344,16 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
       </GridItem>
     </GridLayout>
     <div v-else class="col" style="gap:20px">
-      <template v-for="it in sorted" :key="it.i">
+      <template v-if="state.editDash">
+        <div v-for="(it, k) in column" :key="it.i" class="mrow">
+          <span class="grow">{{ isCustom(it.i) ? nameOf(it.i) : t(nameOf(it.i)) }}</span>
+          <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit')" @click="editCard(it.i)"><Icon name="pencil" :size="16" /></button>
+          <button class="btn ibtn sm" :disabled="k === 0" :aria-label="t('Move up')" @click="moveCol(it.i, -1)"><Icon name="up" :size="18" :stroke="2.4" /></button>
+          <button class="btn ibtn sm" :disabled="k === column.length - 1" :aria-label="t('Move down')" @click="moveCol(it.i, 1)"><Icon name="down" :size="18" :stroke="2.4" /></button>
+          <button class="btn ibtn sm" :aria-label="t('Remove card')" @click="removeCard(it.i)"><Icon name="x" :size="18" :stroke="2.4" /></button>
+        </div>
+      </template>
+      <template v-else v-for="it in column" :key="it.i">
         <CustomCard v-if="isCustom(it.i)" :id="it.i" :style="{ minHeight: it.h * 40 + 'px' }" @edit="editCard" />
         <component v-else :is="MODULES[it.i].c" :style="{ minHeight: it.h * 40 + 'px' }" />
       </template>
@@ -378,9 +401,11 @@ function saveCard() { state.settings.customCards = { ...state.settings.customCar
 
 <style scoped>
 .dbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mrow { display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 14px; background: var(--s1); border-radius: 12px; font-weight: 600; font-size: 14px; }
 /* device tiles: a strip of their own, separated from the cards below by an accent hairline */
 .top { display: flex; gap: 10px; align-items: flex-start; position: relative; z-index: 20; padding: 0 0 18px; }
 .dbar.on { padding: 10px 14px; background: var(--s1); border: 1px solid var(--ac); border-radius: 12px; position: sticky; top: -20px; z-index: 30; }
+@media (max-width: 700px) { .dbar.on { position: static; } }
 .mu { color: var(--mu); font-size: 13px; }
 .mchip { height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: var(--s2); color: var(--tx); font-size: 12px; }
 .mchip.off { background: var(--s2); color: var(--mu2); text-decoration: line-through; }

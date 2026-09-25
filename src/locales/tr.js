@@ -1171,5 +1171,8 @@ export default {
  "Ctrl+click: Klipper documentation for this section": "Ctrl+tık: bu bölümün Klipper dokümantasyonu",
  "Macro buttons under the top bar. Also available as a Favorites card for the dashboard.": "Üst çubuğun altındaki makro düğmeleri. Dashboard'a Favoriler kartı olarak da eklenebilir.",
  "Everywhere": "Her yerde",
- "Dashboard only": "Sadece dashboard"
+ "Dashboard only": "Sadece dashboard",
+ "Move up": "Yukarı taşı",
+ "Move down": "Aşağı taşı",
+ "Remove card": "Kartı kaldır"
 }
