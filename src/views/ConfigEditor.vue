@@ -18,6 +18,7 @@ import { api } from '../api/moonraker'
 import { t } from '../i18n'
 import { klipper } from '../editor/klipperLang'
 import { lintKlipper } from '../editor/lint'
+import { sectionLinks } from '../editor/sectionLinks'
 import { SECTION_NAMES, optionsFor, docUrl, sectionType } from '../editor/klipperDocs'
 
 const ROOTS = ['config', 'gcodes', 'logs', 'config_examples', 'docs', 'timelapse']
@@ -38,6 +39,8 @@ const view = shallowRef(null)
 const lang = new Compartment(), ro = new Compartment()
 const cursor = ref({ line: 1, col: 1, section: '' })
 const counts = ref({ error: 0, warning: 0, info: 0 })
+const problems = ref([]) // { line, severity, message } for the list behind the counters
+const showProblems = ref(false)
 
 // ---------------------------------------------------------------- files
 const files = ref([])
@@ -137,7 +140,7 @@ function extensions(tab) {
   return [
     lineNumbers(), foldGutter(), lintGutter(), highlightSpecialChars(), history(), drawSelection(), EditorState.allowMultipleSelections.of(true),
     indentOnInput(), bracketMatching(), closeBrackets(), rectangularSelection(), crosshairCursor(), highlightActiveLine(), highlightActiveLineGutter(),
-    highlightSelectionMatches(), indentUnit.of('  '), autocompletion({ override: [complete], activateOnTyping: true }), lintExt, flashField,
+    highlightSelectionMatches(), indentUnit.of('  '), autocompletion({ override: [complete], activateOnTyping: true }), lintExt, flashField, sectionLinks(docUrl, t('Ctrl+click: Klipper documentation for this section')),
     lang.of(/\.(cfg|conf)$/i.test(tab.path) ? klipper : []), ro.of(EditorState.readOnly.of(tab.root === 'logs')),
     keymap.of([
       { key: 'Mod-s', preventDefault: true, run: () => (save(false), true) },
@@ -152,8 +155,10 @@ function extensions(tab) {
         cursor.value = { line: l.number, col: h - l.from + 1, section: sectionAt(u.state, l.number) }
       }
       const c = { error: 0, warning: 0, info: 0 }
-      forEachDiagnostic(u.state, (d) => { c[d.severity] = (c[d.severity] || 0) + 1 })
+      const list = []
+      forEachDiagnostic(u.state, (d) => { c[d.severity] = (c[d.severity] || 0) + 1; list.push({ line: u.state.doc.lineAt(d.from).number, severity: d.severity, message: d.message }) })
       counts.value = c
+      problems.value = list.sort((a, b) => ({ error: 0, warning: 1, info: 2 }[a.severity] - { error: 0, warning: 1, info: 2 }[b.severity]) || a.line - b.line)
     }),
     EditorView.theme({}, { dark: true }),
     EditorState.phrases.of(Object.fromEntries(['Find', 'Replace', 'next', 'previous', 'all', 'match case', 'regexp', 'by word', 'replace', 'replace all', 'close', 'Go to line', 'go', 'Folded lines', 'Unfolded lines', 'Fold line', 'Unfold line', 'Diagnostics', 'No diagnostics'].map((k) => [k, t(k)]))),
@@ -205,6 +210,14 @@ onMounted(() => { loadFiles(); openTab(loc.value) })
 watch(() => state.connected, (c) => { if (c) { loadFiles(); const a = active.value; if (a && !a.orig && !a.dirty) { delete TABS.states[a.key]; tabs.value = tabs.value.filter((x) => x !== a); TABS.list = tabs.value; openTab(loc.value) } } })
 onBeforeUnmount(() => { remember(); view.value?.destroy() })
 
+function goLine(n) {
+  const v = view.value
+  if (!v) return
+  const l = v.state.doc.line(Math.max(1, Math.min(v.state.doc.lines, n)))
+  v.dispatch({ selection: { anchor: l.from, head: l.to }, effects: [EditorView.scrollIntoView(l.from, { y: 'center' }), flashFx.of(l.number)] })
+  v.focus()
+  setTimeout(() => view.value?.dispatch({ effects: flashFx.of(null) }), 2200)
+}
 // ---------------------------------------------------------------- jump from Ctrl+K
 function applyJump() {
   const j = state.jump, v = view.value, a = active.value
@@ -337,15 +350,22 @@ function openSearch() { if (view.value) { openSearchPanel(view.value); } }
         <span class="grow"></span>
         <button class="btn" :disabled="!active?.dirty" @click="revert">{{ t('Revert') }}</button>
         <button class="btn" :disabled="!active?.dirty || saving || isLog" data-tip="Ctrl+S" @click="save(false)"><Icon name="save" :size="16" />{{ t('Save') }}</button>
-        <button class="btn acc" :disabled="saving || isPrinting || isLog" data-tip="Ctrl+Shift+S" @click="save(true)"><Icon name="restart" :size="16" :stroke="2.4" />{{ t('Save & Restart') }}</button>
+        <button class="btn acc" :disabled="saving || isPrinting || isLog || active?.root === 'gcodes'" data-tip="Ctrl+Shift+S" @click="save(true)"><Icon name="restart" :size="16" :stroke="2.4" />{{ t('Save & Restart') }}</button>
         <button class="btn clear ibtn sm" :aria-label="t('Outline')" @click="showOutline = !showOutline"><Icon name="sidebar" :size="16" /></button>
       </div>
       <div ref="host" class="cm-host" :class="{ loading: active?.loading }"></div>
       <div class="status">
         <span>{{ t('Line {l}, column {c}', { l: cursor.line, c: cursor.col }) }}</span>
-        <span v-if="counts.error" class="e"><Icon name="warn" :size="12" />{{ counts.error }}</span>
-        <span v-if="counts.warning" class="w"><Icon name="warn" :size="12" />{{ counts.warning }}</span>
-        <span v-if="counts.info" class="i">{{ counts.info }} {{ t('notes') }}</span>
+        <span v-if="problems.length" class="pb">
+          <button class="pbb" :aria-label="t('Problems')" :aria-expanded="showProblems" @click.stop="showProblems = !showProblems">
+            <span v-if="counts.error" class="e"><Icon name="warn" :size="12" />{{ counts.error }}</span>
+            <span v-if="counts.warning" class="w"><Icon name="warn" :size="12" />{{ counts.warning }}</span>
+            <span v-if="counts.info" class="i">{{ counts.info }} {{ t('notes') }}</span>
+          </button>
+          <div v-if="showProblems" class="pl card" v-away="() => (showProblems = false)">
+            <button v-for="(p, k) in problems" :key="k" class="pli" :class="p.severity" @click="goLine(p.line); showProblems = false"><b class="mono">{{ p.line }}</b><span>{{ p.message }}</span></button>
+          </div>
+        </span>
         <span class="grow"></span>
         <span v-if="isLog">{{ t('read only') }}</span>
         <span>{{ active?.crlf ? 'CRLF' : 'LF' }}</span>
@@ -414,6 +434,14 @@ function openSearch() { if (view.value) { openSearchPanel(view.value); } }
 .status span { display: inline-flex; align-items: center; gap: 4px; }
 .status .e { color: var(--dg); } .status .w { color: var(--wn); } .status .i { color: var(--bl); }
 .status .kb { color: var(--mu2); }
+.pb { position: relative; }
+.pbb { display: inline-flex; gap: 10px; align-items: center; background: transparent; border: none; padding: 2px 6px; margin: -2px -6px; border-radius: 6px; font: inherit; cursor: pointer; }
+.pbb:hover { background: var(--s2); }
+.pl { position: absolute; left: 0; bottom: calc(100% + 8px); width: min(560px, 80vw); max-height: 320px; overflow: auto; padding: 6px; gap: 2px; z-index: 40; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+.pli { display: flex; gap: 10px; align-items: baseline; text-align: left; background: transparent; border: none; border-left: 3px solid var(--bl); border-radius: 4px; padding: 6px 8px; color: var(--tx); font-size: 12.5px; cursor: pointer; }
+.pli:hover { background: var(--s2); }
+.pli.error { border-left-color: var(--dg); } .pli.warning { border-left-color: var(--wn); }
+.pli b { color: var(--mu); min-width: 32px; }
 .oi { display: flex; align-items: center; border-radius: 8px; flex-shrink: 0; }
 .oi:hover { background: var(--s2); }
 .oi.on { background: var(--s2); box-shadow: inset 3px 0 0 var(--ac); }
@@ -459,6 +487,7 @@ function openSearch() { if (view.value) { openSearchPanel(view.value); } }
 .cm-editor .cm-tooltip-autocomplete ul li[aria-selected] { background: color-mix(in srgb, var(--ac) 22%, transparent); color: var(--tx); }
 .cm-editor .cm-completionInfo { background: var(--s2); border: 1px solid var(--bd); color: var(--mu); }
 .cm-editor .cm-diagnostic { padding: 6px 10px; }
+.cm-editor.cm-ctrl .cm-sec { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; color: var(--ac); }
 .cm-editor .cm-diagnostic-error { border-left: 3px solid var(--dg); }
 .cm-editor .cm-diagnostic-warning { border-left: 3px solid var(--wn); }
 .cm-editor .cm-diagnostic-info { border-left: 3px solid var(--bl); }
