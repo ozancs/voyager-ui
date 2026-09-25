@@ -1123,5 +1123,17 @@
 "Colour range ±",
 "3D z axis",
 "Z axis max ±",
-"Since boot: {list}"
+"Since boot: {list}",
+"Search icons, e.g. fan, heat, light, cut",
+"Search icons",
+"Icon colour",
+"Default colour",
+"Custom colour",
+"Basic",
+"More icons",
+"No icon matches",
+"Camera",
+"Another webcam",
+"All cameras",
+"{n} side by side"
 ]

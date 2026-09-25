@@ -1124,5 +1124,17 @@ export default {
  "Colour range ±": "색상 범위 ±",
  "3D z axis": "3D Z축",
  "Z axis max ±": "Z축 최대 ±",
- "Since boot: {list}": "부팅 이후: {list}"
+ "Since boot: {list}": "부팅 이후: {list}",
+ "Search icons, e.g. fan, heat, light, cut": "아이콘 검색 (예: fan, heat, light, cut)",
+ "Search icons": "아이콘 검색",
+ "Icon colour": "아이콘 색상",
+ "Default colour": "기본 색상",
+ "Custom colour": "사용자 색상",
+ "Basic": "기본",
+ "More icons": "더 많은 아이콘",
+ "No icon matches": "일치하는 아이콘 없음",
+ "Camera": "카메라",
+ "Another webcam": "웹캠 추가",
+ "All cameras": "모든 카메라",
+ "{n} side by side": "{n}대 나란히"
 }

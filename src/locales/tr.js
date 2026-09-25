@@ -1125,5 +1125,17 @@ export default {
  "Colour range ±": "Renk aralığı ±",
  "3D z axis": "3B z ekseni",
  "Z axis max ±": "Z ekseni maks ±",
- "Since boot: {list}": "Açılıştan beri: {list}"
+ "Since boot: {list}": "Açılıştan beri: {list}",
+ "Search icons, e.g. fan, heat, light, cut": "İkon ara, ör. fan, heat, light, cut",
+ "Search icons": "İkon ara",
+ "Icon colour": "İkon rengi",
+ "Default colour": "Varsayılan renk",
+ "Custom colour": "Özel renk",
+ "Basic": "Temel",
+ "More icons": "Daha fazla ikon",
+ "No icon matches": "Eşleşen ikon yok",
+ "Camera": "Kamera",
+ "Another webcam": "Bir webcam daha",
+ "All cameras": "Tüm kameralar",
+ "{n} side by side": "{n} kamera yan yana"
 }

@@ -55,7 +55,7 @@ Open `http://localhost:5173/?host=<printer>` to point the dev server at a printe
 
 ## License
 
-GPL-3.0. See [LICENSE](LICENSE).
+GPL-3.0. See [LICENSE](LICENSE). The extra icons in the icon picker come from [Lucide](https://lucide.dev) (ISC, see [LICENSE-lucide](LICENSE-lucide)).
 
 ## For the curious
 

@@ -6,7 +6,7 @@ import Modal from './Modal.vue'
 import Toggle from './Toggle.vue'
 import CmdInput from './CmdInput.vue'
 import { state, gcode, macroList } from '../store'
-import { ICON_NAMES } from '../icons'
+import IconPicker from './IconPicker.vue'
 import { t } from '../i18n'
 
 const busy = ref(null)
@@ -50,10 +50,10 @@ function onDrop(i) {
 <template>
   <div class="fb" :class="{ editing: state.favEdit }">
     <div class="list">
-      <button v-for="(f, i) in favs" :key="f.id" class="fav" :class="{ hot: f.highlight, busy: busy === f.id, drag: dragI === i }" :style="{ '--k': INKS[i % INKS.length] }"
+      <button v-for="(f, i) in favs" :key="f.id" class="fav" :class="{ hot: f.highlight, busy: busy === f.id, drag: dragI === i }" :style="{ '--k': f.color || INKS[i % INKS.length] }"
         :data-tip="state.favEdit ? '' : f.gcode" :draggable="state.favEdit" @dragstart="dragI = i" @dragend="dragI = null" @dragover.prevent @drop.prevent="onDrop(i)" @click="run(f)">
         <Icon v-if="state.favEdit" name="grip" :size="14" :stroke="3" class="gr" />
-        <Icon :name="f.icon" :size="17" :stroke="2.3" class="fi" />
+        <Icon :name="f.icon" :size="17" :stroke="2.3" class="fi" :style="f.color ? { color: f.color } : null" />
         <span>{{ f.name }}</span>
         <Icon v-if="state.favEdit" name="pencil" :size="13" class="pe" />
       </button>
@@ -65,13 +65,11 @@ function onDrop(i) {
 
   <Modal v-if="form" :title="form.isNew ? t('New favorite') : t('Edit favorite')" width="600px" @close="form = null">
     <div class="row">
-      <button class="btn ibtn" style="width:44px;height:44px" :aria-label="t('Change icon')" @click="pickIcon = !pickIcon"><Icon :name="form.icon" :size="22" style="color:var(--ac)" /></button>
+      <button class="btn ibtn" style="width:44px;height:44px" :aria-label="t('Change icon')" @click="pickIcon = !pickIcon"><Icon :name="form.icon" :size="22" :style="{ color: form.color || 'var(--ac)' }" /></button>
       <input v-model="form.name" class="input grow" :placeholder="t('Button name')" style="font-weight:700" />
       <Toggle v-model="form.highlight" :label="t('Highlight')" /><span class="mu sm">{{ t('Highlight') }}</span>
     </div>
-    <div v-if="pickIcon" class="ig">
-      <button v-for="n in ICON_NAMES" :key="n" class="btn" :class="{ acc: form.icon === n }" style="height:40px;padding:0" :aria-label="n" @click="form.icon = n; pickIcon = false"><Icon :name="n" :size="20" /></button>
-    </div>
+    <IconPicker v-if="pickIcon" :icon="form.icon" :color="form.color" @pick="form.icon = $event" @color="form.color = $event" @close="pickIcon = false" />
     <CmdInput v-model="form.gcode" input-class="input" :placeholder="t('Command or macro, e.g. CHAMBER TEMP=50')" :aria-label="t('Command')" />
     <div class="row" style="flex-wrap:wrap;gap:6px"><span class="lbl">{{ t('Your macros:') }}</span><button v-for="m in macroList.slice(0, 40)" :key="m" class="chip mb" @click="fromMacro(m)">{{ m }}</button></div>
     <template #foot>

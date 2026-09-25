@@ -1124,5 +1124,17 @@ export default {
  "Colour range ±": "Kleurbereik ±",
  "3D z axis": "3D Z-as",
  "Z axis max ±": "Z-as max ±",
- "Since boot: {list}": "Sinds opstarten: {list}"
+ "Since boot: {list}": "Sinds opstarten: {list}",
+ "Search icons, e.g. fan, heat, light, cut": "Pictogrammen zoeken, bv. fan, heat, light, cut",
+ "Search icons": "Pictogrammen zoeken",
+ "Icon colour": "Pictogramkleur",
+ "Default colour": "Standaardkleur",
+ "Custom colour": "Eigen kleur",
+ "Basic": "Basis",
+ "More icons": "Meer pictogrammen",
+ "No icon matches": "Geen pictogram gevonden",
+ "Camera": "Camera",
+ "Another webcam": "Nog een webcam",
+ "All cameras": "Alle camera's",
+ "{n} side by side": "{n} naast elkaar"
 }

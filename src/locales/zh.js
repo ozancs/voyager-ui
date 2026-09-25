@@ -1124,5 +1124,17 @@ export default {
  "Colour range ±": "颜色范围 ±",
  "3D z axis": "3D Z 轴",
  "Z axis max ±": "Z 轴最大 ±",
- "Since boot: {list}": "自启动以来：{list}"
+ "Since boot: {list}": "自启动以来：{list}",
+ "Search icons, e.g. fan, heat, light, cut": "搜索图标，例如 fan、heat、light、cut",
+ "Search icons": "搜索图标",
+ "Icon colour": "图标颜色",
+ "Default colour": "默认颜色",
+ "Custom colour": "自定义颜色",
+ "Basic": "基础",
+ "More icons": "更多图标",
+ "No icon matches": "没有匹配的图标",
+ "Camera": "摄像头",
+ "Another webcam": "另一个摄像头",
+ "All cameras": "所有摄像头",
+ "{n} side by side": "{n} 个并排显示"
 }

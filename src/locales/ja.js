@@ -1124,5 +1124,17 @@ export default {
  "Colour range ±": "色の範囲 ±",
  "3D z axis": "3D Z軸",
  "Z axis max ±": "Z軸 最大 ±",
- "Since boot: {list}": "起動以降: {list}"
+ "Since boot: {list}": "起動以降: {list}",
+ "Search icons, e.g. fan, heat, light, cut": "アイコンを検索（例: fan, heat, light, cut）",
+ "Search icons": "アイコンを検索",
+ "Icon colour": "アイコンの色",
+ "Default colour": "既定の色",
+ "Custom colour": "カスタム色",
+ "Basic": "基本",
+ "More icons": "その他のアイコン",
+ "No icon matches": "一致するアイコンなし",
+ "Camera": "カメラ",
+ "Another webcam": "別のウェブカメラ",
+ "All cameras": "すべてのカメラ",
+ "{n} side by side": "{n}台を並べて表示"
 }

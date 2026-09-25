@@ -1124,5 +1124,17 @@ export default {
  "Colour range ±": "Цветовой диапазон ±",
  "3D z axis": "Ось Z в 3D",
  "Z axis max ±": "Ось Z макс ±",
- "Since boot: {list}": "С момента загрузки: {list}"
+ "Since boot: {list}": "С момента загрузки: {list}",
+ "Search icons, e.g. fan, heat, light, cut": "Поиск иконок, напр. fan, heat, light, cut",
+ "Search icons": "Поиск иконок",
+ "Icon colour": "Цвет иконки",
+ "Default colour": "Цвет по умолчанию",
+ "Custom colour": "Свой цвет",
+ "Basic": "Основные",
+ "More icons": "Больше иконок",
+ "No icon matches": "Нет подходящих иконок",
+ "Camera": "Камера",
+ "Another webcam": "Ещё одна веб-камера",
+ "All cameras": "Все камеры",
+ "{n} side by side": "{n} рядом"
 }

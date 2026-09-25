@@ -1124,5 +1124,17 @@ export default {
  "Colour range ±": "Діапазон кольорів ±",
  "3D z axis": "Вісь Z у 3D",
  "Z axis max ±": "Вісь Z макс ±",
- "Since boot: {list}": "З моменту завантаження: {list}"
+ "Since boot: {list}": "З моменту завантаження: {list}",
+ "Search icons, e.g. fan, heat, light, cut": "Пошук іконок, напр. fan, heat, light, cut",
+ "Search icons": "Пошук іконок",
+ "Icon colour": "Колір іконки",
+ "Default colour": "Типовий колір",
+ "Custom colour": "Власний колір",
+ "Basic": "Основні",
+ "More icons": "Більше іконок",
+ "No icon matches": "Немає відповідних іконок",
+ "Camera": "Камера",
+ "Another webcam": "Ще одна вебкамера",
+ "All cameras": "Усі камери",
+ "{n} side by side": "{n} поруч"
 }

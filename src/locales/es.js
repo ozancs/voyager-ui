@@ -1124,5 +1124,17 @@ export default {
  "Colour range ±": "Rango de color ±",
  "3D z axis": "Eje Z 3D",
  "Z axis max ±": "Eje Z máx ±",
- "Since boot: {list}": "Desde el arranque: {list}"
+ "Since boot: {list}": "Desde el arranque: {list}",
+ "Search icons, e.g. fan, heat, light, cut": "Buscar iconos, p. ej. fan, heat, light, cut",
+ "Search icons": "Buscar iconos",
+ "Icon colour": "Color del icono",
+ "Default colour": "Color predeterminado",
+ "Custom colour": "Color personalizado",
+ "Basic": "Básicos",
+ "More icons": "Más iconos",
+ "No icon matches": "Ningún icono coincide",
+ "Camera": "Cámara",
+ "Another webcam": "Otra webcam",
+ "All cameras": "Todas las cámaras",
+ "{n} side by side": "{n} lado a lado"
 }
