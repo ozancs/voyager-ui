@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.2
+
+- Status tiles are narrower (at most 144 px) and clicking one no longer selects its name
+
 ## 0.17.1
 
 - Status tiles are smaller and no longer stretch across the whole row
