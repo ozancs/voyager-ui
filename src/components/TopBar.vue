@@ -63,6 +63,7 @@ const POWER = [
   { k: 'reboot', label: 'Reboot Host', icon: 'rot', confirm: true, run: () => api.call('machine.reboot') },
   { k: 'off', label: 'Shutdown Host', icon: 'power', confirm: true, danger: true, run: () => api.call('machine.shutdown') },
 ]
+const demo = !!window.__demo
 function customize() { go('dashboard'); state.dashEditReq = Date.now() }
 function doPower(p) {
   showPower.value = false
@@ -81,7 +82,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
   <header class="tb">
     <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')"><Icon name="menu" :size="22" /></button>
     <a class="brand" href="#/dashboard">
-      <Logo :size="40" />
+      <Logo :size="40" /><span v-if="demo" class="demo" :data-tip="t('Demo: a simulated printer, nothing is real')">DEMO</span>
       <div class="col" style="gap:0"><b class="pn">{{ printerName }}</b><span class="mono mu" style="font-size:11px">{{ hostName }}</span></div>
     </a>
     <div class="pill" :class="{ act: active }">
@@ -149,6 +150,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
 <style scoped>
 .tb { height: 68px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; background: var(--bg); border-bottom: 1px solid var(--bd); }
 .brand { display: flex; align-items: center; gap: 12px; width: 212px; flex-shrink: 0; color: var(--tx); text-decoration: none; }
+.demo { font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 3px 6px; border-radius: 6px; background: #f5b23a; color: #23262b; margin-left: -4px; }
 .brand b { font-size: 18px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
 .logo { width: 40px; height: 40px; border-radius: 10px; background: var(--ac); color: var(--oa); display: flex; align-items: center; justify-content: center; }
 .srch { gap: 10px; color: var(--mu); }

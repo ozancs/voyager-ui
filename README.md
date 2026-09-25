@@ -8,6 +8,8 @@ A web interface for Klipper printers. Runs next to Mainsail or Fluidd on its own
 >
 > Why it exists: Mainsail is great but it never quite fit how I use my printer, and reading the forums I saw I am not alone. This is my take on it. If a UI like this is something you wanted too, try it, break it, open an issue.
 
+**Live demo:** https://ozancs.github.io/voyager-ui/ (a simulated printer running in the browser, nothing is real)
+
 Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KIAUH.
 
 ## What it does
@@ -62,7 +64,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173/?host=<printer>` to point the dev server at a printer (Moonraker needs the dev address in `cors_domains`). This only works in the dev server, a release build always talks to the host it was loaded from. `npm test` runs the tests, `bash scripts/pack.sh` builds the release zip, pushing a `v*` tag makes a GitHub release.
+Open `http://localhost:5173/?host=<printer>` to point the dev server at a printer (Moonraker needs the dev address in `cors_domains`). This only works in the dev server, a release build always talks to the host it was loaded from. `npm test` runs the tests, `bash scripts/pack.sh` builds the release zip, pushing a `v*` tag makes a GitHub release. `npm run build:demo` builds the live demo (the UI plus a fake Moonraker in `src/demo/mock.js`), which GitHub Pages serves from every push to main.
 
 ## License
 

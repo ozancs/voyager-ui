@@ -1115,5 +1115,6 @@ export default {
  "Dashboard settings": "대시보드 설정",
  "Control: jog speeds and steps": "제어: 속도와 간격",
  "Console settings": "콘솔 설정",
- "Mainsail / Fluidd sync": "Mainsail / Fluidd 동기화"
+ "Mainsail / Fluidd sync": "Mainsail / Fluidd 동기화",
+ "Demo: a simulated printer, nothing is real": "데모: 시뮬레이션 프린터, 실제가 아닙니다"
 }

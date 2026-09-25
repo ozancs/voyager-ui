@@ -1115,5 +1115,6 @@ export default {
  "Dashboard settings": "面板设置",
  "Control: jog speeds and steps": "控制：速度与步距",
  "Console settings": "控制台设置",
- "Mainsail / Fluidd sync": "Mainsail / Fluidd 同步"
+ "Mainsail / Fluidd sync": "Mainsail / Fluidd 同步",
+ "Demo: a simulated printer, nothing is real": "演示：模拟打印机，一切均非真实"
 }

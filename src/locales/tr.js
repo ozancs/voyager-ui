@@ -1116,5 +1116,6 @@ export default {
  "Dashboard settings": "Pano ayarları",
  "Control: jog speeds and steps": "Kontrol: hareket hızları ve adımlar",
  "Console settings": "Konsol ayarları",
- "Mainsail / Fluidd sync": "Mainsail / Fluidd eşitleme"
+ "Mainsail / Fluidd sync": "Mainsail / Fluidd eşitleme",
+ "Demo: a simulated printer, nothing is real": "Demo: simüle yazıcı, hiçbir şey gerçek değil"
 }

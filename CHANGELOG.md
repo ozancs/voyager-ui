@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.2
+
+- Live demo: `npm run build:demo` builds the UI with a fake Moonraker running in the page (simulated print, temperatures, console, files, config, MMU). Published on GitHub Pages from main. A DEMO badge sits next to the logo
+
 ## 0.14.1
 
 - Security: the `?host=` parameter is honoured by the dev server only. A release build always talks to the host the page came from, so a crafted link can no longer point the UI (and its Moonraker token or login) at another server. Found with Anthropic's claude-code-security-review

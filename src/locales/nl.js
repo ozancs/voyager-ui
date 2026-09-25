@@ -1115,5 +1115,6 @@ export default {
  "Dashboard settings": "Dashboardinstellingen",
  "Control: jog speeds and steps": "Besturing: snelheden en stappen",
  "Console settings": "Console-instellingen",
- "Mainsail / Fluidd sync": "Mainsail / Fluidd-synchronisatie"
+ "Mainsail / Fluidd sync": "Mainsail / Fluidd-synchronisatie",
+ "Demo: a simulated printer, nothing is real": "Demo: een gesimuleerde printer, niets is echt"
 }

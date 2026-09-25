@@ -1115,5 +1115,6 @@ export default {
  "Dashboard settings": "Configurações do painel",
  "Control: jog speeds and steps": "Controle: velocidades e passos",
  "Console settings": "Configurações do console",
- "Mainsail / Fluidd sync": "Sincronização Mainsail / Fluidd"
+ "Mainsail / Fluidd sync": "Sincronização Mainsail / Fluidd",
+ "Demo: a simulated printer, nothing is real": "Demo: uma impressora simulada, nada é real"
 }

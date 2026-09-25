@@ -14,4 +14,11 @@ import { i18n, loadLang } from './i18n'
 import { away } from './away'
 import { vfit } from './fit'
 // the chosen language is fetched first so the UI does not flash in English
-loadLang(i18n.lang).finally(() => { start(); createApp(App).directive('away', away).directive('fit', vfit).mount('#app') })
+async function boot() {
+  // the live demo build runs against a fake Moonraker inside the page
+  if (import.meta.env.VITE_DEMO) (await import('./demo/mock.js')).installDemo()
+  await loadLang(i18n.lang).catch(() => {})
+  start()
+  createApp(App).directive('away', away).directive('fit', vfit).mount('#app')
+}
+boot()

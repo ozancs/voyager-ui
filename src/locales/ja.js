@@ -1115,5 +1115,6 @@ export default {
  "Dashboard settings": "ダッシュボード設定",
  "Control: jog speeds and steps": "操作: 速度とステップ",
  "Console settings": "コンソール設定",
- "Mainsail / Fluidd sync": "Mainsail / Fluidd 同期"
+ "Mainsail / Fluidd sync": "Mainsail / Fluidd 同期",
+ "Demo: a simulated printer, nothing is real": "デモ: 模擬プリンター、実機ではありません"
 }

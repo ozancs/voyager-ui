@@ -1115,5 +1115,6 @@ export default {
  "Dashboard settings": "Настройки панели",
  "Control: jog speeds and steps": "Управление: скорости и шаги",
  "Console settings": "Настройки консоли",
- "Mainsail / Fluidd sync": "Синхронизация Mainsail / Fluidd"
+ "Mainsail / Fluidd sync": "Синхронизация Mainsail / Fluidd",
+ "Demo: a simulated printer, nothing is real": "Демо: симуляция принтера, ничего настоящего"
 }

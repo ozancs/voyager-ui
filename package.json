@@ -1,11 +1,12 @@
 {
   "name": "voyager-ui",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:demo": "vite build --mode demo --base ./ --outDir dist-demo",
     "preview": "vite preview",
     "test": "vitest run",
     "i18n:keys": "python3 scripts/i18n_keys.py"
