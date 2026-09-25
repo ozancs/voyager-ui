@@ -44,7 +44,7 @@ const slowTasks = computed(() => state.booted ? activeTasks.value.filter((t) => 
 .it { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 12px; background: transparent; color: var(--tx); border: none; border-radius: 10px; font-size: 14px; font-weight: 500; text-align: left; flex-shrink: 0; }
 .it :deep(svg) { color: var(--mu); }
 .it:hover { background: var(--s2); }
-.it.on { background: var(--s2); color: var(--tx); font-weight: 600; box-shadow: inset 3px 0 0 var(--ac); }
+.it.on { background: var(--s2); color: var(--tx); font-weight: 600; }
 .it.on :deep(svg) { color: var(--tx); }
 .nb { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; color: #111; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .pinrow { display: flex; justify-content: flex-end; margin: -8px -4px 2px 0; flex-shrink: 0; }

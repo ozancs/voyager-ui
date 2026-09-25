@@ -64,12 +64,17 @@ a { color: var(--ac); }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 12px; background: var(--s2); color: var(--tx); border: 1px solid transparent; border-radius: var(--rb); font-weight: 600; font-size: 13px; white-space: nowrap; transition: filter .12s, background .12s; }
 .btn:hover:not(:disabled) { background: var(--s3); }
-.btn.acc:hover:not(:disabled), .btn.dgf:hover:not(:disabled) { background: var(--ac); filter: brightness(1.08); }
+.btn.acc:hover:not(:disabled) { background: color-mix(in srgb, var(--ac) 26%, var(--s2)); }
+.btn.dgf:hover:not(:disabled) { background: var(--ac); filter: brightness(1.08); }
 .btn.dgf:hover:not(:disabled) { background: var(--dg); }
 .btn.clear:hover:not(:disabled) { background: var(--s2); color: var(--tx); }
 :focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
 .btn.lg { height: 44px; padding: 0 16px; font-size: 14px; }
-.btn.acc { background: var(--ac); color: var(--oa); border-color: var(--ac); }
+/* accent buttons are tinted, not filled: a filled accent everywhere (top bar, card headers) was loud and
+   pulled the eye away from the printer values. Only the main action of a dialog stays filled. */
+.btn.acc { background: color-mix(in srgb, var(--ac) 15%, var(--s2)); color: var(--ac); border-color: transparent; }
+.md .row > .btn.lg.acc, .md .row > .btn.lg.acc:hover:not(:disabled) { background: var(--ac); color: var(--oa); filter: none; }
+.md .row > .btn.lg.acc:hover:not(:disabled) { filter: brightness(1.08); }
 .btn.out { background: var(--heat-bg); color: var(--heat); border-color: transparent; }
 .btn.dg { background: rgba(240,106,106,.12); color: var(--dg); border-color: transparent; }
 .btn.dgf { background: var(--dg); color: #fff; border-color: var(--dg); }
