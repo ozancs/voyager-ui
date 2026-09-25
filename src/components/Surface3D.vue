@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-const props = defineProps({ z: Array, min: Array, max: Array, lim: Number })
+const props = defineProps({ z: Array, min: Array, max: Array, lim: Number, zmax: Number })
 const el = ref(null)
 let Plotly = null
 async function draw() {
@@ -25,14 +25,14 @@ async function draw() {
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', margin: { l: 0, r: 0, t: 0, b: 0 },
     font: { family: 'Onest', color: TX },
     scene: {
-      xaxis: ax('X'), yaxis: ax('Y'), zaxis: { ...ax('Z'), range: [-Math.max(lim * 2, 0.2), Math.max(lim * 2, 0.2)] },
+      xaxis: ax('X'), yaxis: ax('Y'), zaxis: { ...ax('Z'), range: props.zmax ? [-props.zmax, props.zmax] : [-Math.max(lim * 2, 0.2), Math.max(lim * 2, 0.2)] },
       aspectmode: 'manual', aspectratio: { x: 1, y: (y1 - y0) / Math.max(1, x1 - x0), z: 0.4 },
       camera: { eye: { x: -1.2, y: -1.5, z: 0.9 } },
     },
   }, { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toImage', 'resetCameraLastSave3d'] })
 }
 onMounted(draw)
-watch(() => [props.z, props.lim], draw)
+watch(() => [props.z, props.lim, props.zmax], draw)
 onBeforeUnmount(() => { if (Plotly && el.value) Plotly.purge(el.value) })
 </script>
 <template><div ref="el" style="width:100%;height:100%;min-height:420px"></div></template>

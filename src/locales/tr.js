@@ -1119,5 +1119,10 @@ export default {
  "Mainsail / Fluidd sync": "Mainsail / Fluidd eşitleme",
  "Demo: a simulated printer, nothing is real": "Demo: simüle yazıcı, hiçbir şey gerçek değil",
  "Open the update manager": "Güncelleme yöneticisini aç",
- "Voyager UI {v} is out": "Voyager UI {v} çıktı"
+ "Voyager UI {v} is out": "Voyager UI {v} çıktı",
+ "Colour range": "Renk aralığı",
+ "Manual": "Manuel",
+ "Colour range ±": "Renk aralığı ±",
+ "3D z axis": "3B z ekseni",
+ "Z axis max ±": "Z ekseni maks ±"
 }

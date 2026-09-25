@@ -1118,5 +1118,10 @@ export default {
  "Mainsail / Fluidd sync": "Mainsail / Fluidd 동기화",
  "Demo: a simulated printer, nothing is real": "데모: 시뮬레이션 프린터, 실제가 아닙니다",
  "Open the update manager": "업데이트 관리자 열기",
- "Voyager UI {v} is out": "Voyager UI {v} 출시"
+ "Voyager UI {v} is out": "Voyager UI {v} 출시",
+ "Colour range": "색상 범위",
+ "Manual": "수동",
+ "Colour range ±": "색상 범위 ±",
+ "3D z axis": "3D Z축",
+ "Z axis max ±": "Z축 최대 ±"
 }

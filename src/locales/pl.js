@@ -1118,5 +1118,10 @@ export default {
  "Mainsail / Fluidd sync": "Synchronizacja Mainsail / Fluidd",
  "Demo: a simulated printer, nothing is real": "Demo: symulowana drukarka, nic nie jest prawdziwe",
  "Open the update manager": "Otwórz menedżer aktualizacji",
- "Voyager UI {v} is out": "Voyager UI {v} jest dostępny"
+ "Voyager UI {v} is out": "Voyager UI {v} jest dostępny",
+ "Colour range": "Zakres kolorów",
+ "Manual": "Ręcznie",
+ "Colour range ±": "Zakres kolorów ±",
+ "3D z axis": "Oś Z 3D",
+ "Z axis max ±": "Oś Z maks ±"
 }

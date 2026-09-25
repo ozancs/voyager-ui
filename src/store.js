@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.15.1'
+export const VERSION = '0.16.0'
 export const APP = 'voyager-ui'
 export const APP_NAME = 'Voyager UI'
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui'
@@ -65,6 +65,7 @@ export const DEFAULT_SETTINGS = () => ({
   // layout used while printing (null = same as idle until edited)
   theme: 'dark', // dark | light | auto
   searchContent: true, // Ctrl+K also searches inside .py .sh .txt files in the config folder
+  heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5 }, // colour range and 3D z axis, auto = from the mesh
   uiScale: 100, // percent; 'auto' = looks the same as on a 1920 px wide screen
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
@@ -156,7 +157,7 @@ function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch 
 export function mergeSettings(v) {
   const def = DEFAULT_SETTINGS()
   v = v || {}
-  return { ...def, ...v, devices: { ...def.devices, ...(v.devices || {}) }, strip: { ...def.strip, ...(v.strip || {}) }, control: { ...def.control, ...(v.control || {}) } }
+  return { ...def, ...v, devices: { ...def.devices, ...(v.devices || {}) }, strip: { ...def.strip, ...(v.strip || {}) }, control: { ...def.control, ...(v.control || {}) }, heightmap: { ...def.heightmap, ...(v.heightmap || {}) } }
 }
 function cachedSettings() { return mergeSettings(lsGet(APP + '-settings')) }
 state.objects = lsGet(APP + '-objects') || []

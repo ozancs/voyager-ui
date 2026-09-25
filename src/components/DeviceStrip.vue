@@ -46,9 +46,9 @@ function saveRename() {
   else delete state.settings.devices.names[r.obj]
   renaming.value = null
 }
-// Reordering in Customize: the tile follows the pointer, the tile under it lights up, and on release the
-// dragged tile takes that slot (the others slide into place). Nothing moves in the DOM while dragging, so the
-// browser cannot lose the pointer half way. Any tile can go anywhere.
+// Reordering in Customize: the tile follows the pointer, the tile under it lights up, and on release the two
+// swap places, so every other tile stays where it was. Nothing moves in the DOM while dragging, so the browser
+// cannot lose the pointer half way. Any tile can go anywhere.
 const dragPos = ref({ x: 0, y: 0 })
 const overId = ref(null)
 let dragStart = null, dragEl = null
@@ -56,7 +56,7 @@ function moveTo(id, targetId) {
   const ids = items.value.map((x) => x.id).concat(stripAll.value.map((x) => x.id).filter((i) => !items.value.some((y) => y.id === i)))
   const from = ids.indexOf(id), to = ids.indexOf(targetId)
   if (from < 0 || to < 0 || from === to) return
-  ids.splice(to, 0, ids.splice(from, 1)[0])
+  ;[ids[from], ids[to]] = [ids[to], ids[from]]
   state.settings.strip.order = ids
 }
 const basePos = (el) => { const pr = el.offsetParent?.getBoundingClientRect() || { left: 0, top: 0 }; return { x: pr.left + el.offsetLeft, y: pr.top + el.offsetTop } }

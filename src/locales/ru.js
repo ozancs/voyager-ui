@@ -1118,5 +1118,10 @@ export default {
  "Mainsail / Fluidd sync": "Синхронизация Mainsail / Fluidd",
  "Demo: a simulated printer, nothing is real": "Демо: симуляция принтера, ничего настоящего",
  "Open the update manager": "Открыть менеджер обновлений",
- "Voyager UI {v} is out": "Вышел Voyager UI {v}"
+ "Voyager UI {v} is out": "Вышел Voyager UI {v}",
+ "Colour range": "Цветовой диапазон",
+ "Manual": "Вручную",
+ "Colour range ±": "Цветовой диапазон ±",
+ "3D z axis": "Ось Z в 3D",
+ "Z axis max ±": "Ось Z макс ±"
 }

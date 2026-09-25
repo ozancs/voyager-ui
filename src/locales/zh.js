@@ -1118,5 +1118,10 @@ export default {
  "Mainsail / Fluidd sync": "Mainsail / Fluidd 同步",
  "Demo: a simulated printer, nothing is real": "演示：模拟打印机，一切均非真实",
  "Open the update manager": "打开更新管理器",
- "Voyager UI {v} is out": "Voyager UI {v} 已发布"
+ "Voyager UI {v} is out": "Voyager UI {v} 已发布",
+ "Colour range": "颜色范围",
+ "Manual": "手动",
+ "Colour range ±": "颜色范围 ±",
+ "3D z axis": "3D Z 轴",
+ "Z axis max ±": "Z 轴最大 ±"
 }

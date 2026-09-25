@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.16.0
+
+- Status tiles: dropping a tile on another now swaps the two, the rest stay where they were
+- Heightmap: colour range and the 3D z axis can be set by hand (auto or a fixed ± value), kept in settings
+
 ## 0.15.1
 
 - Sidebar footer shows when a new Voyager UI version is available; clicking it opens the Machine page at the update row
