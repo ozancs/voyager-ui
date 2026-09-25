@@ -6,6 +6,7 @@ import QueueCard from '../components/QueueCard.vue'
 import { queueApi, downloadMany } from '../features'
 import { state, fmtTime, fmtBytes, fmtDate, toast, isPrinting, gcode, useApiEvent } from '../store'
 import { api } from '../api/moonraker'
+import { go } from '../router'
 import { t } from '../i18n'
 const path = ref('gcodes')
 const cached = state.cache.files
@@ -44,6 +45,10 @@ function takeAnchor() {
 }
 onMounted(() => { takeAnchor(); load() })
 watch(() => state.anchor, () => { if (takeAnchor()) load() })
+// G-code can be opened in the editor; very large files would make the browser tab crawl
+const EDIT_MAX = 8 * 1024 * 1024
+const editBlocked = (f) => (f.size > EDIT_MAX ? t('Too large to edit here ({size})', { size: fmtBytes(f.size) }) : isPrinting.value && state.status.print_stats?.filename === rel(f) ? t('This file is printing') : '')
+function editFile(f) { if (!editBlocked(f)) go('config', 'gcodes/' + rel(f)) }
 const addQ = (fs) => queueApi.add(fs.map(rel)).catch((e) => toast(e.message, 'error'))
 let rt
 useApiEvent('notify_filelist_changed', ([p]) => { if (p?.item?.root !== 'gcodes') return; clearTimeout(rt); rt = setTimeout(load, 300) })
@@ -134,6 +139,7 @@ function onDrop(e) { e.preventDefault(); upload({ target: { files: e.dataTransfe
               <button class="btn acc ibtn sm" :aria-label="t('Print')" :disabled="isPrinting" @click.stop="print(f)"><Icon name="play" :size="16" :stroke="2.4" /></button>
               <button v-if="state.queue.enabled" class="btn ibtn sm" :aria-label="t('Add to queue')" :title="t('Add to queue')" @click.stop="addQ([f])"><Icon name="queue" :size="16" /></button>
               <button class="btn ibtn sm" :aria-label="t('Preheat')" @click.stop="preheat(f)"><Icon name="flame" :size="16" /></button>
+              <button class="btn ibtn sm" :aria-label="t('Edit')" :data-tip="editBlocked(f) || t('Edit')" :disabled="!!editBlocked(f)" @click.stop="editFile(f)"><Icon name="pencil" :size="16" /></button>
               <a class="btn ibtn sm" :aria-label="t('Download')" :href="api.fileUrl(path.split('/')[0], path.split('/').slice(1).concat(f.filename).join('/'))" download @click.stop><Icon name="download" :size="16" /></a>
               <button class="btn ibtn sm" :aria-label="t('Delete')" @click.stop="del = [f]"><Icon name="trash" :size="16" /></button>
             </div></td>
