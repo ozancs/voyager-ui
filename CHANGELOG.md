@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.1
+
+- New versions show up without pressing Check: the UI asks Moonraker to look for updates every 6 hours (not while printing). Can be turned off under Settings, General
+
 ## 0.18.0
 
 - Icon picker for favorites and custom buttons: search by name or keyword, about 750 more icons (Lucide), and a colour per icon
