@@ -4,6 +4,7 @@ import { reactive, watch, computed, markRaw } from 'vue'
 import { api } from './api/moonraker'
 import { state, S, toast, printState, pushConsole, gcode, backupBeforeWrite } from './store'
 import { t } from './i18n'
+import { expandPaths } from './paths'
 
 // ---------------------------------------------------------------- macro prompts
 // Klipper macros can open dialogs with "// action:prompt_*" lines (same protocol Mainsail uses).
@@ -318,9 +319,16 @@ export { pushConsole }
 export async function downloadMany(root, items, base = 'files') {
   const save = (href, name) => { const a = document.createElement('a'); a.href = href; a.download = name || ''; document.body.appendChild(a); a.click(); a.remove() }
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
-  toast(t('Preparing {n} files…', { n: items.length }))
+  // Folders are expanded to every file inside them, however deep. Handing Moonraker the folder itself left out
+  // sub-folders that are symlinks (Happy Hare links config/mmu/base etc. into its repo), so a config backup
+  // was missing them. server.files.list follows those links, and a file path zips fine through a link.
+  let paths = items.map((i) => i.path)
+  if (items.some((i) => i.dir)) {
+    try { paths = expandPaths(items, await api.call('server.files.list', { root })) } catch {} // could not list: let Moonraker handle the folders
+  }
+  toast(t('Preparing {n} files…', { n: paths.length }))
   try {
-    const r = await api.call('server.files.zip', { items: items.map((i) => `${root}/${i.path}`), dest: `${root}/${base}-${stamp}.zip`, store_only: false })
+    const r = await api.call('server.files.zip', { items: paths.map((p) => `${root}/${p}`), dest: `${root}/${base}-${stamp}.zip`, store_only: false })
     const d = r.destination || {}
     const p = `${d.root || root}/${d.path || `${base}-${stamp}.zip`}`
     const res = await api.fetch(`/server/files/${p.split('/').map(encodeURIComponent).join('/')}`)
