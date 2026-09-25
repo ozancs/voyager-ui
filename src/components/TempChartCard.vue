@@ -36,9 +36,16 @@ const lines = computed(() => {
     if (!h || !h.t.length) return null
     const t = h.t.slice(-range.value), tg = h.target.slice(-range.value)
     const n = range.value, off = n - t.length
-    const step = Math.max(1, Math.floor(t.length / 300))
+    // thin out to ~300 points. The kept samples are chosen by their absolute index (h.n counts every sample),
+    // so the same samples stay on screen as the graph scrolls. Picking every step-th point from the start of the
+    // window made the kept points change every second and the line jumped on 10m and 20m.
+    const step = Math.max(1, Math.round(n / 300))
+    const first = (h.n ?? h.t.length) - t.length // absolute index of t[0]
+    const ks = []
+    for (let k = (step - (first % step)) % step; k < t.length; k += step) ks.push(k)
+    if (ks[ks.length - 1] !== t.length - 1) ks.push(t.length - 1) // always end at the current value
     let d = '', dt = ''
-    for (let k = 0; k < t.length; k += step) {
+    for (const k of ks) {
       const x = ((off + k) / (n - 1)) * W
       d += (d ? 'L' : 'M') + x.toFixed(1) + ',' + y(t[k]).toFixed(1)
       if ((s.isHeater || s.isTempFan) && tg[k] > 0) dt += (dt ? 'L' : 'M') + x.toFixed(1) + ',' + y(tg[k]).toFixed(1)

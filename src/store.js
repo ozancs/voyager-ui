@@ -614,7 +614,9 @@ async function loadTempHistory() {
   try {
     const r = await api.call('server.temperature_store', { include_monitors: false })
     for (const [name, d] of Object.entries(r)) {
-      hist[name] = { t: (d.temperatures || []).slice(-HIST_MAX), target: (d.targets || []).slice(-HIST_MAX) }
+      const t = (d.temperatures || []).slice(-HIST_MAX)
+      // n counts every sample ever added, so the graph can thin out points at fixed positions
+      hist[name] = { t, target: (d.targets || []).slice(-HIST_MAX), n: t.length }
     }
     state.histTick++
   } catch {}
@@ -771,8 +773,9 @@ export function start() {
     for (const n of names) {
       const s = state.status[n]
       if (!s || s.temperature == null) continue
-      const h = (hist[n] ||= { t: [], target: [] })
+      const h = (hist[n] ||= { t: [], target: [], n: 0 })
       h.t.push(s.temperature)
+      h.n = (h.n || 0) + 1
       h.target.push(s.target ?? 0)
       if (h.t.length > HIST_MAX) { h.t.shift(); h.target.shift() }
     }
