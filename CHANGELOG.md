@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.19.2
+
+- Far fewer colours. Buttons are plain everywhere except E-STOP and the main button of a dialog
+- No status dot before Printing, the label turns red only when something is wrong
+- Cards start without a colour (colours you picked stay), status tiles are neutral except a heater that is on
+- Green "all good" chips, dots and icons are plain text now, warnings and errors keep their colour
+
 ## 0.19.1
 
 - Calmer look: accent buttons are tinted instead of filled (only a dialog's main button stays filled), no accent stripe in the side menu
