@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.3
+
+- Temperature graph: the line no longer jumps on the 10m and 20m ranges
+
 ## 0.19.2
 
 - Far fewer colours. Buttons are plain everywhere except E-STOP and the main button of a dialog
