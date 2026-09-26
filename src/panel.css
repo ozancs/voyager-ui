@@ -3,72 +3,180 @@
    from the bottom like a gauge (heaters toward their target, fans by speed, spool by weight left).
    Numbers and headings use Archivo, stretched wide for readouts and narrow for labels.
    Everything here is scoped to [data-look="panel"], Settings > Appearance > Style switches back. */
-:root[data-look="panel"] {
+:root[data-look='panel'] {
   --fx: 'Archivo Variable', var(--fd);
   --r: 20px;
 }
 
 /* type */
-[data-look="panel"] .card-h h2 { font-family: var(--fx); font-stretch: 118%; font-weight: 760; font-size: 16px; letter-spacing: .005em; }
-[data-look="panel"] .brand b { font-family: var(--fx); font-stretch: 120%; font-weight: 800; letter-spacing: 0; }
-[data-look="panel"] .ds .tbig,
-[data-look="panel"] .ds .big,
-[data-look="panel"] .tv,
-[data-look="panel"] .zv { font-family: var(--fx); font-stretch: 125%; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
-[data-look="panel"] .ds .tbig { font-size: 24px; }
-[data-look="panel"] .ds .big { font-size: 22px; }
-[data-look="panel"] .ds .lbl,
-[data-look="panel"] .ds .tt,
-[data-look="panel"] .ds .auto { font-family: var(--fx); font-stretch: 70%; font-size: 12.5px; font-weight: 600; }
-[data-look="panel"] .ds .tt { font-size: 12.5px; }
-[data-look="panel"] .fav { font-family: var(--fx); font-stretch: 108%; font-weight: 650; font-size: 13px; }
+[data-look='panel'] .card-h h2 {
+  font-family: var(--fx);
+  font-stretch: 118%;
+  font-weight: 760;
+  font-size: 16px;
+  letter-spacing: 0.005em;
+}
+[data-look='panel'] .brand b {
+  font-family: var(--fx);
+  font-stretch: 120%;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+[data-look='panel'] .ds .tbig,
+[data-look='panel'] .ds .big,
+[data-look='panel'] .tv,
+[data-look='panel'] .zv {
+  font-family: var(--fx);
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+[data-look='panel'] .ds .tbig {
+  font-size: 24px;
+}
+[data-look='panel'] .ds .big {
+  font-size: 22px;
+}
+[data-look='panel'] .ds .lbl,
+[data-look='panel'] .ds .tt,
+[data-look='panel'] .ds .auto {
+  font-family: var(--fx);
+  font-stretch: 70%;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+[data-look='panel'] .ds .tt {
+  font-size: 12.5px;
+}
+[data-look='panel'] .fav {
+  font-family: var(--fx);
+  font-stretch: 108%;
+  font-weight: 650;
+  font-size: 13px;
+}
 
 /* instrument bank */
-[data-look="panel"] .ds { gap: 4px; grid-template-columns: repeat(auto-fill, minmax(124px, 144px)); }
-[data-look="panel"] .ds .dc {
-  background: var(--s1) !important; border-radius: 7px; height: 84px; padding: 9px 11px 8px; isolation: isolate;
+[data-look='panel'] .ds {
+  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 144px));
+}
+[data-look='panel'] .ds .dc {
+  background: var(--s1) !important;
+  border-radius: 7px;
+  height: 84px;
+  padding: 9px 11px 8px;
+  isolation: isolate;
   box-shadow: none;
 }
-[data-look="panel"] .ds .dc::before {
-  content: ''; position: absolute; left: 0; right: 0; bottom: 0; z-index: -1; pointer-events: none;
+[data-look='panel'] .ds .dc::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
   height: calc(var(--lvl, 0) * 100%);
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--lc, var(--k, var(--mu2))) 34%, transparent), color-mix(in srgb, var(--lc, var(--k, var(--mu2))) 18%, transparent) 60px);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--lc, var(--k, var(--mu2))) 34%, transparent),
+    color-mix(in srgb, var(--lc, var(--k, var(--mu2))) 18%, transparent) 60px
+  );
   border-radius: 6px;
-  transition: height .8s cubic-bezier(.2,.7,.2,1);
+  transition: height 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-[data-look="panel"] .ds .dc:not([class*="t-"])::before { background: color-mix(in srgb, var(--mu2) 16%, transparent); }
-[data-look="panel"] .ds .dc .bar { display: none; }
-[data-look="panel"] .ds .dc .ki { color: color-mix(in srgb, var(--k, var(--mu)) 65%, var(--tx)); }
-[data-look="panel"] .ds .dc.edit { border-color: var(--mu2); }
-@media (prefers-reduced-motion: reduce) { [data-look="panel"] .ds .dc::before { transition: none; } }
+[data-look='panel'] .ds .dc:not([class*='t-'])::before {
+  background: color-mix(in srgb, var(--mu2) 16%, transparent);
+}
+[data-look='panel'] .ds .dc .bar {
+  display: none;
+}
+[data-look='panel'] .ds .dc .ki {
+  color: color-mix(in srgb, var(--k, var(--mu)) 65%, var(--tx));
+}
+[data-look='panel'] .ds .dc.edit {
+  border-color: var(--mu2);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-look='panel'] .ds .dc::before {
+    transition: none;
+  }
+}
 
 /* favorites keep their own width, a short list does not stretch across the bar */
-[data-look="panel"] .fav { flex: 0 0 auto; border-radius: 10px; }
+[data-look='panel'] .fav {
+  flex: 0 0 auto;
+  border-radius: 10px;
+}
 
 /* big cards: larger radius so the tight tiles and the roomy cards read as two different things */
-[data-look="panel"] .card { border-radius: var(--r); }
-[data-look="panel"] .ds .dc .pop.card { border-radius: 14px; }
+[data-look='panel'] .card {
+  border-radius: var(--r);
+}
+[data-look='panel'] .ds .dc .pop.card {
+  border-radius: 14px;
+}
 
 /* cards: a coloured name plate on top, a dark body below. The plate takes the card's tint
    and stays put while the card body scrolls. */
-[data-look="panel"] .card:not(.cb) > .card-h:first-child {
-  margin: -20px -20px 0; padding: 12px 20px; min-height: 58px;
+[data-look='panel'] .card:not(.cb) > .card-h:first-child {
+  margin: -20px -20px 0;
+  padding: 12px 20px;
+  min-height: 58px;
   background: color-mix(in srgb, var(--k, var(--mu2)) 12%, var(--s1));
   border-radius: var(--r) var(--r) 0 0;
-  position: sticky; top: -20px; z-index: 3;
+  position: sticky;
+  top: -20px;
+  z-index: 3;
 }
-[data-look="panel"] .card:not(.cb) > .card-h:first-child h2 { color: color-mix(in srgb, var(--k, var(--tx)) 35%, var(--tx)); }
-[data-look="panel"] .tint-cell > .card,
-[data-look="panel"] .card.tint { background: color-mix(in srgb, var(--tint-d) 5%, var(--s1)) !important; }
-[data-look="panel"] .card:not(.cb) > .card-h:first-child .btn:not(.dgf):not(.on):not(.upb) { background: color-mix(in srgb, var(--k, var(--mu2)) 9%, var(--base-s2)); }
-:root[data-look="panel"][data-theme="light"] .card > .card-h:first-child { background: color-mix(in srgb, var(--k, var(--mu2)) 8%, #fff); }
+[data-look='panel'] .card:not(.cb) > .card-h:first-child h2 {
+  color: color-mix(in srgb, var(--k, var(--tx)) 35%, var(--tx));
+}
+[data-look='panel'] .tint-cell > .card,
+[data-look='panel'] .card.tint {
+  background: color-mix(in srgb, var(--tint-d) 5%, var(--s1)) !important;
+}
+[data-look='panel'] .card:not(.cb) > .card-h:first-child .btn:not(.dgf):not(.on):not(.upb) {
+  background: color-mix(in srgb, var(--k, var(--mu2)) 9%, var(--base-s2));
+}
+:root[data-look='panel'][data-theme='light'] .card > .card-h:first-child {
+  background: color-mix(in srgb, var(--k, var(--mu2)) 8%, #fff);
+}
 
 /* compact dashboard (default): less padding, a thinner title bar, smaller header buttons */
-:root.compact .grid .card { padding: 12px; gap: 10px; }
-:root.compact[data-look="panel"] .grid .card:not(.cb) > .card-h:first-child { margin: -12px -12px 0; padding: 3px 6px 3px 12px; min-height: 34px; top: -12px; }
-:root.compact .grid .card-h { min-height: 28px; }
-:root.compact .grid .card-h h2 { font-size: 13.5px; }
-:root.compact .grid .card-h .btn { height: 26px; padding: 0 8px; font-size: 12px; gap: 5px; }
-:root.compact .grid .card-h .btn.ibtn { width: 26px; padding: 0; }
-:root.compact .grid .card-h .seg button { height: 24px; font-size: 12px; }
-:root.compact .grid .card-h .input, :root.compact .grid .card-h select { height: 26px; font-size: 12.5px; }
+:root.compact .grid .card {
+  padding: 12px;
+  gap: 10px;
+}
+:root.compact[data-look='panel'] .grid .card:not(.cb) > .card-h:first-child {
+  margin: -12px -12px 0;
+  padding: 3px 6px 3px 12px;
+  min-height: 34px;
+  top: -12px;
+}
+:root.compact .grid .card-h {
+  min-height: 28px;
+}
+:root.compact .grid .card-h h2 {
+  font-size: 13.5px;
+}
+:root.compact .grid .card-h .btn {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  gap: 5px;
+}
+:root.compact .grid .card-h .btn.ibtn {
+  width: 26px;
+  padding: 0;
+}
+:root.compact .grid .card-h .seg button {
+  height: 24px;
+  font-size: 12px;
+}
+:root.compact .grid .card-h .input,
+:root.compact .grid .card-h select {
+  height: 26px;
+  font-size: 12.5px;
+}

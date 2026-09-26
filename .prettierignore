@@ -1,0 +1,6 @@
+dist
+dist-demo
+node_modules
+src/icons-extra.js
+src/locales
+*.zip
