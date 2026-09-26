@@ -1181,5 +1181,10 @@ export default {
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Zichtbaar in het browsertabblad en de bovenbalk, zodat je elke printer snel terugvindt tussen open tabbladen.",
  "Choose image": "Afbeelding kiezen",
  "Own image": "Eigen afbeelding",
- "From Mainsail": "Uit Mainsail"
+ "From Mainsail": "Uit Mainsail",
+ "{n} commits": "{n} commits",
+ "See the changes on GitHub": "Bekijk de wijzigingen op GitHub",
+ "This repo has local changes. The update may overwrite them.": "Deze repo heeft lokale wijzigingen. De update kan ze overschrijven.",
+ "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Updates kunnen dingen anders laten werken of stukmaken. Services herstarten tijdens de update, update niet tijdens een print en bewaar een back-up van je config.",
+ "I understand the risk": "Ik begrijp het risico"
 }

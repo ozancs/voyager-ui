@@ -1182,5 +1182,10 @@ export default {
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Tarayıcı sekmesinde ve üst çubukta görünür, böylece açık sekmeler arasında her yazıcıyı kolayca bulursun.",
  "Choose image": "Resim seç",
  "Own image": "Kendi resmin",
- "From Mainsail": "Mainsail'den"
+ "From Mainsail": "Mainsail'den",
+ "{n} commits": "{n} commit",
+ "See the changes on GitHub": "Değişiklikleri GitHub'da gör",
+ "This repo has local changes. The update may overwrite them.": "Bu repoda yerel değişiklikler var. Güncelleme bunların üzerine yazabilir.",
+ "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Güncellemeler bazı şeylerin çalışma şeklini değiştirebilir ya da bozabilir. Güncelleme sırasında servisler yeniden başlar, baskı sırasında güncelleme yapma ve config yedeğin olsun.",
+ "I understand the risk": "Riski anlıyorum"
 }

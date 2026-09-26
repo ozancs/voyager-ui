@@ -41,6 +41,26 @@ function needs(v) {
   if (v.version && v.remote_version && v.remote_version !== '?' && v.version !== v.remote_version) return true
   return false
 }
+// the update dialog: what changes, a link to look at it on GitHub, and an "I understand the risk" tick
+const risk = ref(false)
+watch(() => confirm.value, () => (risk.value = false))
+const cv = computed(() => (confirm.value && confirm.value !== '__all' ? upd.value?.version_info?.[confirm.value] || {} : null))
+const ghBase = (v) => {
+  if (v.owner && v.repo_name && v.owner !== '?') return `https://github.com/${v.owner}/${v.repo_name}`
+  const m = /github\.com[/:]([^/]+)\/([^/.]+)/.exec(v.remote_url || '')
+  return m ? `https://github.com/${m[1]}/${m[2]}` : null
+}
+const ghLink = computed(() => {
+  const v = cv.value
+  if (!v) return null
+  const b = ghBase(v)
+  if (!b) return null
+  if (v.current_hash && v.remote_hash && v.current_hash !== v.remote_hash) return b + '/compare/' + v.current_hash + '...' + v.remote_hash
+  if (v.configured_type === 'web') return b + '/releases'
+  return b
+})
+const commits = computed(() => (Array.isArray(cv.value?.commits_behind) ? cv.value.commits_behind.filter((c) => c && typeof c === 'object').slice(0, 30) : []))
+const fmtC = (c) => (c.date ? new Date(+c.date * 1000).toLocaleDateString() : '')
 function verText(v) { return v.version || v.full_version_string || '' }
 async function doUpdate(name) {
   confirm.value = null
@@ -95,8 +115,15 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log']
     </div>
   </div>
   <Modal v-if="confirm" :title="confirm === '__all' ? t('Update everything?') : t('Update {name}?', { name: confirm })" @close="confirm = null">
-    <p class="mu" style="margin:0">{{ t('Services may restart during the update.') }}</p>
-    <template #foot><button class="btn lg" @click="confirm = null">{{ t('Cancel') }}</button><button class="btn lg acc" @click="confirm === '__all' ? doUpdateAll() : doUpdate(confirm)">{{ t('Update') }}</button></template>
+    <div v-if="cv && (verText(cv) || cv.remote_version)" class="row mono" style="gap:8px;font-size:13px"><span>{{ verText(cv) }}</span><Icon name="right" :size="14" /><b>{{ cv.remote_version || '?' }}</b><span v-if="cv.commits_behind?.length" class="mu">· {{ t('{n} commits', { n: cv.commits_behind.length }) }}</span></div>
+    <div v-if="commits.length" class="cl">
+      <div v-for="c in commits" :key="c.sha" class="ci"><span class="grow">{{ c.subject }}</span><span class="mu mono">{{ c.author }} · {{ fmtC(c) }}</span></div>
+    </div>
+    <a v-if="ghLink" :href="ghLink" target="_blank" rel="noopener" class="row" style="gap:6px;font-size:13px"><Icon name="ext" :size="15" />{{ t('See the changes on GitHub') }}</a>
+    <p v-if="cv?.is_dirty" class="wn" style="margin:0;font-size:13px">{{ t('This repo has local changes. The update may overwrite them.') }}</p>
+    <p class="mu" style="margin:0">{{ t('Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.') }}</p>
+    <label class="row" style="gap:10px;cursor:pointer"><input v-model="risk" type="checkbox" class="cb" /><span>{{ t('I understand the risk') }}</span></label>
+    <template #foot><button class="btn lg" @click="confirm = null">{{ t('Cancel') }}</button><button class="btn lg acc" :disabled="!risk" @click="confirm === '__all' ? doUpdateAll() : doUpdate(confirm)">{{ t('Update') }}</button></template>
   </Modal>
 </template>
 <style scoped>
@@ -112,4 +139,9 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log']
 .it b { font-weight: 600; font-size: 13.5px; white-space: nowrap; }
 :root.ew-lt-1200 .mg { grid-template-columns: minmax(0, 1fr); }
 :root.ew-lt-1200 .left { min-height: 600px; }
+.cl { max-height: 220px; overflow: auto; display: flex; flex-direction: column; gap: 2px; background: var(--s2); border-radius: 10px; padding: 6px 10px; }
+.ci { display: flex; gap: 12px; font-size: 12.5px; padding: 4px 0; border-bottom: 1px solid var(--bd); }
+.ci:last-child { border-bottom: none; }
+.ci .mono { font-size: 11px; white-space: nowrap; }
+.wn { color: var(--wn); }
 </style>

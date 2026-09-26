@@ -1180,5 +1180,10 @@
 "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.",
 "Choose image",
 "Own image",
-"From Mainsail"
+"From Mainsail",
+"{n} commits",
+"See the changes on GitHub",
+"This repo has local changes. The update may overwrite them.",
+"Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.",
+"I understand the risk"
 ]

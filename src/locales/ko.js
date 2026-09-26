@@ -1181,5 +1181,10 @@ export default {
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "브라우저 탭과 상단 바에 표시되어 열린 탭 중에서 각 프린터를 쉽게 찾을 수 있습니다.",
  "Choose image": "이미지 선택",
  "Own image": "내 이미지",
- "From Mainsail": "Mainsail에서"
+ "From Mainsail": "Mainsail에서",
+ "{n} commits": "커밋 {n}개",
+ "See the changes on GitHub": "GitHub에서 변경 사항 보기",
+ "This repo has local changes. The update may overwrite them.": "이 저장소에 로컬 변경 사항이 있습니다. 업데이트가 덮어쓸 수 있습니다.",
+ "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "업데이트로 동작이 바뀌거나 문제가 생길 수 있습니다. 업데이트 중 서비스가 재시작되며, 출력 중에는 업데이트하지 말고 설정을 백업해 두세요.",
+ "I understand the risk": "위험을 이해합니다"
 }

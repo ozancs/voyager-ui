@@ -1181,5 +1181,10 @@ export default {
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "显示在浏览器标签页和顶部栏中，方便在打开的标签页中找到每台打印机。",
  "Choose image": "选择图片",
  "Own image": "自己的图片",
- "From Mainsail": "来自 Mainsail"
+ "From Mainsail": "来自 Mainsail",
+ "{n} commits": "{n} 个提交",
+ "See the changes on GitHub": "在 GitHub 上查看更改",
+ "This repo has local changes. The update may overwrite them.": "此仓库有本地修改，更新可能会覆盖它们。",
+ "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "更新可能改变功能或导致问题。更新期间服务会重启，打印时不要更新，并保留配置备份。",
+ "I understand the risk": "我了解风险"
 }

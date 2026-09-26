@@ -1181,5 +1181,10 @@ export default {
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Affichée dans l'onglet du navigateur et la barre du haut, pour retrouver chaque imprimante parmi les onglets ouverts.",
  "Choose image": "Choisir une image",
  "Own image": "Image perso",
- "From Mainsail": "Depuis Mainsail"
+ "From Mainsail": "Depuis Mainsail",
+ "{n} commits": "{n} commits",
+ "See the changes on GitHub": "Voir les changements sur GitHub",
+ "This repo has local changes. The update may overwrite them.": "Ce dépôt a des modifications locales. La mise à jour peut les écraser.",
+ "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Une mise à jour peut changer le fonctionnement ou casser quelque chose. Les services redémarrent pendant la mise à jour, ne mettez pas à jour pendant une impression et gardez une sauvegarde de votre config.",
+ "I understand the risk": "Je comprends le risque"
 }

@@ -1181,5 +1181,10 @@ export default {
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Показується у вкладці браузера та у верхній панелі, щоб легко знаходити кожен принтер серед відкритих вкладок.",
  "Choose image": "Вибрати зображення",
  "Own image": "Власне зображення",
- "From Mainsail": "З Mainsail"
+ "From Mainsail": "З Mainsail",
+ "{n} commits": "Комітів: {n}",
+ "See the changes on GitHub": "Переглянути зміни на GitHub",
+ "This repo has local changes. The update may overwrite them.": "У цьому репозиторії є локальні зміни. Оновлення може їх перезаписати.",
+ "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Оновлення можуть змінити роботу або щось зламати. Під час оновлення служби перезапускаються, не оновлюйте під час друку й тримайте резервну копію конфігурації.",
+ "I understand the risk": "Я розумію ризик"
 }
