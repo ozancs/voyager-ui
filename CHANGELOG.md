@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.5
+
+- Heightmap 3D: no more stray lines under the bed, the wireframe shows only the probe grid (also in the Mesh view)
+
 ## 0.19.4
 
 - Customize works on phones: side menu > Customize dashboard, then move cards up or down or remove them. The phone order is separate from the desktop layout
