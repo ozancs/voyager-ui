@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.20.5
+
+- Z offset buttons only in the Live Z card (it is added to dashboards that do not have it), the Toolhead card is smaller
+- Cards have half the corner radius and a little more space between them
+- Webcam cards show the camera name; Add card lists each camera
+- Demo has an idle and a printing layout
+
 ## 0.20.4
 
 - Update Manager: Update buttons use the accent colour when an update is available

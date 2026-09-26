@@ -8,7 +8,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue';
 import { api } from './api/moonraker';
 import { setLang, t } from './i18n';
 
-export const VERSION = '0.20.4';
+export const VERSION = '0.20.5';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';

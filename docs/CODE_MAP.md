@@ -372,7 +372,7 @@ On/off switch bound with v-model.
 
 **[src/components/ToolheadCard.vue](../src/components/ToolheadCard.vue)**  
 Toolhead card: position (type a value to move), jog buttons per axis with the configured steps,  
-homing, Z tilt / QGL, motors off, Z offset baby steps, speed and flow.
+homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
 
 **[src/components/Tooltip.vue](../src/components/Tooltip.vue)**  
 Global tooltip: any element with aria-label or data-tip shows it after hovering ~0.8s.
