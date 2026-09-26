@@ -126,6 +126,12 @@
   min-height: 58px;
   background: color-mix(in srgb, var(--k, var(--mu2)) 12%, var(--s1));
   border-radius: var(--r) var(--r) 0 0;
+}
+/* the plate stays put only where the card itself scrolls (dashboard cards, dialogs, cards that fill a page).
+   On a page that scrolls as a whole a sticky plate stuck to the page and the card's content slid behind it. */
+[data-look='panel'] .vgl-item .card:not(.cb) > .card-h:first-child,
+[data-look='panel'] .md.card > .card-h:first-child,
+[data-look='panel'] .card.fill > .card-h:first-child {
   position: sticky;
   top: -20px;
   z-index: 3;
@@ -144,39 +150,45 @@
   background: color-mix(in srgb, var(--k, var(--mu2)) 8%, #fff);
 }
 
-/* compact dashboard (default): less padding, a thinner title bar, smaller header buttons */
-:root.compact .grid .card {
+/* compact cards (default): less padding, a thinner title bar, smaller header buttons. Applies to the cards on every
+   page, not only the dashboard; dialogs and pop-ups keep their size. */
+:root.compact .card:not(.md):not(.pop):not(.cb) {
   padding: 12px;
   gap: 10px;
 }
-:root.compact[data-look='panel'] .grid .card:not(.cb) > .card-h:first-child {
+:root.compact[data-look='panel'] .card:not(.md):not(.pop):not(.cb) > .card-h:first-child {
   margin: -12px -12px 0;
   padding: 3px 6px 3px 12px;
   min-height: 34px;
   top: -12px;
 }
-:root.compact .grid .card-h {
+:root.compact .card:not(.md):not(.pop) > .card-h {
   min-height: 28px;
 }
-:root.compact .grid .card-h h2 {
+:root.compact .card:not(.md):not(.pop) > .card-h h2 {
   font-size: 13.5px;
 }
-:root.compact .grid .card-h .btn {
+:root.compact .card:not(.md):not(.pop) > .card-h .btn {
   height: 26px;
   padding: 0 8px;
   font-size: 12px;
   gap: 5px;
 }
-:root.compact .grid .card-h .btn.ibtn {
+:root.compact .card:not(.md):not(.pop) > .card-h .btn.ibtn {
   width: 26px;
   padding: 0;
 }
-:root.compact .grid .card-h .seg button {
+:root.compact .card:not(.md):not(.pop) > .card-h .seg button {
   height: 24px;
   font-size: 12px;
 }
-:root.compact .grid .card-h .input,
-:root.compact .grid .card-h select {
+:root.compact .card:not(.md):not(.pop) > .card-h .input,
+:root.compact .card:not(.md):not(.pop) > .card-h select {
   height: 26px;
   font-size: 12.5px;
+}
+/* same spacing between cards on the pages as on the dashboard */
+:root.compact .split,
+:root.compact .side-col {
+  gap: 14px;
 }
