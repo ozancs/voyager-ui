@@ -1179,7 +1179,6 @@ export default {
  "This file is not an image": "Diese Datei ist kein Bild",
  "Printer icon": "Druckersymbol",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Wird im Browser-Tab und in der oberen Leiste angezeigt, damit jeder Drucker unter offenen Tabs leicht zu finden ist.",
- "Letters": "Buchstaben",
  "Choose image": "Bild wählen",
- "Image": "Bild"
+ "Own image": "Eigenes Bild"
 }

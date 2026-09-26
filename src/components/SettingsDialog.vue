@@ -11,8 +11,7 @@ import { api } from '../api/moonraker'
 import { playSound } from '../features'
 import { sync, detect, importFrom, push } from '../sync'
 import { go } from '../router'
-import { iconUrl, initials, readIcon } from '../printerIcon'
-import { printerName } from '../store'
+import { iconUrl, readIcon, LOGOS } from '../printerIcon'
 import { t, LANGS } from '../i18n'
 
 const TABS = [
@@ -34,6 +33,11 @@ const ctl = computed(() => state.settings.control)
 // printer icon (tab icon + top bar logo)
 const pi = computed(() => state.settings.printerIcon)
 const piFile = ref(null)
+const piSel = computed(() => (pi.value.kind === 'logo' && LOGOS.some((l) => l.id === pi.value.logo) ? 'l:' + pi.value.logo : pi.value.kind === 'image' && pi.value.img ? 'image' : 'voyager'))
+function setPi(v) {
+  if (v.startsWith('l:')) state.settings.printerIcon = { ...pi.value, kind: 'logo', logo: v.slice(2) }
+  else state.settings.printerIcon = { ...pi.value, kind: v }
+}
 async function pickIcon(e) {
   const f = e.target.files?.[0]
   e.target.value = ''
@@ -191,16 +195,15 @@ function reset() { confirmReset.value = false; apply({ ...DEFAULT_SETTINGS(), la
               </div>
               <div class="rw"><div class="k"><b>{{ t('Printer icon') }}</b><span>{{ t('Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.') }}</span></div>
                 <div class="col v" style="gap:10px;align-items:flex-end">
-                  <div class="row" style="gap:10px">
+                  <div class="row" style="gap:8px">
                     <img v-if="iconUrl()" :src="iconUrl()" width="34" height="34" alt="" style="border-radius:8px;object-fit:contain" />
-                    <div class="seg"><button v-for="[k, l] in [['voyager', 'Voyager'], ['letters', 'Letters'], ['image', 'Image']]" :key="k" :class="{ on: pi.kind === k }" @click="k === 'image' && !pi.img ? piFile.click() : (pi.kind = k)">{{ t(l) }}</button></div>
+                    <select class="input" style="width:auto" :value="piSel" :aria-label="t('Printer icon')" @change="setPi($event.target.value)">
+                      <option value="voyager">Voyager</option>
+                      <option v-for="l in LOGOS" :key="l.id" :value="'l:' + l.id">{{ l.name }}</option>
+                      <option value="image" :disabled="!pi.img">{{ t('Own image') }}</option>
+                    </select>
+                    <button class="btn" @click="piFile.click()"><Icon name="upload" :size="16" />{{ t('Choose image') }}</button>
                   </div>
-                  <div v-if="pi.kind === 'letters'" class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end">
-                    <input v-model="pi.text" class="input" maxlength="3" style="width:72px;text-align:center;font-weight:700" :placeholder="initials(printerName)" :aria-label="t('Letters')" />
-                    <button v-for="c in ACCENTS" :key="c" class="swc" :class="{ on: pi.color === c }" :style="{ background: c }" :aria-label="c" @click="pi.color = c"></button>
-                    <label class="swc cu" :aria-label="t('Custom color')"><input v-model="pi.color" type="color" /></label>
-                  </div>
-                  <button v-if="pi.kind === 'image'" class="btn" @click="piFile.click()"><Icon name="upload" :size="16" />{{ t('Choose image') }}</button>
                   <input ref="piFile" type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" hidden @change="pickIcon" />
                 </div>
               </div>

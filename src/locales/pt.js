@@ -1179,7 +1179,6 @@ export default {
  "This file is not an image": "Este ficheiro não é uma imagem",
  "Printer icon": "Ícone da impressora",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Mostrado no separador do navegador e na barra superior, para encontrar cada impressora entre os separadores abertos.",
- "Letters": "Letras",
  "Choose image": "Escolher imagem",
- "Image": "Imagem"
+ "Own image": "Imagem própria"
 }

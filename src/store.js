@@ -2,7 +2,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue'
 import { api } from './api/moonraker'
 import { setLang, t } from './i18n'
 
-export const VERSION = '0.20.0'
+export const VERSION = '0.20.1'
 export const APP = 'voyager-ui'
 export const APP_NAME = 'Voyager UI'
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui'
@@ -11,7 +11,7 @@ const NS = APP
 
 export const DEFAULT_SETTINGS = () => ({
   accent: '#ff6b1a',
-  printerIcon: { kind: 'voyager', text: '', color: '#38d6ff', img: '' }, // tab icon and top bar logo, see printerIcon.js
+  printerIcon: { kind: 'voyager', logo: '', img: '' }, // tab icon and top bar logo, see printerIcon.js
   favorites: [
     { id: 'f1', name: 'Chamber 50°', icon: 'box', gcode: 'CHAMBER TEMP=50', highlight: true },
     { id: 'f2', name: 'Bed Mesh', icon: 'mesh', gcode: 'BED_MESH_CALIBRATE', highlight: false },

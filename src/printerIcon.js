@@ -1,36 +1,27 @@
 // Per-printer icon: shown as the browser tab icon and as the logo in the top bar, so several printers open in
 // tabs can be told apart. Kept in the printer's own settings (Moonraker database), so every printer has its own.
 //   kind 'voyager'  the Voyager UI mark (default)
-//   kind 'letters'  1 to 3 letters on a coloured tile
-//   kind 'image'    an image the user uploaded (their own printer logo), scaled down to 128 px
+//   kind 'logo'     a logo from src/img/logos (bundled with the UI, see the README there)
+//   kind 'image'    an image the user uploaded (their own printer logo), fitted into a 128 px square
+// Older settings ('letters', 'mainsail') fall back to the Voyager mark.
 import { watch } from 'vue'
 import { state, printerName } from './store'
 
-export const ICON_DEFAULT = () => ({ kind: 'voyager', text: '', color: '#38d6ff', img: '' })
-
-export const initials = (name) => (String(name || '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
-
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
-
-// dark or light text, whichever reads better on the tile colour
-function textOn(hex) {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '')
-  if (!m) return '#fff'
-  const n = parseInt(m[1], 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255
-  return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#15171a' : '#fff'
-}
-
-export function lettersSvg(text, color) {
-  const tx = esc(String(text || '?').slice(0, 3))
-  const size = tx.length > 2 ? 24 : tx.length > 1 ? 30 : 38
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${esc(color)}"/><text x="32" y="33" dominant-baseline="central" text-anchor="middle" font-family="Onest,Arial,sans-serif" font-weight="800" font-size="${size}" fill="${textOn(color)}">${tx}</text></svg>`
-}
+// every svg/png/webp in src/img/logos becomes an entry; the file name is the name shown
+// (voron-design.svg -> "Voron Design", a name in the manifest wins)
+const files = import.meta.glob('./img/logos/*.{svg,png,webp}', { eager: true, query: '?url', import: 'default' })
+import names from './img/logos/names.json'
+const nice = (id) => id.split(/[-_]/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+export const LOGOS = Object.entries(files)
+  .map(([f, url]) => { const id = f.split('/').pop().replace(/\.[a-z]+$/i, ''); return { id, name: names[id] || nice(id), url } })
+  .sort((a, b) => a.name.localeCompare(b.name))
 
 // the icon as a URL an <img> or <link rel=icon> can use, or null for the Voyager mark
 export function iconUrl(pi = state.settings.printerIcon) {
-  if (!pi || pi.kind === 'voyager') return null
+  if (!pi) return null
   if (pi.kind === 'image') return pi.img || null
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(lettersSvg(pi.text || initials(printerName.value), pi.color))
+  if (pi.kind === 'logo') return LOGOS.find((l) => l.id === pi.logo)?.url || null
+  return null
 }
 
 // read an uploaded image and scale it to fit 128 x 128 (keeps the settings small)
@@ -42,8 +33,8 @@ export function readIcon(file) {
       const im = new Image()
       im.onerror = () => rej(new Error('not an image'))
       im.onload = () => {
-        const S = 128, k = Math.min(1, S / Math.max(im.width, im.height))
-        const w = Math.max(1, Math.round(im.width * k)), h = Math.max(1, Math.round(im.height * k))
+        const S = 128, iw = im.naturalWidth || S, ih = im.naturalHeight || S, k = S / Math.max(iw, ih) // any size or shape ends up fitted into the square
+        const w = Math.max(1, Math.round(iw * k)), h = Math.max(1, Math.round(ih * k))
         const c = document.createElement('canvas')
         c.width = S; c.height = S
         c.getContext('2d').drawImage(im, (S - w) / 2, (S - h) / 2, w, h)
@@ -61,7 +52,7 @@ export function startTabIcon() {
   if (!link) return
   const orig = { href: link.getAttribute('href'), type: link.getAttribute('type') }
   watch(() => [iconUrl(), printerName.value], ([u]) => {
-    if (u) { link.setAttribute('href', u); link.setAttribute('type', u.startsWith('data:image/svg') ? 'image/svg+xml' : 'image/png') }
+    if (u) { link.setAttribute('href', u); link.setAttribute('type', /^data:image\/svg|\.svg(\?|$)/.test(u) ? 'image/svg+xml' : 'image/png') }
     else { link.setAttribute('href', orig.href); link.setAttribute('type', orig.type) }
   }, { immediate: true })
 }

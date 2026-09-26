@@ -1179,7 +1179,6 @@ export default {
  "This file is not an image": "Этот файл не изображение",
  "Printer icon": "Значок принтера",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Показывается во вкладке браузера и в верхней панели, чтобы легко находить каждый принтер среди открытых вкладок.",
- "Letters": "Буквы",
  "Choose image": "Выбрать изображение",
- "Image": "Изображение"
+ "Own image": "Своё изображение"
 }

@@ -1179,7 +1179,6 @@ export default {
  "This file is not an image": "Dit bestand is geen afbeelding",
  "Printer icon": "Printerpictogram",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Zichtbaar in het browsertabblad en de bovenbalk, zodat je elke printer snel terugvindt tussen open tabbladen.",
- "Letters": "Letters",
  "Choose image": "Afbeelding kiezen",
- "Image": "Afbeelding"
+ "Own image": "Eigen afbeelding"
 }
