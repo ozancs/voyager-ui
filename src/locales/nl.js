@@ -1192,5 +1192,12 @@ export default {
  "Hide the favorites bar": "Favorietenbalk verbergen",
  "Hide the favorites bar?": "Favorietenbalk verbergen?",
  "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Je kunt hem weer aanzetten in Interface-instellingen > Weergave > Favorietenbalk.",
- "Hide": "Verbergen"
+ "Hide": "Verbergen",
+ "Printers": "Printers",
+ "Printers this browser can switch between. Address: the printer’s IP or name, with a port when Moonraker is not behind the web server on port 80 (Moonraker’s own port is usually 7125). Each printer’s moonraker.conf has to allow this page in cors_domains.": "Printers waartussen deze browser kan wisselen. Adres: IP of naam van de printer, met een poort als Moonraker niet achter de webserver op poort 80 zit (Moonrakers eigen poort is meestal 7125). De moonraker.conf van elke printer moet deze pagina toestaan in cors_domains.",
+ "This address": "Dit adres",
+ "Nickname": "Bijnaam",
+ "Address": "Adres",
+ "Add printer": "Printer toevoegen",
+ "Manage printers": "Printers beheren"
 }

@@ -10,14 +10,22 @@ export class Moonraker {
     this.retry = null;
     // Moonraker login (only used when Moonraker asks for it, trusted clients never see a login)
     this.auth = { token: '', refresh: '', user: '' };
-    try {
-      Object.assign(this.auth, JSON.parse(localStorage.getItem('voyager-ui-auth') || '{}'));
-    } catch {}
+    this.loadAuth();
   }
 
+  // the login is kept per printer: a token of one printer is never sent to another
+  get authKey() {
+    return 'voyager-ui-auth' + (this.host ? '@' + this.host : '');
+  }
+  loadAuth() {
+    this.auth = { token: '', refresh: '', user: '' };
+    try {
+      Object.assign(this.auth, JSON.parse(localStorage.getItem(this.authKey) || '{}'));
+    } catch {}
+  }
   saveAuth() {
     try {
-      localStorage.setItem('voyager-ui-auth', JSON.stringify(this.auth));
+      localStorage.setItem(this.authKey, JSON.stringify(this.auth));
     } catch {}
   }
   headers(extra = {}) {
@@ -28,9 +36,16 @@ export class Moonraker {
     return /^\/(server|printer|machine|access|api)\//.test(p);
   }
 
-  // host '' = same origin (served by our nginx). host 'klipper.local' = dev mode.
+  // host '' = same origin (served by our nginx). Otherwise another printer ('192.168.1.20:7125') or dev mode.
   get httpBase() {
     return this.host ? `${location.protocol}//${this.host}` : '';
+  }
+  // base for things nginx serves next to Moonraker (webcams). When the address points at Moonraker's own port
+  // (71xx), those live on the same machine's port 80.
+  get webBase() {
+    if (!this.host) return '';
+    const [h, port] = this.host.split(':');
+    return `${location.protocol}//${port && /^71\d\d$/.test(port) ? h : this.host}`;
   }
 
   // /server/files/<root>/<path> with every path segment encoded (names with #, %, ? or spaces)
@@ -51,7 +66,7 @@ export class Moonraker {
       this.auth.token && this.isMoonrakerPath(p)
         ? (p.includes('?') ? '&' : '?') + 'access_token=' + encodeURIComponent(this.auth.token)
         : '';
-    return this.httpBase + p + tok;
+    return (this.isMoonrakerPath(p) ? this.httpBase : this.webBase) + p + tok;
   }
 
   // fetch with the login token, refreshing it once when it expired
@@ -152,7 +167,10 @@ export class Moonraker {
 
   async connect(host = '') {
     if (host && !/^[A-Za-z0-9.-]+(:\d{1,5})?$/.test(host)) host = ''; // host[:port] only, never a path or credentials
-    this.host = host;
+    if (host !== this.host) {
+      this.host = host;
+      this.loadAuth();
+    }
     clearTimeout(this.retry);
     const q = await this.wsQuery();
     if (q === null) return; // waiting for the user to log in, login() connects again

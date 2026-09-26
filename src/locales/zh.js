@@ -1192,5 +1192,12 @@ export default {
  "Hide the favorites bar": "隐藏收藏栏",
  "Hide the favorites bar?": "隐藏收藏栏？",
  "You can turn it back on in Interface settings > Appearance > Favorites bar.": "可以在 界面设置 > 外观 > 收藏栏 中重新打开。",
- "Hide": "隐藏"
+ "Hide": "隐藏",
+ "Printers": "打印机",
+ "Printers this browser can switch between. Address: the printer’s IP or name, with a port when Moonraker is not behind the web server on port 80 (Moonraker’s own port is usually 7125). Each printer’s moonraker.conf has to allow this page in cors_domains.": "此浏览器可切换的打印机。地址：打印机的 IP 或名称；如果 Moonraker 不在 80 端口的 Web 服务器后面，请加上端口（Moonraker 自己的端口通常是 7125）。每台打印机的 moonraker.conf 都需要在 cors_domains 中允许此页面。",
+ "This address": "此地址",
+ "Nickname": "昵称",
+ "Address": "地址",
+ "Add printer": "添加打印机",
+ "Manage printers": "管理打印机"
 }

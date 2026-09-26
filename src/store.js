@@ -7,6 +7,7 @@
 import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue';
 import { api } from './api/moonraker';
 import { setLang, t } from './i18n';
+import { currentHost, currentPrinter, perPrinterKey } from './printers';
 
 export const VERSION = '0.20.6';
 export const APP = 'voyager-ui';
@@ -179,21 +180,23 @@ export const state = reactive({
   power: [], // Moonraker [power] devices: { device, status, locked_while_printing, type }
   login: null, // { needed, sources, source } when Moonraker asks for a login
   settingsOpen: null, // name of the settings dialog tab while it is open
+  printersOpen: false, // the printer list dialog (printers.js)
   dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
   etaLearn: { k: null, n: 0 }, // how much real prints differ from the slicer estimate (median of past prints)
 });
 
 // local copies so the dashboard can be drawn before moonraker answers
+// (per printer when several are set up, see printers.js)
 function lsGet(k) {
   try {
-    return JSON.parse(localStorage.getItem(k) || 'null');
+    return JSON.parse(localStorage.getItem(perPrinterKey(k)) || 'null');
   } catch {
     return null;
   }
 }
 function lsSet(k, v) {
   try {
-    localStorage.setItem(k, JSON.stringify(v));
+    localStorage.setItem(perPrinterKey(k), JSON.stringify(v));
   } catch {}
 }
 export function mergeSettings(v) {
@@ -292,8 +295,10 @@ export function closeToast(id) {
 // ---------- computed ----------
 export const S = (name) => state.status[name] || {};
 
+// the nickname from this browser's printer list comes first: it is what tells printers apart in one UI
+const nickname = currentPrinter()?.name || '';
 export const printerName = computed(
-  () => state.settings.printerName || state.printerName || state.versions.host || t('Printer'),
+  () => nickname || state.settings.printerName || state.printerName || state.versions.host || t('Printer'),
 );
 watch(
   printerName,
@@ -464,7 +469,7 @@ export function pushConsole(message, type = 'response', time = Date.now() / 1000
 // ---------- notifications (only important things, like Mainsail) ----------
 let dismissed = new Set();
 try {
-  dismissed = new Set(JSON.parse(localStorage.getItem(APP + '-dismissed') || '[]'));
+  dismissed = new Set(JSON.parse(localStorage.getItem(perPrinterKey(APP + '-dismissed')) || '[]'));
 } catch {}
 export function notify(key, msg, kind = 'warn') {
   if (dismissed.has(key) || state.notifications.some((n) => n.id === key)) return;
@@ -478,7 +483,7 @@ export function dismiss(n) {
   if (!String(n.id).startsWith('klippy:')) {
     dismissed.add(n.id);
     try {
-      localStorage.setItem(APP + '-dismissed', JSON.stringify([...dismissed].slice(-200)));
+      localStorage.setItem(perPrinterKey(APP + '-dismissed'), JSON.stringify([...dismissed].slice(-200)));
     } catch {}
   }
 }
@@ -545,7 +550,7 @@ async function checkHealth() {
       try {
         u = await api.call('machine.update.refresh', {});
         try {
-          localStorage.setItem(KEY, String(Date.now()));
+          localStorage.setItem(perPrinterKey(KEY), String(Date.now()));
         } catch {}
       } catch {}
     }
@@ -1009,6 +1014,8 @@ export function start() {
       localStorage.removeItem(APP + '-host');
     } catch {}
   }
+  // a printer picked from the printer list (printers.js). Only set from the UI, never from the URL.
+  if (!host) host = currentHost();
 
   api.on('open', onOpen);
   api.on('auth-required', (info) => {

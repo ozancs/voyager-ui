@@ -1192,5 +1192,12 @@ export default {
  "Hide the favorites bar": "Favoritenleiste ausblenden",
  "Hide the favorites bar?": "Favoritenleiste ausblenden?",
  "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Du kannst sie unter Oberflächeneinstellungen > Erscheinungsbild > Favoritenleiste wieder einschalten.",
- "Hide": "Ausblenden"
+ "Hide": "Ausblenden",
+ "Printers": "Drucker",
+ "Printers this browser can switch between. Address: the printer’s IP or name, with a port when Moonraker is not behind the web server on port 80 (Moonraker’s own port is usually 7125). Each printer’s moonraker.conf has to allow this page in cors_domains.": "Drucker, zwischen denen dieser Browser wechseln kann. Adresse: IP oder Name des Druckers, mit Port, wenn Moonraker nicht hinter dem Webserver auf Port 80 läuft (Moonrakers eigener Port ist meist 7125). In der moonraker.conf jedes Druckers muss diese Seite unter cors_domains erlaubt sein.",
+ "This address": "Diese Adresse",
+ "Nickname": "Spitzname",
+ "Address": "Adresse",
+ "Add printer": "Drucker hinzufügen",
+ "Manage printers": "Drucker verwalten"
 }

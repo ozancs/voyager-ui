@@ -1192,5 +1192,12 @@ export default {
  "Hide the favorites bar": "Сховати панель обраного",
  "Hide the favorites bar?": "Сховати панель обраного?",
  "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Її можна знову увімкнути в Налаштування інтерфейсу > Зовнішній вигляд > Панель обраного.",
- "Hide": "Сховати"
+ "Hide": "Сховати",
+ "Printers": "Принтери",
+ "Printers this browser can switch between. Address: the printer’s IP or name, with a port when Moonraker is not behind the web server on port 80 (Moonraker’s own port is usually 7125). Each printer’s moonraker.conf has to allow this page in cors_domains.": "Принтери, між якими може перемикатися цей браузер. Адреса: IP або ім'я принтера, з портом, якщо Moonraker не стоїть за вебсервером на порту 80 (власний порт Moonraker зазвичай 7125). У moonraker.conf кожного принтера ця сторінка має бути дозволена в cors_domains.",
+ "This address": "Ця адреса",
+ "Nickname": "Назва",
+ "Address": "Адреса",
+ "Add printer": "Додати принтер",
+ "Manage printers": "Керувати принтерами"
 }

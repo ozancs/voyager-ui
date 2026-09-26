@@ -1192,5 +1192,12 @@ export default {
  "Hide the favorites bar": "Ukryj pasek ulubionych",
  "Hide the favorites bar?": "Ukryć pasek ulubionych?",
  "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Możesz go ponownie włączyć w Ustawienia interfejsu > Wygląd > Pasek ulubionych.",
- "Hide": "Ukryj"
+ "Hide": "Ukryj",
+ "Printers": "Drukarki",
+ "Printers this browser can switch between. Address: the printer’s IP or name, with a port when Moonraker is not behind the web server on port 80 (Moonraker’s own port is usually 7125). Each printer’s moonraker.conf has to allow this page in cors_domains.": "Drukarki, między którymi ta przeglądarka może się przełączać. Adres: IP lub nazwa drukarki, z portem, jeśli Moonraker nie stoi za serwerem WWW na porcie 80 (własny port Moonrakera to zwykle 7125). moonraker.conf każdej drukarki musi zezwalać na tę stronę w cors_domains.",
+ "This address": "Ten adres",
+ "Nickname": "Nazwa",
+ "Address": "Adres",
+ "Add printer": "Dodaj drukarkę",
+ "Manage printers": "Zarządzaj drukarkami"
 }

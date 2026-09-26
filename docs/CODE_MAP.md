@@ -81,6 +81,13 @@ tabs can be told apart. Kept in the printer's own settings (Moonraker database),
   kind 'image'    an image the user uploaded (their own printer logo), fitted into a 128 px square  
 Older 'letters' settings fall back to the Voyager mark.
 
+**[src/printers.js](../src/printers.js)**  
+Several printers from one Voyager UI. The list lives in this browser (localStorage), not on a printer:  
+it is what this copy of the UI can connect to. Each entry is { id, name, host }, host being "address" or  
+"address:port" (Moonraker's own port, usually 7125, or the port of an nginx that proxies it).  
+The entry with id '' is the printer this page was loaded from (no host: same address as the page).  
+Switching printers reloads the page, so nothing from the previous printer stays in memory.
+
 **[src/richText.js](../src/richText.js)**  
 Console lines may carry a little HTML (Happy Hare colours its gate map and logo with <span style="color:..">,  
 <b> etc., like Mainsail renders them). Everything is escaped first; then only these come back to life:  
@@ -316,6 +323,10 @@ that Moonraker locks during prints, asks first.
 **[src/components/PrintCard.vue](../src/components/PrintCard.vue)**  
 Print Status card: thumbnail, state, layer, Z, live speed and flow, filament, times and the finish time  
 estimate (click it to see how it was worked out), pause / cancel / exclude, or reprint when idle.
+
+**[src/components/PrintersDialog.vue](../src/components/PrintersDialog.vue)**  
+The printer list: printers this copy of the UI can switch between, each with a nickname and an address.  
+Kept in this browser (printers.js). Saving and picking a printer reloads the page on that printer.
 
 **[src/components/QueueCard.vue](../src/components/QueueCard.vue)**  
 Moonraker job queue: queued files, start or pause the queue, remove a job or move it to the front, add files.

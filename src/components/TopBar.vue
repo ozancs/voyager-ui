@@ -5,6 +5,8 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import Icon from './Icon.vue';
 import Logo from './Logo.vue';
 import Modal from './Modal.vue';
+import Popover from './Popover.vue';
+import { loadPrinters, currentPrinter, selectPrinter } from '../printers';
 import PowerList from './PowerList.vue';
 import { powerAsk, flipPower } from '../power';
 const pAsk = computed(() => powerAsk.value);
@@ -67,7 +69,13 @@ const label = computed(() => {
 });
 const savePending = computed(() => S('configfile').save_config_pending);
 const active = computed(() => ['printing', 'paused'].includes(printState.value));
-const hostName = location.host;
+const here = location.host;
+const hostName = currentPrinter()?.host || here;
+// printer switcher next to the name
+const printers = loadPrinters();
+const curId = currentPrinter()?.id || '';
+const pmOpen = ref(false);
+const pmBtn = ref(null);
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
 
 async function onFile(e) {
@@ -153,6 +161,42 @@ function pause() {
         ><span class="mono mu" style="font-size: 11px">{{ hostName }}</span>
       </div>
     </a>
+    <button
+      ref="pmBtn"
+      class="btn clear ibtn sm pmb"
+      :class="{ on: pmOpen }"
+      :aria-label="t('Printers')"
+      :data-tip="t('Printers')"
+      @click.stop="pmOpen = !pmOpen"
+    >
+      <Icon name="down" :size="16" :stroke="2.4" />
+    </button>
+    <Popover v-if="pmOpen" :anchor="pmBtn" :width="280" @close="pmOpen = false">
+      <button class="btn clear pmi" :class="{ cur: !curId }" :disabled="!curId" @click="selectPrinter('')">
+        <span class="grow">{{ t('This address') }}</span
+        ><span class="mono mu">{{ here }}</span>
+      </button>
+      <button
+        v-for="p in printers"
+        :key="p.id"
+        class="btn clear pmi"
+        :class="{ cur: p.id === curId }"
+        :disabled="p.id === curId"
+        @click="selectPrinter(p.id)"
+      >
+        <span class="grow">{{ p.name }}</span
+        ><span class="mono mu">{{ p.host }}</span>
+      </button>
+      <button
+        class="btn clear pmi"
+        @click="
+          pmOpen = false;
+          state.printersOpen = true;
+        "
+      >
+        <Icon name="gear" :size="15" /><span class="grow">{{ t('Manage printers') }}</span>
+      </button>
+    </Popover>
     <div class="pill" :class="{ act: active }">
       <div class="pth">
         <img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
@@ -629,5 +673,26 @@ function pause() {
   .tb {
     gap: 6px;
   }
+}
+.pmb {
+  margin-left: -6px;
+  flex-shrink: 0;
+}
+.pmi {
+  justify-content: flex-start;
+  text-align: left;
+  gap: 8px;
+  height: 38px;
+  color: var(--tx);
+  font-weight: 600;
+}
+.pmi .mono {
+  font-size: 11px;
+  font-weight: 400;
+}
+.pmi.cur,
+.pmi:disabled {
+  opacity: 1;
+  background: var(--s2);
 }
 </style>

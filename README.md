@@ -44,6 +44,20 @@ The installer registers Voyager UI with Moonraker's update manager, so it shows 
 
 If you prefer, running the install command again also updates.
 
+## Several printers
+
+The arrow next to the printer name in the top bar opens the printer list. Add each printer with a nickname and its address, then switch between them from the same page. The address is the printer's IP or hostname, with a port when Moonraker is not behind a web server on port 80 (Moonraker's own port is usually `7125`). This also covers a Moonraker on a non-standard port.
+
+Each printer has to allow the page's address in `moonraker.conf`, otherwise the browser is not let in:
+
+```ini
+[authorization]
+cors_domains:
+    http://192.168.1.10:8000
+```
+
+Use the address you open Voyager UI with. The list is kept in the browser, so every browser has its own list. Dashboard layout and other settings stay on each printer.
+
 ## Development
 
 ```bash

@@ -45,6 +45,7 @@ browser                                                    printer host
 
 - UI settings are one object, `state.settings`, with defaults in `DEFAULT_SETTINGS` (store.js).
 - They are saved in the Moonraker database under the `voyager-ui` namespace, so every printer has its own. A copy in localStorage makes the first paint fast before the connection is up.
+- The printer list (`printers.js`) is the exception: it is kept in the browser, because it says which printers this copy of the UI can reach. The login token and the local caches are stored per printer address, so one printer's data is never sent to or shown for another.
 - `sync.js` can mirror a few settings (printer name, presets, jog steps) to Mainsail's and Fluidd's namespaces when the user turns that on.
 
 ## Pages and the dashboard

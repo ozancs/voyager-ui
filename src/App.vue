@@ -18,6 +18,7 @@ import FirstRun from './components/FirstRun.vue';
 import Handoff from './components/Handoff.vue';
 import LoginScreen from './components/LoginScreen.vue';
 import SettingsDialog from './components/SettingsDialog.vue';
+import PrintersDialog from './components/PrintersDialog.vue';
 import { initSync } from './sync';
 import { initFeatures } from './features';
 import { nextTick } from 'vue';
@@ -144,6 +145,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready');
   <div class="shell" :class="{ booting: state.connected && !state.booted }">
     <TopBar @exclude="state.showExclude = true" @menu="toggleNav" />
     <SettingsDialog v-if="state.settingsOpen" />
+    <PrintersDialog v-if="state.printersOpen" @close="state.printersOpen = false" />
     <FavoritesBar v-if="showFavBar" />
     <div class="body">
       <SideNav
@@ -178,6 +180,9 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready');
             >
             <pre v-if="state.conn.probe">{{ state.conn.probe }}</pre>
           </div>
+          <button v-if="state.conn.attempts > 1" class="btn" @click="state.printersOpen = true">
+            <Icon name="printer3d" :size="16" />{{ t('Printers') }}
+          </button>
         </div>
         <div v-else-if="notReady" class="banner err">
           <Icon name="warn" :size="20" />

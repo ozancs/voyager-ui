@@ -1193,5 +1193,12 @@ export default {
  "Hide the favorites bar": "Favori çubuğunu gizle",
  "Hide the favorites bar?": "Favori çubuğu gizlensin mi?",
  "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Arayüz ayarları > Görünüm > Favori çubuğu kısmından tekrar açabilirsin.",
- "Hide": "Gizle"
+ "Hide": "Gizle",
+ "Printers": "Yazıcılar",
+ "Printers this browser can switch between. Address: the printer’s IP or name, with a port when Moonraker is not behind the web server on port 80 (Moonraker’s own port is usually 7125). Each printer’s moonraker.conf has to allow this page in cors_domains.": "Bu tarayıcının geçiş yapabileceği yazıcılar. Adres: yazıcının IP'si ya da adı; Moonraker 80 portundaki web sunucusunun arkasında değilse port da yazılır (Moonraker'ın kendi portu genelde 7125). Her yazıcının moonraker.conf dosyasında bu sayfaya cors_domains içinde izin verilmeli.",
+ "This address": "Bu adres",
+ "Nickname": "Takma ad",
+ "Address": "Adres",
+ "Add printer": "Yazıcı ekle",
+ "Manage printers": "Yazıcıları yönet"
 }

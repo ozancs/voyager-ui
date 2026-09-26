@@ -1192,5 +1192,12 @@ export default {
  "Hide the favorites bar": "お気に入りバーを隠す",
  "Hide the favorites bar?": "お気に入りバーを隠しますか？",
  "You can turn it back on in Interface settings > Appearance > Favorites bar.": "インターフェース設定 > 外観 > お気に入りバー で再表示できます。",
- "Hide": "隠す"
+ "Hide": "隠す",
+ "Printers": "プリンター",
+ "Printers this browser can switch between. Address: the printer’s IP or name, with a port when Moonraker is not behind the web server on port 80 (Moonraker’s own port is usually 7125). Each printer’s moonraker.conf has to allow this page in cors_domains.": "このブラウザで切り替えられるプリンター。アドレス: プリンターのIPまたは名前。Moonraker がポート80のWebサーバーの背後にない場合はポートも指定します（Moonraker 自体のポートは通常 7125）。各プリンターの moonraker.conf の cors_domains でこのページを許可する必要があります。",
+ "This address": "このアドレス",
+ "Nickname": "ニックネーム",
+ "Address": "アドレス",
+ "Add printer": "プリンターを追加",
+ "Manage printers": "プリンターの管理"
 }

@@ -1192,5 +1192,12 @@ export default {
  "Hide the favorites bar": "즐겨찾기 바 숨기기",
  "Hide the favorites bar?": "즐겨찾기 바를 숨길까요?",
  "You can turn it back on in Interface settings > Appearance > Favorites bar.": "인터페이스 설정 > 화면 > 즐겨찾기 바에서 다시 켤 수 있습니다.",
- "Hide": "숨기기"
+ "Hide": "숨기기",
+ "Printers": "프린터",
+ "Printers this browser can switch between. Address: the printer’s IP or name, with a port when Moonraker is not behind the web server on port 80 (Moonraker’s own port is usually 7125). Each printer’s moonraker.conf has to allow this page in cors_domains.": "이 브라우저에서 전환할 수 있는 프린터입니다. 주소: 프린터의 IP 또는 이름. Moonraker가 포트 80의 웹 서버 뒤에 있지 않으면 포트도 입력하세요(Moonraker 자체 포트는 보통 7125). 각 프린터의 moonraker.conf에서 cors_domains에 이 페이지를 허용해야 합니다.",
+ "This address": "이 주소",
+ "Nickname": "별명",
+ "Address": "주소",
+ "Add printer": "프린터 추가",
+ "Manage printers": "프린터 관리"
 }
