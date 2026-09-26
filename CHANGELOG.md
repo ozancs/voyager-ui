@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.6
+
+- Status tiles fill the row to the right before wrapping to a second row
+
 ## 0.19.5
 
 - Heightmap 3D: no more stray lines under the bed, the wireframe shows only the probe grid (also in the Mesh view)
