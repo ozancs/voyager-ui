@@ -11,6 +11,8 @@ import { api } from '../api/moonraker'
 import { playSound } from '../features'
 import { sync, detect, importFrom, push } from '../sync'
 import { go } from '../router'
+import { iconUrl, initials, readIcon } from '../printerIcon'
+import { printerName } from '../store'
 import { t, LANGS } from '../i18n'
 
 const TABS = [
@@ -29,6 +31,15 @@ if (!state.settings.sound) state.settings.sound = DEFAULT_SETTINGS().sound
 if (!state.settings.control) state.settings.control = DEFAULT_SETTINGS().control
 const snd = computed(() => state.settings.sound)
 const ctl = computed(() => state.settings.control)
+// printer icon (tab icon + top bar logo)
+const pi = computed(() => state.settings.printerIcon)
+const piFile = ref(null)
+async function pickIcon(e) {
+  const f = e.target.files?.[0]
+  e.target.value = ''
+  if (!f) return
+  try { const img = await readIcon(f); state.settings.printerIcon = { ...pi.value, kind: 'image', img } } catch { toast(t('This file is not an image'), 'error') }
+}
 const zoomNow = computed(() => uiZoomFor(state.settings.uiScale ?? 100))
 const SOUNDS = [['complete', 'Print finished', 'complete'], ['paused', 'Print paused (e.g. runout)', 'paused'], ['error', 'Error / Klipper shutdown', 'error'], ['heated', 'Heater reached target', 'heated']]
 const ACCENTS = ['#ff6b1a', '#f5b23a', '#38d6ff', '#3dd68c', '#f5c451', '#8b6cff', '#ff3d7f', '#e5484d']
@@ -177,6 +188,21 @@ function reset() { confirmReset.value = false; apply({ ...DEFAULT_SETTINGS(), la
               <div class="rw"><div class="k"><b>{{ t('Mode') }}</b></div><div class="seg v"><button v-for="[k, l, ic] in [['dark', 'Dark', 'moon'], ['light', 'Light', 'sun'], ['auto', 'Auto', 'contrast']]" :key="k" :class="{ on: (state.settings.theme || 'dark') === k }" @click="state.settings.theme = k"><Icon :name="ic" :size="14" style="margin-right:6px;vertical-align:-2px" />{{ t(l) }}</button></div></div>
               <div class="rw"><div class="k"><b>{{ t('Accent') }}</b><span>{{ t('Colour of actions, section headings and the logo.') }}</span></div>
                 <div class="row v" style="flex-wrap:wrap;gap:10px;justify-content:flex-end"><button v-for="c in ACCENTS" :key="c" class="swc" :class="{ on: state.settings.accent === c }" :style="{ background: c }" :aria-label="t('Accent') + ' ' + c" @click="state.settings.accent = c"></button><label class="swc cu" :aria-label="t('Custom accent')"><input v-model="state.settings.accent" type="color" /></label></div>
+              </div>
+              <div class="rw"><div class="k"><b>{{ t('Printer icon') }}</b><span>{{ t('Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.') }}</span></div>
+                <div class="col v" style="gap:10px;align-items:flex-end">
+                  <div class="row" style="gap:10px">
+                    <img v-if="iconUrl()" :src="iconUrl()" width="34" height="34" alt="" style="border-radius:8px;object-fit:contain" />
+                    <div class="seg"><button v-for="[k, l] in [['voyager', 'Voyager'], ['letters', 'Letters'], ['image', 'Image']]" :key="k" :class="{ on: pi.kind === k }" @click="k === 'image' && !pi.img ? piFile.click() : (pi.kind = k)">{{ t(l) }}</button></div>
+                  </div>
+                  <div v-if="pi.kind === 'letters'" class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end">
+                    <input v-model="pi.text" class="input" maxlength="3" style="width:72px;text-align:center;font-weight:700" :placeholder="initials(printerName)" :aria-label="t('Letters')" />
+                    <button v-for="c in ACCENTS" :key="c" class="swc" :class="{ on: pi.color === c }" :style="{ background: c }" :aria-label="c" @click="pi.color = c"></button>
+                    <label class="swc cu" :aria-label="t('Custom color')"><input v-model="pi.color" type="color" /></label>
+                  </div>
+                  <button v-if="pi.kind === 'image'" class="btn" @click="piFile.click()"><Icon name="upload" :size="16" />{{ t('Choose image') }}</button>
+                  <input ref="piFile" type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" hidden @change="pickIcon" />
+                </div>
               </div>
               <div class="rw"><div class="k"><b>{{ t('Interface size') }}</b><span>{{ t('Auto keeps the layout the same on every screen: a laptop shows the same cards side by side as a 1920 px monitor, only smaller.') }} <span class="mono">{{ Math.round(zoomNow * 100) }}%</span></span></div>
                 <div class="seg v"><button v-for="k in [80, 90, 100, 110, 125, 'auto']" :key="k" :class="{ on: String(state.settings.uiScale ?? 100) === String(k) }" @click="state.settings.uiScale = k">{{ k === 'auto' ? t('Auto') : k + '%' }}</button></div>

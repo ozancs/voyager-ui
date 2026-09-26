@@ -89,7 +89,7 @@ function pause() { gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE') }
   <header class="tb">
     <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')"><Icon name="menu" :size="22" /></button>
     <a class="brand" href="#/dashboard">
-      <Logo :size="40" />
+      <Logo :size="40" own />
       <div class="col" style="gap:0;min-width:0"><b ref="nameEl" class="pn" :class="{ marq: over > 0 }" :style="{ '--ov': over + 'px' }"><span>{{ printerName }}</span></b><span class="mono mu" style="font-size:11px">{{ hostName }}</span></div>
     </a>
     <div class="pill" :class="{ act: active }">

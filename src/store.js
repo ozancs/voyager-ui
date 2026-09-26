@@ -11,6 +11,7 @@ const NS = APP
 
 export const DEFAULT_SETTINGS = () => ({
   accent: '#ff6b1a',
+  printerIcon: { kind: 'voyager', text: '', color: '#38d6ff', img: '' }, // tab icon and top bar logo, see printerIcon.js
   favorites: [
     { id: 'f1', name: 'Chamber 50°', icon: 'box', gcode: 'CHAMBER TEMP=50', highlight: true },
     { id: 'f2', name: 'Bed Mesh', icon: 'mesh', gcode: 'BED_MESH_CALIBRATE', highlight: false },
@@ -162,7 +163,7 @@ function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch 
 export function mergeSettings(v) {
   const def = DEFAULT_SETTINGS()
   v = v || {}
-  return { ...def, ...v, devices: { ...def.devices, ...(v.devices || {}) }, strip: { ...def.strip, ...(v.strip || {}) }, control: { ...def.control, ...(v.control || {}) }, heightmap: { ...def.heightmap, ...(v.heightmap || {}) } }
+  return { ...def, ...v, devices: { ...def.devices, ...(v.devices || {}) }, strip: { ...def.strip, ...(v.strip || {}) }, control: { ...def.control, ...(v.control || {}) }, heightmap: { ...def.heightmap, ...(v.heightmap || {}) }, printerIcon: { ...def.printerIcon, ...(v.printerIcon || {}) } }
 }
 function cachedSettings() { return mergeSettings(lsGet(APP + '-settings')) }
 state.objects = lsGet(APP + '-objects') || []

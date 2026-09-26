@@ -11,6 +11,7 @@ import './style.css'
 import './panel.css'
 import App from './App.vue'
 import { start } from './store'
+import { startTabIcon } from './printerIcon'
 import { i18n, loadLang } from './i18n'
 import { away } from './away'
 import { vfit } from './fit'
@@ -20,6 +21,7 @@ async function boot() {
   if (import.meta.env.VITE_DEMO) (await import('./demo/mock.js')).installDemo()
   await loadLang(i18n.lang).catch(() => {})
   start()
+  startTabIcon()
   createApp(App).directive('away', away).directive('fit', vfit).mount('#app')
 }
 boot()
