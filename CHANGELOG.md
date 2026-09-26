@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.1
+
+- Printer icon is a dropdown: the Voyager mark, printer logos bundled in `src/img/logos` (drop a file there and it shows up), or your own image. Letters are gone
+
 ## 0.20.0
 
 - Images in the config folder (Shake&Tune graphs and the like) open in a viewer, with previous/next through the folder
