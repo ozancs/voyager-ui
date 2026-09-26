@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20.0
+
+- Images in the config folder (Shake&Tune graphs and the like) open in a viewer, with previous/next through the folder
+- Print Status card shows live speed, volumetric flow and the slicer time
+- Printer icon for the browser tab and the top bar: letters on a colour or your own image (Settings > Appearance)
+
 ## 0.19.6
 
 - Status tiles fill the row to the right before wrapping to a second row
