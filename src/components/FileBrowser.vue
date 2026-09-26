@@ -78,7 +78,7 @@ function open(it) {
     return;
   }
   if (EDITABLE.test(it.name)) go('config', root.value + '/' + rel);
-  else window.open(api.fileUrl(root.value, rel), '_blank');
+  else window.open(api.fileUrl(root.value, rel), '_blank', 'noopener');
 }
 function upDir() {
   path.value = path.value.split('/').slice(0, -1).join('/');

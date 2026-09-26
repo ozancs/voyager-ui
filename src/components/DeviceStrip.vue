@@ -232,6 +232,7 @@ function setPin(id, v) {
 const spool = computed(() => state.spoolman.spool);
 const spoolUrl = computed(() => {
   let u = state.spoolman.server || '';
+  if (!/^https?:\/\//i.test(u)) return ''; // a link from the printer's config: never javascript: or similar
   u = u.replace(/\/\/(127\.0\.0\.1|localhost)/, '//' + (location.hostname || 'localhost'));
   return spool.value ? `${u}/spool/show/${spool.value.id}` : u;
 });
@@ -510,7 +511,7 @@ function sensorExtra(id) {
       </template>
       <!-- SPOOLMAN -->
       <template v-else-if="d.kind === 'spoolman'">
-        <a class="spl" :href="spoolUrl" target="_blank" rel="noopener" @click.stop>
+        <a class="spl" :href="spoolUrl || undefined" target="_blank" rel="noopener" @click.stop>
           <div class="hd"><span class="lbl">Spoolman</span><Icon name="ext" :size="14" :stroke="2.4" class="mu" /></div>
           <div v-if="spool" class="row" style="gap: 10px; min-width: 0">
             <span class="spool" :style="{ background: '#' + (spool.filament?.color_hex || '333') }"></span>

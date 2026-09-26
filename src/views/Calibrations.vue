@@ -38,7 +38,7 @@ watchEffect(() => {
 });
 const cmdLine = computed(() => (item.value ? buildCommand(item.value, v.value, extra.value[item.value.cmd]) : ''));
 const missing = computed(() => (item.value ? missingParams(item.value, v.value) : []));
-const homed = computed(() => /x/.test(S('toolhead').homed_axes || '') && /y/.test(S('toolhead').homed_axes || ''));
+const homed = computed(() => ['x', 'y', 'z'].every((a) => (S('toolhead').homed_axes || '').includes(a)));
 const savePending = computed(() => S('configfile').save_config_pending);
 
 // running: remember where the console was, then read what came after

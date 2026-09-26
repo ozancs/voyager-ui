@@ -29,7 +29,7 @@ function full() {
   wrap.value?.requestFullscreen?.();
 }
 function snapshot(c) {
-  if (c) window.open(api.url(c.snapshot_url), '_blank');
+  if (c) window.open(api.url(c.snapshot_url), '_blank', 'noopener');
 }
 </script>
 <template>

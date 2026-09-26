@@ -759,7 +759,8 @@ watch(
 // ---------- init ----------
 function mergeStatus(diff) {
   for (const [k, v] of Object.entries(diff || {})) {
-    if (!state.status[k]) state.status[k] = {};
+    if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
+    if (!Object.hasOwn(state.status, k)) state.status[k] = {};
     Object.assign(state.status[k], v);
   }
 }

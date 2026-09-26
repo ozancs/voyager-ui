@@ -19,7 +19,7 @@ const chosen = computed({
 });
 const cam = computed(() => cams.value.find((w) => w.name === chosen.value) || cams.value[0] || null);
 function snapshot() {
-  if (cam.value) window.open(api.url(cam.value.snapshot_url), '_blank');
+  if (cam.value) window.open(api.url(cam.value.snapshot_url), '_blank', 'noopener');
 }
 </script>
 <template>

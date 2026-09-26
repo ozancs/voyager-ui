@@ -50,7 +50,7 @@ function useSpool(id) {
   if (!s) return;
   const fl = s.filament || {};
   if (fl.material) f.value.material = fl.material;
-  if (fl.color_hex) f.value.color = '#' + fl.color_hex.replace('#', '').slice(0, 6);
+  if (/^#?[0-9a-f]{6}/i.test(fl.color_hex || '')) f.value.color = '#' + fl.color_hex.replace('#', '').slice(0, 6);
   if (fl.name) f.value.name = [fl.vendor?.name, fl.name].filter(Boolean).join(' ');
   if (fl.settings_extruder_temp) f.value.temp = fl.settings_extruder_temp;
 }
@@ -62,7 +62,10 @@ const clean = (v) =>
     .replace(/[=;\r\n"']/g, '')
     .trim();
 const mat = computed(() => clean(f.value.material).replace(/\s+/g, '_').toUpperCase());
-const col = computed(() => f.value.color.replace('#', '').toLowerCase());
+// only a plain hex colour goes into the command (Spoolman's value is not trusted to be one)
+const col = computed(() =>
+  (/^#?[0-9a-f]{6}$/i.test(f.value.color || '') ? f.value.color.replace('#', '') : '888888').toLowerCase(),
+);
 const busy = ref(false);
 async function save() {
   busy.value = true;
