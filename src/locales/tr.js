@@ -1187,5 +1187,7 @@ export default {
  "See the changes on GitHub": "Değişiklikleri GitHub'da gör",
  "This repo has local changes. The update may overwrite them.": "Bu repoda yerel değişiklikler var. Güncelleme bunların üzerine yazabilir.",
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Güncellemeler bazı şeylerin çalışma şeklini değiştirebilir ya da bozabilir. Güncelleme sırasında servisler yeniden başlar, baskı sırasında güncelleme yapma ve config yedeğin olsun.",
- "I understand the risk": "Riski anlıyorum"
+ "I understand the risk": "Riski anlıyorum",
+ "Camera shown in this card": "Bu kartta gösterilen kamera",
+ "Webcam: {name}": "Webcam: {name}"
 }

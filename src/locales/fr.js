@@ -1186,5 +1186,7 @@ export default {
  "See the changes on GitHub": "Voir les changements sur GitHub",
  "This repo has local changes. The update may overwrite them.": "Ce dépôt a des modifications locales. La mise à jour peut les écraser.",
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Une mise à jour peut changer le fonctionnement ou casser quelque chose. Les services redémarrent pendant la mise à jour, ne mettez pas à jour pendant une impression et gardez une sauvegarde de votre config.",
- "I understand the risk": "Je comprends le risque"
+ "I understand the risk": "Je comprends le risque",
+ "Camera shown in this card": "Caméra affichée dans cette carte",
+ "Webcam: {name}": "Webcam : {name}"
 }

@@ -1186,5 +1186,7 @@ export default {
  "See the changes on GitHub": "在 GitHub 上查看更改",
  "This repo has local changes. The update may overwrite them.": "此仓库有本地修改，更新可能会覆盖它们。",
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "更新可能改变功能或导致问题。更新期间服务会重启，打印时不要更新，并保留配置备份。",
- "I understand the risk": "我了解风险"
+ "I understand the risk": "我了解风险",
+ "Camera shown in this card": "此卡片显示的摄像头",
+ "Webcam: {name}": "摄像头：{name}"
 }

@@ -1186,5 +1186,7 @@ export default {
  "See the changes on GitHub": "GitHub で変更を見る",
  "This repo has local changes. The update may overwrite them.": "このリポジトリにはローカルの変更があります。アップデートで上書きされる可能性があります。",
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "アップデートで動作が変わったり壊れたりすることがあります。アップデート中はサービスが再起動します。印刷中はアップデートせず、設定のバックアップを取っておいてください。",
- "I understand the risk": "リスクを理解しました"
+ "I understand the risk": "リスクを理解しました",
+ "Camera shown in this card": "このカードに表示するカメラ",
+ "Webcam: {name}": "Webカメラ: {name}"
 }

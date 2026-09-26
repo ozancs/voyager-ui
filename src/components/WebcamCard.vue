@@ -30,11 +30,12 @@ function snapshot() {
         class="input sel"
         :value="cam?.name"
         :aria-label="t('Camera')"
+        :data-tip="t('Camera shown in this card')"
         @change="chosen = $event.target.value"
       >
         <option v-for="w in cams" :key="w.name" :value="w.name">{{ w.name }}</option>
       </select>
-      <h2 v-else>{{ t('Webcam') }}</h2>
+      <h2 v-else>{{ cam?.name || t('Webcam') }}</h2>
       <div class="acts">
         <button
           class="btn ibtn"
