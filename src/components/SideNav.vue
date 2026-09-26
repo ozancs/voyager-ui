@@ -5,6 +5,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import Icon from './Icon.vue';
 import { state, useApiEvent, activeTasks } from '../store';
 import { healthIssues } from '../features';
+import { availableGroups } from '../calibrations';
 import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -16,20 +17,16 @@ const NAV = [
   ['webcam', 'cam', 'Webcam'],
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
-  ['shaketune', 'wave', 'Shake&Tune'],
+  ['calibrations', 'target', 'Calibrations'],
   ['files', 'file', 'G-code Files'],
   ['viewer', 'cube', 'G-code Viewer'],
   ['history', 'clock', 'History'],
   ['machine', 'cpu', 'Machine'],
   ['health', 'heart', 'Health'],
 ];
-// Shake&Tune only shows up when the printer has it (its commands exist)
-const hasShakeTune = computed(() =>
-  Object.keys(state.commands || {}).some((c) => /^_?AXES_SHAPER_CALIBRATION$/i.test(c)),
-);
-const navItems = computed(() =>
-  NAV.filter(([k]) => k !== 'shaketune' || hasShakeTune.value || route.name === 'shaketune'),
-);
+// Calibrations only shows up when the printer has one of the commands it knows
+const hasCal = computed(() => availableGroups(state.commands).length > 0);
+const navItems = computed(() => NAV.filter(([k]) => k !== 'calibrations' || hasCal.value || route.name === k));
 const NAV2 = [
   ['quick', 'sliders', 'Printer settings'],
   ['config', 'code', 'Config files'],

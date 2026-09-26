@@ -1,5 +1,5 @@
 <script setup>
-// Shake&Tune page (Klippain Shake&Tune, a Klipper plugin): run its tests with their parameters, browse the
+// Shake&Tune tab of the Calibrations page (Klippain Shake&Tune, a Klipper plugin): run its tests with their parameters, browse the
 // graphs it saves in the config folder, put two graphs side by side, and for the input shaper test apply the
 // recommended shaper right away (SET_INPUT_SHAPER) or write it into the config.
 // The recommendation is read from the console lines the test prints ("Recommended filters: ... MZV @ 48.2 Hz").

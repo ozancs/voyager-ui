@@ -10,6 +10,8 @@ function parse() {
   const [name, ...rest] = h.split('/');
   route.name = name || 'dashboard';
   route.arg = rest.join('/');
+  // Shake&Tune used to be its own page, it is a tab of Calibrations now
+  if (route.name === 'shaketune') [route.name, route.arg] = ['calibrations', 'shaketune'];
 }
 window.addEventListener('hashchange', parse);
 parse();

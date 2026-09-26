@@ -59,7 +59,7 @@ browser                                                    printer host
 Useful to know when reviewing for safety:
 
 - `gcode()` in store.js sends G-code. Most buttons that move, heat or change something end up here; starting a print uses `printer.print.start`.
-- Config files are written by the config editor (`views/ConfigEditor.vue`) the printer settings page (`views/QuickConfig.vue`) and the Shake&Tune page's "Save to config" (`cfgwrite.js`, only `[input_shaper]` values, after a confirm). All call `backupBeforeWrite()` first, which saves a timestamped copy next to the file.
+- Config files are written by the config editor (`views/ConfigEditor.vue`) the printer settings page (`views/QuickConfig.vue`) and the Shake&Tune tab's "Save to config" (`cfgwrite.js`, only `[input_shaper]` values, after a confirm). All call `backupBeforeWrite()` first, which saves a timestamped copy next to the file.
 - File operations (upload, rename, delete, move) go through Moonraker's file API in `views/Files.vue` and `components/FileBrowser.vue`. Deleting always asks first.
 - Updates run through Moonraker's update manager (`views/Machine.vue`), after a confirm dialog.
 

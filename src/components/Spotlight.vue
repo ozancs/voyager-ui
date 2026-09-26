@@ -42,7 +42,7 @@ const PAGES = [
   ['webcam', 'cam', 'Webcam'],
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
-  ['shaketune', 'wave', 'Shake&Tune'],
+  ['calibrations', 'target', 'Calibrations'],
   ['files', 'file', 'G-code Files'],
   ['viewer', 'cube', 'G-code Viewer'],
   ['history', 'clock', 'History'],

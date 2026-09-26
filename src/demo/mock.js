@@ -1091,6 +1091,15 @@ function handle(m) {
         Z_TILT_ADJUST: 'Tilt',
         CHAMBER: 'Chamber temp',
         BED_MESH_CALIBRATE: 'Perform Mesh Bed Leveling',
+        PID_CALIBRATE: 'Run PID calibration test',
+        ACCELEROMETER_QUERY: 'Query accelerometer for the current values',
+        SCREWS_TILT_CALCULATE:
+          'Tool to help adjust bed leveling screws by calculating the number of turns to level it.',
+        AUTOTUNE_TMC: 'Apply autotuning configuration to TMC stepper driver',
+        CREATE_VIBRATIONS_PROFILE: 'Run a vibrations profile test',
+        AXES_MAP_CALIBRATION: 'Perform a set of movements to measure the orientation of the accelerometer',
+        EXCITATE_AXIS_AT_FREQ: 'Maintain a specified excitation frequency for a period of time',
+        FLOW_CALIBRATION: 'Prints a flow rate test pattern',
         BED_MESH_PROFILE: 'Bed Mesh Persistent Storage management',
         SET_HEATER_TEMPERATURE: 'Sets a heater temperature',
         SET_FAN_SPEED: 'Sets the speed of a fan',
@@ -1467,6 +1476,73 @@ gcodeScript = function (sc) {
         },
       });
     }
+    return 'ok';
+  }
+  if (/^SHAPER_CALIBRATE\b/.test(S)) {
+    // what Klipper's own input shaper calibration prints
+    const axes = /AXIS=([XY])/.exec(S) ? [/AXIS=([XY])/.exec(S)[1].toLowerCase()] : ['x', 'y'];
+    const out = [];
+    for (const a of axes) {
+      const f = a === 'x' ? 53.8 : 42.2;
+      out.push(
+        '// Wait for calculations..',
+        `// Fitted shaper 'zv' frequency = ${(f - 6).toFixed(1)} Hz (vibrations = 6.2%, smoothing ~= 0.071)`,
+        `// To avoid too much smoothing with 'zv', suggested max_accel <= ${a === 'x' ? 12800 : 9100} mm/sec^2`,
+        `// Fitted shaper 'mzv' frequency = ${f} Hz (vibrations = 1.1%, smoothing ~= 0.085)`,
+        `// To avoid too much smoothing with 'mzv', suggested max_accel <= ${a === 'x' ? 8300 : 5600} mm/sec^2`,
+        `// Recommended shaper_type_${a} = mzv, shaper_freq_${a} = ${f} Hz`,
+      );
+    }
+    out.push(
+      '// The SAVE_CONFIG command will update the printer config file with these parameters and restart the printer.',
+    );
+    emitLines(out, 300);
+    setTimeout(() => pushStatus({ configfile: { save_config_pending: true } }), 300 * out.length);
+    return 'ok';
+  }
+  if (/^PID_CALIBRATE\b/.test(S)) {
+    const h = (/HEATER=(\S+)/.exec(S) || [])[1] || 'EXTRUDER';
+    emitLines(
+      [
+        `// PID calibrate: heating ${h.toLowerCase()}`,
+        '// PID parameters: pid_Kp=22.865 pid_Ki=1.292 pid_Kd=101.178',
+        '// The SAVE_CONFIG command will update the printer config file with these parameters and restart the printer.',
+      ],
+      900,
+    );
+    setTimeout(() => pushStatus({ configfile: { save_config_pending: true } }), 2800);
+    return 'ok';
+  }
+  if (/^PROBE_ACCURACY\b/.test(S)) {
+    const n = +((/SAMPLES=(\d+)/.exec(S) || [])[1] || 10);
+    const out = [
+      `// PROBE_ACCURACY at X:175.000 Y:175.000 Z:10.000 (samples=${n} retract=2.000 speed=5.0 lift_speed=5.0)`,
+    ];
+    for (let i = 0; i < Math.min(n, 20); i++)
+      out.push(`// probe at 175.000,175.000 is z=${(2.482 + Math.sin(i) * 0.003).toFixed(6)}`);
+    out.push(
+      '// probe accuracy results: maximum 2.485000, minimum 2.479000, range 0.006000, average 2.482200, median 2.482500, standard deviation 0.001720',
+    );
+    emitLines(out, 120);
+    return 'ok';
+  }
+  if (S === 'QUAD_GANTRY_LEVEL' || S === 'Z_TILT_ADJUST') {
+    emitLines(
+      [
+        '// Retries: 0/5 Probed points range: 0.214000 tolerance: 0.007500',
+        '// Retries: 1/5 Probed points range: 0.031000 tolerance: 0.007500',
+        '// Retries: 2/5 Probed points range: 0.004000 tolerance: 0.007500',
+      ],
+      700,
+    );
+    return 'ok';
+  }
+  if (S === 'MEASURE_AXES_NOISE') {
+    emitLines(['// Axes noise for xy-axis accelerometer: 38.211 (x), 45.093 (y), 81.502 (z)'], 600);
+    return 'ok';
+  }
+  if (S === 'ACCELEROMETER_QUERY') {
+    emitLines(['// accelerometer values (x, y, z): 470.719200, 941.438400, 9728.196800'], 100);
     return 'ok';
   }
   if (/^AXES_SHAPER_CALIBRATION\b/i.test(S)) {
