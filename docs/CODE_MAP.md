@@ -301,6 +301,11 @@ objects are greyed out, the current one is highlighted; clicking one emits 'pick
 **[src/components/ObjectsCard.vue](../src/components/ObjectsCard.vue)**  
 Dashboard card with the object map and the button that opens the exclude object dialog.
 
+**[src/components/Popover.vue](../src/components/Popover.vue)**  
+Pop-up panel for buttons inside dashboard cards (sensor picker, presets). It is moved to <body> so the card's  
+scroll area, the page's scroll area and the side menu cannot cut it off or cover it, and it is placed under  
+its button, right edges lined up, kept inside the window. Closes on a click outside, Escape or scrolling.
+
 **[src/components/PowerCard.vue](../src/components/PowerCard.vue)**  
 Dashboard card listing Moonraker power devices ([power] sections) with on/off switches.
 

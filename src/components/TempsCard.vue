@@ -4,6 +4,7 @@
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import SensorPicker from './SensorPicker.vue';
+import Popover from './Popover.vue';
 import { state, sensors, setHeater, applyPreset, gcode } from '../store';
 import { go } from '../router';
 import { t } from '../i18n';
@@ -21,6 +22,7 @@ const COLORS = [
 ];
 const colorOf = (i) => COLORS[i % COLORS.length];
 const showPresets = ref(false);
+const presetBtn = ref(null);
 const edit = ref({});
 function commitTarget(s, e) {
   const v = e.target.value;
@@ -35,16 +37,11 @@ const presets = computed(() => state.settings.presets || []);
       <h2>{{ t('Temperatures') }}</h2>
       <div class="acts">
         <SensorPicker />
-        <div style="position: relative">
-          <button class="btn" @click.stop="showPresets = !showPresets">
+        <div>
+          <button ref="presetBtn" class="btn" @click.stop="showPresets = !showPresets">
             <Icon name="flame" :size="16" :stroke="2.4" />{{ t('Presets') }}
           </button>
-          <div
-            v-if="showPresets"
-            class="pp card"
-            v-away="() => (showPresets = false)"
-            @mouseleave="showPresets = false"
-          >
+          <Popover v-if="showPresets" :anchor="presetBtn" :width="260" @close="showPresets = false">
             <button
               v-for="p in presets"
               :key="p.id"
@@ -69,7 +66,7 @@ const presets = computed(() => state.settings.presets || []);
             >
               <Icon name="pencil" :size="14" />{{ t('Edit presets') }}
             </button>
-          </div>
+          </Popover>
         </div>
         <button class="btn out" @click="gcode('TURN_OFF_HEATERS')">
           <Icon name="fan" :size="16" :stroke="2.4" />{{ t('Cooldown') }}
@@ -196,14 +193,5 @@ const presets = computed(() => state.settings.presets || []);
   justify-content: space-between;
   font-size: 10px;
   color: var(--mu2);
-}
-.pp {
-  position: absolute;
-  right: 0;
-  top: 40px;
-  width: 260px;
-  z-index: 30;
-  gap: 2px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 </style>

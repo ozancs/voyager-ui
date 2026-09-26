@@ -3,10 +3,12 @@
 // and for the graph the line width.
 import { ref } from 'vue';
 import Icon from './Icon.vue';
+import Popover from './Popover.vue';
 import { state, prettyName, tempSensors } from '../store';
 import { t } from '../i18n';
 defineProps({ lines: Boolean });
 const open = ref(false);
+const btn = ref(null);
 function toggle(s) {
   const h = state.settings.hiddenSensors || (state.settings.hiddenSensors = []);
   const i = h.indexOf(s);
@@ -16,6 +18,7 @@ function toggle(s) {
 <template>
   <div class="sp">
     <button
+      ref="btn"
       class="btn ibtn"
       :class="{ on: open }"
       :aria-label="t('Shown sensors')"
@@ -24,7 +27,7 @@ function toggle(s) {
     >
       <Icon name="eye" :size="16" :stroke="2.4" />
     </button>
-    <div v-if="open" class="pp card" v-away="() => (open = false)" @click.stop>
+    <Popover v-if="open" :anchor="btn" @close="open = false">
       <span class="lbl">{{ t('Shown sensors') }}</span>
       <div class="ch">
         <button
@@ -51,23 +54,12 @@ function toggle(s) {
           </button>
         </div>
       </template>
-    </div>
+    </Popover>
   </div>
 </template>
 <style scoped>
 .sp {
   position: relative;
-}
-.pp {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  width: 280px;
-  z-index: 50;
-  gap: 8px;
-  padding: 14px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  cursor: default;
 }
 .ch {
   display: flex;
