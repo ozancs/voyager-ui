@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.23.0
+
+- Check before printing: every way of starting a print first compares the file with the printer (material and remaining weight of the active Spoolman spool, nozzle size, temperatures, height, empty filament sensors) and asks when something does not fit. Without Spoolman or an active spool those checks are skipped. Can be turned off in Settings
+- All printers: with more than one printer saved, the printer menu opens an overview with every printer's state, progress, temperatures and a camera snapshot
+- Klipper errors explained in plain words, under the error banner and behind a ? on console error lines
+- Health page: heaters are compared with their own first measurement (holding power, heat-up time, temperature swing)
+- Calibrations: OznLab Sensor tab when the OznLab Sensor module is installed
+- Calibrations: a needed parameter with a list (HEATER, CHIP) starts at its first choice; the not-homed hint checks Z too
+- Upload & Print uploads first, then starts through the check
+- Demo: three more printers (Voron 2.4, Ender 3 V2, Trident), each with its own hardware and state
+- Security: a Spoolman spool colour goes into MMU commands only as a hex colour, the Spoolman link is used only when it is http(s), snapshot and file links open with noopener, status updates ignore __proto__
+
 ## 0.22.0
 
 - Calibrations page with a tab for each kind of calibration the printer has: input shaper, PID (and MPC on Kalico), probe and Z, bed leveling, TMC autotune, and other calibration macros. Shows the results that matter (PID values, suggested shaper and max_accel, probe spread, leveling range) and offers SAVE_CONFIG when Klipper has values waiting
