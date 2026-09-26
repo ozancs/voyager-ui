@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Icon from './Icon.vue'
 import Modal from './Modal.vue'
+import ImageViewer from './ImageViewer.vue'
 import { fmtBytes, fmtDate, toast, useApiEvent } from '../store'
 import { api } from '../api/moonraker'
 import { go } from '../router'
@@ -15,6 +16,9 @@ const sort = ref({ k: 'filename', d: 1 })
 const up = ref(null)
 const fileInput = ref(null)
 const modal = ref(null) // { kind: 'newfile'|'newdir'|'rename'|'delete', item, value }
+// images open in a viewer (Shake&Tune and similar tools save their graphs as png next to the config)
+const IMG = /\.(png|jpe?g|gif|webp|svg|bmp)$/i
+const img = ref(null) // { list, start }
 const EDITABLE = /\.(cfg|conf|txt|py|json|md|sh|log|ini|yaml|yml|gcode_macro)$/i
 const full = computed(() => root.value + (path.value ? '/' + path.value : ''))
 async function load() {
@@ -44,6 +48,7 @@ function changeRoot(r) { root.value = r; path.value = ''; picked.value = new Set
 function open(it) {
   if (it.dir) { path.value = path.value ? path.value + '/' + it.name : it.name; picked.value = new Set(); load(); return }
   const rel = (path.value ? path.value + '/' : '') + it.name
+  if (IMG.test(it.name)) { const dir = path.value ? path.value + '/' : ''; img.value = { list: rows.value.filter((x) => !x.dir && IMG.test(x.name)).map((x) => dir + x.name), start: rel }; return }
   if (EDITABLE.test(it.name)) go('config', root.value + '/' + rel)
   else window.open(api.fileUrl(root.value, rel), '_blank')
 }
@@ -162,6 +167,7 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
     <input v-else v-model="modal.value" class="input mono" :aria-label="t(TITLES[modal.kind])" @keydown.enter="confirmModal" />
     <template #foot><button class="btn lg" @click="modal = null">{{ t('Cancel') }}</button><button class="btn lg" :class="modal.kind.endsWith('delete') ? 'dgf' : 'acc'" :disabled="!modal.kind.endsWith('delete') && !modal.value" @click="modal.kind === 'bulkdelete' ? deletePicked() : confirmModal()">{{ modal.kind.endsWith('delete') ? t('Delete') : t('OK') }}</button></template>
   </Modal>
+  <ImageViewer v-if="img" :root="root" :list="img.list" :start="img.start" @close="img = null" />
 </template>
 <style scoped>
 .drop { position: relative; }

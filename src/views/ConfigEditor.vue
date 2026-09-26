@@ -12,6 +12,7 @@ import { linter, lintGutter, lintKeymap, forEachDiagnostic } from '@codemirror/l
 import { MergeView } from '@codemirror/merge'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
+import ImageViewer from '../components/ImageViewer.vue'
 import { state, S, toast, gcode, isPrinting, backupBeforeWrite, useApiEvent } from '../store'
 import { route, go } from '../router'
 import { api } from '../api/moonraker'
@@ -77,6 +78,9 @@ const tree = computed(() => {
   })
 })
 function toggleDir(p) { const s = new Set(openDirs.value); s.has(p) ? s.delete(p) : s.add(p); openDirs.value = s }
+const IMG = /\.(png|jpe?g|gif|webp|svg|bmp)$/i
+const img = ref(null) // image viewer: { list, start }
+function openImage(p) { const dir = p.split('/').slice(0, -1).join('/'); img.value = { list: files.value.filter((f) => IMG.test(f) && f.split('/').slice(0, -1).join('/') === dir), start: p } }
 const editable = (p) => /\.(cfg|conf|txt|py|sh|json|md|ini|yaml|yml|log|gcode_macro)$/i.test(p) || !/\.[a-z0-9]+$/i.test(p)
 function openFile(p, root = 'config') { go('config', root === 'config' ? p : root + '/' + p) }
 
@@ -324,8 +328,8 @@ function openSearch() { if (view.value) { openSearchPanel(view.value); } }
       <div class="tl">
         <template v-for="r in tree" :key="(r.dir ? 'd:' : 'f:') + r.path">
           <button v-if="r.dir" class="tr dir" :style="{ paddingLeft: 10 + r.depth * 14 + 'px' }" @click="toggleDir(r.path)"><Icon :name="openDirs.has(r.path) || treeQ ? 'down' : 'right'" :size="13" /><Icon name="folder" :size="15" /><span>{{ r.name }}</span></button>
-          <button v-else class="tr" :class="{ on: active?.root === 'config' && active?.path === r.path, dim: !editable(r.path) }" :style="{ paddingLeft: 10 + r.depth * 14 + 'px' }" :disabled="!editable(r.path)" @click="openFile(r.path)">
-            <Icon name="file" :size="15" /><span>{{ r.name }}</span><i v-if="tabs.find((x) => x.key === 'config/' + r.path)?.dirty" class="dd"></i>
+          <button v-else class="tr" :class="{ on: active?.root === 'config' && active?.path === r.path, dim: !editable(r.path) && !IMG.test(r.path) }" :style="{ paddingLeft: 10 + r.depth * 14 + 'px' }" :disabled="!editable(r.path) && !IMG.test(r.path)" @click="IMG.test(r.path) ? openImage(r.path) : openFile(r.path)">
+            <Icon :name="IMG.test(r.path) ? 'camera' : 'file'" :size="15" /><span>{{ r.name }}</span><i v-if="tabs.find((x) => x.key === 'config/' + r.path)?.dirty" class="dd"></i>
           </button>
         </template>
       </div>
@@ -395,6 +399,7 @@ function openSearch() { if (view.value) { openSearchPanel(view.value); } }
       <button class="btn lg acc" @click="closeDiff">{{ t('Close') }}</button>
     </template>
   </Modal>
+  <ImageViewer v-if="img" :list="img.list" :start="img.start" @close="img = null" />
 </template>
 
 <style scoped>
