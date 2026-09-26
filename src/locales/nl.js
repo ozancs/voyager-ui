@@ -1191,6 +1191,6 @@ export default {
  "Webcam: {name}": "Webcam: {name}",
  "Hide the favorites bar": "Favorietenbalk verbergen",
  "Hide the favorites bar?": "Favorietenbalk verbergen?",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Je kunt hem weer aanzetten in Interface-instellingen > Dashboard > Favorietenbalk.",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Je kunt hem weer aanzetten in Interface-instellingen > Weergave > Favorietenbalk.",
  "Hide": "Verbergen"
 }

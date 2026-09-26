@@ -1192,6 +1192,6 @@ export default {
  "Webcam: {name}": "Webcam: {name}",
  "Hide the favorites bar": "Favori çubuğunu gizle",
  "Hide the favorites bar?": "Favori çubuğu gizlensin mi?",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Arayüz ayarları > Pano > Favori çubuğu kısmından tekrar açabilirsin.",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Arayüz ayarları > Görünüm > Favori çubuğu kısmından tekrar açabilirsin.",
  "Hide": "Gizle"
 }

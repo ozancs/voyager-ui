@@ -30,10 +30,10 @@ import { t, LANGS } from '../i18n';
 const TABS = [
   ['general', 'gear', 'General'],
   ['dashboard', 'layout', 'Dashboard'],
+  ['appearance', 'palette', 'Appearance'],
   ['control', 'move', 'Control'],
   ['presets', 'flame', 'Presets'],
   ['console', 'term', 'Console'],
-  ['appearance', 'palette', 'Appearance'],
   ['sounds', 'volume', 'Sounds & alerts'],
   ['notify', 'bell', 'Phone notifications'],
   ['webcams', 'cam', 'Webcams'],
@@ -427,31 +427,6 @@ function reset() {
                 </div>
                 <Toggle v-model="state.settings.autoLayout" :label="t('Separate dashboard while printing')" />
               </div>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('Favorites bar') }}</b
-                  ><span>{{
-                    t('Macro buttons under the top bar. Also available as a Favorites card for the dashboard.')
-                  }}</span>
-                </div>
-                <div class="row" style="gap: 8px">
-                  <div class="seg">
-                    <button
-                      v-for="[k, l] in [
-                        ['always', 'Everywhere'],
-                        ['dashboard', 'Dashboard only'],
-                        ['off', 'Off'],
-                      ]"
-                      :key="k"
-                      :class="{ on: (state.settings.favBar || 'always') === k }"
-                      @click="state.settings.favBar = k"
-                    >
-                      {{ t(l) }}
-                    </button>
-                  </div>
-                  <button class="btn" @click="editFavs"><Icon name="pencil" :size="15" />{{ t('Edit') }}</button>
-                </div>
-              </div>
               <div class="rw col">
                 <div class="k">
                   <b>{{ t('Temperatures card & graph') }}</b
@@ -749,6 +724,31 @@ function reset() {
                   >
                     {{ t(l) }}
                   </button>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Favorites bar') }}</b
+                  ><span>{{
+                    t('Macro buttons under the top bar. Also available as a Favorites card for the dashboard.')
+                  }}</span>
+                </div>
+                <div class="row" style="gap: 8px">
+                  <div class="seg">
+                    <button
+                      v-for="[k, l] in [
+                        ['always', 'Everywhere'],
+                        ['dashboard', 'Dashboard only'],
+                        ['off', 'Off'],
+                      ]"
+                      :key="k"
+                      :class="{ on: (state.settings.favBar || 'always') === k }"
+                      @click="state.settings.favBar = k"
+                    >
+                      {{ t(l) }}
+                    </button>
+                  </div>
+                  <button class="btn" @click="editFavs"><Icon name="pencil" :size="15" />{{ t('Edit') }}</button>
                 </div>
               </div>
             </template>

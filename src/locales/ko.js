@@ -1191,6 +1191,6 @@ export default {
  "Webcam: {name}": "웹캠: {name}",
  "Hide the favorites bar": "즐겨찾기 바 숨기기",
  "Hide the favorites bar?": "즐겨찾기 바를 숨길까요?",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "인터페이스 설정 > 대시보드 > 즐겨찾기 바에서 다시 켤 수 있습니다.",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "인터페이스 설정 > 화면 > 즐겨찾기 바에서 다시 켤 수 있습니다.",
  "Hide": "숨기기"
 }

@@ -1191,6 +1191,6 @@ export default {
  "Webcam: {name}": "Webcam: {name}",
  "Hide the favorites bar": "Ocultar a barra de favoritos",
  "Hide the favorites bar?": "Ocultar a barra de favoritos?",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Pode voltar a ativá-la em Configurações da interface > Painel > Barra de favoritos.",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Pode voltar a ativá-la em Configurações da interface > Aparência > Barra de favoritos.",
  "Hide": "Ocultar"
 }

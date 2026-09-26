@@ -1191,6 +1191,6 @@ export default {
  "Webcam: {name}": "Kamera: {name}",
  "Hide the favorites bar": "Ukryj pasek ulubionych",
  "Hide the favorites bar?": "Ukryć pasek ulubionych?",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Możesz go ponownie włączyć w Ustawienia interfejsu > Pulpit > Pasek ulubionych.",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Możesz go ponownie włączyć w Ustawienia interfejsu > Wygląd > Pasek ulubionych.",
  "Hide": "Ukryj"
 }

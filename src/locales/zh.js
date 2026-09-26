@@ -1191,6 +1191,6 @@ export default {
  "Webcam: {name}": "摄像头：{name}",
  "Hide the favorites bar": "隐藏收藏栏",
  "Hide the favorites bar?": "隐藏收藏栏？",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "可以在 界面设置 > 仪表盘 > 收藏栏 中重新打开。",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "可以在 界面设置 > 外观 > 收藏栏 中重新打开。",
  "Hide": "隐藏"
 }

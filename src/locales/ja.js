@@ -1191,6 +1191,6 @@ export default {
  "Webcam: {name}": "Webカメラ: {name}",
  "Hide the favorites bar": "お気に入りバーを隠す",
  "Hide the favorites bar?": "お気に入りバーを隠しますか？",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "インターフェース設定 > ダッシュボード > お気に入りバー で再表示できます。",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "インターフェース設定 > 外観 > お気に入りバー で再表示できます。",
  "Hide": "隠す"
 }

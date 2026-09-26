@@ -1191,6 +1191,6 @@ export default {
  "Webcam: {name}": "Камера: {name}",
  "Hide the favorites bar": "Сховати панель обраного",
  "Hide the favorites bar?": "Сховати панель обраного?",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Її можна знову увімкнути в Налаштування інтерфейсу > Панель > Панель обраного.",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Її можна знову увімкнути в Налаштування інтерфейсу > Зовнішній вигляд > Панель обраного.",
  "Hide": "Сховати"
 }

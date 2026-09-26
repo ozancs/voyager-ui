@@ -138,7 +138,7 @@ function onDrop(i) {
 
     <Modal v-if="askHide" :title="t('Hide the favorites bar?')" @close="askHide = false">
       <p class="mu" style="margin: 0">
-        {{ t('You can turn it back on in Interface settings > Dashboard > Favorites bar.') }}
+        {{ t('You can turn it back on in Interface settings > Appearance > Favorites bar.') }}
       </p>
       <template #foot>
         <button class="btn lg" @click="askHide = false">{{ t('Cancel') }}</button>

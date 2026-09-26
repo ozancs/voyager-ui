@@ -1191,6 +1191,6 @@ export default {
  "Webcam: {name}": "Webcam: {name}",
  "Hide the favorites bar": "Favoritenleiste ausblenden",
  "Hide the favorites bar?": "Favoritenleiste ausblenden?",
- "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Du kannst sie unter Oberflächeneinstellungen > Dashboard > Favoritenleiste wieder einschalten.",
+ "You can turn it back on in Interface settings > Appearance > Favorites bar.": "Du kannst sie unter Oberflächeneinstellungen > Erscheinungsbild > Favoritenleiste wieder einschalten.",
  "Hide": "Ausblenden"
 }
