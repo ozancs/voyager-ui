@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.4
+
+- Update Manager: Update buttons use the accent colour when an update is available
+
 ## 0.20.3
 
 - Update dialog lists the incoming commits, links to the changes on GitHub and asks to tick "I understand the risk" before updating
