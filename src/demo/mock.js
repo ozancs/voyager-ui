@@ -1,5 +1,7 @@
 // Browser-side fake Moonraker for the live demo (npm run build:demo). Replaces WebSocket and fetch so the UI runs
 // without a printer. Everything is in memory: settings reset on reload, g-code is only echoed to the console card.
+import { currentHost } from '../printers';
+
 let sockets = [];
 function wsAll(m) {
   const s = JSON.stringify(m);
@@ -931,6 +933,143 @@ const SPOOLS = [
     },
   },
 ];
+// ---- several printers in the demo ----
+// The printer list gets three made-up printers the first time. Picking one reloads the page (like a real switch)
+// and the fake Moonraker then answers as that printer: different kinematics, probes, plugins and state.
+const DEMO_PRINTERS = [
+  { id: 'demo-voron', name: 'Voron 2.4', host: 'voron24.local' },
+  { id: 'demo-ender', name: 'Ender 3 V2', host: 'ender3.local' },
+  { id: 'demo-trident', name: 'Trident', host: 'trident.local' },
+];
+try {
+  if (localStorage.getItem('voyager-ui-printers') === null)
+    localStorage.setItem('voyager-ui-printers', JSON.stringify(DEMO_PRINTERS));
+} catch {}
+const DEMO_HOST = currentHost();
+const drop = (re) => {
+  for (let i = objects.length - 1; i >= 0; i--) if (re.test(objects[i])) objects.splice(i, 1);
+};
+const idle = (ext = 24, bed = 23) => {
+  Object.assign(status.print_stats, { state: 'standby', filename: '', print_duration: 0, total_duration: 0 });
+  Object.assign(status.virtual_sdcard, { progress: 0 });
+  Object.assign(status.display_status, { progress: 0 });
+  Object.assign(status.extruder, { temperature: ext, target: 0, power: 0 });
+  Object.assign(status.heater_bed, { temperature: bed, target: 0, power: 0 });
+  status.exclude_object.objects = [];
+};
+// what each demo printer has on top of (or instead of) the main demo printer
+const PROFILE = {
+  '': {
+    // the main demo printer also has an OznLab Sensor
+    add: ['oznlab_sensor hotend'],
+    help: {
+      OZNLAB_CHECK: 'OznLab Sensor health report (no motion)',
+      OZNLAB_STATUS: 'Frequency and noise of the OznLab Sensor',
+      OZNLAB_SETUP: 'Guided first-time setup, one step per call',
+      OZNLAB_TAP: 'Nozzle-on-bed tap using the OznLab Sensor',
+      OZNLAB_HOME_TEST: 'Tap homing dry run',
+      OZNLAB_THERMAL_CAL: 'Nozzle drift per degree C',
+      OZNLAB_CALIBRATE_PA: 'Measure melt pressure rise time and set pressure advance',
+      OZNLAB_PA_SCALE: 'One-time setup per filament',
+      OZNLAB_MAX_FLOW: 'Find the real volumetric limit',
+      OZNLAB_RETRACT_TEST: 'Find the retraction length that actually drops the melt pressure',
+      OZNLAB_TEMP_SCAN: 'Pressure vs nozzle temperature at a fixed flow',
+      OZNLAB_MESH_SETUP: 'Pick the bed mesh area with the nozzle',
+      OZNLAB_MESH: 'Bed mesh with the nozzle as the probe',
+      OZNLAB_MESH_COMPARE: 'Compare two bed mesh profiles point by point',
+    },
+  },
+  'voron24.local': {
+    hostname: 'voron24',
+    console: ['PRINT_END', '// Print finished: voron_cube.gcode, 47m 20s', 'G28', 'ok'],
+    remove: /^(mmu|probe_eddy_current|heater_generic chamber|smart_filament_sensor|neopixel)/,
+    add: ['beacon'],
+    helpRemove: /^(MMU_|CHANGE_TOOL|TOOL_UNLOAD|LANE_UNLOAD|PROBE_EDDY|LDC_|Z_TILT|CHAMBER)/,
+    help: {
+      BEACON_CALIBRATE: 'Calibrate beacon response curve',
+      BEACON_AUTO_CALIBRATE: 'Automatically calibrate beacon',
+    },
+    heaters: ['extruder', 'heater_bed'],
+    cams: 1,
+    setup() {
+      idle(31, 104);
+      Object.assign(status.print_stats, { state: 'complete', filename: 'voron_cube.gcode', print_duration: 2840 });
+      Object.assign(status.heater_bed, { temperature: 104.6, target: 105, power: 0.38 });
+      status.toolhead.axis_maximum = [350, 350, 330, 0];
+      status.toolhead.homed_axes = 'xyz';
+    },
+  },
+  'ender3.local': {
+    hostname: 'ender3v2',
+    console: ['// Klipper state: Ready', 'M140 S60', 'ok', 'M140 S0', 'ok'],
+    remove:
+      /^(mmu|probe_eddy_current|adxl345|quad_gantry_level|heater_generic|temperature_sensor|temperature_fan|fan_generic|neopixel|output_pin|smart_filament|mcu EBBCan|canbus_stats|tmc|firmware_retraction|gcode_macro (OZNLAB|CHAMBER|HEAT_SOAK|LOAD_ABS|LIGHTS|FILAMENT))/,
+    add: ['bltouch'],
+    helpKeep:
+      /^(PID_CALIBRATE|PROBE_CALIBRATE|PROBE_ACCURACY|SCREWS_TILT_CALCULATE|BED_MESH_CALIBRATE|BED_MESH_PROFILE|SAVE_CONFIG|G28|SET_HEATER_TEMPERATURE|SET_FAN_SPEED)$/,
+    help: { Z_ENDSTOP_CALIBRATE: 'Calibrate a Z endstop' },
+    heaters: ['extruder', 'heater_bed'],
+    cams: 0,
+    noSpoolman: true,
+    setup() {
+      idle();
+      status.toolhead.axis_maximum = [235, 235, 250, 0];
+      status.toolhead.homed_axes = '';
+      status.configfile.save_config_pending = false;
+      status.configfile.config.printer.kinematics = 'cartesian';
+      status.configfile.config.printer.max_velocity = '300';
+      status.configfile.config.printer.max_accel = '3000';
+      Object.assign(status.toolhead, { max_velocity: 300, max_accel: 3000 });
+      delete db['voyager-ui/settings'].layout;
+      delete db['voyager-ui/settings'].layoutPrint;
+      db['carbon-ui/settings'].favorites = db['carbon-ui/settings'].favorites.filter((f) => f.gcode === 'PARK');
+    },
+  },
+  'trident.local': {
+    hostname: 'trident',
+    console: [
+      'PRINT_START BED=110 EXTRUDER=250 CHAMBER=50',
+      'Z_TILT_ADJUST',
+      '// Retries: 1/5 Probed points range: 0.004000 tolerance: 0.007500',
+      'M600',
+      '// Filament change: paused',
+    ],
+    remove: /^(mmu|probe_eddy_current|adxl345|quad_gantry_level|smart_filament_sensor|gcode_macro OZNLAB)/,
+    add: ['cartographer', 'z_tilt'],
+    helpRemove:
+      /^(MMU_|CHANGE_TOOL|TOOL_UNLOAD|LANE_UNLOAD|PROBE_EDDY|LDC_|QUAD_GANTRY|SHAPER_CALIBRATE|MEASURE_AXES|ACCELEROMETER|AXES_|COMPARE_BELTS|CREATE_VIBRATIONS|EXCITATE)/,
+    help: {
+      CARTOGRAPHER_SCAN_CALIBRATE: 'Run the scan calibration',
+      CARTOGRAPHER_TOUCH_CALIBRATE: 'Run the touch calibration',
+      AUTOTUNE_TMC: 'Apply autotuning configuration to TMC stepper driver',
+    },
+    cams: 2,
+    setup() {
+      Object.assign(status.print_stats, { state: 'paused', filename: 'fan_duct.gcode' });
+      status.virtual_sdcard.progress = 0.71;
+      status.display_status.progress = 0.71;
+      Object.assign(status.extruder, { target: 0 });
+      status.toolhead.axis_maximum = [300, 300, 250, 0];
+      status.configfile.config.printer.max_accel = '8000';
+    },
+  },
+}[DEMO_HOST] || { hostname: DEMO_HOST.split('.')[0], cams: 1 };
+if (PROFILE.remove) drop(PROFILE.remove);
+for (const o of PROFILE.add || []) if (!objects.includes(o)) objects.push(o);
+for (const o of PROFILE.add || []) status[o] ||= {};
+if (PROFILE.heaters) {
+  status.heaters.available_heaters = PROFILE.heaters;
+  status.heaters.available_sensors = status.heaters.available_sensors.filter((x) => objects.includes(x));
+}
+PROFILE.setup?.();
+function demoHelp(base) {
+  const h = { ...base };
+  for (const k of Object.keys(h))
+    if ((PROFILE.helpRemove && PROFILE.helpRemove.test(k)) || (PROFILE.helpKeep && !PROFILE.helpKeep.test(k)))
+      delete h[k];
+  return Object.assign(h, PROFILE.help || {});
+}
+
 function handle(m) {
   const p = m.params || {};
   switch (m.method) {
@@ -988,6 +1127,14 @@ function handle(m) {
         },
       };
     case 'server.gcode_store':
+      if (PROFILE.console)
+        return {
+          gcode_store: PROFILE.console.map((message, i) => ({
+            message,
+            type: /^[A-Z]\w*( |$)/.test(message) ? 'command' : 'response',
+            time: Date.now() / 1000 - 300 + i * 20,
+          })),
+        };
       return {
         gcode_store: [
           {
@@ -1062,7 +1209,7 @@ function handle(m) {
         ],
       };
     case 'printer.gcode.help':
-      return {
+      return demoHelp({
         MMU_GATE_MAP: 'Gate map',
         MMU_CHANGE_TOOL: 'Change tool',
         MMU_SELECT: 'Select gate',
@@ -1103,9 +1250,9 @@ function handle(m) {
         BED_MESH_PROFILE: 'Bed Mesh Persistent Storage management',
         SET_HEATER_TEMPERATURE: 'Sets a heater temperature',
         SET_FAN_SPEED: 'Sets the speed of a fan',
-      };
+      });
     case 'printer.info':
-      return { software_version: 'v0.13.0-300', hostname: 'voyager-demo' };
+      return { software_version: 'v0.13.0-300', hostname: PROFILE.hostname || 'voyager-demo' };
     case 'machine.update.upgrade':
       setTimeout(() => {
         let n = 0;
@@ -1158,10 +1305,10 @@ function handle(m) {
             stream_url: '/webcam3/?action=stream',
             snapshot_url: '/webcam3/?action=snapshot',
           },
-        ],
+        ].slice(0, PROFILE.cams ?? 3),
       };
     case 'server.config':
-      return { config: { spoolman: { server: 'http://127.0.0.1:7912' } } };
+      return { config: PROFILE.noSpoolman ? {} : { spoolman: { server: 'http://127.0.0.1:7912' } } };
     case 'server.spoolman.get_spool_id':
       return { spool_id: 12 };
     case 'server.spoolman.proxy':
@@ -1338,10 +1485,14 @@ let tk = 0,
 function tick() {
   tk++;
   const st = status;
-  st.extruder.temperature = 249.6 + Math.random() * 0.8;
-  st.extruder.power = 0.4 + Math.random() * 0.04;
-  st.heater_bed.temperature = 110 + Math.random() * 0.3;
-  st['heater_generic chamber'].temperature = 49.4 + Math.random() * 0.5;
+  // heaters with a target hover around it, the others stay where they are
+  const hover = (h, spread) => {
+    if (h.target) h.temperature = h.target - spread / 2 + Math.random() * spread;
+  };
+  hover(st.extruder, 0.8);
+  st.extruder.power = st.extruder.target ? 0.4 + Math.random() * 0.04 : 0;
+  hover(st.heater_bed, 0.3);
+  hover(st['heater_generic chamber'], 0.5);
   st['temperature_sensor EBB_MCU'].temperature = 48 + Math.random() * 0.6;
   const ps = st.print_stats,
     vs = st.virtual_sdcard;
@@ -1543,6 +1694,39 @@ gcodeScript = function (sc) {
   }
   if (S === 'ACCELEROMETER_QUERY') {
     emitLines(['// accelerometer values (x, y, z): 470.719200, 941.438400, 9728.196800'], 100);
+    return 'ok';
+  }
+  if (/^OZNLAB_CHECK\b/.test(S)) {
+    emitLines(
+      [
+        '// OznLab Sensor v0.9.8 check [PASS]\n  [ OK ] LDC1612 found on EBBCan i2c3_PB3_PB4 at 43\n  [ OK ] 3.4210 MHz, noise 1.1 Hz, 200 samples/s\n  [ OK ] no read errors\n  [ OK ] PRINT_START calls CALIBRATE_PA, TAP and MONITOR',
+      ],
+      300,
+    );
+    return 'ok';
+  }
+  if (/^OZNLAB_STATUS\b/.test(S)) {
+    emitLines(['// OznLab: 3.4210 MHz, noise 1.1 Hz, 200 samples/s, no errors'], 900);
+    return 'ok';
+  }
+  if (/^OZNLAB_TAP\b/.test(S)) {
+    emitLines(['// OznLab tap: z offset 0.043 set (5 taps within 0.004 mm) - SAVE_CONFIG to keep it'], 2500);
+    return 'ok';
+  }
+  if (/^OZNLAB_CALIBRATE_PA\b/.test(S)) {
+    emitLines(['// OznLab PA: pressure advance 0.0412 set (was 0.0350)'], 3000);
+    return 'ok';
+  }
+  if (/^OZNLAB_MAX_FLOW\b/.test(S)) {
+    emitLines(
+      [
+        '// OznLab Sensor max flow: stepping 1.0 -> 20.0 mm/s in 1.0 mm/s steps',
+        '//   8.0 mm/s (19.2 mm3/s): pressure 410 Hz, ripple 12 Hz',
+        '//   12.0 mm/s (28.9 mm3/s): pressure 655 Hz, ripple 31 Hz',
+        '// OznLab Sensor max flow: last good 12.0 mm/s = 28.9 mm3/s (pressure ripple)\n  Put about 26.0 mm3/s in the slicer (10% margin).',
+      ],
+      900,
+    );
     return 'ok';
   }
   if (/^AXES_SHAPER_CALIBRATION\b/i.test(S)) {
