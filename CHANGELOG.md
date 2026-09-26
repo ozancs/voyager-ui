@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20.6
+
+- Card title bars on the Machine, Files and other pages scroll with the card, the content no longer slides behind them
+- Compact cards apply to every page, not only the dashboard
+- The sensor picker and presets pop-ups open above the side menu instead of being cut off
+
 ## 0.20.5
 
 - Z offset buttons only in the Live Z card (it is added to dashboards that do not have it), the Toolhead card is smaller
