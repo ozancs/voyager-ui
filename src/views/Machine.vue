@@ -90,16 +90,16 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log']
     <div class="col" style="gap:16px">
       <SystemLoads detailed />
     <section class="card">
-      <div class="card-h"><h2>{{ t('Update Manager') }}</h2><div class="acts"><button v-if="updates.filter(([, v]) => needs(v)).length > 1" class="btn acc" :disabled="!!busy" @click="confirm = '__all'"><Icon name="download" :size="16" />{{ t('Update all') }}</button><button class="btn" :disabled="busy === 'check'" @click="loadUpd(true)"><Icon name="refresh" :size="16" />{{ busy === 'check' ? t('Checking…') : t('Check') }}</button></div></div>
+      <div class="card-h"><h2>{{ t('Update Manager') }}</h2><div class="acts"><button v-if="updates.filter(([, v]) => needs(v)).length > 1" class="btn upb" :disabled="!!busy" @click="confirm = '__all'"><Icon name="download" :size="16" />{{ t('Update all') }}</button><button class="btn" :disabled="busy === 'check'" @click="loadUpd(true)"><Icon name="refresh" :size="16" />{{ busy === 'check' ? t('Checking…') : t('Check') }}</button></div></div>
       <div v-if="!upd" class="empty">{{ t('Loading…') }}</div>
       <div v-for="[name, v] in updates" :key="name" :id="'upd-' + name" class="it">
         <div class="grow row" style="gap:10px;min-width:0;align-items:baseline"><b>{{ name }}</b><span class="mono mu" style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ verText(v) }}<template v-if="needs(v)"> → {{ v.remote_version }}</template><template v-if="v.is_dirty"> · {{ t('dirty') }}</template><template v-if="v.detached"> · {{ t('detached') }}</template></span></div>
-        <button v-if="needs(v)" class="btn acc" :disabled="!!busy" @click="confirm = name"><Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}</button>
+        <button v-if="needs(v)" class="btn upb" :disabled="!!busy" @click="confirm = name"><Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}</button>
         <span v-else class="chip" :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"><i></i>{{ v.detached ? t('Pinned') : t('Up to date') }}</span>
       </div>
       <div v-if="sysUpd" class="it">
         <div class="grow col" style="gap:2px"><b>{{ t('System') }}</b><span class="mono mu" style="font-size:11px">{{ t('{n} packages', { n: sysUpd.package_count }) }}</span></div>
-        <button v-if="sysUpd.package_count" class="btn" :disabled="!!busy" @click="confirm = 'system'">{{ t('Update') }}</button>
+        <button v-if="sysUpd.package_count" class="btn upb" :disabled="!!busy" @click="confirm = 'system'">{{ t('Update') }}</button>
         <span v-else class="chip" style="color:var(--mu)"><i></i>{{ t('Up to date') }}</span>
       </div>
     </section>
@@ -144,4 +144,7 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log']
 .ci:last-child { border-bottom: none; }
 .ci .mono { font-size: 11px; white-space: nowrap; }
 .wn { color: var(--wn); }
+/* an available update is the one place on this page that should catch the eye */
+.btn.upb { background: color-mix(in srgb, var(--ac) 18%, var(--s2)); color: var(--ac); }
+.btn.upb:hover:not(:disabled) { background: color-mix(in srgb, var(--ac) 28%, var(--s2)); }
 </style>
