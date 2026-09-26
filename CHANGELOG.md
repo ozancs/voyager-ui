@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.2
+
+- Printer icon: the maker logos from Mainsail (Voron, VzBot, LDO, BTT and others) are in the list when Mainsail runs on the same host
+
 ## 0.20.1
 
 - Printer icon is a dropdown: the Voyager mark, printer logos bundled in `src/img/logos` (drop a file there and it shows up), or your own image. Letters are gone
