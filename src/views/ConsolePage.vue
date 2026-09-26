@@ -1,4 +1,5 @@
 <script setup>
+// Full console page: the console plus a searchable list of commands and macros with their help text.
 import { ref, computed } from 'vue';
 import Icon from '../components/Icon.vue';
 import ConsoleView from '../components/ConsoleView.vue';

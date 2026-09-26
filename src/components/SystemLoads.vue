@@ -1,4 +1,6 @@
 <script setup>
+// Host and MCU information: CPU and memory load, temperatures, versions, network traffic. Polls
+// machine.proc_stats every 5 seconds while it is on screen.
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import Donut from './Donut.vue';

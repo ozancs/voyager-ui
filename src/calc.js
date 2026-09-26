@@ -1,4 +1,5 @@
-// small pure helpers, unit tested in tests/utils.test.js
+// Small pure helpers for the Health page and the dashboard grid, unit tested in tests/utils.test.js.
+
 // increase of a counter over the samples. Klipper resets the MCU counters on a restart, so a drop is a new
 // start and not a negative change: only the steps up are added
 export function counterGrowth(h, key) {

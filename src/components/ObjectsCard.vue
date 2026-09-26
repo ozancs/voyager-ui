@@ -1,4 +1,5 @@
 <script setup>
+// Dashboard card with the object map and the button that opens the exclude object dialog.
 import Icon from './Icon.vue';
 import ObjectMap from './ObjectMap.vue';
 import { state, S } from '../store';

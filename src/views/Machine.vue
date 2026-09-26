@@ -1,4 +1,6 @@
 <script setup>
+// Machine page: system loads, the file browser for config and logs, the update manager (with the
+// confirm dialog that lists incoming commits) and endstop state.
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';

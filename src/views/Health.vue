@@ -1,4 +1,6 @@
 <script setup>
+// Health page: MCU and CAN connection errors, TMC driver flags, host throttling and power, heater
+// behaviour, maintenance reminders based on print hours. The checks themselves are in features.js.
 import { ref, computed, onMounted } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';

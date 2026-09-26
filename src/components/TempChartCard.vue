@@ -1,4 +1,6 @@
 <script setup>
+// Temperature graph drawn as SVG from the history buffers in the store (hist). 5, 10 or 20 minute
+// range, sensors picked with the eye button, dashed lines for targets.
 import SensorPicker from './SensorPicker.vue';
 import { computed } from 'vue';
 import { state, sensors, hist } from '../store';

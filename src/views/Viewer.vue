@@ -1,4 +1,6 @@
 <script setup>
+// G-code viewer (gcode-preview, three.js): loads a file from the printer and shows it in 3D or as
+// layers, can follow the running print and exclude objects.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, shallowRef } from 'vue';
 import Icon from '../components/Icon.vue';
 import ObjectMap from '../components/ObjectMap.vue';

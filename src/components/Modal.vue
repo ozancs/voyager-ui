@@ -1,4 +1,5 @@
 <script setup>
+// Dialog frame: title, close button, content and a footer row for buttons. Escape closes only the dialog on top.
 import Icon from './Icon.vue';
 import { t } from '../i18n';
 defineProps({ title: String, width: { type: String, default: '520px' } });

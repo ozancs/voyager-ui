@@ -1,4 +1,6 @@
 <script setup>
+// Speed and flow override (M220 / M221) and the printer's velocity and acceleration limits
+// (SET_VELOCITY_LIMIT). Sliders show the value while dragging and send it when released.
 import { computed, reactive } from 'vue';
 import Rng from './Rng.vue';
 import Icon from './Icon.vue';

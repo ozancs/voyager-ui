@@ -1,4 +1,5 @@
 <script setup>
+// Dashboard card listing Moonraker power devices ([power] sections) with on/off switches.
 import Icon from './Icon.vue';
 import PowerList from './PowerList.vue';
 import { loadPower } from '../store';

@@ -1,4 +1,6 @@
 <script setup>
+// 3D bed mesh with Plotly (loaded on demand): colour palette, optional wireframe through the probe
+// points, fixed or automatic Z range.
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { plotlyScale } from '../meshPalette';
 const props = defineProps({

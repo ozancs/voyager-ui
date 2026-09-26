@@ -1,4 +1,6 @@
 <script setup>
+// Firmware retraction settings ([firmware_retraction]): shows the live values and changes them with
+// SET_RETRACTION. Changes last until Klipper restarts.
 import { computed } from 'vue';
 import NumField from './NumField.vue';
 import { S, gcode } from '../store';

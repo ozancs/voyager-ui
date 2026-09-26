@@ -1,4 +1,6 @@
 <script setup>
+// Print Status card: thumbnail, state, layer, Z, live speed and flow, filament, times and the finish time
+// estimate (click it to see how it was worked out), pause / cancel / exclude, or reprint when idle.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';

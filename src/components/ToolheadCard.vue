@@ -1,4 +1,6 @@
 <script setup>
+// Toolhead card: position (type a value to move), jog buttons per axis with the configured steps,
+// homing, Z tilt / QGL, motors off, Z offset baby steps, speed and flow.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import { state, S, gcode, isPrinting, toast } from '../store';

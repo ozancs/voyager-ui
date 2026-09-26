@@ -1,4 +1,6 @@
 <script setup>
+// Small dashboard card with the health issues found by features.js (MCU errors, throttling, driver
+// flags, due maintenance). Details are on the Health page.
 import Icon from './Icon.vue';
 import { healthIssues, dueMaintenance } from '../features';
 import { go } from '../router';

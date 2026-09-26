@@ -1,4 +1,6 @@
 <script setup>
+// Log of a running update (Moonraker's update manager). Shows the output lines as they come in
+// and a close button when the update is done.
 import { ref, watch, nextTick, computed } from 'vue';
 import Icon from './Icon.vue';
 import { state } from '../store';

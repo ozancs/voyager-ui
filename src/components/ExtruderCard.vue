@@ -1,4 +1,6 @@
 <script setup>
+// Extruder card: extrude and retract with chosen length and speed, pressure advance, and the
+// temperature check (Klipper refuses to extrude below min_extrude_temp).
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import NumField from './NumField.vue';

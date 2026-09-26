@@ -1,4 +1,6 @@
 <script setup>
+// Printer settings page: the config options the user picked (settings.quickConfig) as a form, read from the
+// live config. Saving finds each option in the config files, writes it (backup first) and can restart Klipper.
 import { ref, computed } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';

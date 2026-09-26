@@ -1,4 +1,6 @@
 <script setup>
+// Temperature table: current, target and power for heaters and sensors. Targets can be typed in,
+// presets and cooldown are in the header.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import SensorPicker from './SensorPicker.vue';

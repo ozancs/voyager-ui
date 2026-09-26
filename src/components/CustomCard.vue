@@ -1,4 +1,6 @@
 <script setup>
+// A card the user made in Customize: a single command button, a group of macro buttons or an extra
+// webcam. Its settings live in state.settings.customCards[id]; the pencil opens the editor in Dashboard.vue.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import WebcamCard from './WebcamCard.vue';

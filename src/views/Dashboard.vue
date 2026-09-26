@@ -1,4 +1,8 @@
 <script setup>
+// Dashboard: the status tiles (DeviceStrip) and a grid of cards the user arranges (grid-layout-plus).
+// MODULES lists every card type with its size limits. Customize mode: drag, resize (also from the bottom-left
+// corner), hide, colour and add cards, a separate layout while printing, undo and saved backups. On narrow
+// screens the cards stack in one column with their own order (mobileOrder).
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { GridLayout, GridItem } from 'grid-layout-plus';
 import Icon from '../components/Icon.vue';

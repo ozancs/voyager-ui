@@ -1,4 +1,6 @@
 <script setup>
+// Dashboard card with the console (ConsoleView) and its header buttons: hide temperature reports, clear,
+// open the full console page.
 import Icon from './Icon.vue';
 import ConsoleView from './ConsoleView.vue';
 import { state } from '../store';

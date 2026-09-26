@@ -1,4 +1,6 @@
 <script setup>
+// Side menu: the pages, a badge with the number of health issues, and the footer (connection state,
+// slow requests, "new version" hint that opens the update manager). Can be pinned, hidden or auto-hide.
 import { ref, computed, onMounted, watch } from 'vue';
 import Icon from './Icon.vue';
 import { state, useApiEvent, activeTasks } from '../store';

@@ -1,4 +1,6 @@
 <script setup>
+// Top view of the bed with the print's objects (from exclude_object) drawn as outlines. Excluded
+// objects are greyed out, the current one is highlighted; clicking one emits 'pick'.
 import { computed } from 'vue';
 import { S } from '../store';
 import { t } from '../i18n';

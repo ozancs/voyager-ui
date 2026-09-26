@@ -1,4 +1,5 @@
 <script setup>
+// Number input with a label and unit, used in settings forms. Emits the value as a number.
 import { ref, watch } from 'vue';
 import { t } from '../i18n';
 const props = defineProps({

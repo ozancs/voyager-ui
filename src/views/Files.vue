@@ -1,4 +1,6 @@
 <script setup>
+// G-code files page: folders, thumbnails, metadata, search, print, add to queue, upload, rename,
+// delete and the edit button (opens small files in the config editor).
 import { ref, computed, onMounted, watch } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';

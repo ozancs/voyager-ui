@@ -1,4 +1,6 @@
 <script setup>
+// Print history from Moonraker: totals, a searchable list with results and filament used, reprint
+// and delete.
 import { ref, computed, onMounted, watch } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';

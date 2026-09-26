@@ -1,4 +1,5 @@
 <script setup>
+// Small ring gauge (a value out of max) used for CPU, memory and MCU load.
 import { computed } from 'vue';
 const props = defineProps({
   value: Number,

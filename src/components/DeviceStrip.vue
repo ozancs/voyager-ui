@@ -1,4 +1,7 @@
 <script setup>
+// The row of small tiles above the dashboard: heaters and sensors, fans, pins and LEDs, filament
+// sensors, Spoolman. Clicking a tile opens a popover to set a target, speed or colour. In Customize the tiles
+// can be dragged to swap places and hidden with the eye. Which tiles exist comes from stripAll in the store.
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import Toggle from './Toggle.vue';

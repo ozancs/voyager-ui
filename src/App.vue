@@ -1,4 +1,7 @@
 <script setup>
+// Root component: top bar, side menu, favorites bar and the page the router points at. Pages are loaded
+// on demand (LOADERS) and kept alive, so switching back is instant. Also hosts the app-wide overlays: toasts,
+// Ctrl+K search, settings, update log, macro prompts, first-run setup and the login screen.
 import { ref, computed, defineAsyncComponent, h, watch } from 'vue';
 import LoadingPanel from './components/LoadingPanel.vue';
 import TopBar from './components/TopBar.vue';

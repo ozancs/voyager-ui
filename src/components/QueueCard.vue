@@ -1,4 +1,5 @@
 <script setup>
+// Moonraker job queue: queued files, start or pause the queue, remove a job or move it to the front, add files.
 defineOptions({ inheritAttrs: false });
 import { ref, computed } from 'vue';
 import Icon from './Icon.vue';

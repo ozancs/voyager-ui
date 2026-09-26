@@ -1,4 +1,7 @@
 <script setup>
+// Console output and the G-code input. Shows state.console (filled by the store from Moonraker's
+// gcode responses), keeps scrolled to the bottom unless the user scrolls up, remembers sent commands (arrow
+// up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import CmdInput from './CmdInput.vue';

@@ -1,4 +1,6 @@
 <script setup>
+// Small bed mesh preview for the dashboard: the probed heights as coloured cells, with range and
+// the active profile. The full view is the Heightmap page.
 import { computed } from 'vue';
 import Icon from './Icon.vue';
 import { state, S, gcode, isPrinting } from '../store';

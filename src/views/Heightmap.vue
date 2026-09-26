@@ -1,4 +1,6 @@
 <script setup>
+// Bed mesh page: 3D (Surface3D) or 2D view of the probed or interpolated mesh, statistics, profiles
+// (load, save, remove), calibrate, colour palette and range settings.
 import { computed, ref } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';

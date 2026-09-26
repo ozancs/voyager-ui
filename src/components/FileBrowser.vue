@@ -1,4 +1,7 @@
 <script setup>
+// File browser for any Moonraker root (config, logs, gcodes...) used on the Machine page: list,
+// sort, upload by drag and drop, new file or folder, rename, delete, download (folders as zip), move by
+// dragging onto a folder. Text files open in the config editor, images in ImageViewer.
 import { ref, computed, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';

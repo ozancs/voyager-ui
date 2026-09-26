@@ -1,5 +1,5 @@
-// Helpers to find and replace a key inside Klipper config text.
-// Returns new text or null if section not found.
+// Helpers to find and replace an option inside Klipper config text (used by the Printer settings page).
+// setOption returns the new text, or null when the section is not in this file.
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export function setOption(text, section, key, value) {

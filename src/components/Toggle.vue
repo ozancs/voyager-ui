@@ -1,4 +1,5 @@
 <script setup>
+// On/off switch bound with v-model.
 defineProps({ modelValue: Boolean, label: String });
 const emit = defineEmits(['update:modelValue']);
 </script>

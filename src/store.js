@@ -1,3 +1,9 @@
+// The app state and the connection to Moonraker.
+//  - state: everything the UI shows (printer objects, settings, console, files cache...), reactive
+//  - start(): connects the websocket, subscribes to all printer objects and keeps state.status up to date
+//  - settings: kept in Moonraker's database (and in localStorage as a fast first paint), see saveSettings
+//  - helpers used everywhere: S(obj) for a printer object, gcode(), toast(), formatting functions
+//  - temperature history (hist), print time estimates, update checks and throttling notices
 import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue';
 import { api } from './api/moonraker';
 import { setLang, t } from './i18n';

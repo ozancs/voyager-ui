@@ -1,7 +1,7 @@
 <script setup>
-defineOptions({ inheritAttrs: false });
 // All printer macros as buttons. The grid follows the card size: wide card -> many columns, tall card -> a column.
 // "fit" mode shrinks buttons so everything is visible, "scroll" mode keeps a minimum size and scrolls.
+defineOptions({ inheritAttrs: false });
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import { state, S, gcode, macroList } from '../store';

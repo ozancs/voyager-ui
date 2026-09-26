@@ -12,7 +12,8 @@
     "i18n:keys": "python3 scripts/i18n_keys.py",
     "format": "prettier --write \"src/**/*.{js,vue,css}\" \"tests/**/*.js\" \"scripts/**/*.{js,cjs,mjs}\" vite.config.js",
     "format:check": "prettier --check \"src/**/*.{js,vue,css}\" \"tests/**/*.js\" \"scripts/**/*.{js,cjs,mjs}\" vite.config.js",
-    "same-code": "node scripts/same-code.mjs"
+    "same-code": "node scripts/same-code.mjs",
+    "code-map": "node scripts/code-map.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",

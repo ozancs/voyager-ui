@@ -1,4 +1,5 @@
 <script setup>
+// The last prints from Moonraker's history with their result and duration.
 import { ref, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import { fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';

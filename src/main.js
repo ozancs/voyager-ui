@@ -1,3 +1,5 @@
+// Entry point: loads fonts and styles, installs the fake Moonraker in the demo build, loads the
+// language, starts the store (connection to Moonraker) and mounts App.vue.
 import './legacy.js';
 import '@fontsource-variable/archivo/wdth.css';
 import '@fontsource/onest/400.css';

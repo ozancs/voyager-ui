@@ -1,4 +1,6 @@
 <script setup>
+// Active Spoolman spool: filament name, colour, remaining weight. Only shown when Moonraker has
+// a [spoolman] section.
 defineOptions({ inheritAttrs: false });
 import { ref, computed } from 'vue';
 import Icon from './Icon.vue';

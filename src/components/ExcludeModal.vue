@@ -1,4 +1,6 @@
 <script setup>
+// Exclude object dialog: pick an object on the bed map (ObjectMap) or in the list, confirm, and
+// EXCLUDE_OBJECT is sent. Needs [exclude_object] in Klipper and labelled objects in the G-code.
 import { ref, computed } from 'vue';
 import Modal from './Modal.vue';
 import ObjectMap from './ObjectMap.vue';

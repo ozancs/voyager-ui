@@ -1,4 +1,6 @@
 <script setup>
+// Top bar: printer name and logo, print state with progress and time left, pause / cancel / exclude,
+// search, Save Config, upload & print, notifications, customize, settings, power menu and E-STOP.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import Logo from './Logo.vue';

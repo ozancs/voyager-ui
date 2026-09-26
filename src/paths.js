@@ -1,3 +1,5 @@
+// Turning a selection in a file list into file paths (used for downloads).
+
 // selected items -> file paths, folders replaced by every file under them (from server.files.list)
 export function expandPaths(items, all) {
   const out = items.filter((i) => !i.dir).map((i) => i.path);

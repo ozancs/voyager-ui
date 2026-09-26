@@ -1,4 +1,5 @@
 <script setup>
+// The newest G-code files with thumbnail, estimated time and a print button.
 import { ref, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import { state, fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';

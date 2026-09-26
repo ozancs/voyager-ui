@@ -1,4 +1,6 @@
 <script setup>
+// Draws an icon by name. Built-in names come from icons.js (stroke paths). Names starting with
+// 'l:' come from the Lucide subset in icons-extra.js, loaded on first use.
 import { computed } from 'vue';
 import { ICONS } from '../icons';
 import { extra, loadExtra, isExtra } from '../iconsExtra';

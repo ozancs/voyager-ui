@@ -1,3 +1,5 @@
+// Minimal hash router: #/<page>/<argument>. route.name picks the page in App.vue, route.arg is
+// for example the config file open in the editor.
 import { reactive } from 'vue';
 export const route = reactive({ name: 'dashboard', arg: '' });
 function parse() {

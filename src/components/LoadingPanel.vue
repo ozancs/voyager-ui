@@ -1,4 +1,6 @@
 <script setup>
+// Placeholder shown while a page loads. After a few seconds it says what it is still waiting for,
+// so a slow printer does not look like a broken page.
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import { state, activeTasks } from '../store';
