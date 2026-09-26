@@ -43,6 +43,7 @@ const PAGES = [
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
   ['calibrations', 'target', 'Calibrations'],
+  ['fleet', 'grid', 'All printers'],
   ['files', 'file', 'G-code Files'],
   ['viewer', 'cube', 'G-code Viewer'],
   ['history', 'clock', 'History'],

@@ -8,6 +8,9 @@ import CmdInput from './CmdInput.vue';
 import { state, gcode } from '../store';
 import { t } from '../i18n';
 import { richHtml, hasMarkup } from '../richText';
+import Popover from './Popover.vue';
+import ExplainBox from './ExplainBox.vue';
+import { explain } from '../explain';
 const props = defineProps({ limit: { type: Number, default: 400 } });
 const box = ref(null);
 const cmd = ref('');
@@ -105,6 +108,9 @@ const cls = (l) =>
           ? 'h'
           : '';
 defineExpose({ setCmd: (c) => (cmd.value = c) });
+// ? next to an error line: what the error means (explain.js)
+const xOpen = ref(null); // { anchor, e }
+const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain(msg) });
 </script>
 <template>
   <div class="cv">
@@ -113,7 +119,16 @@ defineExpose({ setCmd: (c) => (cmd.value = c) });
         <div v-for="l in lines" :key="l.id" class="ln" :class="cls(l)">
           <span class="t">{{ fmt(l.time) }}</span
           ><span v-if="l.type !== 'command' && hasMarkup(l.message)" class="m" v-html="richHtml(l.message)"></span
-          ><span v-else class="m">{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span>
+          ><span v-else class="m">{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span
+          ><button
+            v-if="cls(l) === 'e' && explain(l.message)"
+            class="xq"
+            :aria-label="t('What does this mean?')"
+            :data-tip="t('What does this mean?')"
+            @click="openX($event, l.message)"
+          >
+            ?
+          </button>
         </div>
       </div>
       <Transition name="jb">
@@ -138,9 +153,27 @@ defineExpose({ setCmd: (c) => (cmd.value = c) });
       /></label>
       <button class="btn acc ibtn" :aria-label="t('Send')" @click="send"><Icon name="send" :stroke="2.4" /></button>
     </div>
+    <Popover v-if="xOpen" :anchor="xOpen.anchor" :width="340" @close="xOpen = null">
+      <ExplainBox :e="xOpen.e" />
+    </Popover>
   </div>
 </template>
 <style scoped>
+.xq {
+  margin-left: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--bd);
+  background: var(--s2);
+  color: var(--mu);
+  font: 700 11px/1 var(--fb, inherit);
+  cursor: pointer;
+  vertical-align: 1px;
+}
+.xq:hover {
+  color: var(--tx);
+}
 .cv {
   display: flex;
   flex-direction: column;

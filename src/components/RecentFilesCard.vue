@@ -7,6 +7,7 @@ import { queueApi } from '../features';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
+import { startPrint } from '../preprint';
 
 const files = ref([]);
 async function load() {
@@ -38,11 +39,7 @@ function thumb(f) {
   const dir = f.path.split('/').slice(0, -1).join('/');
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + th.relative_path);
 }
-const print = (f) =>
-  api
-    .call('printer.print.start', { filename: f.path })
-    .then(() => toast(t('Print started')))
-    .catch((e) => toast(e.message, 'error'));
+const print = (f) => startPrint(f.path);
 </script>
 
 <template>

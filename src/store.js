@@ -103,7 +103,8 @@ export const DEFAULT_SETTINGS = () => ({
   migratedCarbon: false,
   cardOpts: {},
   cardColors: {}, // dashboard card -> tint name ('cool'...), '#rrggbb' or 'none' // per dashboard module options, e.g. macros: { scroll, showHidden, hidden: [] }
-  heaterBase: {}, // { extruder: { target, power, t } } power needed to hold a temperature, learned
+  heaterBase: {}, // 'extruder@250' -> { power, fan, t, heat, from } first measurement, compared on the Health page
+  preprintCheck: true, // compare the file with the printer before a print starts (preprint.js)
 });
 
 export const DEFAULT_LAYOUT = () => [
@@ -181,6 +182,7 @@ export const state = reactive({
   login: null, // { needed, sources, source } when Moonraker asks for a login
   settingsOpen: null, // name of the settings dialog tab while it is open
   printersOpen: false, // the printer list dialog (printers.js)
+  preprint: null, // { filename, issues, resolve } while the pre-print check asks (PreprintDialog.vue)
   dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
   etaLearn: { k: null, n: 0 }, // how much real prints differ from the slicer estimate (median of past prints)
 });

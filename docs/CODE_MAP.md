@@ -38,6 +38,11 @@ Writing option values into the printer's .cfg files: finds the file that has the
 then the other .cfg files), changes the line with setOption (the SAVE_CONFIG block wins when the option is  
 there), saves a backup of each file first and uploads it. Klipper needs a restart to use the new values.
 
+**[src/explain.js](../src/explain.js)**  
+"What does this error mean": common Klipper errors in plain words, with what usually causes them and what to  
+check. Used under the Klipper error banner and behind the ? on error lines in the console. The texts are  
+general advice for the error as Klipper words it; they do not know the printer, so they say "usually".
+
 **[src/features.js](../src/features.js)**  
 Things that run in the background for the whole app:  
 macro prompts, error toasts, sounds, job queue, config index (for search), health sampling.
@@ -47,6 +52,20 @@ v-fit: when a dashboard card is only a little too small for its content, shrink 
 showing a scrollbar. Up to 25% smaller; beyond that the card stays at 75% and scrolls (it used to jump back to  
 100%, so opening something inside a card, like an MMU gate menu, suddenly blew the whole card up). Measured on the card itself and on  
 inner scroll areas marked data-fit (the temperatures table). Console logs and editors are not touched.
+
+**[src/fleet.js](../src/fleet.js)**  
+All printers overview: reads the state of every saved printer over plain HTTP (no second websocket), every few  
+seconds while the page is open. Each printer is asked with its own login token (the same one the UI keeps per  
+address), never with another printer's. The printer this page is connected to comes from the live state.
+
+**[src/heaterHealth.js](../src/heaterHealth.js)**  
+Heater health: each heater is compared with its own first measurement at the same target, never with a fixed  
+number, because the power a heater needs depends on fans, enclosure and room. Two things are learned per  
+heater and target and kept in the settings (heaterBase, per printer):  
+  power  - average power while holding the target steadily for a minute (extruder: with the part fan speed)  
+  heat   - seconds to heat up from a cold start (below 45°) to the target  
+A later measurement is only compared when the conditions match (same target, similar part fan, similar start  
+temperature). The findings are shown on the Health page.
 
 **[src/i18n.js](../src/i18n.js)**  
 Tiny i18n: the English text is the key. Missing translations fall back to English.  
@@ -82,6 +101,16 @@ Turning a selection in a file list into file paths (used for downloads).
 Switching Moonraker power devices, shared by the top bar menu and the dashboard card.  
 Turning something off while printing (or a device Moonraker locks during prints) asks first;  
 the question is shown by the top bar, which is always on screen.
+
+**[src/preprint.js](../src/preprint.js)**  
+Pre-print check: before a print starts, compare the file's slicer metadata with the printer. Only facts that  
+both sides report are compared; anything unknown (no Spoolman, no active spool, no weight, no metadata) is  
+skipped, never guessed. Problems open a dialog (PreprintDialog.vue) with "Print anyway" and "Cancel".  
+Every place that starts a print goes through startPrint().
+
+**[src/preprintCheck.js](../src/preprintCheck.js)**  
+The checks of the pre-print check (preprint.js), without any browser or store code so they can be tested.  
+Messages are English keys with {params}; the dialog translates them.
 
 **[src/printerIcon.js](../src/printerIcon.js)**  
 Per-printer icon: shown as the browser tab icon and as the logo in the top bar, so several printers open in  
@@ -163,6 +192,11 @@ screens the cards stack in one column with their own order (mobileOrder).
 G-code files page: folders, thumbnails, metadata, search, print, add to queue, upload, rename,  
 delete and the edit button (opens small files in the config editor).
 
+**[src/views/Fleet.vue](../src/views/Fleet.vue)**  
+All printers: one card per saved printer with its state, print progress, temperatures and a camera snapshot,  
+refreshed every few seconds (fleet.js). "Open" switches to that printer. Reached from the printer menu next to  
+the printer name, and from Ctrl+K.
+
 **[src/views/Health.vue](../src/views/Health.vue)**  
 Health page: MCU and CAN connection errors, TMC driver flags, host throttling and power, heater  
 behaviour, maintenance reminders based on print hours. The checks themselves are in features.js.
@@ -233,6 +267,9 @@ Small ring gauge (a value out of max) used for CPU, memory and MCU load.
 **[src/components/ExcludeModal.vue](../src/components/ExcludeModal.vue)**  
 Exclude object dialog: pick an object on the bed map (ObjectMap) or in the list, confirm, and  
 EXCLUDE_OBJECT is sent. Needs [exclude_object] in Klipper and labelled objects in the G-code.
+
+**[src/components/ExplainBox.vue](../src/components/ExplainBox.vue)**  
+Plain-words explanation of a Klipper error (explain.js): what it means, the usual cause, what to check.
 
 **[src/components/ExtruderCard.vue](../src/components/ExtruderCard.vue)**  
 Extruder card: extrude and retract with chosen length and speed, pressure advance, and the  
@@ -343,6 +380,10 @@ Dashboard card listing Moonraker power devices ([power] sections) with on/off sw
 **[src/components/PowerList.vue](../src/components/PowerList.vue)**  
 Moonraker [power] devices with an on/off switch. Turning something off while printing, or a device  
 that Moonraker locks during prints, asks first.
+
+**[src/components/PreprintDialog.vue](../src/components/PreprintDialog.vue)**  
+Pre-print check result (preprint.js): what does not fit between the file and the printer, and the choice  
+to print anyway or cancel. "Don't check again" turns the check off (Settings > General turns it back on).
 
 **[src/components/PrintCard.vue](../src/components/PrintCard.vue)**  
 Print Status card: thumbnail, state, layer, Z, live speed and flow, filament, times and the finish time  

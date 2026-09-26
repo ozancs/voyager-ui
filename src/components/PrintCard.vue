@@ -8,6 +8,7 @@ import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode, 
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
+import { startPrint } from '../preprint';
 const emit = () => {
   state.showExclude = true;
 };
@@ -73,8 +74,7 @@ function cancel() {
   gcode('CANCEL_PRINT');
 }
 function reprint() {
-  if (ps.value.filename)
-    api.call('printer.print.start', { filename: ps.value.filename }).catch((e) => toast(e.message, 'error'));
+  if (ps.value.filename) startPrint(ps.value.filename);
 }
 </script>
 <template>

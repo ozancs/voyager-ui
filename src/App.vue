@@ -10,6 +10,9 @@ import SideNav from './components/SideNav.vue';
 import ExcludeModal from './components/ExcludeModal.vue';
 import Icon from './components/Icon.vue';
 import UpdateModal from './components/UpdateModal.vue';
+import PreprintDialog from './components/PreprintDialog.vue';
+import ExplainBox from './components/ExplainBox.vue';
+import { explain } from './explain';
 import Tooltip from './components/Tooltip.vue';
 import Dashboard from './views/Dashboard.vue';
 import Spotlight from './components/Spotlight.vue';
@@ -33,6 +36,7 @@ const LOADERS = {
   console: ['Console', () => import('./views/ConsolePage.vue')],
   heightmap: ['Heightmap', () => import('./views/Heightmap.vue')],
   calibrations: ['Calibrations', () => import('./views/Calibrations.vue')],
+  fleet: ['All printers', () => import('./views/Fleet.vue')],
   files: ['G-code Files', () => import('./views/Files.vue')],
   viewer: ['G-code Viewer', () => import('./views/Viewer.vue')],
   history: ['History', () => import('./views/History.vue')],
@@ -140,6 +144,7 @@ const showFavBar = computed(() => {
   return m === 'always' || (m === 'dashboard' && route.name === 'dashboard');
 });
 const notReady = computed(() => state.connected && state.klippy !== 'ready');
+const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessage) : null));
 </script>
 
 <template>
@@ -190,6 +195,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready');
           <div class="grow">
             <b>{{ t('Klipper {state}', { state: state.klippy }) }}</b>
             <pre>{{ state.klippyMessage }}</pre>
+            <ExplainBox v-if="klippyExplain" :e="klippyExplain" class="kx" />
           </div>
           <button class="btn lg" @click="gcode('RESTART').catch(() => api.call('printer.restart'))">
             {{ t('Restart') }}
@@ -222,6 +228,7 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready');
     <LoginScreen />
     <ExcludeModal v-if="state.showExclude" @close="state.showExclude = false" />
     <UpdateModal />
+    <PreprintDialog />
     <Transition name="fade"
       ><div v-if="state.connected && !state.booted" class="bootpill">
         <Icon name="refresh" :size="15" class="spin" /><span>{{ bootTask }}</span>
@@ -333,6 +340,13 @@ const notReady = computed(() => state.connected && state.klippy !== 'ready');
   color: var(--mu);
   white-space: pre-wrap;
   font-weight: 400;
+}
+.kx {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bd);
+  font-weight: 400;
+  max-width: 760px;
 }
 .ft {
   margin-top: auto;

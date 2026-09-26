@@ -29,6 +29,7 @@ import {
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
+import { startPrint } from '../preprint';
 
 const emit = defineEmits(['exclude', 'menu']);
 const fileInput = ref(null);
@@ -53,7 +54,7 @@ const eta = computed(() =>
 );
 function reprint() {
   const f = S('print_stats').filename;
-  if (f) api.call('printer.print.start', { filename: f }).catch((e) => toast(e.message, 'error'));
+  if (f) startPrint(f);
 }
 
 const stateColor = computed(
@@ -84,8 +85,11 @@ async function onFile(e) {
   if (!f) return;
   uploading.value = 0;
   try {
-    await api.upload(f, { print: true, onProgress: (p) => (uploading.value = p) });
-    toast(t('{name} uploaded, starting print', { name: f.name }));
+    // uploaded first, then started through the pre-print check
+    await api.upload(f, { onProgress: (p) => (uploading.value = p) });
+    toast(t('{name} uploaded', { name: f.name }));
+    uploading.value = null;
+    await startPrint(f.name);
   } catch (err) {
     toast(t('Upload failed: {msg}', { msg: err.message }), 'error');
   }
@@ -172,6 +176,17 @@ function pause() {
       <Icon name="down" :size="16" :stroke="2.4" />
     </button>
     <Popover v-if="pmOpen" :anchor="pmBtn" :width="280" @close="pmOpen = false">
+      <button
+        v-if="printers.length"
+        class="btn clear pmi all"
+        @click="
+          pmOpen = false;
+          go('fleet');
+        "
+      >
+        <Icon name="grid" :size="15" /><span class="grow">{{ t('All printers') }}</span
+        ><span class="mono mu">{{ printers.length + 1 }}</span>
+      </button>
       <button class="btn clear pmi" :class="{ cur: !curId }" :disabled="!curId" @click="selectPrinter('')">
         <span class="grow">{{ t('This address') }}</span
         ><span class="mono mu">{{ here }}</span>
@@ -685,6 +700,11 @@ function pause() {
   height: 38px;
   color: var(--tx);
   font-weight: 600;
+}
+.pmi.all {
+  border-bottom: 1px solid var(--bd);
+  border-radius: 0;
+  margin-bottom: 4px;
 }
 .pmi .mono {
   font-size: 11px;

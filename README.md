@@ -58,6 +58,8 @@ cors_domains:
 
 Use the address you open Voyager UI with. The list is kept in the browser, so every browser has its own list. Dashboard layout and other settings stay on each printer.
 
+With more than one printer in the list, the same menu has All printers: one card per printer with its state, progress, temperatures and a camera snapshot.
+
 ## Development
 
 ```bash
@@ -86,7 +88,9 @@ Everything the UI does, in one list:
 - Config editor with Klipper syntax colours, search and replace, folding, suggestions, live checks (repeated options, missing includes, unbalanced macro blocks), diff against the saved file or a backup. A backup is made before every save
 - Ctrl+K search: pages, macros, files, settings, config options, and quick commands like `bed 60`, `fan 50`, `z offset -0.05`
 - Calibrations page with a tab for each kind the printer has: input shaper, PID, probe and Z, bed leveling, motors, other calibration macros, [OznLab Sensor](https://github.com/ozancs/oznlab-sensor) tools, and [Klippain Shake&Tune](https://github.com/Frix-x/klippain-shaketune) when installed (run its tests, compare two graphs side by side, write the chosen shaper to your config)
-- Health page: MCU and CAN errors, TMC driver flags, host throttling, maintenance reminders based on print hours
+- Health page: MCU and CAN errors, TMC driver flags, host throttling, maintenance reminders based on print hours, and heaters compared with their own first measurement (holding power, heat-up time, temperature swing)
+- Check before printing: material and remaining weight of the active Spoolman spool, nozzle size, temperatures and height against the printer (only what both sides report is compared)
+- Common Klipper errors explained in plain words, under the error banner and behind the ? on console error lines
 - MMU card for Happy Hare and Box Turtle (AFC)
 - Power devices and phone notifications (Telegram, Discord, ntfy, Pushover) through Moonraker
 - Dialogs for macro prompts, PROBE_CALIBRATE, BED_SCREWS_ADJUST, SCREWS_TILT_CALCULATE

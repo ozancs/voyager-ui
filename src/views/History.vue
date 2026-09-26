@@ -7,6 +7,7 @@ import Modal from '../components/Modal.vue';
 import { state, fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
+import { startPrint } from '../preprint';
 const jobs = ref(state.cache.jobs || []);
 const totals = ref(state.cache.totals || null);
 const loading = ref(!state.cache.jobs);
@@ -155,11 +156,7 @@ function thumb(j) {
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path);
 }
 async function reprint(j) {
-  try {
-    await api.call('printer.print.start', { filename: j.filename });
-  } catch (e) {
-    toast(e.message, 'error');
-  }
+  await startPrint(j.filename);
 }
 async function remove() {
   const list = del.value;

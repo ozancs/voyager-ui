@@ -6,6 +6,7 @@ import { fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
+import { startPrint } from '../preprint';
 
 const jobs = ref([]);
 async function load() {
@@ -23,11 +24,7 @@ const COL = {
   in_progress: 'var(--tx)',
   interrupted: 'var(--wn)',
 };
-const reprint = (j) =>
-  api
-    .call('printer.print.start', { filename: j.filename })
-    .then(() => toast(t('Print started')))
-    .catch((e) => toast(e.message, 'error'));
+const reprint = (j) => startPrint(j.filename);
 </script>
 
 <template>

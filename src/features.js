@@ -2,7 +2,8 @@
 // macro prompts, error toasts, sounds, job queue, config index (for search), health sampling.
 import { reactive, watch, computed, markRaw } from 'vue';
 import { api } from './api/moonraker';
-import { state, S, toast, printState, pushConsole, gcode, backupBeforeWrite } from './store';
+import { state, S, toast, printState, pushConsole, gcode, backupBeforeWrite, saveSettings } from './store';
+import { holdFindings, heatFinding, COLD } from './heaterHealth';
 import { t } from './i18n';
 import { expandPaths } from './paths';
 import { counterGrowth } from './calc';
@@ -317,6 +318,48 @@ export const health = reactive({ tick: 0 });
 export const mcuHist = markRaw({}); // name -> [{t, re, inv}]
 export const heaterWin = markRaw({}); // name -> [{t, temp, target, power}]
 export const heaterLive = reactive({}); // name -> { target, power, std, holding }
+export const heaterTrend = reactive({}); // name -> [{ kind: 'power' | 'swing' | 'heat', ... }] (heaterHealth.js)
+const heatRun = {}; // name -> { tg, t0, from, skip, done }
+const baseKey = (n, tg) => n + '@' + Math.round(tg);
+export function resetHeaterBase(n) {
+  const b = state.settings.heaterBase || {};
+  for (const k of Object.keys(b)) if (k.startsWith(n + '@')) delete b[k];
+  delete heaterTrend[n];
+  saveSettings();
+}
+function learnHeater(n, s, tg, now, live) {
+  const bases = (state.settings.heaterBase ||= {});
+  const key = baseKey(n, tg);
+  const fan = n === 'extruder' && state.objects.includes('fan') ? S('fan').speed || 0 : null;
+  const found = (heaterTrend[n] || []).filter((f) => f.kind === 'heat');
+  // heat-up from a cold start
+  let run = heatRun[n];
+  if (!tg) delete heatRun[n];
+  else if (!run || run.tg !== tg)
+    run = heatRun[n] =
+      s.temperature < COLD && s.temperature < tg - 30 ? { tg, t0: now, from: s.temperature } : { tg, skip: true };
+  if (run && !run.skip && !run.done && s.temperature >= tg - 2) {
+    run.done = true;
+    const secs = Math.round(now - run.t0);
+    const b = (bases[key] ||= { t: now });
+    if (!b.heat) {
+      Object.assign(b, { heat: secs, from: Math.round(run.from) });
+      saveSettings();
+    } else {
+      const f = heatFinding(b, secs, run.from);
+      found.splice(0, found.length, ...(f ? [f] : []));
+    }
+  }
+  // holding steadily
+  if (live.holding) {
+    const b = (bases[key] ||= { t: now });
+    if (!b.power && live.power < 0.95) {
+      Object.assign(b, { power: +live.power.toFixed(3), fan });
+      saveSettings();
+    }
+    heaterTrend[n] = [...holdFindings(b, { power: live.power, fan, std: live.std }), ...found];
+  } else heaterTrend[n] = found;
+}
 function sampleHealth() {
   const now = Date.now() / 1000;
   for (const o of state.objects) {
@@ -348,10 +391,34 @@ function sampleHealth() {
       const std = Math.sqrt(w.reduce((a, x) => a + (x.temp - mean) ** 2, 0) / w.length);
       heaterLive[n] = { target: tg, power: avg, std, holding: true };
     } else heaterLive[n] = { target: tg, power: s.power || 0, std: null, holding: false };
+    learnHeater(n, s, tg, now, heaterLive[n]);
   }
   health.tick++;
 }
 
+export function heaterFindingText(n, f) {
+  const name = n.split(' ').pop();
+  const since = f.since ? new Date(f.since * 1000).toLocaleDateString() : '';
+  if (f.kind === 'swing')
+    return t('{name} swings ±{s}° while holding its target. PID tuning usually fixes this.', {
+      name,
+      s: f.std.toFixed(1),
+    });
+  if (f.kind === 'power')
+    return f.fan
+      ? t(
+          '{name} needs {p}% more power to hold this temperature than on {date} (same target and fan). A fan blowing on it, a missing sock or an ageing heater can cause this.',
+          { name, p: f.pct, date: since },
+        )
+      : t(
+          '{name} needs {p}% more power to hold this temperature than on {date} (same target). A colder room, an open enclosure or an ageing heater can cause this.',
+          { name, p: f.pct, date: since },
+        );
+  return t(
+    '{name} took {s} s to heat up, on {date} it took {b} s. Check the heater wiring and the thermistor, or run PID tuning.',
+    { name, s: f.secs, b: f.base, date: since },
+  );
+}
 export const healthIssues = computed(() => {
   health.tick; // re-evaluate on samples
   const out = [];
@@ -392,6 +459,8 @@ export const healthIssues = computed(() => {
         msg: t('{name}: driver flags {flags}', { name: o.split(' ').pop(), flags: bad.join(', ') }),
       });
   }
+  for (const [n, list] of Object.entries(heaterTrend))
+    for (const f of list) out.push({ area: 'heat', key: n + f.kind, level: 'warn', msg: heaterFindingText(n, f) });
   for (const mt of dueMaintenance.value)
     out.push({ area: 'maint', key: mt.id, level: 'info', msg: t('Maintenance due: {name}', { name: t(mt.name) }) });
   return out;

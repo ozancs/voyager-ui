@@ -63,7 +63,7 @@ Useful to know when reviewing for safety:
 - File operations (upload, rename, delete, move) go through Moonraker's file API in `views/Files.vue` and `components/FileBrowser.vue`. Deleting always asks first.
 - Updates run through Moonraker's update manager (`views/Machine.vue`), after a confirm dialog.
 
-The page only talks to the host it was loaded from (Moonraker, webcams configured there, and optionally Mainsail's logo files on the same host). Text from the printer is shown as text; the one exception is console lines with Happy Hare's colour markup, which go through `richText.js` and keep only a short allow-list of tags and styles.
+The page talks to the printer it is connected to (Moonraker, webcams configured there, and optionally Mainsail's logo files on the same host). The printer list (`printers.js`) adds the saved printers: switching reloads the page for that address, and the All printers page (`fleet.js`) only reads their state and camera snapshot, each with its own login token. Text from the printer is shown as text; the one exception is console lines with Happy Hare's colour markup, which go through `richText.js` and keep only a short allow-list of tags and styles.
 
 ## Translations
 

@@ -12,6 +12,9 @@ import {
   health,
   mcuHist,
   heaterLive,
+  heaterTrend,
+  heaterFindingText,
+  resetHeaterBase,
   healthIssues,
   printStats,
   loadPrintStats,
@@ -109,6 +112,18 @@ const heaters = computed(() => {
     return { n, name: prettyName(n), temp: s.temperature, target: s.target, power: s.power, l, level, note };
   });
 });
+// what was learned for a heater, as one line (heaterHealth.js)
+function baseOf(n) {
+  const l = Object.entries(state.settings.heaterBase || {})
+    .filter(([k, b]) => k.startsWith(n + '@') && (b.power || b.heat))
+    .map(([k, b]) => {
+      const tg = k.split('@').pop();
+      const p = b.power ? t('{p}% power at {tg}°', { p: Math.round(b.power * 100), tg }) : '';
+      const h = b.heat ? t('{s} s from cold to {tg}°', { s: b.heat, tg }) : '';
+      return [p, h].filter(Boolean).join(', ');
+    });
+  return l.length ? t('Reference: {list}', { list: l.join('; ') }) : '';
+}
 const pidFor = ref(null);
 function runPid() {
   const h = pidFor.value;
@@ -288,13 +303,20 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
               <div :style="{ width: Math.min(100, ((h.temp || 0) / h.target) * 100) + '%' }"></div>
             </div>
             <span class="mu sm">{{ h.note }}</span>
+            <span v-for="f in heaterTrend[h.n] || []" :key="f.kind" class="sm trend">{{
+              heaterFindingText(h.n, f)
+            }}</span>
+            <span v-if="baseOf(h.n)" class="mu sm"
+              >{{ baseOf(h.n) }}
+              <button class="lnk" @click="resetHeaterBase(h.n)">{{ t('Measure again') }}</button></span
+            >
           </div>
           <button v-if="h.target && h.l.holding" class="btn sm2" @click="pidFor = h">{{ t('PID tune') }}</button>
         </div>
         <p class="mu sm" style="margin: 0">
           {{
             t(
-              'Shown for information only. How much power a heater needs depends on fans, enclosure and room temperature, so it is not judged here.',
+              'Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.',
             )
           }}
         </p>
@@ -498,6 +520,18 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
 </template>
 
 <style scoped>
+.trend {
+  color: var(--wn);
+}
+.lnk {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--mu);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+}
 .sum {
   display: flex;
   flex-direction: column;

@@ -10,6 +10,7 @@ import { state, fmtTime, fmtBytes, fmtDate, toast, isPrinting, gcode, useApiEven
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
+import { startPrint } from '../preprint';
 const path = ref('gcodes');
 const cached = state.cache.files;
 const dirs = ref(cached?.dirs || []),
@@ -114,12 +115,7 @@ function sortBy(k) {
   sort.value = { k, d: sort.value.k === k ? -sort.value.d : -1 };
 }
 async function print(f) {
-  try {
-    await api.call('printer.print.start', { filename: rel(f) });
-    toast(t('Print started'));
-  } catch (e) {
-    toast(e.message, 'error');
-  }
+  await startPrint(rel(f));
 }
 async function preheat(f) {
   const e = f.first_layer_extr_temp,

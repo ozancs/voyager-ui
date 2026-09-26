@@ -375,6 +375,17 @@ function reset() {
               </div>
               <div class="rw">
                 <div class="k">
+                  <b>{{ t('Check the file before printing') }}</b
+                  ><span>{{
+                    t(
+                      'Compares material, spool weight, nozzle, temperatures and height with the printer and asks when something does not fit.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle v-model="state.settings.preprintCheck" :label="t('Check the file before printing')" />
+              </div>
+              <div class="rw">
+                <div class="k">
                   <b>{{ t('First-start setup') }}</b
                   ><span>{{ t('Runs the short setup again: language, favorites, sounds.') }}</span>
                 </div>
