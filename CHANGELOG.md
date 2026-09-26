@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.22.0
+
+- Calibrations page with a tab for each kind of calibration the printer has: input shaper, PID (and MPC on Kalico), probe and Z, bed leveling, TMC autotune, and other calibration macros. Shows the results that matter (PID values, suggested shaper and max_accel, probe spread, leveling range) and offers SAVE_CONFIG when Klipper has values waiting
+- Shake&Tune tab (when Klippain Shake&Tune is installed): run its tests with their parameters, see the suggested shaper, apply it right away or write it into [input_shaper] with a backup first, browse the graphs and compare two side by side
+
 ## 0.21.0
 
 - Several printers from one UI: the arrow next to the printer name opens a printer list with nicknames and addresses. Also for a Moonraker on another port or machine (see README, Several printers)
