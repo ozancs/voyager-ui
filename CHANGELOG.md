@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.21.0
+
+- Several printers from one UI: the arrow next to the printer name opens a printer list with nicknames and addresses. Also for a Moonraker on another port or machine (see README, Several printers)
+- Dashboard: both resize corners snap to whole cells the same way and keep the minimum size; Webcam, Objects and Toolhead cards can be smaller
+- Stepper driver temperatures are listed while the motors are off (shown as --)
+- Favorites bar: hide button while editing; its setting moved to Settings > Appearance, which now comes right after Dashboard
+- Interface size is Auto by default for new setups
+
 ## 0.20.6
 
 - Card title bars on the Machine, Files and other pages scroll with the card, the content no longer slides behind them
