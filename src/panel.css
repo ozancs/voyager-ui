@@ -5,7 +5,7 @@
    Everything here is scoped to [data-look="panel"], Settings > Appearance > Style switches back. */
 :root[data-look='panel'] {
   --fx: 'Archivo Variable', var(--fd);
-  --r: 20px;
+  --r: 10px;
 }
 
 /* type */
@@ -115,7 +115,7 @@
   border-radius: var(--r);
 }
 [data-look='panel'] .ds .dc .pop.card {
-  border-radius: 14px;
+  border-radius: 8px;
 }
 
 /* cards: a coloured name plate on top, a dark body below. The plate takes the card's tint

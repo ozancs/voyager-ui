@@ -55,7 +55,7 @@ const MODULES = {
   temps: { c: TempsCard, n: 'Temperatures', min: [3, 3], def: [6, 8] },
   tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [3, 4], def: [12, 6] },
   webcam: { c: WebcamCard, n: 'Webcam', min: [3, 4], def: [6, 8] },
-  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [5, 6], def: [12, 6] }, // below 6 rows the controls no longer fit even shrunk
+  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [5, 5], def: [12, 5] }, // below 5 rows the controls no longer fit even shrunk
   favorites: { c: FavoritesCard, n: 'Favorites', min: [2, 2], def: [6, 3] },
   livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 3], def: [3, 4] },
   extruder: { c: ExtruderCard, n: 'Extruder', min: [3, 5], def: [6, 7] },
@@ -179,7 +179,7 @@ const wide = computed(() => width.value > 1000);
 // how many screen pixels one CSS pixel of the grid is (interface scale). Measured instead of taken from the setting,
 // because browsers disagree on how CSS zoom shows up in pointer and element coordinates.
 const gridScale = ref(1);
-const gap = computed(() => (state.settings.compactCards !== false ? [10, 10] : [20, 20]));
+const gap = computed(() => (state.settings.compactCards !== false ? [14, 14] : [20, 20]));
 function measureScale() {
   const g = document.querySelector('.grid');
   if (g && g.offsetWidth) gridScale.value = g.getBoundingClientRect().width / g.offsetWidth || 1;
@@ -289,15 +289,20 @@ function addModule(k) {
   persist();
   addOpen.value = false;
 }
-function addCustom(type) {
+function addCustom(type, cam) {
   const id = 'c_' + Date.now().toString(36);
   const data =
     type === 'btn'
       ? { type, name: 'Button', icon: 'star', gcode: '', highlight: false }
       : type === 'cam'
-        ? { type, name: 'Webcam' }
+        ? { type, name: cam || 'Webcam' }
         : { type, name: 'Macros', buttons: [] };
   state.settings.customCards = { ...(state.settings.customCards || {}), [id]: data };
+  if (cam) {
+    // the camera this card shows, the same setting the card's own camera picker changes
+    const o = (state.settings.cardOpts ||= {});
+    o.cams = { ...(o.cams || {}), [id]: cam };
+  }
   const [w, h] = { btn: [2, 3], cam: [6, 8] }[type] || [4, 4];
   layout.value = [...layout.value, { i: id, x: 0, y: bottom(), w, h }];
   persist();
@@ -530,8 +535,13 @@ function saveCard() {
             <button class="btn clear di" @click="addCustom('macros')">
               <Icon name="dash" :size="16" />{{ t('Macro group') }}
             </button>
-            <button v-if="state.webcams.length" class="btn clear di" @click="addCustom('cam')">
-              <Icon name="snap" :size="16" />{{ t('Another webcam') }}
+            <button
+              v-for="w in state.webcams.filter((w) => w.enabled !== false)"
+              :key="'cam:' + w.name"
+              class="btn clear di"
+              @click="addCustom('cam', w.name)"
+            >
+              <Icon name="snap" :size="16" />{{ t('Webcam: {name}', { name: w.name }) }}
             </button>
           </div>
         </div>
