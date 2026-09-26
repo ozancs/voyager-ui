@@ -23,9 +23,10 @@ onBeforeUnmount(() => ro?.disconnect())
 const cols = computed(() => {
   const n = items.value.length
   if (!n || !boxW.value) return null
+  // fill the width first: as many tiles per row as fit, the rest wrap. (Evening out the rows left a wide
+  // empty space on the right, e.g. 16 tiles on a screen with room for 13 became two rows of 8.)
   const max = Math.max(1, Math.floor((boxW.value + 4) / 128))
-  const rows = Math.ceil(n / max)
-  return Math.ceil(n / rows)
+  return Math.min(n, max)
 })
 const isHidden = (d) => (state.settings.strip.hidden || []).includes(d.id) || state.settings.devices.hidden.includes(d.obj)
 function toggleHide(d) {
