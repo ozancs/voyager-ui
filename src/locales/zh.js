@@ -1188,5 +1188,9 @@ export default {
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "更新可能改变功能或导致问题。更新期间服务会重启，打印时不要更新，并保留配置备份。",
  "I understand the risk": "我了解风险",
  "Camera shown in this card": "此卡片显示的摄像头",
- "Webcam: {name}": "摄像头：{name}"
+ "Webcam: {name}": "摄像头：{name}",
+ "Hide the favorites bar": "隐藏收藏栏",
+ "Hide the favorites bar?": "隐藏收藏栏？",
+ "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "可以在 界面设置 > 仪表盘 > 收藏栏 中重新打开。",
+ "Hide": "隐藏"
 }

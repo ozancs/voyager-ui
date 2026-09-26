@@ -1188,5 +1188,9 @@ export default {
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "アップデートで動作が変わったり壊れたりすることがあります。アップデート中はサービスが再起動します。印刷中はアップデートせず、設定のバックアップを取っておいてください。",
  "I understand the risk": "リスクを理解しました",
  "Camera shown in this card": "このカードに表示するカメラ",
- "Webcam: {name}": "Webカメラ: {name}"
+ "Webcam: {name}": "Webカメラ: {name}",
+ "Hide the favorites bar": "お気に入りバーを隠す",
+ "Hide the favorites bar?": "お気に入りバーを隠しますか？",
+ "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "インターフェース設定 > ダッシュボード > お気に入りバー で再表示できます。",
+ "Hide": "隠す"
 }

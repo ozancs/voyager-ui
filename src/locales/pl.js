@@ -1188,5 +1188,9 @@ export default {
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Aktualizacje mogą zmienić działanie lub coś zepsuć. Usługi restartują się podczas aktualizacji, nie aktualizuj w trakcie druku i miej kopię konfiguracji.",
  "I understand the risk": "Rozumiem ryzyko",
  "Camera shown in this card": "Kamera pokazywana w tej karcie",
- "Webcam: {name}": "Kamera: {name}"
+ "Webcam: {name}": "Kamera: {name}",
+ "Hide the favorites bar": "Ukryj pasek ulubionych",
+ "Hide the favorites bar?": "Ukryć pasek ulubionych?",
+ "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Możesz go ponownie włączyć w Ustawienia interfejsu > Pulpit > Pasek ulubionych.",
+ "Hide": "Ukryj"
 }

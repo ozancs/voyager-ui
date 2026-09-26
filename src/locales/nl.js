@@ -1188,5 +1188,9 @@ export default {
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Updates kunnen dingen anders laten werken of stukmaken. Services herstarten tijdens de update, update niet tijdens een print en bewaar een back-up van je config.",
  "I understand the risk": "Ik begrijp het risico",
  "Camera shown in this card": "Camera in deze kaart",
- "Webcam: {name}": "Webcam: {name}"
+ "Webcam: {name}": "Webcam: {name}",
+ "Hide the favorites bar": "Favorietenbalk verbergen",
+ "Hide the favorites bar?": "Favorietenbalk verbergen?",
+ "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Je kunt hem weer aanzetten in Interface-instellingen > Dashboard > Favorietenbalk.",
+ "Hide": "Verbergen"
 }

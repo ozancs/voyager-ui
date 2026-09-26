@@ -1188,5 +1188,9 @@ export default {
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "업데이트로 동작이 바뀌거나 문제가 생길 수 있습니다. 업데이트 중 서비스가 재시작되며, 출력 중에는 업데이트하지 말고 설정을 백업해 두세요.",
  "I understand the risk": "위험을 이해합니다",
  "Camera shown in this card": "이 카드에 표시할 카메라",
- "Webcam: {name}": "웹캠: {name}"
+ "Webcam: {name}": "웹캠: {name}",
+ "Hide the favorites bar": "즐겨찾기 바 숨기기",
+ "Hide the favorites bar?": "즐겨찾기 바를 숨길까요?",
+ "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "인터페이스 설정 > 대시보드 > 즐겨찾기 바에서 다시 켤 수 있습니다.",
+ "Hide": "숨기기"
 }

@@ -1189,5 +1189,9 @@ export default {
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Güncellemeler bazı şeylerin çalışma şeklini değiştirebilir ya da bozabilir. Güncelleme sırasında servisler yeniden başlar, baskı sırasında güncelleme yapma ve config yedeğin olsun.",
  "I understand the risk": "Riski anlıyorum",
  "Camera shown in this card": "Bu kartta gösterilen kamera",
- "Webcam: {name}": "Webcam: {name}"
+ "Webcam: {name}": "Webcam: {name}",
+ "Hide the favorites bar": "Favori çubuğunu gizle",
+ "Hide the favorites bar?": "Favori çubuğu gizlensin mi?",
+ "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Arayüz ayarları > Pano > Favori çubuğu kısmından tekrar açabilirsin.",
+ "Hide": "Gizle"
 }

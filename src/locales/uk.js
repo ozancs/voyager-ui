@@ -1188,5 +1188,9 @@ export default {
  "Updates can change how things work or break them. Services restart during the update, do not update while printing, and keep a backup of your config.": "Оновлення можуть змінити роботу або щось зламати. Під час оновлення служби перезапускаються, не оновлюйте під час друку й тримайте резервну копію конфігурації.",
  "I understand the risk": "Я розумію ризик",
  "Camera shown in this card": "Камера в цій картці",
- "Webcam: {name}": "Камера: {name}"
+ "Webcam: {name}": "Камера: {name}",
+ "Hide the favorites bar": "Сховати панель обраного",
+ "Hide the favorites bar?": "Сховати панель обраного?",
+ "You can turn it back on in Interface settings > Dashboard > Favorites bar.": "Її можна знову увімкнути в Налаштування інтерфейсу > Панель > Панель обраного.",
+ "Hide": "Сховати"
 }

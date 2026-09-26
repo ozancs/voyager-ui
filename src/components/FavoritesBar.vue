@@ -25,6 +25,12 @@ async function run(f) {
 }
 // ---- editing ----
 const form = ref(null); // copy being edited
+const askHide = ref(false); // 'hide the favorites bar?' dialog
+function hideBar() {
+  state.settings.favBar = 'off';
+  state.favEdit = false;
+  askHide.value = false;
+}
 const pickIcon = ref(false);
 function edit(f) {
   form.value = { ...f };
@@ -112,6 +118,15 @@ function onDrop(i) {
       <Icon name="plus" :size="18" :stroke="2.4" />
     </button>
     <button
+      v-if="!card && state.favEdit"
+      class="side"
+      :aria-label="t('Hide the favorites bar')"
+      :data-tip="t('Hide the favorites bar')"
+      @click="askHide = true"
+    >
+      <Icon name="eyeoff" :size="17" :stroke="2.4" />
+    </button>
+    <button
       v-if="!card"
       class="side"
       :class="{ on: state.favEdit }"
@@ -121,6 +136,15 @@ function onDrop(i) {
       <Icon :name="state.favEdit ? 'check' : 'pencil'" :size="16" :stroke="2.4" />
     </button>
 
+    <Modal v-if="askHide" :title="t('Hide the favorites bar?')" @close="askHide = false">
+      <p class="mu" style="margin: 0">
+        {{ t('You can turn it back on in Interface settings > Dashboard > Favorites bar.') }}
+      </p>
+      <template #foot>
+        <button class="btn lg" @click="askHide = false">{{ t('Cancel') }}</button>
+        <button class="btn lg acc" @click="hideBar">{{ t('Hide') }}</button>
+      </template>
+    </Modal>
     <Modal v-if="form" :title="form.isNew ? t('New favorite') : t('Edit favorite')" width="600px" @close="form = null">
       <div class="row">
         <button
