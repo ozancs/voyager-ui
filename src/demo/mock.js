@@ -19,7 +19,7 @@ const status = {
   print_stats:{state:'printing',filename:'bracket_v3.gcode',print_duration:3120,total_duration:3300,filament_used:12400,info:{current_layer:84,total_layer:210}},
   virtual_sdcard:{progress:0.42,file_position:0}, display_status:{progress:0.42},
   exclude_object:{objects:[{name:'bracket_v3_id_0',center:[150,150],polygon:[[130,130],[170,130],[170,170],[130,170]]},{name:'bracket_v3_id_1',center:[220,150],polygon:[[200,130],[240,130],[240,170],[200,170]]}],excluded_objects:['bracket_v3_id_1'],current_object:'bracket_v3_id_0'},
-  bed_mesh:{profile_name:'default',mesh_min:[20,20],mesh_max:[380,340],probed_matrix:Array.from({length:9},(_,y)=>Array.from({length:9},(_,x)=>0.05*Math.sin(x/2)-0.03*Math.cos(y/3))),mesh_matrix:[],profiles:{default:{},abs_110:{}}},
+  bed_mesh:{profile_name:'default',mesh_min:[20,20],mesh_max:[380,340],probed_matrix:Array.from({length:9},(_,y)=>Array.from({length:9},(_,x)=>0.05*Math.sin(x/2)-0.03*Math.cos(y/3))),mesh_matrix:Array.from({length:33},(_,y)=>Array.from({length:33},(_,x)=>0.05*Math.sin(x/8)-0.03*Math.cos(y/12))),profiles:{default:{},abs_110:{}}},
   extruder:{temperature:249.8,target:250,power:0.42,can_extrude:true,pressure_advance:0.035,smooth_time:0.04},
   heater_bed:{temperature:110.1,target:110,power:0.61},
   'heater_generic chamber':{temperature:49.6,target:50,power:0.3},

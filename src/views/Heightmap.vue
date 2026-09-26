@@ -53,7 +53,7 @@ function doSave() {
         <div class="acts"><div class="seg" style="width:130px"><button :class="{ on: mode3d }" @click="mode3d = true">3D</button><button :class="{ on: !mode3d }" @click="mode3d = false">2D</button></div><div class="seg" style="width:180px"><button :class="{ on: useProbed }" @click="useProbed = true">{{ t('Probed') }}</button><button :class="{ on: !useProbed }" @click="useProbed = false">{{ t('Mesh') }}</button></div></div>
       </div>
       <div v-if="!matrix" class="empty" style="flex:1;display:flex;align-items:center;justify-content:center">{{ t('No bed mesh loaded. Calibrate or load a profile.') }}</div>
-      <div v-else-if="mode3d" style="flex:1;min-height:0"><Surface3D :z="matrix" :min="bm.mesh_min" :max="bm.mesh_max" :lim="lim" :zmax="zMax" :palette="hv.palette" :wire="!!hv.wire" /></div>
+      <div v-else-if="mode3d" style="flex:1;min-height:0"><Surface3D :z="matrix" :min="bm.mesh_min" :max="bm.mesh_max" :lim="lim" :zmax="zMax" :palette="hv.palette" :wire="!!hv.wire" :grid="bm.probed_matrix?.length ? [bm.probed_matrix[0].length, bm.probed_matrix.length] : null" /></div>
       <div v-else class="hm">
         <div class="grid" :style="{ gridTemplateColumns: `repeat(${stats.cols}, minmax(0, 1fr))` }">
           <template v-for="(r, ri) in rows" :key="ri">

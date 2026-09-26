@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { plotlyScale } from '../meshPalette'
-const props = defineProps({ z: Array, min: Array, max: Array, lim: Number, zmax: Number, palette: String, wire: Boolean })
+const props = defineProps({ z: Array, min: Array, max: Array, lim: Number, zmax: Number, palette: String, wire: Boolean, grid: Array })
 const el = ref(null)
 let Plotly = null
 async function draw() {
@@ -12,6 +12,7 @@ async function draw() {
   const xs = Array.from({ length: cols }, (_, i) => x0 + ((x1 - x0) * i) / Math.max(1, cols - 1))
   const ys = Array.from({ length: rows }, (_, i) => y0 + ((y1 - y0) * i) / Math.max(1, rows - 1))
   const lim = props.lim
+  const [gc, gr] = props.grid || [cols, rows]
   const css = getComputedStyle(document.documentElement), tok = (n, d) => css.getPropertyValue(n).trim() || d
   const MU = tok('--mu', '#a3a7ae'), GR = tok('--grid', '#2e3238'), TX = tok('--tx', '#f2f2ef')
   const ax = (t) => ({ title: { text: t, font: { color: MU } }, color: MU, gridcolor: GR, zerolinecolor: '#3a3f46', backgroundcolor: 'rgba(0,0,0,0)', showbackground: false })
@@ -19,11 +20,13 @@ async function draw() {
     type: 'surface', x: xs, y: ys, z: props.z, cmin: -lim, cmax: lim,
     colorscale: !props.palette || props.palette === 'voyager' ? [[0, '#3878ff'], [0.5, GR], [1, '#ff6b1a']] : plotlyScale(props.palette),
     colorbar: { thickness: 12, len: 0.7, tickfont: { color: MU, family: 'JetBrains Mono', size: 10 }, outlinewidth: 0 },
-    // wireframe: a line along every probe row and column
-    contours: {
-      z: { show: true, usecolormap: true, project: { z: true }, width: 1 },
-      ...(props.wire ? { x: { show: true, start: x0, end: x1, size: (x1 - x0) / Math.max(1, cols - 1), color: 'rgba(255,255,255,.55)', width: 1 }, y: { show: true, start: y0, end: y1, size: (y1 - y0) / Math.max(1, rows - 1), color: 'rgba(255,255,255,.55)', width: 1 } } : {}),
-    },
+    // wireframe: a line through every probe point (grid = probed columns/rows, so the interpolated mesh view
+    // still gets one line per probe point). Without it: faint height lines on the surface only. The old
+    // projection of those lines onto the floor looked like stray lines under the bed and is gone.
+    contours: props.wire ? {
+      x: { show: true, start: x0, end: x1, size: (x1 - x0) / Math.max(1, gc - 1), color: 'rgba(255,255,255,.55)', width: 1 },
+      y: { show: true, start: y0, end: y1, size: (y1 - y0) / Math.max(1, gr - 1), color: 'rgba(255,255,255,.55)', width: 1 },
+    } : { z: { show: true, usecolormap: true, width: 1 } },
     hovertemplate: 'X %{x:.1f}<br>Y %{y:.1f}<br>Z %{z:.4f}<extra></extra>',
     lighting: { ambient: 0.8, diffuse: 0.6, specular: 0.1 },
   }], {
