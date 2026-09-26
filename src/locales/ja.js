@@ -1180,5 +1180,6 @@ export default {
  "Printer icon": "プリンターアイコン",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "ブラウザのタブと上部バーに表示され、開いているタブの中から各プリンターを見つけやすくします。",
  "Choose image": "画像を選択",
- "Own image": "自分の画像"
+ "Own image": "自分の画像",
+ "From Mainsail": "Mainsail から"
 }

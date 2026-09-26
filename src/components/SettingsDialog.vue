@@ -11,7 +11,7 @@ import { api } from '../api/moonraker'
 import { playSound } from '../features'
 import { sync, detect, importFrom, push } from '../sync'
 import { go } from '../router'
-import { iconUrl, readIcon, LOGOS } from '../printerIcon'
+import { iconUrl, readIcon, LOGOS, probeMainsailLogos } from '../printerIcon'
 import { t, LANGS } from '../i18n'
 
 const TABS = [
@@ -33,9 +33,12 @@ const ctl = computed(() => state.settings.control)
 // printer icon (tab icon + top bar logo)
 const pi = computed(() => state.settings.printerIcon)
 const piFile = ref(null)
-const piSel = computed(() => (pi.value.kind === 'logo' && LOGOS.some((l) => l.id === pi.value.logo) ? 'l:' + pi.value.logo : pi.value.kind === 'image' && pi.value.img ? 'image' : 'voyager'))
+const msLogos = ref([])
+watch(tab, (v) => { if (v === 'appearance') probeMainsailLogos().then((l) => (msLogos.value = l)) }, { immediate: true })
+const piSel = computed(() => (pi.value.kind === 'mainsail' && pi.value.theme ? 'm:' + pi.value.theme : pi.value.kind === 'logo' && LOGOS.some((l) => l.id === pi.value.logo) ? 'l:' + pi.value.logo : pi.value.kind === 'image' && pi.value.img ? 'image' : 'voyager'))
 function setPi(v) {
-  if (v.startsWith('l:')) state.settings.printerIcon = { ...pi.value, kind: 'logo', logo: v.slice(2) }
+  if (v.startsWith('m:')) state.settings.printerIcon = { ...pi.value, kind: 'mainsail', theme: v.slice(2) }
+  else if (v.startsWith('l:')) state.settings.printerIcon = { ...pi.value, kind: 'logo', logo: v.slice(2) }
   else state.settings.printerIcon = { ...pi.value, kind: v }
 }
 async function pickIcon(e) {
@@ -200,6 +203,7 @@ function reset() { confirmReset.value = false; apply({ ...DEFAULT_SETTINGS(), la
                     <select class="input" style="width:auto" :value="piSel" :aria-label="t('Printer icon')" @change="setPi($event.target.value)">
                       <option value="voyager">Voyager</option>
                       <option v-for="l in LOGOS" :key="l.id" :value="'l:' + l.id">{{ l.name }}</option>
+                      <optgroup v-if="msLogos.length" :label="t('From Mainsail')"><option v-for="l in msLogos" :key="l.id" :value="'m:' + l.id">{{ l.name }}</option></optgroup>
                       <option value="image" :disabled="!pi.img">{{ t('Own image') }}</option>
                     </select>
                     <button class="btn" @click="piFile.click()"><Icon name="upload" :size="16" />{{ t('Choose image') }}</button>

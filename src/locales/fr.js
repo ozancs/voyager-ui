@@ -1180,5 +1180,6 @@ export default {
  "Printer icon": "Icône de l'imprimante",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Affichée dans l'onglet du navigateur et la barre du haut, pour retrouver chaque imprimante parmi les onglets ouverts.",
  "Choose image": "Choisir une image",
- "Own image": "Image perso"
+ "Own image": "Image perso",
+ "From Mainsail": "Depuis Mainsail"
 }

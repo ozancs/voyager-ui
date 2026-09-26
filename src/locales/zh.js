@@ -1180,5 +1180,6 @@ export default {
  "Printer icon": "打印机图标",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "显示在浏览器标签页和顶部栏中，方便在打开的标签页中找到每台打印机。",
  "Choose image": "选择图片",
- "Own image": "自己的图片"
+ "Own image": "自己的图片",
+ "From Mainsail": "来自 Mainsail"
 }

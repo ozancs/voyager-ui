@@ -1180,5 +1180,6 @@ export default {
  "Printer icon": "프린터 아이콘",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "브라우저 탭과 상단 바에 표시되어 열린 탭 중에서 각 프린터를 쉽게 찾을 수 있습니다.",
  "Choose image": "이미지 선택",
- "Own image": "내 이미지"
+ "Own image": "내 이미지",
+ "From Mainsail": "Mainsail에서"
 }

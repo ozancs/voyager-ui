@@ -1180,5 +1180,6 @@ export default {
  "Printer icon": "Printerpictogram",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Zichtbaar in het browsertabblad en de bovenbalk, zodat je elke printer snel terugvindt tussen open tabbladen.",
  "Choose image": "Afbeelding kiezen",
- "Own image": "Eigen afbeelding"
+ "Own image": "Eigen afbeelding",
+ "From Mainsail": "Uit Mainsail"
 }

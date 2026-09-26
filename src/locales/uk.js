@@ -1180,5 +1180,6 @@ export default {
  "Printer icon": "Значок принтера",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Показується у вкладці браузера та у верхній панелі, щоб легко знаходити кожен принтер серед відкритих вкладок.",
  "Choose image": "Вибрати зображення",
- "Own image": "Власне зображення"
+ "Own image": "Власне зображення",
+ "From Mainsail": "З Mainsail"
 }

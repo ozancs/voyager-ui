@@ -1181,5 +1181,6 @@ export default {
  "Printer icon": "Yazıcı simgesi",
  "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Tarayıcı sekmesinde ve üst çubukta görünür, böylece açık sekmeler arasında her yazıcıyı kolayca bulursun.",
  "Choose image": "Resim seç",
- "Own image": "Kendi resmin"
+ "Own image": "Kendi resmin",
+ "From Mainsail": "Mainsail'den"
 }

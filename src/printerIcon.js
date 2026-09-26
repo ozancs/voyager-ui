@@ -2,8 +2,10 @@
 // tabs can be told apart. Kept in the printer's own settings (Moonraker database), so every printer has its own.
 //   kind 'voyager'  the Voyager UI mark (default)
 //   kind 'logo'     a logo from src/img/logos (bundled with the UI, see the README there)
+//   kind 'mainsail' a maker logo that ships with Mainsail (Voron, VzBot, LDO...). Not bundled here: loaded from
+//                   the Mainsail install on the same host (port 80), listed only when that Mainsail answers
 //   kind 'image'    an image the user uploaded (their own printer logo), fitted into a 128 px square
-// Older settings ('letters', 'mainsail') fall back to the Voyager mark.
+// Older 'letters' settings fall back to the Voyager mark.
 import { watch } from 'vue'
 import { state, printerName } from './store'
 
@@ -16,10 +18,27 @@ export const LOGOS = Object.entries(files)
   .map(([f, url]) => { const id = f.split('/').pop().replace(/\.[a-z]+$/i, ''); return { id, name: names[id] || nice(id), url } })
   .sort((a, b) => a.name.localeCompare(b.name))
 
+// Mainsail's theme logos (public/img/themes/sidebarLogo-<id>.svg) with the names Mainsail gives them
+export const MAINSAIL_LOGOS = [['voron', 'Voron Design'], ['vzbot', 'VzBot'], ['ldo', 'LDO Motion'], ['btt', 'BigTreeTech'], ['prusa', 'Prusa Research'], ['yumi', 'YUMI'], ['multec', 'Multec'], ['klipper', 'Klipper']]
+export const mainsailLogoUrl = (id) => `${location.protocol}//${location.hostname}/img/themes/sidebarLogo-${id}.svg`
+// which of them the local Mainsail serves (checked once, by loading each as an image)
+let probed = null
+export function probeMainsailLogos() {
+  return (probed ||= Promise.all(MAINSAIL_LOGOS.map(([id, name]) => new Promise((res) => {
+    const im = new Image()
+    const done = (ok) => { clearTimeout(tm); res(ok ? { id, name } : null) }
+    const tm = setTimeout(() => done(false), 4000)
+    im.onload = () => done(im.naturalWidth > 0)
+    im.onerror = () => done(false)
+    im.src = mainsailLogoUrl(id)
+  }))).then((l) => l.filter(Boolean)))
+}
+
 // the icon as a URL an <img> or <link rel=icon> can use, or null for the Voyager mark
 export function iconUrl(pi = state.settings.printerIcon) {
   if (!pi) return null
   if (pi.kind === 'image') return pi.img || null
+  if (pi.kind === 'mainsail') return pi.theme ? mainsailLogoUrl(pi.theme) : null
   if (pi.kind === 'logo') return LOGOS.find((l) => l.id === pi.logo)?.url || null
   return null
 }
