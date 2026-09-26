@@ -21,6 +21,16 @@ const color = computed(() => ({ printing: 'var(--ac)', paused: 'var(--wn)', erro
 const eo = computed(() => S('exclude_object'))
 const remaining = computed(() => (eo.value.objects?.length || 0) - (eo.value.excluded_objects?.length || 0))
 const z = computed(() => (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2))
+// live speed and volumetric flow from Klipper's motion_report (flow = extruder speed x filament cross section)
+const mr = computed(() => S('motion_report'))
+const speed = computed(() => (active.value && mr.value.live_velocity != null ? Math.round(mr.value.live_velocity) + ' mm/s' : '--'))
+const flow = computed(() => {
+  const v = mr.value.live_extruder_velocity
+  if (!active.value || v == null) return '--'
+  const d = +(S('configfile').settings?.extruder?.filament_diameter || 1.75)
+  return (Math.max(0, v) * Math.PI * (d / 2) ** 2).toFixed(1) + ' mm³/s'
+})
+const slicer = computed(() => (state.currentMeta?.estimated_time ? fmtTime(state.currentMeta.estimated_time) : '--'))
 const filament = computed(() => ((ps.value.filament_used || 0) / 1000).toFixed(2) + ' m')
 const eta = computed(() => printTimes.value.eta ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '--')
 // the "why" of the finish time, shown when the ETA is clicked
@@ -51,8 +61,11 @@ function reprint() { if (ps.value.filename) api.call('printer.print.start', { fi
       <div class="stats">
         <div><span class="lbl">{{ t('Layer') }}</span><b class="mono">{{ layerInfo.cur }} / {{ layerInfo.total || '--' }}</b></div>
         <div><span class="lbl">Z</span><b class="mono">{{ z }} mm</b></div>
+        <div><span class="lbl">{{ t('Speed') }}</span><b class="mono">{{ speed }}</b></div>
+        <div><span class="lbl">{{ t('Flow') }}</span><b class="mono">{{ flow }}</b></div>
         <div><span class="lbl">{{ t('Filament') }}</span><b class="mono">{{ filament }}</b></div>
         <div><span class="lbl">{{ t('Print time') }}</span><b class="mono">{{ fmtTime(ps.print_duration) }}</b></div>
+        <div><span class="lbl">{{ t('Slicer') }}</span><b class="mono">{{ slicer }}</b></div>
         <div><span class="lbl">{{ t('Left') }}</span><b class="mono">{{ active ? fmtTime(printTimes.left) : '--' }}</b></div>
         <button class="etab" :class="{ on: showWhy }" :disabled="!active" :data-tip="active ? why.join(' · ') : ''" :aria-label="t('How the finish time is estimated')" @click="showWhy = !showWhy"><span class="lbl">{{ t('ETA') }} <Icon name="sparkle" :size="11" :stroke="2.4" /></span><b class="mono">{{ active ? '~' + eta : '--' }}</b></button>
       </div>
@@ -85,7 +98,7 @@ function reprint() { if (ps.value.filename) api.call('printer.print.start', { fi
 .th img { width: 100%; height: 100%; object-fit: contain; }
 .fn { font-size: 20px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chip { text-transform: capitalize; }
-.stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.stats { display: flex; gap: 10px 24px; flex-wrap: wrap; }
 .stats > div { display: flex; flex-direction: column; gap: 2px; }
 .stats b { font-size: 15px; }
 .etab { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; background: none; border: none; padding: 0; color: var(--tx); cursor: pointer; }
