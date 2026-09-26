@@ -54,14 +54,14 @@ const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7] },
   temps: { c: TempsCard, n: 'Temperatures', min: [3, 3], def: [6, 8] },
   tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [3, 4], def: [12, 6] },
-  webcam: { c: WebcamCard, n: 'Webcam', min: [3, 4], def: [6, 8] },
-  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [5, 5], def: [12, 5] }, // below 5 rows the controls no longer fit even shrunk
+  webcam: { c: WebcamCard, n: 'Webcam', min: [2, 3], def: [6, 8] },
+  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [5, 4], def: [12, 5] },
   favorites: { c: FavoritesCard, n: 'Favorites', min: [2, 2], def: [6, 3] },
   livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 3], def: [3, 4] },
   extruder: { c: ExtruderCard, n: 'Extruder', min: [3, 5], def: [6, 7] },
   limits: { c: LimitsCard, n: 'Machine Limits', min: [3, 5], def: [6, 7] },
   print: { c: PrintCard, n: 'Print Status', min: [5, 3], def: [12, 3] },
-  objects: { c: ObjectsCard, n: 'Objects Map', min: [3, 4], def: [4, 7] },
+  objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
   system: { c: SystemLoads, n: 'System Loads', min: [3, 3], def: [6, 3] },
   queue: { c: QueueCard, n: 'Job Queue', min: [3, 4], def: [4, 6] },
@@ -310,8 +310,10 @@ function addCustom(type, cam) {
   if (type !== 'cam') editCard(id); // a webcam card picks its camera in its own header
 }
 
-// ---- resize from the bottom-left corner too (the grid library only has the bottom-right one) ----
-// Pointer moves are turned into whole grid cells; the left edge moves the card's x so its right side stays put.
+// ---- resize from the bottom corners ----
+// Both corners use this code (the grid library's own resizer is off: it scaled smoothly, behaved differently from
+// the left corner and could shrink a card below its minimum after a scroll). Pointer moves are turned into whole
+// grid cells; the left edge moves the card's x so its right side stays put.
 // Top corners are left out on purpose: the grid packs cards upwards, so growing a card upwards cannot hold.
 let rz = null;
 function rzStart(it, corner, e) {
@@ -593,7 +595,7 @@ function saveCard() {
       :style="{ margin: -(gap[0] - 4) + 'px' }"
       :transform-scale="gridScale"
       :is-draggable="state.editDash"
-      :is-resizable="state.editDash"
+      :is-resizable="false"
       vertical-compact
       use-css-transforms
       @layout-updated="persist"
@@ -620,6 +622,7 @@ function saveCard() {
           <component v-else :is="MODULES[it.i].c" class="fill" />
           <template v-if="state.editDash"
             ><span class="rz bl" @pointerdown.stop.prevent="rzStart(it, 'bl', $event)"></span
+            ><span class="rz br" @pointerdown.stop.prevent="rzStart(it, 'br', $event)"></span
           ></template>
           <div v-if="state.editDash" class="tools">
             <button
@@ -1036,7 +1039,7 @@ function saveCard() {
 .grid.editing :deep(.vgl-item__resizer) {
   display: block;
 }
-/* the three extra resize corners, drawn like the library's bottom-right one */
+/* resize corners */
 .rz {
   position: absolute;
   width: 22px;
@@ -1072,6 +1075,17 @@ function saveCard() {
   top: 4px;
   border-right-width: 3px;
   border-top-width: 3px;
+}
+.rz.br {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+.rz.br::before {
+  right: 4px;
+  bottom: 4px;
+  border-right-width: 3px;
+  border-bottom-width: 3px;
 }
 .rz.bl {
   left: 0;
