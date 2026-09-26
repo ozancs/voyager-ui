@@ -1173,5 +1173,13 @@ export default {
  "Dashboard only": "仅仪表盘",
  "Move up": "上移",
  "Move down": "下移",
- "Remove card": "移除卡片"
+ "Remove card": "移除卡片",
+ "Previous": "上一个",
+ "Speed": "速度",
+ "This file is not an image": "此文件不是图片",
+ "Printer icon": "打印机图标",
+ "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "显示在浏览器标签页和顶部栏中，方便在打开的标签页中找到每台打印机。",
+ "Letters": "字母",
+ "Choose image": "选择图片",
+ "Image": "图片"
 }

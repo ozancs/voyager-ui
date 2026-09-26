@@ -1174,5 +1174,13 @@ export default {
  "Dashboard only": "Sadece dashboard",
  "Move up": "Yukarı taşı",
  "Move down": "Aşağı taşı",
- "Remove card": "Kartı kaldır"
+ "Remove card": "Kartı kaldır",
+ "Previous": "Önceki",
+ "Speed": "Hız",
+ "This file is not an image": "Bu dosya bir resim değil",
+ "Printer icon": "Yazıcı simgesi",
+ "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Tarayıcı sekmesinde ve üst çubukta görünür, böylece açık sekmeler arasında her yazıcıyı kolayca bulursun.",
+ "Letters": "Harfler",
+ "Choose image": "Resim seç",
+ "Image": "Resim"
 }

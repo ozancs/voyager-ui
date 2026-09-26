@@ -2,7 +2,7 @@
 // without a printer. Everything is in memory: settings reset on reload, g-code is only echoed to the console card.
 let sockets = []
 function wsAll(m) { const s = JSON.stringify(m); sockets.forEach((ws) => ws._recv(s)) }
-const objects = ['mmu'].concat(['probe_eddy_current btt_eddy','adxl345','quad_gantry_level','system_stats','webhooks','configfile','heaters','toolhead','gcode_move','print_stats','virtual_sdcard','display_status','exclude_object','bed_mesh','extruder','heater_bed','heater_generic chamber','temperature_sensor EBB_MCU','temperature_sensor Chamber_Top','temperature_fan XY_Driver_Fan','temperature_fan PSU_Fan','fan','heater_fan hotend_fan','fan_generic chamber_fan','fan_generic Intake_Fan','fan_generic Aux_Fan','neopixel hotend_rgb','output_pin Chamber_Light','filament_switch_sensor filament_sensor','smart_filament_sensor sfs','mcu','mcu EBBCan','gcode_macro CHAMBER','gcode_macro FILAMENT_LOAD','gcode_macro FILAMENT_UNLOAD','gcode_macro _CLIENT_VARIABLE','gcode_macro PRINT_START','gcode_macro OZNLAB_SENSOR_MENU','gcode_macro BED_MESH_AUTO','gcode_macro CLEAN_NOZZLE','gcode_macro HEAT_SOAK','gcode_macro PARK','gcode_macro LOAD_PLA','gcode_macro LOAD_ABS','gcode_macro M600','gcode_macro TEST_SPEED','gcode_macro PID_ALL','gcode_macro SHAPER_ALL','gcode_macro LIGHTS_ON','gcode_macro LIGHTS_OFF','gcode_macro _HOME_CHECK','firmware_retraction','manual_probe','bed_screws','screws_tilt_adjust','tmc2209 stepper_x','tmc2209 stepper_y','tmc2209 stepper_z','tmc2240 extruder','canbus_stats EBBCan'])
+const objects = ['mmu'].concat(['probe_eddy_current btt_eddy','adxl345','quad_gantry_level','system_stats','webhooks','configfile','heaters','toolhead','gcode_move','motion_report','print_stats','virtual_sdcard','display_status','exclude_object','bed_mesh','extruder','heater_bed','heater_generic chamber','temperature_sensor EBB_MCU','temperature_sensor Chamber_Top','temperature_fan XY_Driver_Fan','temperature_fan PSU_Fan','fan','heater_fan hotend_fan','fan_generic chamber_fan','fan_generic Intake_Fan','fan_generic Aux_Fan','neopixel hotend_rgb','output_pin Chamber_Light','filament_switch_sensor filament_sensor','smart_filament_sensor sfs','mcu','mcu EBBCan','gcode_macro CHAMBER','gcode_macro FILAMENT_LOAD','gcode_macro FILAMENT_UNLOAD','gcode_macro _CLIENT_VARIABLE','gcode_macro PRINT_START','gcode_macro OZNLAB_SENSOR_MENU','gcode_macro BED_MESH_AUTO','gcode_macro CLEAN_NOZZLE','gcode_macro HEAT_SOAK','gcode_macro PARK','gcode_macro LOAD_PLA','gcode_macro LOAD_ABS','gcode_macro M600','gcode_macro TEST_SPEED','gcode_macro PID_ALL','gcode_macro SHAPER_ALL','gcode_macro LIGHTS_ON','gcode_macro LIGHTS_OFF','gcode_macro _HOME_CHECK','firmware_retraction','manual_probe','bed_screws','screws_tilt_adjust','tmc2209 stepper_x','tmc2209 stepper_y','tmc2209 stepper_z','tmc2240 extruder','canbus_stats EBBCan'])
 const status = {
   webhooks:{state:'ready',state_message:'Printer is ready'},
   mmu:{enabled:true,is_homed:true,num_gates:6,tool:2,gate:2,filament:'Loaded',filament_pos:10,action:'Idle',print_state:'printing',has_bypass:true,sync_drive:true,bowden_progress:-1,
@@ -15,6 +15,7 @@ const status = {
   configfile:{save_config_pending:true,settings:{extruder:{max_temp:300,min_temp:0},heater_bed:{max_temp:120,min_temp:0},'heater_generic chamber':{max_temp:70,min_temp:0},printer:{max_velocity:500,max_accel:10000,square_corner_velocity:5,minimum_cruise_ratio:0.5},'output_pin kasa_ledi_guc':{pwm:false},'temperature_sensor ebb_mcu':{sensor_type:'temperature_mcu',sensor_mcu:'EBBCan'}},config:{printer:{kinematics:'corexy',max_velocity:'500',max_accel:'10000',square_corner_velocity:'5.0',max_z_velocity:'15'},bed_mesh:{probe_count:'9,9',mesh_min:'20,20',mesh_max:'380,380',algorithm:'bicubic'},z_tilt:{retries:'5',retry_tolerance:'0.05'},extruder:{pressure_advance:'0.035',max_temp:'300',min_temp:'0'},'heater_generic chamber':{max_temp:'70'},'gcode_macro CHAMBER':{gcode:'{% set t = params.TEMP|default(50)|int %}\nSET_HEATER_TEMPERATURE HEATER=chamber TARGET={t}'},'gcode_macro HEAT_SOAK':{gcode:'{% set m = params.MINUTES|default(10) %}{% set b = params.BED|default(110) %}'},'gcode_macro PRINT_START':{gcode:'{% set BED = params.BED|default(60)|float %}{% set EXTRUDER = params.EXTRUDER|default(200) %}{% set CHAMBER = params.CHAMBER|default(0) %}'}}},
   heaters:{available_heaters:['extruder','heater_bed','heater_generic chamber'],available_sensors:['extruder','heater_bed','heater_generic chamber','temperature_sensor EBB_MCU','temperature_sensor Chamber_Top','temperature_fan XY_Driver_Fan','temperature_fan PSU_Fan']},
   toolhead:{homed_axes:'xyz',position:[200,177,16.8,0],axis_minimum:[0,0,-5,0],axis_maximum:[419,379,400,0],max_velocity:500,max_accel:10000,square_corner_velocity:5,minimum_cruise_ratio:0.5,extruder:'extruder'},
+  motion_report:{live_velocity:0,live_extruder_velocity:0,live_position:[0,0,0,0]},
   gcode_move:{speed_factor:1,extrude_factor:0.98,homing_origin:[0,0,-0.025,0],gcode_position:[200,177,16.8,0]},
   print_stats:{state:'printing',filename:'bracket_v3.gcode',print_duration:3120,total_duration:3300,filament_used:12400,info:{current_layer:84,total_layer:210}},
   virtual_sdcard:{progress:0.42,file_position:0}, display_status:{progress:0.42},
@@ -497,6 +498,7 @@ function tick() {
     print_stats: { print_duration: ps.print_duration, total_duration: ps.total_duration, filament_used: ps.filament_used, info: { ...ps.info } },
     virtual_sdcard: { progress: vs.progress, file_position: vs.file_position }, display_status: { progress: vs.progress },
     gcode_move: { gcode_position: st.gcode_move.gcode_position }, toolhead: { position: st.toolhead.position },
+    motion_report: { live_velocity: 120 + 80 * Math.sin(tk / 3), live_extruder_velocity: (120 + 80 * Math.sin(tk / 3)) * 0.033 },
     'mcu EBBCan': { last_stats: { ...eb } }, mcu: { last_stats: { ...mcu } },
   }, tk] })
   if (tk % 40 === 0) emitLines([`// layer ${ps.info.current_layer}/${ps.info.total_layer} done`])
@@ -591,8 +593,16 @@ export function installDemo() {
   Object.defineProperty(HTMLImageElement.prototype, 'src', {
     get() { return desc.get.call(this) },
     set(v) {
+      if (typeof v === 'string' && /\/server\/files\/config\/.*\.png/.test(v)) v = 'data:image/svg+xml;utf8,' + encodeURIComponent(graphSvg(decodeURIComponent(v.split('/').pop())))
       if (typeof v === 'string' && /\/webcam/.test(v)) v = 'data:image/svg+xml;utf8,' + encodeURIComponent(camSvg(++frame, +(v.match(/\/webcam(\d)/)?.[1] || 1)))
       desc.set.call(this, v)
     },
   })
+}
+
+// a made-up resonance graph for the demo Shake&Tune pngs
+function graphSvg(name) {
+  const W = 900, H = 500, seed = name.length
+  const pts = (f, a) => Array.from({ length: 120 }, (_, i) => { const x = i / 119, y = a / (1 + ((x - f) * 14) ** 2) + 0.04 * Math.sin(i * 0.7 + seed); return `${60 + x * (W - 90)},${H - 50 - y * (H - 110)}` }).join(' ')
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="100%" height="100%" fill="#fff"/><text x="60" y="34" font-family="sans-serif" font-size="18" fill="#333">${name}  (demo)</text><path d="M60 ${H - 50}H${W - 30}M60 ${H - 50}V50" stroke="#888" fill="none"/><polyline points="${pts(0.38, 0.9)}" fill="none" stroke="#5b3fd6" stroke-width="2.5"/><polyline points="${pts(0.44, 0.6)}" fill="none" stroke="#e8743b" stroke-width="2.5"/></svg>`
 }

@@ -1173,5 +1173,13 @@ export default {
  "Dashboard only": "Лише на панелі",
  "Move up": "Вгору",
  "Move down": "Вниз",
- "Remove card": "Прибрати картку"
+ "Remove card": "Прибрати картку",
+ "Previous": "Назад",
+ "Speed": "Швидкість",
+ "This file is not an image": "Цей файл не є зображенням",
+ "Printer icon": "Значок принтера",
+ "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Показується у вкладці браузера та у верхній панелі, щоб легко знаходити кожен принтер серед відкритих вкладок.",
+ "Letters": "Літери",
+ "Choose image": "Вибрати зображення",
+ "Image": "Зображення"
 }

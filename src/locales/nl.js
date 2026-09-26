@@ -1173,5 +1173,13 @@ export default {
  "Dashboard only": "Alleen dashboard",
  "Move up": "Omhoog",
  "Move down": "Omlaag",
- "Remove card": "Kaart verwijderen"
+ "Remove card": "Kaart verwijderen",
+ "Previous": "Vorige",
+ "Speed": "Snelheid",
+ "This file is not an image": "Dit bestand is geen afbeelding",
+ "Printer icon": "Printerpictogram",
+ "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Zichtbaar in het browsertabblad en de bovenbalk, zodat je elke printer snel terugvindt tussen open tabbladen.",
+ "Letters": "Letters",
+ "Choose image": "Afbeelding kiezen",
+ "Image": "Afbeelding"
 }

@@ -1173,5 +1173,13 @@ export default {
  "Dashboard only": "Tableau de bord seulement",
  "Move up": "Monter",
  "Move down": "Descendre",
- "Remove card": "Retirer la carte"
+ "Remove card": "Retirer la carte",
+ "Previous": "Précédent",
+ "Speed": "Vitesse",
+ "This file is not an image": "Ce fichier n'est pas une image",
+ "Printer icon": "Icône de l'imprimante",
+ "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "Affichée dans l'onglet du navigateur et la barre du haut, pour retrouver chaque imprimante parmi les onglets ouverts.",
+ "Letters": "Lettres",
+ "Choose image": "Choisir une image",
+ "Image": "Image"
 }

@@ -1173,5 +1173,13 @@ export default {
  "Dashboard only": "ダッシュボードのみ",
  "Move up": "上へ移動",
  "Move down": "下へ移動",
- "Remove card": "カードを削除"
+ "Remove card": "カードを削除",
+ "Previous": "前へ",
+ "Speed": "速度",
+ "This file is not an image": "このファイルは画像ではありません",
+ "Printer icon": "プリンターアイコン",
+ "Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.": "ブラウザのタブと上部バーに表示され、開いているタブの中から各プリンターを見つけやすくします。",
+ "Letters": "文字",
+ "Choose image": "画像を選択",
+ "Image": "画像"
 }
