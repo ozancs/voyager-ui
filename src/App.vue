@@ -32,6 +32,7 @@ const LOADERS = {
   webcam: ['Webcam', () => import('./views/WebcamPage.vue')],
   console: ['Console', () => import('./views/ConsolePage.vue')],
   heightmap: ['Heightmap', () => import('./views/Heightmap.vue')],
+  shaketune: ['Shake&Tune', () => import('./views/ShakeTune.vue')],
   files: ['G-code Files', () => import('./views/Files.vue')],
   viewer: ['G-code Viewer', () => import('./views/Viewer.vue')],
   history: ['History', () => import('./views/History.vue')],

@@ -16,12 +16,20 @@ const NAV = [
   ['webcam', 'cam', 'Webcam'],
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
+  ['shaketune', 'wave', 'Shake&Tune'],
   ['files', 'file', 'G-code Files'],
   ['viewer', 'cube', 'G-code Viewer'],
   ['history', 'clock', 'History'],
   ['machine', 'cpu', 'Machine'],
   ['health', 'heart', 'Health'],
 ];
+// Shake&Tune only shows up when the printer has it (its commands exist)
+const hasShakeTune = computed(() =>
+  Object.keys(state.commands || {}).some((c) => /^_?AXES_SHAPER_CALIBRATION$/i.test(c)),
+);
+const navItems = computed(() =>
+  NAV.filter(([k]) => k !== 'shaketune' || hasShakeTune.value || route.name === 'shaketune'),
+);
 const NAV2 = [
   ['quick', 'sliders', 'Printer settings'],
   ['config', 'code', 'Config files'],
@@ -54,7 +62,7 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
         <Icon :name="mode === 'pinned' ? 'chevl2' : 'sidebar'" :size="16" :stroke="2.4" />
       </button>
     </div>
-    <button v-for="[k, i, l] in NAV" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)">
+    <button v-for="[k, i, l] in navItems" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)">
       <Icon :name="i" /><span>{{ t(l) }}</span
       ><span
         v-if="k === 'health' && hBadge"

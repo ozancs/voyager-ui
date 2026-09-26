@@ -26,6 +26,11 @@ Small pure helpers for the Health page and the dashboard grid, unit tested in te
 Helpers to find and replace an option inside Klipper config text (used by the Printer settings page).  
 setOption returns the new text, or null when the section is not in this file.
 
+**[src/cfgwrite.js](../src/cfgwrite.js)**  
+Writing option values into the printer's .cfg files: finds the file that has the section (printer.cfg first,  
+then the other .cfg files), changes the line with setOption (the SAVE_CONFIG block wins when the option is  
+there), saves a backup of each file first and uploads it. Klipper needs a restart to use the new values.
+
 **[src/features.js](../src/features.js)**  
 Things that run in the background for the whole app:  
 macro prompts, error toasts, sounds, job queue, config index (for search), health sampling.
@@ -164,6 +169,12 @@ confirm dialog that lists incoming commits) and endstop state.
 **[src/views/QuickConfig.vue](../src/views/QuickConfig.vue)**  
 Printer settings page: the config options the user picked (settings.quickConfig) as a form, read from the  
 live config. Saving finds each option in the config files, writes it (backup first) and can restart Klipper.
+
+**[src/views/ShakeTune.vue](../src/views/ShakeTune.vue)**  
+Shake&Tune page (Klippain Shake&Tune, a Klipper plugin): run its tests with their parameters, browse the  
+graphs it saves in the config folder, put two graphs side by side, and for the input shaper test apply the  
+recommended shaper right away (SET_INPUT_SHAPER) or write it into the config.  
+The recommendation is read from the console lines the test prints ("Recommended filters: ... MZV @ 48.2 Hz").
 
 **[src/views/Viewer.vue](../src/views/Viewer.vue)**  
 G-code viewer (gcode-preview, three.js): loads a file from the printer and shows it in 3D or as  

@@ -409,6 +409,13 @@ let db = {
     ],
   },
 };
+// Shake&Tune graphs in the demo config folder (the images are drawn by graphSvg)
+const stFiles = [
+  'ShakeTune_results/belts/belts_20260920_101000.png',
+  'ShakeTune_results/input_shaper/IS_X_20260920_102000.png',
+  'ShakeTune_results/input_shaper/IS_Y_20260920_102500.png',
+  'ShakeTune_results/vibrations/vibrations_20260919_180000.png',
+].map((path, i) => ({ path, modified: Date.now() / 1000 - 86400 - i * 3600, size: 1000 }));
 let queue = {
   state: 'paused',
   jobs: [
@@ -1153,13 +1160,9 @@ function handle(m) {
     case 'server.files.list':
       return p.root === 'config'
         ? Object.keys(cfgText)
-            .concat([
-              'printer-20260923_121809.cfg',
-              'ShakeTune_results/belts/belts_20260920_101000.png',
-              'ShakeTune_results/input_shaper/IS_X_20260920_102000.png',
-              'ShakeTune_results/input_shaper/IS_Y_20260920_102500.png',
-            ])
+            .concat(['printer-20260923_121809.cfg'])
             .map((f, i) => ({ path: f, modified: Date.now() / 1000 - i * 3600, size: 1000 }))
+            .concat(stFiles)
         : files.map((f) => ({ path: f.filename, modified: f.modified, size: f.size }));
     case 'server.files.get_directory':
       return {
@@ -1466,6 +1469,41 @@ gcodeScript = function (sc) {
     }
     return 'ok';
   }
+  if (/^AXES_SHAPER_CALIBRATION\b/i.test(S)) {
+    // a pretend Shake&Tune run: its console output, then two new graphs
+    const f = (x, y) => `    -> ${x} @ ${y} Hz (with a damping ratio of 0.050)`;
+    emitLines(
+      [
+        '// Measuring X axis...',
+        '// X axis frequency profile generation...',
+        '// This may take some time (1-3min)',
+        '// Recommended filters:',
+        '// ' + f('For performance: MZV', '52.4'),
+        '// ' + f('For low vibrations: EI', '61.8'),
+        '// Measuring Y axis...',
+        '// Y axis frequency profile generation...',
+        '// Recommended filters:',
+        '// ' + f('Best shaper: MZV', '41.6'),
+      ],
+      400,
+    );
+    setTimeout(() => {
+      const ts = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
+      const d = ts.slice(0, 8) + '_' + ts.slice(8);
+      for (const a of ['X', 'Y'])
+        stFiles.unshift({
+          path: `ShakeTune_results/input_shaper/IS_${a}_${d}.png`,
+          modified: Date.now() / 1000,
+          size: 1000,
+        });
+      wsAll({
+        jsonrpc: '2.0',
+        method: 'notify_filelist_changed',
+        params: [{ action: 'create_file', item: { root: 'config', path: 'ShakeTune_results/input_shaper/new.png' } }],
+      });
+    }, 4400);
+    return 'ok';
+  }
   if ((m = S.match(/^M220 S(\d+)/))) {
     pushStatus({ gcode_move: { speed_factor: +m[1] / 100 } });
     return 'ok';
@@ -1587,6 +1625,31 @@ export function installDemo() {
   setInterval(tick, 1000);
   window.WebSocket = FakeSocket;
   window.fetch = fakeFetch;
+  // uploads go through XMLHttpRequest (for the progress bar): answer them here too. A config file that is
+  // uploaded replaces the demo's copy, so saving from the editor or the Shake&Tune page shows the change.
+  const xOpen = XMLHttpRequest.prototype.open,
+    xSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, url, ...r) {
+    this.__demoUpload = /\/server\/files\/upload/.test(String(url));
+    return this.__demoUpload ? undefined : xOpen.call(this, m, url, ...r);
+  };
+  XMLHttpRequest.prototype.setRequestHeader = ((orig) =>
+    function (...a) {
+      if (!this.__demoUpload) return orig.apply(this, a);
+    })(XMLHttpRequest.prototype.setRequestHeader);
+  XMLHttpRequest.prototype.send = function (body) {
+    if (!this.__demoUpload) return xSend.call(this, body);
+    const done = async () => {
+      const f = body?.get?.('file'),
+        root = body?.get?.('root'),
+        dir = body?.get?.('path') || '';
+      if (root === 'config' && f) cfgText[(dir ? dir + '/' : '') + f.name] = await f.text();
+      Object.defineProperty(this, 'status', { value: 201 });
+      Object.defineProperty(this, 'responseText', { value: JSON.stringify({ item: { path: f?.name, root } }) });
+      this.onload && this.onload();
+    };
+    setTimeout(done, 150);
+  };
   window.__demo = true;
   // <img> tags cannot go through fetch: serve the camera as a data URL by rewriting Moonraker image URLs
   const desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
