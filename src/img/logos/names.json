@@ -1,1 +1,12 @@
-{}
+{
+  "sidebarLogo-voron": "Voron Design",
+  "sidebarLogo-vzbot": "VzBot",
+  "sidebarLogo-ldo": "LDO Motion",
+  "sidebarLogo-btt": "BigTreeTech",
+  "sidebarLogo-prusa": "Prusa Research",
+  "sidebarLogo-yumi": "YUMI",
+  "sidebarLogo-multec": "Multec",
+  "sidebarLogo-klipper": "Klipper",
+  "klipper": "Klipper (2)",
+  "logo": "Mainsail"
+}
