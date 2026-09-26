@@ -227,7 +227,7 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   --g: 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 16px 20px;
+  gap: 12px 14px;
   align-items: flex-start;
 }
 .grp {
@@ -284,7 +284,7 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   pointer-events: none;
 }
 .jog {
-  flex: 1 1 380px;
+  flex: 1 1 280px; /* jog buttons can get narrow, so the whole card still fits at its minimum width */
   max-width: 480px;
 }
 .jr {
