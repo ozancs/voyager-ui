@@ -15,6 +15,15 @@ const heaters = (ctx) => ctx.status.heaters?.available_heaters || [];
 const tmcSteppers = named(/^tmc\w+ (.+)$/);
 const eddyChips = named(/^probe_eddy_current (.+)$/);
 const tempProbes = named(/^temperature_probe (.+)$/);
+// OznLab Sensor commands take SENSOR= only when there is more than one sensor
+const oznlabSensors = named(/^oznlab_sensor (.+)$/);
+const sensorParam = {
+  k: 'SENSOR',
+  onlyWithOpts: true,
+  def: '',
+  hint: '',
+  opts: (ctx) => (oznlabSensors(ctx).length > 1 ? ['', ...oznlabSensors(ctx)] : []),
+};
 
 export const SHAKETUNE_CMDS = [
   'AXES_SHAPER_CALIBRATION',
@@ -25,6 +34,147 @@ export const SHAKETUNE_CMDS = [
 ];
 
 export const GROUPS = [
+  {
+    key: 'oznlab',
+    name: 'OznLab Sensor',
+    icon: 'sensor',
+    items: [
+      {
+        cmd: 'OZNLAB_CHECK',
+        name: 'Health check',
+        desc: 'Chip, frequency, noise, errors and config check. Nothing moves.',
+        params: [sensorParam],
+      },
+      {
+        cmd: 'OZNLAB_STATUS',
+        name: 'Frequency and noise',
+        desc: 'Reads the sensor for a moment and shows its frequency and noise.',
+        params: [sensorParam, { k: 'DURATION', def: '1', hint: 's' }],
+      },
+      {
+        cmd: 'OZNLAB_SETUP',
+        name: 'Guided setup',
+        desc: 'First-time setup, one step per run. It says what to do next.',
+        params: [sensorParam, { k: 'STEP', def: '', hint: '1-8' }],
+      },
+      {
+        cmd: 'OZNLAB_TAP',
+        name: 'Tap Z offset',
+        desc: 'Touches the bed with the nozzle a few times and sets the Z offset from the contact point.',
+        home: true,
+        params: [
+          sensorParam,
+          { k: 'SAMPLES', def: '5', hint: '' },
+          { k: 'SPEED', def: '2', hint: 'mm/s' },
+          { k: 'ADJUST', def: '', hint: 'mm' },
+          { k: 'APPLY', def: '', hint: '', opts: () => ['', '0', '1'] },
+          { k: 'SAVE', def: '', hint: '', opts: () => ['', '0', '1'] },
+        ],
+      },
+      {
+        cmd: 'OZNLAB_HOME_TEST',
+        name: 'Tap homing test',
+        desc: 'Dry run of tap homing: shows how far past the bed the nozzle stopped. Needs a homed Z.',
+        home: true,
+        params: [sensorParam, { k: 'SPEED', def: '3', hint: 'mm/s' }],
+      },
+      {
+        cmd: 'OZNLAB_THERMAL_CAL',
+        name: 'Thermal drift',
+        desc: 'Taps at several nozzle temperatures to measure how much the nozzle moves per degree.',
+        home: true,
+        params: [
+          sensorParam,
+          { k: 'MIN', def: '180', hint: '°C' },
+          { k: 'MAX', def: '250', hint: '°C' },
+          { k: 'STEP', def: '20', hint: '°C' },
+          { k: 'SAMPLES', def: '3', hint: '' },
+          { k: 'SAVE', def: '', hint: '', opts: () => ['', '0', '1'] },
+        ],
+      },
+      {
+        cmd: 'OZNLAB_CALIBRATE_PA',
+        name: 'Pressure advance',
+        desc: 'Extrudes in the air, measures how fast the melt pressure rises and sets pressure advance (not saved).',
+        params: [
+          sensorParam,
+          { k: 'SPEEDS', def: '3', hint: '' },
+          { k: 'DURATION', def: '1.5', hint: 's' },
+          { k: 'METHOD', def: '', hint: '', opts: () => ['', 'decay', 'rise'] },
+          { k: 'APPLY', def: '', hint: '', opts: () => ['', '0', '1'] },
+        ],
+      },
+      {
+        cmd: 'OZNLAB_PA_SCALE',
+        name: 'PA scale for a filament',
+        desc: 'One-time setup per filament: enter the best PA from a pattern test after a pressure advance run.',
+        params: [
+          sensorParam,
+          { k: 'PATTERN_PA', def: '', hint: '', req: true },
+          { k: 'TYPE', def: '', hint: 'PLA, ASA…' },
+        ],
+      },
+      {
+        cmd: 'OZNLAB_MAX_FLOW',
+        name: 'Max flow',
+        desc: 'Extrudes faster and faster in the air to find the real volumetric limit.',
+        params: [
+          sensorParam,
+          { k: 'START', def: '1', hint: 'mm/s' },
+          { k: 'STEP', def: '1', hint: 'mm/s' },
+          { k: 'MAX', def: '', hint: 'mm/s' },
+        ],
+      },
+      {
+        cmd: 'OZNLAB_RETRACT_TEST',
+        name: 'Retraction',
+        desc: 'Finds the retraction length that actually drops the melt pressure.',
+        params: [
+          sensorParam,
+          { k: 'MIN', def: '0.2', hint: 'mm' },
+          { k: 'MAX', def: '1.4', hint: 'mm' },
+          { k: 'STEP', def: '0.2', hint: 'mm' },
+          { k: 'RSPEED', def: '35', hint: 'mm/s' },
+        ],
+      },
+      {
+        cmd: 'OZNLAB_TEMP_SCAN',
+        name: 'Temperature scan',
+        desc: 'Melt pressure over nozzle temperature at a fixed flow, to see where more heat stops helping.',
+        params: [
+          sensorParam,
+          { k: 'MIN', def: '', hint: '°C' },
+          { k: 'MAX', def: '', hint: '°C' },
+          { k: 'STEP', def: '5', hint: '°C' },
+        ],
+      },
+      {
+        cmd: 'OZNLAB_MESH_SETUP',
+        name: 'Mesh area',
+        desc: 'Pick the bed mesh area with the nozzle.',
+        params: [sensorParam],
+      },
+      {
+        cmd: 'OZNLAB_MESH',
+        name: 'Nozzle bed mesh',
+        desc: 'Bed mesh with the nozzle as the probe.',
+        home: true,
+        params: [
+          sensorParam,
+          { k: 'COUNT', def: '5', hint: '' },
+          { k: 'SAMPLES', def: '2', hint: '' },
+          { k: 'ADAPTIVE', def: '', hint: '', opts: () => ['', '0', '1'] },
+          { k: 'PROFILE', def: '', hint: '' },
+        ],
+      },
+      {
+        cmd: 'OZNLAB_MESH_COMPARE',
+        name: 'Compare meshes',
+        desc: 'Compares two bed mesh profiles point by point.',
+        params: [sensorParam, { k: 'A', def: 'default', hint: '' }, { k: 'B', def: 'oznlab', hint: '' }],
+      },
+    ],
+  },
   {
     key: 'shaper',
     name: 'Input shaper',
@@ -229,7 +379,14 @@ export function availableGroups(commands) {
     if (items.length) out.push({ ...g, items });
   }
   const other = [...names.keys()]
-    .filter((c) => !c.startsWith('_') && !KNOWN.has(c) && !KNOWN.has(c.replace(/^_/, '')) && LOOKS_LIKE.test(c))
+    .filter(
+      (c) =>
+        !c.startsWith('_') &&
+        !c.startsWith('OZNLAB_') &&
+        !KNOWN.has(c) &&
+        !KNOWN.has(c.replace(/^_/, '')) &&
+        LOOKS_LIKE.test(c),
+    )
     .sort()
     .map((c) => ({ cmd: c, name: c, desc: String(commands[names.get(c)] || ''), free: true }));
   if (other.length) out.push({ key: 'other', name: 'Other', icon: 'wrench', items: other });
@@ -251,6 +408,64 @@ export const missingParams = (item, vals) =>
   (item.params || []).filter((x) => x.req && !String(vals[x.k] ?? '').trim()).map((x) => x.k);
 
 // numbers worth showing from the console output. rows: [[label, value]], shapers: [{ axis, type, freq, maxAccel }]
+// OznLab Sensor result lines -> rows
+const OZNLAB = [
+  [
+    /OznLab: ([\d.]+) MHz, noise ([\d.]+) Hz, (\d+) samples\/s, (.+)/,
+    (m) => [
+      ['frequency', m[1] + ' MHz'],
+      ['noise', m[2] + ' Hz'],
+      ['samples/s', m[3]],
+      ['errors', m[4]],
+    ],
+  ],
+  [/OznLab Sensor v[\w.]+ check \[(\w+)\]/, (m) => [['check', m[1]]]],
+  [
+    /OznLab tap: z offset ([-\d.]+) set \(([^)]*)\)/,
+    (m) => [
+      ['z offset', m[1]],
+      ['taps', m[2]],
+    ],
+  ],
+  [
+    /OznLab tap: contact at z=([-\d.]+) \(([^)]*)\)/,
+    (m) => [
+      ['contact z', m[1]],
+      ['taps', m[2]],
+    ],
+  ],
+  [/OznLab tap: the taps disagree \(([\d.]+) mm\)/, (m) => [['taps disagree', m[1] + ' mm']]],
+  [
+    /OznLab home test: (.+?) - stopped ([\d.]+) mm past the bed, contact at z=([-\d.]+)/,
+    (m) => [
+      ['home test', m[1]],
+      ['overshoot', m[2] + ' mm'],
+      ['contact z', m[3]],
+    ],
+  ],
+  [
+    /OznLab PA: pressure advance ([\d.]+) set \(was ([\d.]+)\)/,
+    (m) => [
+      ['pressure advance', m[1]],
+      ['was', m[2]],
+    ],
+  ],
+  [
+    /OznLab PA: measured ([\d.]+) \(tau ([\d.]+) s/,
+    (m) => [
+      ['pressure advance', m[1]],
+      ['tau', m[2] + ' s'],
+    ],
+  ],
+  [/OznLab: (pa_scale\w*) ([\d.]+)/, (m) => [[m[1], m[2]]]],
+  [/max flow: last good ([\d.]+) mm\/s = ([\d.]+) mm3\/s/, (m) => [['max flow', m[2] + ' mm³/s']]],
+  [/Put about ([\d.]+) mm3\/s in the slicer/, (m) => [['slicer max flow', m[1] + ' mm³/s']]],
+  [/retraction test: use about ([\d.]+) mm at (\d+) mm\/s/, (m) => [['retraction', m[1] + ' mm @ ' + m[2] + ' mm/s']]],
+  [/Above about (\d+) C more heat buys little/, (m) => [['temperature', m[1] + ' °C']]],
+  [/the nozzle moves (up|down) ([\d.]+) um per degree C/, (m) => [['thermal drift', m[2] + ' µm/°C ' + m[1]]]],
+  [/OznLab mesh: done in .+?, bed range ([\d.]+) mm/, (m) => [['bed range', m[1] + ' mm']]],
+];
+
 export function parseResult(cmd, lines) {
   const rows = [],
     shapers = [];
@@ -275,6 +490,16 @@ export function parseResult(cmd, lines) {
         rows.push(...keep, ['Retries', m[1] + '/' + m[2]], ['range', m[3]], ['tolerance', m[4]]);
       } else if ((m = /Axes noise for (.+?):\s*(.+)/i.exec(line))) rows.push([m[1], m[2]]);
       else if ((m = /accelerometer values \(x, y, z\):\s*(.+)/i.exec(line))) rows.push(['x, y, z', m[1]]);
+      else
+        for (const [re, f] of OZNLAB)
+          if ((m = re.exec(line))) {
+            for (const r of f(m)) {
+              const i = rows.findIndex((x) => x[0] === r[0]);
+              if (i >= 0) rows[i] = r;
+              else rows.push(r);
+            }
+            break;
+          }
     }
   return { rows, shapers };
 }

@@ -85,7 +85,7 @@ Everything the UI does, in one list:
 - Console, webcam (MJPEG, WebRTC, HLS), heightmap, g-code viewer, file manager, print history, job queue
 - Config editor with Klipper syntax colours, search and replace, folding, suggestions, live checks (repeated options, missing includes, unbalanced macro blocks), diff against the saved file or a backup. A backup is made before every save
 - Ctrl+K search: pages, macros, files, settings, config options, and quick commands like `bed 60`, `fan 50`, `z offset -0.05`
-- Calibrations page with a tab for each kind the printer has: input shaper, PID, probe and Z, bed leveling, motors, other calibration macros, and [Klippain Shake&Tune](https://github.com/Frix-x/klippain-shaketune) when installed (run its tests, compare two graphs side by side, write the chosen shaper to your config)
+- Calibrations page with a tab for each kind the printer has: input shaper, PID, probe and Z, bed leveling, motors, other calibration macros, [OznLab Sensor](https://github.com/ozancs/oznlab-sensor) tools, and [Klippain Shake&Tune](https://github.com/Frix-x/klippain-shaketune) when installed (run its tests, compare two graphs side by side, write the chosen shaper to your config)
 - Health page: MCU and CAN errors, TMC driver flags, host throttling, maintenance reminders based on print hours
 - MMU card for Happy Hare and Box Turtle (AFC)
 - Power devices and phone notifications (Telegram, Discord, ntfy, Pushover) through Moonraker

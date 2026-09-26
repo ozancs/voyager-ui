@@ -39,3 +39,20 @@ describe('calibrations', () => {
     ]);
   });
 });
+
+describe('OznLab Sensor', () => {
+  it('gets its own tab and stays out of Other', () => {
+    const g = availableGroups({ OZNLAB_CHECK: '', OZNLAB_CALIBRATE_PA: '', OZNLAB_THERMAL_CAL: '' });
+    expect(g.map((x) => x.key)).toEqual(['oznlab']);
+  });
+  it('reads its results', () => {
+    const r = parseResult('OZNLAB_TAP', [
+      'OznLab tap: z offset 0.123 set (5 taps within 0.004 mm) - SAVE_CONFIG to keep it',
+      'OznLab PA: pressure advance 0.0412 set (was 0.0400)',
+      'OznLab Sensor max flow: last good 12.0 mm/s = 28.9 mm3/s (pressure ripple)\n  Put about 26.0 mm3/s in the slicer (10% margin).',
+    ]).rows;
+    expect(r).toContainEqual(['z offset', '0.123']);
+    expect(r).toContainEqual(['pressure advance', '0.0412']);
+    expect(r).toContainEqual(['slicer max flow', '26.0 mm³/s']);
+  });
+});

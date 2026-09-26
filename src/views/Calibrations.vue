@@ -3,7 +3,7 @@
 // bed leveling, motors, other). The command lists are in calibrations.js. A tab runs the chosen command with
 // its parameters, follows its console output and shows the numbers that matter. Values Klipper keeps for
 // SAVE_CONFIG (PID, shaper) can be saved from here; the Shake&Tune tab is its own page (ShakeTune.vue).
-import { ref, computed } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
 import Icon from '../components/Icon.vue';
 import ShakeTune from './ShakeTune.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
@@ -26,6 +26,16 @@ const vals = ref({});
 const extra = ref({});
 const v = computed(() => (vals.value[item.value?.cmd] ||= {}));
 const ctx = computed(() => ({ status: state.status, objects: state.objects || [] }));
+// params shown for the chosen command (SENSOR= only when there is more than one OznLab Sensor)
+const shown = computed(() => (item.value?.params || []).filter((p) => !p.onlyWithOpts || p.opts(ctx.value).length));
+// a needed parameter with a list (HEATER, CHIP...) starts at the first choice
+watchEffect(() => {
+  for (const p of shown.value)
+    if (p.req && p.opts && !v.value[p.k]) {
+      const first = p.opts(ctx.value).find(Boolean);
+      if (first) v.value[p.k] = first;
+    }
+});
 const cmdLine = computed(() => (item.value ? buildCommand(item.value, v.value, extra.value[item.value.cmd]) : ''));
 const missing = computed(() => (item.value ? missingParams(item.value, v.value) : []));
 const homed = computed(() => /x/.test(S('toolhead').homed_axes || '') && /y/.test(S('toolhead').homed_axes || ''));
@@ -103,8 +113,8 @@ function applyShaper(r) {
           <div class="card-h">
             <h2>{{ item.free ? item.name : t(item.name) }}</h2>
           </div>
-          <div v-if="item.params?.length || item.free" class="params">
-            <label v-for="p in item.params || []" :key="item.cmd + p.k" class="pr">
+          <div v-if="shown.length || item.free" class="params">
+            <label v-for="p in shown" :key="item.cmd + p.k" class="pr">
               <span class="mono">{{ p.k }}<i v-if="p.req" class="mu">*</i></span>
               <select v-if="p.opts && p.opts(ctx).length" v-model="v[p.k]" class="input mono" :aria-label="p.k">
                 <option v-if="!p.req" value="">{{ p.def || t('default') }}</option>
