@@ -75,7 +75,7 @@ export const DEFAULT_SETTINGS = () => ({
   heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false }, // colour range and 3D z axis, auto = from the mesh
   favBar: 'always', // favorites bar under the top bar: always | dashboard | off (a Favorites card can go on the dashboard)
   compactCards: true, // dashboard cards with less padding, a thinner title bar and a tighter grid
-  uiScale: 100, // percent; 'auto' = looks the same as on a 1920 px wide screen
+  uiScale: 'auto', // percent, or 'auto' = looks the same as on a 1920 px wide screen
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
   layoutPrint: null,
@@ -715,7 +715,7 @@ export function uiZoomFor(pref, w = window.innerWidth) {
   return Math.min(1.6, Math.max(0.6, w / REF_WIDTH));
 }
 function applyScale() {
-  const pref = state.settings.uiScale ?? 100;
+  const pref = state.settings.uiScale ?? 'auto';
   const z = +uiZoomFor(pref).toFixed(3);
   const el = document.documentElement;
   if (z === 1) el.style.removeProperty('zoom');

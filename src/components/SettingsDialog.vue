@@ -92,7 +92,7 @@ async function pickIcon(e) {
     toast(t('This file is not an image'), 'error');
   }
 }
-const zoomNow = computed(() => uiZoomFor(state.settings.uiScale ?? 100));
+const zoomNow = computed(() => uiZoomFor(state.settings.uiScale ?? 'auto'));
 const SOUNDS = [
   ['complete', 'Print finished', 'complete'],
   ['paused', 'Print paused (e.g. runout)', 'paused'],
@@ -699,7 +699,7 @@ function reset() {
                   <button
                     v-for="k in [80, 90, 100, 110, 125, 'auto']"
                     :key="k"
-                    :class="{ on: String(state.settings.uiScale ?? 100) === String(k) }"
+                    :class="{ on: String(state.settings.uiScale ?? 'auto') === String(k) }"
                     @click="state.settings.uiScale = k"
                   >
                     {{ k === 'auto' ? t('Auto') : k + '%' }}
