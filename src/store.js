@@ -110,7 +110,8 @@ export const DEFAULT_LAYOUT = () => [
   { i: 'temps', x: 0, y: 7, w: 6, h: 8 },
   { i: 'webcam', x: 6, y: 7, w: 6, h: 8 },
   { i: 'tempchart', x: 0, y: 15, w: 12, h: 6 },
-  { i: 'toolhead', x: 0, y: 21, w: 12, h: 6 },
+  { i: 'toolhead', x: 0, y: 21, w: 8, h: 6 },
+  { i: 'livez', x: 8, y: 21, w: 4, h: 6 },
   { i: 'extruder', x: 0, y: 26, w: 6, h: 7 },
   { i: 'limits', x: 6, y: 26, w: 6, h: 7 },
 ];

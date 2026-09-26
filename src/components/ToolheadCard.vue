@@ -1,6 +1,6 @@
 <script setup>
 // Toolhead card: position (type a value to move), jog buttons per axis with the configured steps,
-// homing, Z tilt / QGL, motors off, Z offset baby steps, speed and flow.
+// homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import { state, S, gcode, isPrinting, toast } from '../store';
@@ -9,18 +9,7 @@ const th = computed(() => S('toolhead'));
 const gm = computed(() => S('gcode_move'));
 const homed = computed(() => th.value.homed_axes || '');
 const pos = computed(() => gm.value.gcode_position || th.value.position || [0, 0, 0, 0]);
-const zoff = computed(() => gm.value.homing_origin?.[2] ?? 0);
 const can = (a) => homed.value.includes(a.toLowerCase());
-const hasProbe = computed(() =>
-  state.objects.some(
-    (o) =>
-      o === 'probe' ||
-      o.startsWith('probe_eddy') ||
-      o === 'bltouch' ||
-      o.startsWith('beacon') ||
-      o.startsWith('cartographer'),
-  ),
-);
 // gantry levelling depends on the printer: QGL on a Voron 2.4, Z tilt on a Trident, nothing on a single Z
 const level = computed(() => {
   const o = state.objects;
@@ -43,12 +32,6 @@ const AX = computed(() => [
   { a: 'Z', steps: desc(ctl.value.stepsZ) },
 ]);
 const dpadSteps = computed(() => desc(ctl.value.dpad));
-const zSteps = computed(() =>
-  [...(ctl.value.zOffset || [])]
-    .map(Number)
-    .filter((x) => x > 0)
-    .sort((x, y) => x - y),
-);
 const feedOf = (axis) => Math.max(1, Math.round((axis === 'Z' ? ctl.value.feedZ || 25 : ctl.value.feedXY || 100) * 60));
 function jog(axis, d) {
   const i = 'XYZ'.indexOf(axis);
@@ -95,9 +78,6 @@ function setFlow(v) {
 }
 const dstep = ref(dpadSteps.value.includes(10) ? 10 : dpadSteps.value[Math.floor(dpadSteps.value.length / 2)] || 10);
 const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
-function saveZ() {
-  gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APPLY_ENDSTOP');
-}
 </script>
 <template>
   <section class="card spread">
@@ -226,42 +206,6 @@ function saveZ() {
         >
           {{ v }}
         </button>
-      </div>
-      <div class="grp zo">
-        <div class="zh">
-          <span class="lbl"
-            ><Icon name="layers" :size="14" style="vertical-align: -2px" /> {{ t('Z-Offset') }}
-            <b class="mono" style="color: var(--tx); font-size: 14px">{{ zoff.toFixed(3) }}</b></span
-          >
-          <div class="row" style="gap: 4px">
-            <button class="btn clear" :disabled="!zoff" @click="gcode('SET_GCODE_OFFSET Z=0 MOVE=1')">
-              {{ t('Clear') }}</button
-            ><button
-              class="btn clear"
-              style="color: var(--ac)"
-              :disabled="!zoff || isPrinting"
-              :aria-label="t('Save z offset to config')"
-              @click="saveZ"
-            >
-              {{ t('Save') }}
-            </button>
-          </div>
-        </div>
-        <div class="zr">
-          <button v-for="z in zSteps" :key="'u' + z" class="jb" @click="gcode(`SET_GCODE_OFFSET Z_ADJUST=${z} MOVE=1`)">
-            <Icon name="up" :size="12" :stroke="2.6" />{{ z }}
-          </button>
-        </div>
-        <div class="zr">
-          <button
-            v-for="z in zSteps"
-            :key="'d' + z"
-            class="jb"
-            @click="gcode(`SET_GCODE_OFFSET Z_ADJUST=-${z} MOVE=1`)"
-          >
-            <Icon name="down" :size="12" :stroke="2.6" />{{ z }}
-          </button>
-        </div>
       </div>
     </div>
   </section>
@@ -416,22 +360,5 @@ function saveZ() {
   background: var(--s3);
   color: var(--tx);
   box-shadow: inset 3px 0 0 var(--ac);
-}
-.zo {
-  flex: 1 1 280px;
-  max-width: 380px;
-}
-.zh {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.zr {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-}
-.zr .jb {
-  font-size: 12px;
 }
 </style>
