@@ -395,7 +395,10 @@ let db = {
       { i: 'extruder', x: 6, y: 14, w: 3, h: 7 },
     ],
     sound: { enabled: true, volume: 0.6, complete: true, error: true, paused: true, heated: false },
-    heaterBase: { 'extruder@250': { power: 0.28, t: Date.now() - 40 * 86400e3 } },
+    heaterBase: {
+      'extruder@250': { power: 0.28, fan: 0.6, t: Date.now() / 1000 - 40 * 86400 },
+      'heater_bed@110': { heat: 240, from: 22, t: Date.now() / 1000 - 40 * 86400 },
+    },
     maintenance: [
       { id: 'm1', name: 'Clean the bed / build plate', hours: 50, doneAt: 560, doneDate: Date.now() - 20 * 86400e3 },
       {
@@ -1062,6 +1065,69 @@ if (PROFILE.heaters) {
   status.heaters.available_sensors = status.heaters.available_sensors.filter((x) => objects.includes(x));
 }
 PROFILE.setup?.();
+// what the other demo printers answer on the All printers page (plain HTTP queries to their address)
+const h = (temperature, target) => ({ temperature, target });
+const FLEET = {
+  main: {
+    hostname: 'voyager-demo',
+    cams: 3,
+    status: {
+      webhooks: { state: 'ready' },
+      print_stats: { state: 'printing', filename: 'bracket_v3.gcode', print_duration: 3120 },
+      display_status: { progress: 0.42 },
+      extruder: h(249.8, 250),
+      heater_bed: h(110.1, 110),
+    },
+  },
+  'voron24.local': {
+    hostname: 'voron24',
+    cams: 1,
+    status: {
+      webhooks: { state: 'ready' },
+      print_stats: { state: 'complete', filename: 'voron_cube.gcode', print_duration: 2840 },
+      display_status: { progress: 1 },
+      extruder: h(31, 0),
+      heater_bed: h(104.6, 105),
+    },
+  },
+  'ender3.local': {
+    hostname: 'ender3v2',
+    cams: 0,
+    status: {
+      webhooks: { state: 'ready' },
+      print_stats: { state: 'standby', filename: '', print_duration: 0 },
+      display_status: { progress: 0 },
+      extruder: h(24, 0),
+      heater_bed: h(23, 0),
+    },
+  },
+  'trident.local': {
+    hostname: 'trident',
+    cams: 2,
+    status: {
+      webhooks: { state: 'ready' },
+      print_stats: { state: 'paused', filename: 'fan_duct.gcode', print_duration: 5200 },
+      display_status: { progress: 0.71 },
+      extruder: h(212, 0),
+      heater_bed: h(110, 110),
+    },
+  },
+};
+function fleetAnswer(host, path) {
+  const f = FLEET[host === location.host ? 'main' : host];
+  if (!f) return undefined;
+  if (path === '/printer/info') return { hostname: f.hostname };
+  if (path === '/server/webcams/list')
+    return {
+      webcams: Array.from({ length: f.cams }, (_, i) => ({
+        name: 'cam' + (i + 1),
+        enabled: true,
+        snapshot_url: `/webcam${i ? i + 1 : ''}/?action=snapshot`,
+      })),
+    };
+  return { status: f.status };
+}
+
 function demoHelp(base) {
   const h = { ...base };
   for (const k of Object.keys(h))
@@ -1271,7 +1337,18 @@ function handle(m) {
       }, 100);
       return 'ok';
     case 'server.files.metadata':
-      return { estimated_time: 7400, layer_height: 0.2, object_height: 42, thumbnails: [] };
+      // fan_duct is sliced for PETG and needs more than the active ABS spool has left: the pre-print check asks
+      return /fan_duct/.test(p.filename || '')
+        ? {
+            estimated_time: 5400,
+            layer_height: 0.2,
+            object_height: 38,
+            thumbnails: [],
+            filament_type: 'PETG',
+            filament_weight_total: 705,
+            nozzle_diameter: 0.4,
+          }
+        : { estimated_time: 7400, layer_height: 0.2, object_height: 42, thumbnails: [] };
     case 'server.database.get_item': {
       if (p.namespace === 'mainsail') return { value: { printername: 'Voyager Demo' } };
       const k = p.namespace + '/' + p.key;
@@ -1448,6 +1525,10 @@ function handle(m) {
       });
       return {};
     }
+    case 'printer.print.start':
+      pushStatus({ print_stats: { state: 'printing', filename: p.filename, print_duration: 0 } });
+      emitLines(['// demo: printing ' + p.filename]);
+      return 'ok';
     case 'server.database.list':
       return { namespaces: ['moonraker', 'mainsail', 'voyager-ui', 'fluidd'] };
     default:
@@ -1850,6 +1931,13 @@ function fakeFetch(input, init) {
   const p = u.pathname.replace(/^.*?(?=\/(server|printer|machine|access|api|webcam)\b)/, '');
   const json = (o, code = 200) =>
     Promise.resolve(new Response(JSON.stringify(o), { status: code, headers: { 'content-type': 'application/json' } }));
+  if (
+    ['/printer/objects/query', '/printer/info', '/server/webcams/list'].includes(p) &&
+    u.host !== (DEMO_HOST || location.host)
+  ) {
+    const r = fleetAnswer(u.host, p);
+    if (r) return json({ result: r });
+  }
   if (p === '/server/info') return json({ result: handle({ method: 'server.info' }) });
   if (p === '/access/info') return json({ result: { default_source: 'moonraker', available_sources: ['moonraker'] } });
   if (p === '/access/oneshot_token') return json({ result: 'demo' });
