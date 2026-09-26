@@ -99,7 +99,7 @@ const lines = computed(() => {
     <div class="lg">
       <span v-for="(s, i) in sensors" :key="s.name"
         ><i :style="{ background: colorOf(i) }"></i>{{ s.label }}
-        <b class="mono">{{ s.temperature?.toFixed(1) }}°</b></span
+        <b class="mono">{{ s.temperature != null ? s.temperature.toFixed(1) + '°' : '--' }}</b></span
       >
     </div>
     <div class="chart">

@@ -351,7 +351,9 @@ export const layerInfo = computed(() => {
 // (TMC2240). Those are not temperature sensors in Klipper, so they are not in heaters.available_sensors.
 export const tempSensors = computed(() => [
   ...(S('heaters').available_sensors || []),
-  ...state.objects.filter((o) => /^tmc2240 /.test(o) && typeof S(o).temperature === 'number'),
+  // TMC2240 drivers report a temperature only while the stepper is enabled; they are listed anyway (shown as --)
+  // so the temperatures card does not grow a row the moment the motors switch on
+  ...state.objects.filter((o) => /^tmc2240 /.test(o)),
 ]);
 export const sensors = computed(() => {
   const h = S('heaters');
