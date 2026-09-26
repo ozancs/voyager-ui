@@ -51,7 +51,11 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173/?host=<printer>` to point the dev server at a printer (Moonraker needs the dev address in `cors_domains`). This only works in the dev server, a release build always talks to the host it was loaded from. `npm test` runs the tests, `bash scripts/pack.sh` builds the release zip, pushing a `v*` tag makes a GitHub release. `npm run build:demo` builds the live demo (the UI plus a fake Moonraker in `src/demo/mock.js`), which GitHub Pages serves from every push to main.
+Open `http://localhost:5173/?host=<printer>` to point the dev server at a printer (Moonraker needs the dev address in `cors_domains`). This only works in the dev server, a release build always talks to the host it was loaded from. `npm test` runs the tests, `npm run format:check` checks the code style, `bash scripts/pack.sh` builds the release zip, pushing a `v*` tag makes a GitHub release. `npm run build:demo` builds the live demo (the UI plus a fake Moonraker in `src/demo/mock.js`), which GitHub Pages serves from every push to main.
+
+## Reading the code
+
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains how the pieces fit together and what writes to the printer. [docs/CODE_MAP.md](docs/CODE_MAP.md) lists every source file with what it does. Every file starts with a comment saying the same, and the code is formatted with Prettier so it reads the same everywhere.
 
 ## License
 
