@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.3
+
+- Update dialog lists the incoming commits, links to the changes on GitHub and asks to tick "I understand the risk" before updating
+
 ## 0.20.2
 
 - Printer icon: the maker logos from Mainsail (Voron, VzBot, LDO, BTT and others) are in the list when Mainsail runs on the same host
