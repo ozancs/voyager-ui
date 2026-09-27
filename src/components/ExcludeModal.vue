@@ -1,6 +1,8 @@
 <script setup>
 // Exclude object dialog: pick an object on the bed map (ObjectMap) or in the list, confirm, and
 // EXCLUDE_OBJECT is sent. Needs [exclude_object] in Klipper and labelled objects in the G-code.
+// Excluding the last object that is still printing would leave nothing to print while the printer keeps running
+// the file (heating, moving, only without plastic), so the dialog offers to cancel the print instead.
 import { ref, computed } from 'vue';
 import Modal from './Modal.vue';
 import ObjectMap from './ObjectMap.vue';
@@ -12,6 +14,17 @@ const pick = ref(null);
 const skipMsg = computed(() =>
   t("The printer will skip {name} for the rest of this print. This can't be undone.").split('{name}'),
 );
+// the object picked is the only one left
+const isLast = computed(() => {
+  const eo = S('exclude_object');
+  const left = (eo.objects || []).map((o) => o.name).filter((n) => !eo.excluded_objects?.includes(n));
+  return !!pick.value && left.length === 1 && left[0] === pick.value;
+});
+function cancelPrint() {
+  pick.value = null;
+  emit('close');
+  gcode('CANCEL_PRINT').catch(() => {});
+}
 async function doExclude() {
   const n = pick.value;
   pick.value = null;
@@ -56,7 +69,21 @@ async function doExclude() {
       </div>
     </div>
   </Modal>
-  <Modal v-if="pick" :title="t('Exclude object?')" @close="pick = null">
+  <Modal v-if="pick && isLast" :title="t('Last object')" @close="pick = null">
+    <p style="margin: 0">
+      {{
+        t(
+          'This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?',
+        )
+      }}
+    </p>
+    <template #foot
+      ><button class="btn lg" @click="pick = null">{{ t('Back') }}</button
+      ><button class="btn lg" @click="doExclude">{{ t('Exclude only') }}</button
+      ><button class="btn lg dgf" @click="cancelPrint">{{ t('Cancel print') }}</button></template
+    >
+  </Modal>
+  <Modal v-else-if="pick" :title="t('Exclude object?')" @close="pick = null">
     <p style="margin: 0">
       {{ skipMsg[0] }}<b class="mono">{{ pick }}</b
       >{{ skipMsg[1] }}

@@ -1419,5 +1419,8 @@ export default {
  "Connected: {name}, Klipper {state}.": "연결됨: {name}, Klipper {state}.",
  "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "주소가 불완전해 보입니다 (IP 주소는 192.168.1.20처럼 숫자 네 개입니다).",
  "Remove printer": "프린터 제거",
- "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name} ({host})을(를) 이 브라우저의 프린터 목록에서 제거할까요? 프린터에는 아무 변화가 없습니다."
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name} ({host})을(를) 이 브라우저의 프린터 목록에서 제거할까요? 프린터에는 아무 변화가 없습니다.",
+ "Last object": "마지막 객체",
+ "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "아직 출력 중인 마지막 객체입니다. 제외하면 프린터는 아무것도 출력하지 않으면서 파일을 계속 실행합니다(가열 및 이동). 대신 출력을 취소할까요?",
+ "Exclude only": "제외만"
 }

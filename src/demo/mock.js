@@ -1709,6 +1709,13 @@ gcodeScript = function (sc) {
     }
     return 'ok';
   }
+  if ((m = sc.match(/^EXCLUDE_OBJECT NAME="?([^"\s]+)"?/i))) {
+    const eo = status.exclude_object;
+    if (!eo.excluded_objects.includes(m[1])) eo.excluded_objects = [...eo.excluded_objects, m[1]];
+    pushStatus({ exclude_object: { excluded_objects: eo.excluded_objects } });
+    emitLines(['// Excluding object ' + m[1]]);
+    return 'ok';
+  }
   if (/^SHAPER_CALIBRATE\b/.test(S)) {
     // what Klipper's own input shaper calibration prints
     const axes = /AXIS=([XY])/.exec(S) ? [/AXIS=([XY])/.exec(S)[1].toLowerCase()] : ['x', 'y'];

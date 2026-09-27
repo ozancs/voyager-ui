@@ -266,7 +266,9 @@ Small ring gauge (a value out of max) used for CPU, memory and MCU load.
 
 **[src/components/ExcludeModal.vue](../src/components/ExcludeModal.vue)**  
 Exclude object dialog: pick an object on the bed map (ObjectMap) or in the list, confirm, and  
-EXCLUDE_OBJECT is sent. Needs [exclude_object] in Klipper and labelled objects in the G-code.
+EXCLUDE_OBJECT is sent. Needs [exclude_object] in Klipper and labelled objects in the G-code.  
+Excluding the last object that is still printing would leave nothing to print while the printer keeps running  
+the file (heating, moving, only without plastic), so the dialog offers to cancel the print instead.
 
 **[src/components/ExplainBox.vue](../src/components/ExplainBox.vue)**  
 Plain-words explanation of a Klipper error (explain.js): what it means, the usual cause, what to check.

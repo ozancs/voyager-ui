@@ -1419,5 +1419,8 @@ export default {
  "Connected: {name}, Klipper {state}.": "接続OK: {name}、Klipper {state}。",
  "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "このアドレスは不完全なようです（IP アドレスは 192.168.1.20 のように4つの数字です）。",
  "Remove printer": "プリンターを削除",
- "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name}（{host}）をこのブラウザのプリンター一覧から削除しますか？プリンター側は何も変わりません。"
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name}（{host}）をこのブラウザのプリンター一覧から削除しますか？プリンター側は何も変わりません。",
+ "Last object": "最後のオブジェクト",
+ "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "まだ印刷中の最後のオブジェクトです。除外するとプリンターは何も印刷せずにファイルの実行（加熱と移動）を続けます。代わりに印刷をキャンセルしますか？",
+ "Exclude only": "除外のみ"
 }

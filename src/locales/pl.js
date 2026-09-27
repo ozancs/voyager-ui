@@ -1419,5 +1419,8 @@ export default {
  "Connected: {name}, Klipper {state}.": "Połączono: {name}, Klipper {state}.",
  "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Ten adres wygląda na niepełny (adres IP ma cztery liczby, np. 192.168.1.20).",
  "Remove printer": "Usuń drukarkę",
- "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Usunąć {name} ({host}) z listy drukarek tej przeglądarki? Na drukarce nic się nie zmieni."
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Usunąć {name} ({host}) z listy drukarek tej przeglądarki? Na drukarce nic się nie zmieni.",
+ "Last object": "Ostatni obiekt",
+ "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "To ostatni obiekt, który jest jeszcze drukowany. Po wykluczeniu drukarka dalej wykonuje plik (grzeje i się rusza), nic nie drukując. Zamiast tego anulować wydruk?",
+ "Exclude only": "Tylko wyklucz"
 }

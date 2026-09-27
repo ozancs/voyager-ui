@@ -1420,5 +1420,8 @@ export default {
  "Connected: {name}, Klipper {state}.": "Bağlandı: {name}, Klipper {state}.",
  "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Bu adres eksik görünüyor (IP adresinde dört sayı olur, örneğin 192.168.1.20).",
  "Remove printer": "Yazıcıyı kaldır",
- "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name} ({host}) bu tarayıcının yazıcı listesinden kaldırılsın mı? Yazıcıda hiçbir şey değişmez."
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name} ({host}) bu tarayıcının yazıcı listesinden kaldırılsın mı? Yazıcıda hiçbir şey değişmez.",
+ "Last object": "Son obje",
+ "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "Bu, hâlâ basılan son obje. Bunu exclude edersen yazıcı dosyayı çalıştırmaya devam eder (ısıtır ve hareket eder) ama hiçbir şey basmaz. Onun yerine baskıyı iptal edelim mi?",
+ "Exclude only": "Sadece exclude et"
 }

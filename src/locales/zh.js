@@ -1419,5 +1419,8 @@ export default {
  "Connected: {name}, Klipper {state}.": "已连接：{name}，Klipper {state}。",
  "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "此地址看起来不完整（IP 地址有四个数字，例如 192.168.1.20）。",
  "Remove printer": "移除打印机",
- "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "从此浏览器的打印机列表中移除 {name}（{host}）？打印机上不会有任何改变。"
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "从此浏览器的打印机列表中移除 {name}（{host}）？打印机上不会有任何改变。",
+ "Last object": "最后一个对象",
+ "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "这是仍在打印的最后一个对象。排除后打印机会继续执行文件（加热和移动）但不打印任何东西。改为取消打印吗？",
+ "Exclude only": "仅排除"
 }
