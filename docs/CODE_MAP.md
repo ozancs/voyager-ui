@@ -58,6 +58,11 @@ All printers overview: reads the state of every saved printer over plain HTTP (n
 seconds while the page is open. Each printer is asked with its own login token (the same one the UI keeps per  
 address), never with another printer's. The printer this page is connected to comes from the live state.
 
+**[src/gcodeHelp.js](../src/gcodeHelp.js)**  
+What a console command does, for the tooltip on command lines in the console. Standard G-codes that  
+Klipper supports come from the list below (translated); Klipper's own commands and macros use the help text  
+Klipper reports (printer.gcode.help, in English) or the macro's description.
+
 **[src/heaterHealth.js](../src/heaterHealth.js)**  
 Heater health: each heater is compared with its own first measurement at the same target, never with a fixed  
 number, because the power a heater needs depends on fans, enclosure and room. Two things are learned per  

@@ -11,6 +11,7 @@ import { richHtml, hasMarkup } from '../richText';
 import Popover from './Popover.vue';
 import ExplainBox from './ExplainBox.vue';
 import { explain } from '../explain';
+import { describe } from '../gcodeHelp';
 const props = defineProps({ limit: { type: Number, default: 400 } });
 const box = ref(null);
 const cmd = ref('');
@@ -122,7 +123,8 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
         <div v-for="l in lines" :key="l.id" class="ln" :class="cls(l)">
           <span class="t">{{ fmt(l.time) }}</span
           ><span v-if="l.type !== 'command' && hasMarkup(l.message)" class="m" v-html="richHtml(l.message)"></span
-          ><span v-else class="m">{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span
+          ><span v-else class="m" :data-tip="l.type === 'command' ? describe(l.message) || null : null"
+            >{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span
           ><button
             v-if="cls(l) === 'e' && explain(l.message)"
             class="xq"
@@ -162,6 +164,9 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
   </div>
 </template>
 <style scoped>
+.m[data-tip] {
+  cursor: help;
+}
 .xq {
   margin-left: 8px;
   width: 18px;
