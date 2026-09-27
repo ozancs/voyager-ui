@@ -1524,6 +1524,11 @@ function handle(m) {
       });
       return {};
     }
+    case 'printer.restart':
+    case 'printer.firmware_restart':
+      emitLines(['// demo: Klipper restarted']);
+      pushStatus({ webhooks: { state: 'ready', state_message: 'Printer is ready' } });
+      return 'ok';
     case 'printer.print.start':
       pushStatus({ print_stats: { state: 'printing', filename: p.filename, print_duration: 0 } });
       emitLines(['// demo: printing ' + p.filename]);

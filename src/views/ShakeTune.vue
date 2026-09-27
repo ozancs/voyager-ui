@@ -7,7 +7,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import ImageViewer from '../components/ImageViewer.vue';
-import { state, gcode, toast, isPrinting, useApiEvent, fmtDate } from '../store';
+import { state, gcode, toast, isPrinting, useApiEvent, fmtDate, restartKlipper } from '../store';
 import { api } from '../api/moonraker';
 import { writeOptions } from '../cfgwrite';
 import { t } from '../i18n';
@@ -345,7 +345,7 @@ const shortName = (n) => n.replace(/\.png$/i, '');
         class="btn lg acc"
         :disabled="isPrinting"
         @click="
-          gcode('RESTART');
+          restartKlipper();
           saveAsk = null;
         "
       >

@@ -26,7 +26,7 @@ import { initSync } from './sync';
 import { initFeatures } from './features';
 import { nextTick } from 'vue';
 initFeatures();
-import { state, gcode, VERSION, activeTasks, APP_NAME, closeToast } from './store';
+import { state, gcode, VERSION, activeTasks, APP_NAME, closeToast, restartKlipper } from './store';
 import { route, go } from './router';
 import { api } from './api/moonraker';
 import { t } from './i18n';
@@ -197,10 +197,10 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
             <pre>{{ state.klippyMessage }}</pre>
             <ExplainBox v-if="klippyExplain" :e="klippyExplain" class="kx" />
           </div>
-          <button class="btn lg" @click="gcode('RESTART').catch(() => api.call('printer.restart'))">
+          <button class="btn lg" @click="restartKlipper()">
             {{ t('Restart') }}
           </button>
-          <button class="btn lg acc" @click="api.call('printer.firmware_restart')">{{ t('Firmware Restart') }}</button>
+          <button class="btn lg acc" @click="restartKlipper(true)">{{ t('Firmware Restart') }}</button>
         </div>
         <component
           :is="view"

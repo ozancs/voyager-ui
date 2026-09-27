@@ -6,7 +6,7 @@ import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import SystemLoads from '../components/SystemLoads.vue';
 import FileBrowser from '../components/FileBrowser.vue';
-import { state, S, gcode, toast, fmtBytes, useApiEvent, applyUpd } from '../store';
+import { state, S, gcode, toast, fmtBytes, useApiEvent, applyUpd, restartKlipper } from '../store';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
 const C = (state.cache.machine ||= {});
@@ -215,7 +215,7 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log'];
       <section class="card">
         <div class="card-h">
           <h2>{{ t('Logs') }}</h2>
-          <button class="btn" @click="gcode('FIRMWARE_RESTART')">
+          <button class="btn" @click="restartKlipper(true)">
             <Icon name="restart" :size="16" />{{ t('Firmware restart') }}
           </button>
         </div>

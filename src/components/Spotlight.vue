@@ -2,7 +2,7 @@
 // Ctrl/Cmd+K: one search box for pages, actions, macros, config files (down to the line), g-code files, commands and settings.
 import { ref, computed, watch, nextTick } from 'vue';
 import Icon from './Icon.vue';
-import { state, S, gcode, macroList, prettyName, toast, isPrinting } from '../store';
+import { state, S, gcode, macroList, prettyName, toast, isPrinting, restartKlipper } from '../store';
 import { go } from '../router';
 import { api } from '../api/moonraker';
 import { cfgIndex, loadConfigIndex, playSound } from '../features';
@@ -89,7 +89,7 @@ const ACTIONS = computed(() => [
     t: 'Firmware restart',
     s: 'FIRMWARE_RESTART',
     icon: 'bolt',
-    run: () => gcode('FIRMWARE_RESTART'),
+    run: () => restartKlipper(true),
     dest: 'Restarts Klipper + MCUs',
     off: isPrinting.value,
   },

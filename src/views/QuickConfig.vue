@@ -4,7 +4,7 @@
 import { ref, computed } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
-import { state, S, saveSettings, toast, gcode, isPrinting, backupBeforeWrite } from '../store';
+import { state, S, saveSettings, toast, gcode, isPrinting, backupBeforeWrite, restartKlipper } from '../store';
 import { api } from '../api/moonraker';
 import { t, tn } from '../i18n';
 import { setOption, hasSection } from '../cfgedit';
@@ -77,7 +77,7 @@ async function save(restart) {
     }
     drafts.value = {};
     result.value = log;
-    if (restart && !log.some((l) => l.error)) await gcode('RESTART');
+    if (restart && !log.some((l) => l.error)) await restartKlipper();
   } catch (e) {
     toast(t('Save failed: {e}', { e: e.message }), 'error');
   }
@@ -178,7 +178,7 @@ function addField() {
         class="btn lg acc"
         :disabled="isPrinting"
         @click="
-          gcode('RESTART');
+          restartKlipper();
           result = null;
         "
       >

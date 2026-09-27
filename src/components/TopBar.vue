@@ -26,6 +26,7 @@ import {
   dismissAll,
   prettyName,
   cancelPrint,
+  restartKlipper,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -104,8 +105,8 @@ async function estop() {
   }
 }
 const POWER = [
-  { k: 'restart', label: 'Restart Klipper', icon: 'restart', run: () => gcode('RESTART') },
-  { k: 'fw', label: 'Firmware Restart', icon: 'bolt', run: () => gcode('FIRMWARE_RESTART') },
+  { k: 'restart', label: 'Restart Klipper', icon: 'restart', run: () => restartKlipper() },
+  { k: 'fw', label: 'Firmware Restart', icon: 'bolt', run: () => restartKlipper(true) },
   { k: 'moon', label: 'Restart Moonraker', icon: 'refresh', run: () => api.call('server.restart') },
   { k: 'reboot', label: 'Reboot Host', icon: 'rot', confirm: true, run: () => api.call('machine.reboot') },
   {

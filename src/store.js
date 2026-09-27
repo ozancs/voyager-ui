@@ -462,6 +462,17 @@ export const gcode = async (script, { quiet = false } = {}) => {
   }
 };
 
+// RESTART and FIRMWARE_RESTART go through Moonraker's restart endpoints, not the G-code queue: sent as G-code
+// they wait behind a long command (a heater wait, a calibration) and seem to do nothing.
+export async function restartKlipper(firmware = false) {
+  pushConsole(firmware ? 'FIRMWARE_RESTART' : 'RESTART', 'command');
+  try {
+    await api.call(firmware ? 'printer.firmware_restart' : 'printer.restart');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
 // CANCEL_PRINT waits in Klipper's G-code queue like any command: while the printer waits for a heater (M190,
 // M109, TEMPERATURE_WAIT in PRINT_START) it only runs after that wait. When it has not gone through after a
 // few seconds, say so, and that E-STOP stops at once (followed by a FIRMWARE_RESTART).

@@ -5,7 +5,7 @@
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import CmdInput from './CmdInput.vue';
-import { state, gcode } from '../store';
+import { state, gcode, restartKlipper } from '../store';
 import { t } from '../i18n';
 import { richHtml, hasMarkup } from '../richText';
 import Popover from './Popover.vue';
@@ -77,6 +77,9 @@ async function send() {
   hi = hist.length;
   cmd.value = '';
   auto.value = true;
+  // typed RESTART / FIRMWARE_RESTART: through Moonraker, so a busy G-code queue cannot hold them back
+  const up = c.toUpperCase();
+  if (up === 'FIRMWARE_RESTART' || up === 'RESTART') return restartKlipper(up === 'FIRMWARE_RESTART');
   gcode(c, { quiet: true }).catch(() => {});
 }
 function key(e) {

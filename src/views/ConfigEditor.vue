@@ -24,7 +24,7 @@ import { MergeView } from '@codemirror/merge';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import ImageViewer from '../components/ImageViewer.vue';
-import { state, S, toast, gcode, isPrinting, backupBeforeWrite, useApiEvent } from '../store';
+import { state, S, toast, gcode, isPrinting, backupBeforeWrite, useApiEvent, restartKlipper } from '../store';
 import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -436,7 +436,7 @@ async function save(restart) {
     if (restart) {
       if (a.path === 'moonraker.conf') await api.call('server.restart');
       else if (a.path === 'crowsnest.conf') await api.call('machine.services.restart', { service: 'crowsnest' });
-      else await gcode('FIRMWARE_RESTART');
+      else await restartKlipper(true);
     }
   } catch (e) {
     toast(t('Save failed: {e}', { e: e.message }), 'error');
