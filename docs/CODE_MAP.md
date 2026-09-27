@@ -195,7 +195,7 @@ delete and the edit button (opens small files in the config editor).
 **[src/views/Fleet.vue](../src/views/Fleet.vue)**  
 All printers: one card per saved printer with its state, print progress, temperatures and a camera snapshot,  
 refreshed every few seconds (fleet.js). "Open" switches to that printer. Reached from the printer menu next to  
-the printer name, and from Ctrl+K.
+the printer name, and from Ctrl+K. Saved printers can be renamed, get a new address or be removed here too.
 
 **[src/views/Health.vue](../src/views/Health.vue)**  
 Health page: MCU and CAN connection errors, TMC driver flags, host throttling and power, heater  

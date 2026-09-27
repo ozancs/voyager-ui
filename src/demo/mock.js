@@ -1115,7 +1115,7 @@ const FLEET = {
 function fleetAnswer(host, path) {
   const f = FLEET[host === location.host ? 'main' : host];
   if (!f) return undefined;
-  if (path === '/printer/info') return { hostname: f.hostname };
+  if (path === '/printer/info') return { hostname: f.hostname, state: 'ready' };
   if (path === '/server/webcams/list')
     return {
       webcams: Array.from({ length: f.cams }, (_, i) => ({
@@ -1317,7 +1317,7 @@ function handle(m) {
         SET_FAN_SPEED: 'Sets the speed of a fan',
       });
     case 'printer.info':
-      return { software_version: 'v0.13.0-300', hostname: PROFILE.hostname || 'voyager-demo' };
+      return { software_version: 'v0.13.0-300', hostname: PROFILE.hostname || 'voyager-demo', state: 'ready' };
     case 'machine.update.upgrade':
       setTimeout(() => {
         let n = 0;
@@ -1930,6 +1930,9 @@ function fakeFetch(input, init) {
   const p = u.pathname.replace(/^.*?(?=\/(server|printer|machine|access|api|webcam)\b)/, '');
   const json = (o, code = 200) =>
     Promise.resolve(new Response(JSON.stringify(o), { status: code, headers: { 'content-type': 'application/json' } }));
+  // an address that is neither this page nor one of the demo printers: nobody answers, like a wrong IP
+  if (u.host !== location.host && u.host !== DEMO_HOST && !FLEET[u.host])
+    return Promise.reject(new TypeError('Failed to fetch'));
   if (
     ['/printer/objects/query', '/printer/info', '/server/webcams/list'].includes(p) &&
     u.host !== (DEMO_HOST || location.host)
@@ -1938,6 +1941,7 @@ function fakeFetch(input, init) {
     if (r) return json({ result: r });
   }
   if (p === '/server/info') return json({ result: handle({ method: 'server.info' }) });
+  if (p === '/printer/info') return json({ result: handle({ method: 'printer.info' }) });
   if (p === '/access/info') return json({ result: { default_source: 'moonraker', available_sources: ['moonraker'] } });
   if (p === '/access/oneshot_token') return json({ result: 'demo' });
   if (p.startsWith('/server/files/upload')) {

@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "{s} s do frio até {tg}°",
  "Reference: {list}": "Referência: {list}",
  "Measure again": "Medir de novo",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Cada aquecedor é comparado só com a sua própria primeira medição no mesmo alvo: potência ao manter (para o hotend, com a mesma velocidade da ventoinha de peça) e tempo de aquecimento a frio. Depois de trocar o aquecedor, o termistor ou a meia, use Medir de novo."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Cada aquecedor é comparado só com a sua própria primeira medição no mesmo alvo: potência ao manter (para o hotend, com a mesma velocidade da ventoinha de peça) e tempo de aquecimento a frio. Depois de trocar o aquecedor, o termistor ou a meia, use Medir de novo.",
+ "Reached, but it needs a login. Open it to log in.": "Alcançada, mas pede login. Abra-a para entrar.",
+ "Moonraker answered with an error ({code}).": "O Moonraker respondeu com um erro ({code}).",
+ "Connected: {name}, Klipper ready.": "Ligado: {name}, Klipper pronto.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "Sem resposta. Verifique o endereço, se a impressora está ligada e cors_domains no moonraker.conf dela.",
+ "Connected: {name}, Klipper {state}.": "Ligado: {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Este endereço parece incompleto (um IP tem quatro números, como 192.168.1.20).",
+ "Remove printer": "Remover impressora",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Remover {name} ({host}) da lista de impressoras deste navegador? Nada muda na impressora."
 }

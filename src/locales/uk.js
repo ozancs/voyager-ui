@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "{s} s від холодного до {tg}°",
  "Reference: {list}": "Еталон: {list}",
  "Measure again": "Виміряти знову",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Кожен нагрівач порівнюється лише з власним першим заміром при тій самій цілі: потужність під час утримання (для хотенда при тій самій швидкості обдуву деталі) і час нагріву з холодного стану. Після заміни нагрівача, термістора або носка використайте Виміряти знову."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Кожен нагрівач порівнюється лише з власним першим заміром при тій самій цілі: потужність під час утримання (для хотенда при тій самій швидкості обдуву деталі) і час нагріву з холодного стану. Після заміни нагрівача, термістора або носка використайте Виміряти знову.",
+ "Reached, but it needs a login. Open it to log in.": "Доступний, але потрібен вхід. Відкрийте його, щоб увійти.",
+ "Moonraker answered with an error ({code}).": "Moonraker відповів помилкою ({code}).",
+ "Connected: {name}, Klipper ready.": "Підключено: {name}, Klipper готовий.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "Немає відповіді. Перевірте адресу, чи принтер увімкнено, і cors_domains у його moonraker.conf.",
+ "Connected: {name}, Klipper {state}.": "Підключено: {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Адреса виглядає неповною (в IP-адресі чотири числа, наприклад 192.168.1.20).",
+ "Remove printer": "Видалити принтер",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Видалити {name} ({host}) зі списку принтерів цього браузера? На принтері нічого не зміниться."
 }

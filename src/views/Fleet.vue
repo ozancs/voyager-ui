@@ -1,12 +1,13 @@
 <script setup>
 // All printers: one card per saved printer with its state, print progress, temperatures and a camera snapshot,
 // refreshed every few seconds (fleet.js). "Open" switches to that printer. Reached from the printer menu next to
-// the printer name, and from Ctrl+K.
+// the printer name, and from Ctrl+K. Saved printers can be renamed, get a new address or be removed here too.
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import Icon from '../components/Icon.vue';
 import { state, S, fmtTime, printerName } from '../store';
-import { selectPrinter } from '../printers';
-import { fleetList, pollPrinter, timeLeft } from '../fleet';
+import { selectPrinter, printerList, savePrinters, HOST_RE } from '../printers';
+import Modal from '../components/Modal.vue';
+import { fleetList, pollPrinter, timeLeft, testPrinter, looksIncomplete } from '../fleet';
 import { go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -99,6 +100,42 @@ const temp = (h) =>
   h && h.temperature != null
     ? `${Math.round(h.temperature)}°${h.target ? ' / ' + Math.round(h.target) + '°' : ''}`
     : '--';
+// editing a saved printer (name and address) and removing it
+const edit = ref(null); // { id, name, host, test }
+const cleanHost = (h) =>
+  String(h || '')
+    .trim()
+    .replace(/^[a-z]+:\/\//i, '')
+    .replace(/\/.*$/, '');
+const editOk = computed(() => edit.value && HOST_RE.test(cleanHost(edit.value.host)));
+function startEdit(c) {
+  edit.value = { id: c.p.id, name: c.p.name, host: c.p.host, test: null };
+}
+async function testEdit() {
+  const e = edit.value;
+  e.test = { busy: true };
+  e.test = await testPrinter(cleanHost(e.host));
+}
+function saveEdit() {
+  const e = edit.value,
+    host = cleanHost(e.host);
+  const old = printerList.value.find((p) => p.id === e.id);
+  const wasCur = list.value.find((p) => p.id === e.id)?.cur;
+  savePrinters(printerList.value.map((p) => (p.id === e.id ? { ...p, name: e.name.trim() || host, host } : p)));
+  edit.value = null;
+  if (old && old.host !== host) {
+    delete data[e.id]; // asked again at the new address
+    if (wasCur) selectPrinter(e.id); // the printer on screen moved: reconnect there
+  }
+}
+const del = ref(null); // card asking to be removed
+function doDelete() {
+  const c = del.value;
+  del.value = null;
+  savePrinters(printerList.value.filter((p) => p.id !== c.p.id));
+  delete data[c.p.id];
+  if (c.p.cur) selectPrinter(''); // the printer on screen was removed: back to this page's own address
+}
 function open(c) {
   if (c.p.cur) go('dashboard');
   else selectPrinter(c.p.id);
@@ -147,12 +184,62 @@ function open(c) {
             <span><Icon name="nozzle" :size="14" />{{ temp(c.status.extruder) }}</span>
             <span><Icon name="bed" :size="14" />{{ temp(c.status.heater_bed) }}</span>
           </div>
-          <button class="btn op" @click="open(c)">
-            {{ c.p.cur ? t('Dashboard') : t('Open') }}<Icon name="right" :size="15" />
-          </button>
+          <div v-if="edit?.id === c.p.id && c.p.id" class="ed">
+            <input v-model="edit.name" class="input" :placeholder="t('Nickname')" :aria-label="t('Nickname')" />
+            <input
+              v-model="edit.host"
+              class="input mono"
+              :class="{ bad: !editOk }"
+              placeholder="192.168.1.20:7125"
+              spellcheck="false"
+              :aria-label="t('Address')"
+            />
+            <p v-if="edit.test && !edit.test.busy" class="res" :class="edit.test.level">
+              {{ t(edit.test.text, edit.test.params) }}
+            </p>
+            <p v-if="editOk && looksIncomplete(cleanHost(edit.host))" class="res wn">
+              {{ t('This address looks incomplete (an IP address has four numbers, like 192.168.1.20).') }}
+            </p>
+            <div class="acts">
+              <button class="btn" :disabled="!editOk || edit.test?.busy" @click="testEdit">
+                <Icon name="plug" :size="15" />{{ t('Test') }}
+              </button>
+              <span class="grow"></span>
+              <button class="btn" @click="edit = null">{{ t('Cancel') }}</button>
+              <button class="btn acc" :disabled="!editOk" @click="saveEdit">{{ t('Save') }}</button>
+            </div>
+          </div>
+          <div v-else class="acts">
+            <button class="btn op" @click="open(c)">
+              {{ c.p.cur ? t('Dashboard') : t('Open') }}<Icon name="right" :size="15" />
+            </button>
+            <span class="grow"></span>
+            <template v-if="c.p.id">
+              <button class="btn clear ibtn sm" :aria-label="t('Edit')" :data-tip="t('Edit')" @click="startEdit(c)">
+                <Icon name="pencil" :size="15" />
+              </button>
+              <button class="btn clear ibtn sm" :aria-label="t('Remove')" :data-tip="t('Remove')" @click="del = c">
+                <Icon name="trash" :size="15" />
+              </button>
+            </template>
+          </div>
         </div>
       </section>
     </div>
+    <Modal v-if="del" :title="t('Remove printer')" @close="del = null">
+      <p style="margin: 0">
+        {{
+          t('Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.', {
+            name: del.name,
+            host: del.p.host,
+          })
+        }}
+      </p>
+      <template #foot>
+        <button class="btn lg" @click="del = null">{{ t('Cancel') }}</button>
+        <button class="btn lg dg" @click="doDelete">{{ t('Remove') }}</button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -261,9 +348,33 @@ function open(c) {
   height: 100%;
   background: var(--ac);
 }
-.op {
-  align-self: flex-start;
+.acts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 4px;
+}
+.ed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.bad {
+  border-color: var(--dg);
+}
+.res {
+  margin: 0;
+  font-size: 12px;
+}
+.res.ok {
+  color: var(--ok, var(--ac));
+}
+.res.wn {
+  color: var(--wn);
+}
+.res.dg {
+  color: var(--dg);
 }
 .mu {
   color: var(--mu);

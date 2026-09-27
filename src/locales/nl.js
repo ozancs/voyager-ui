@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "{s} s van koud naar {tg}°",
  "Reference: {list}": "Referentie: {list}",
  "Measure again": "Opnieuw meten",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Elke verwarming wordt alleen vergeleken met zijn eigen eerste meting bij hetzelfde doel: vermogen tijdens vasthouden (voor de hotend bij dezelfde snelheid van de onderdeelventilator) en opwarmtijd vanaf koud. Gebruik Opnieuw meten na het vervangen van de verwarming, thermistor of sok."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Elke verwarming wordt alleen vergeleken met zijn eigen eerste meting bij hetzelfde doel: vermogen tijdens vasthouden (voor de hotend bij dezelfde snelheid van de onderdeelventilator) en opwarmtijd vanaf koud. Gebruik Opnieuw meten na het vervangen van de verwarming, thermistor of sok.",
+ "Reached, but it needs a login. Open it to log in.": "Bereikt, maar inloggen is nodig. Open hem om in te loggen.",
+ "Moonraker answered with an error ({code}).": "Moonraker gaf een fout ({code}).",
+ "Connected: {name}, Klipper ready.": "Verbonden: {name}, Klipper klaar.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "Geen antwoord. Controleer het adres, of de printer aan staat en cors_domains in zijn moonraker.conf.",
+ "Connected: {name}, Klipper {state}.": "Verbonden: {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Dit adres lijkt onvolledig (een IP-adres heeft vier getallen, zoals 192.168.1.20).",
+ "Remove printer": "Printer verwijderen",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name} ({host}) uit de printerlijst van deze browser verwijderen? Op de printer verandert niets."
 }

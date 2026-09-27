@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "{s} s od zimnego do {tg}°",
  "Reference: {list}": "Odniesienie: {list}",
  "Measure again": "Zmierz ponownie",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Każda grzałka jest porównywana tylko z własnym pierwszym pomiarem przy tej samej wartości zadanej: moc przy utrzymywaniu (dla hotendu przy tej samej prędkości wentylatora części) i czas nagrzewania od zimnego stanu. Po wymianie grzałki, termistora lub skarpetki użyj Zmierz ponownie."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Każda grzałka jest porównywana tylko z własnym pierwszym pomiarem przy tej samej wartości zadanej: moc przy utrzymywaniu (dla hotendu przy tej samej prędkości wentylatora części) i czas nagrzewania od zimnego stanu. Po wymianie grzałki, termistora lub skarpetki użyj Zmierz ponownie.",
+ "Reached, but it needs a login. Open it to log in.": "Osiągnięto, ale wymaga logowania. Otwórz, aby się zalogować.",
+ "Moonraker answered with an error ({code}).": "Moonraker odpowiedział błędem ({code}).",
+ "Connected: {name}, Klipper ready.": "Połączono: {name}, Klipper gotowy.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "Brak odpowiedzi. Sprawdź adres, czy drukarka jest włączona i cors_domains w jej moonraker.conf.",
+ "Connected: {name}, Klipper {state}.": "Połączono: {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Ten adres wygląda na niepełny (adres IP ma cztery liczby, np. 192.168.1.20).",
+ "Remove printer": "Usuń drukarkę",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Usunąć {name} ({host}) z listy drukarek tej przeglądarki? Na drukarce nic się nie zmieni."
 }

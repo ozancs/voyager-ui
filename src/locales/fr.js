@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "{s} s de froid à {tg}°",
  "Reference: {list}": "Référence : {list}",
  "Measure again": "Mesurer à nouveau",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Chaque chauffage n'est comparé qu'à sa propre première mesure à la même consigne : puissance en maintien (pour la buse, à la même vitesse du ventilateur de pièce) et temps de chauffe à froid. Après avoir changé le chauffage, la thermistance ou la chaussette, utilise Mesurer à nouveau."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Chaque chauffage n'est comparé qu'à sa propre première mesure à la même consigne : puissance en maintien (pour la buse, à la même vitesse du ventilateur de pièce) et temps de chauffe à froid. Après avoir changé le chauffage, la thermistance ou la chaussette, utilise Mesurer à nouveau.",
+ "Reached, but it needs a login. Open it to log in.": "Joignable, mais une connexion est requise. Ouvre-la pour te connecter.",
+ "Moonraker answered with an error ({code}).": "Moonraker a répondu par une erreur ({code}).",
+ "Connected: {name}, Klipper ready.": "Connecté : {name}, Klipper prêt.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "Pas de réponse. Vérifie l'adresse, que l'imprimante est allumée et cors_domains dans son moonraker.conf.",
+ "Connected: {name}, Klipper {state}.": "Connecté : {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Cette adresse semble incomplète (une IP a quatre nombres, comme 192.168.1.20).",
+ "Remove printer": "Retirer l'imprimante",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Retirer {name} ({host}) de la liste des imprimantes de ce navigateur ? Rien ne change sur l'imprimante."
 }

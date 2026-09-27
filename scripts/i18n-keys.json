@@ -1410,5 +1410,13 @@
 "{s} s from cold to {tg}°",
 "Reference: {list}",
 "Measure again",
-"Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again."
+"Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.",
+"Reached, but it needs a login. Open it to log in.",
+"Moonraker answered with an error ({code}).",
+"Connected: {name}, Klipper ready.",
+"No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.",
+"Connected: {name}, Klipper {state}.",
+"This address looks incomplete (an IP address has four numbers, like 192.168.1.20).",
+"Remove printer",
+"Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer."
 ]

@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "차가운 상태에서 {tg}°까지 {s} s",
  "Reference: {list}": "기준: {list}",
  "Measure again": "다시 측정",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "각 히터는 같은 목표에서의 자체 첫 측정값과만 비교됩니다. 유지 중 전력(핫엔드는 같은 파트 팬 속도에서)과 차가운 상태에서의 가열 시간입니다. 히터, 서미스터 또는 삭스를 교체한 후에는 다시 측정을 사용하세요."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "각 히터는 같은 목표에서의 자체 첫 측정값과만 비교됩니다. 유지 중 전력(핫엔드는 같은 파트 팬 속도에서)과 차가운 상태에서의 가열 시간입니다. 히터, 서미스터 또는 삭스를 교체한 후에는 다시 측정을 사용하세요.",
+ "Reached, but it needs a login. Open it to log in.": "연결됐지만 로그인이 필요합니다. 열어서 로그인하세요.",
+ "Moonraker answered with an error ({code}).": "Moonraker가 오류로 응답했습니다 ({code}).",
+ "Connected: {name}, Klipper ready.": "연결됨: {name}, Klipper 준비됨.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "응답이 없습니다. 주소, 프린터 전원, moonraker.conf의 cors_domains를 확인하세요.",
+ "Connected: {name}, Klipper {state}.": "연결됨: {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "주소가 불완전해 보입니다 (IP 주소는 192.168.1.20처럼 숫자 네 개입니다).",
+ "Remove printer": "프린터 제거",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name} ({host})을(를) 이 브라우저의 프린터 목록에서 제거할까요? 프린터에는 아무 변화가 없습니다."
 }

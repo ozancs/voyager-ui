@@ -5,6 +5,7 @@ import { ref, computed } from 'vue';
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
 import { loadPrinters, savePrinters, currentPrinter, selectPrinter, HOST_RE, newId } from '../printers';
+import { testPrinter, looksIncomplete } from '../fleet';
 import { t } from '../i18n';
 const emit = defineEmits(['close']);
 const rows = ref(loadPrinters().map((p) => ({ ...p })));
@@ -12,6 +13,17 @@ const cur = currentPrinter();
 const here = location.host;
 const add = () => rows.value.push({ id: newId(), name: '', host: '' });
 const remove = (i) => rows.value.splice(i, 1);
+// Test: tries the address, the result is only information (a printer can be saved either way)
+const tests = ref({}); // id -> { busy } or testPrinter() result
+async function test(r) {
+  tests.value[r.id] = { busy: true };
+  tests.value[r.id] = { ...(await testPrinter(clean(r.host))), host: clean(r.host) };
+}
+const result = (r) => {
+  const x = tests.value[r.id];
+  if (x && !x.busy && x.host !== clean(r.host)) return null; // the address changed since the test
+  return x;
+};
 const clean = (h) =>
   String(h || '')
     .trim()
@@ -43,22 +55,35 @@ function save(openId) {
       <span class="mono mu">{{ here }}</span>
       <button class="btn" :disabled="!cur" @click="save('')">{{ cur ? t('Open') : t('Current') }}</button>
     </div>
-    <div v-for="(r, i) in rows" :key="r.id" class="pr">
-      <input v-model="r.name" class="input nm" :placeholder="t('Nickname')" :aria-label="t('Nickname')" />
-      <input
-        v-model="r.host"
-        class="input mono grow"
-        :class="{ bad: r.host && bad(r) }"
-        placeholder="192.168.1.20:7125"
-        spellcheck="false"
-        :aria-label="t('Address')"
-      />
-      <button class="btn" :disabled="bad(r) || cur?.id === r.id" @click="save(r.id)">
-        {{ cur?.id === r.id ? t('Current') : t('Open') }}
-      </button>
-      <button class="btn clear ibtn sm" :aria-label="t('Remove')" @click="remove(i)">
-        <Icon name="trash" :size="16" />
-      </button>
+    <div v-for="(r, i) in rows" :key="r.id" class="prw">
+      <div class="pr">
+        <input v-model="r.name" class="input nm" :placeholder="t('Nickname')" :aria-label="t('Nickname')" />
+        <input
+          v-model="r.host"
+          class="input mono grow"
+          :class="{ bad: r.host && bad(r) }"
+          placeholder="192.168.1.20:7125"
+          spellcheck="false"
+          :aria-label="t('Address')"
+        />
+        <button class="btn" :disabled="bad(r) || tests[r.id]?.busy" @click="test(r)">
+          <Icon :name="tests[r.id]?.busy ? 'refresh' : 'plug'" :class="{ spin: tests[r.id]?.busy }" :size="15" />{{
+            t('Test')
+          }}
+        </button>
+        <button class="btn" :disabled="bad(r) || cur?.id === r.id" @click="save(r.id)">
+          {{ cur?.id === r.id ? t('Current') : t('Open') }}
+        </button>
+        <button class="btn clear ibtn sm" :aria-label="t('Remove')" @click="remove(i)">
+          <Icon name="trash" :size="16" />
+        </button>
+      </div>
+      <p v-if="result(r) && !result(r).busy" class="res" :class="result(r).level">
+        {{ t(result(r).text, result(r).params) }}
+      </p>
+      <p v-if="r.host && !bad(r) && looksIncomplete(clean(r.host))" class="res wn">
+        {{ t('This address looks incomplete (an IP address has four numbers, like 192.168.1.20).') }}
+      </p>
     </div>
     <button class="btn" style="align-self: flex-start" @click="add">
       <Icon name="plus" :size="16" />{{ t('Add printer') }}
@@ -74,6 +99,25 @@ function save(openId) {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.prw {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.res {
+  margin: 0 0 0 178px;
+  font-size: 12px;
+  color: var(--mu);
+}
+.res.ok {
+  color: var(--ok, var(--ac));
+}
+.res.wn {
+  color: var(--wn);
+}
+.res.dg {
+  color: var(--dg);
 }
 .on0 {
   padding: 8px 10px;

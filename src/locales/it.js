@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "{s} s da freddo a {tg}°",
  "Reference: {list}": "Riferimento: {list}",
  "Measure again": "Misura di nuovo",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Ogni riscaldatore è confrontato solo con la propria prima misura allo stesso target: potenza in mantenimento (per l'hotend alla stessa velocità della ventola parti) e tempo di riscaldamento da freddo. Dopo aver cambiato riscaldatore, termistore o calza, usa Misura di nuovo."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Ogni riscaldatore è confrontato solo con la propria prima misura allo stesso target: potenza in mantenimento (per l'hotend alla stessa velocità della ventola parti) e tempo di riscaldamento da freddo. Dopo aver cambiato riscaldatore, termistore o calza, usa Misura di nuovo.",
+ "Reached, but it needs a login. Open it to log in.": "Raggiunta, ma serve l'accesso. Aprila per accedere.",
+ "Moonraker answered with an error ({code}).": "Moonraker ha risposto con un errore ({code}).",
+ "Connected: {name}, Klipper ready.": "Connessa: {name}, Klipper pronto.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "Nessuna risposta. Controlla l'indirizzo, che la stampante sia accesa e cors_domains nel suo moonraker.conf.",
+ "Connected: {name}, Klipper {state}.": "Connessa: {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Questo indirizzo sembra incompleto (un IP ha quattro numeri, come 192.168.1.20).",
+ "Remove printer": "Rimuovi stampante",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Rimuovere {name} ({host}) dall'elenco stampanti di questo browser? Sulla stampante non cambia nulla."
 }

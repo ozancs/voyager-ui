@@ -69,6 +69,32 @@ export async function pollPrinter(p, known = {}) {
   }
 }
 
+// "Test" in the printer list: can this page reach the address? The browser does not say why a request failed
+// (printer off, wrong address or a cors_domains block all look the same), so the message lists all three.
+export async function testPrinter(host) {
+  try {
+    const r = await get(host, '/printer/info');
+    if (r.login) return { ok: true, level: 'wn', text: 'Reached, but it needs a login. Open it to log in.' };
+    if (!r.result)
+      return { ok: false, level: 'dg', text: 'Moonraker answered with an error ({code}).', params: { code: r.error } };
+    const st = r.result.state || '';
+    return {
+      ok: true,
+      level: st === 'ready' ? 'ok' : 'wn',
+      text: st === 'ready' ? 'Connected: {name}, Klipper ready.' : 'Connected: {name}, Klipper {state}.',
+      params: { name: r.result.hostname || host, state: st },
+    };
+  } catch {
+    return {
+      ok: false,
+      level: 'dg',
+      text: 'No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.',
+    };
+  }
+}
+// an IP address with fewer than four parts is almost always a typo
+export const looksIncomplete = (host) => /^\d+(\.\d+){0,2}(:\d+)?$/.test(String(host || '').trim());
+
 // time left from the file progress: elapsed print time / progress - elapsed
 export function timeLeft(st) {
   const p = st.display_status?.progress || st.virtual_sdcard?.progress || 0;

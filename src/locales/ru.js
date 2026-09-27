@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "{s} s от холодного до {tg}°",
  "Reference: {list}": "Эталон: {list}",
  "Measure again": "Измерить заново",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Каждый нагреватель сравнивается только со своим первым замером при той же цели: мощность при удержании (для хотэнда при той же скорости обдува детали) и время нагрева из холодного состояния. После замены нагревателя, термистора или носка используйте Измерить заново."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Каждый нагреватель сравнивается только со своим первым замером при той же цели: мощность при удержании (для хотэнда при той же скорости обдува детали) и время нагрева из холодного состояния. После замены нагревателя, термистора или носка используйте Измерить заново.",
+ "Reached, but it needs a login. Open it to log in.": "Доступен, но нужен вход. Откройте его, чтобы войти.",
+ "Moonraker answered with an error ({code}).": "Moonraker ответил ошибкой ({code}).",
+ "Connected: {name}, Klipper ready.": "Подключено: {name}, Klipper готов.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "Нет ответа. Проверьте адрес, что принтер включён, и cors_domains в его moonraker.conf.",
+ "Connected: {name}, Klipper {state}.": "Подключено: {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Адрес выглядит неполным (в IP-адресе четыре числа, например 192.168.1.20).",
+ "Remove printer": "Удалить принтер",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Удалить {name} ({host}) из списка принтеров этого браузера? На принтере ничего не изменится."
 }

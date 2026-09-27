@@ -1411,5 +1411,13 @@ export default {
  "{s} s from cold to {tg}°": "从冷态到 {tg}° 用时 {s} s",
  "Reference: {list}": "参考：{list}",
  "Measure again": "重新测量",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "每个加热器只与其在相同目标下的首次测量进行比较：保持时的功率（热端需在相同部件风扇转速下）以及从冷态升温的时间。更换加热器、热敏电阻或硅胶套后，请使用“重新测量”。"
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "每个加热器只与其在相同目标下的首次测量进行比较：保持时的功率（热端需在相同部件风扇转速下）以及从冷态升温的时间。更换加热器、热敏电阻或硅胶套后，请使用“重新测量”。",
+ "Reached, but it needs a login. Open it to log in.": "已连接，但需要登录。打开它以登录。",
+ "Moonraker answered with an error ({code}).": "Moonraker 返回了错误（{code}）。",
+ "Connected: {name}, Klipper ready.": "已连接：{name}，Klipper 就绪。",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "没有响应。请检查地址、打印机是否开机，以及其 moonraker.conf 中的 cors_domains。",
+ "Connected: {name}, Klipper {state}.": "已连接：{name}，Klipper {state}。",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "此地址看起来不完整（IP 地址有四个数字，例如 192.168.1.20）。",
+ "Remove printer": "移除打印机",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "从此浏览器的打印机列表中移除 {name}（{host}）？打印机上不会有任何改变。"
 }

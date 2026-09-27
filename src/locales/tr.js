@@ -1412,5 +1412,13 @@ export default {
  "{s} s from cold to {tg}°": "Soğuktan {tg}°'ye {s} s",
  "Reference: {list}": "Referans: {list}",
  "Measure again": "Tekrar ölç",
- "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Her ısıtıcı sadece aynı hedefteki kendi ilk ölçümüyle karşılaştırılır: sıcaklığı tutarken harcanan güç (hotend için aynı parça fanı hızında) ve soğuktan ısınma süresi. Isıtıcıyı, termistörü ya da çorabı değiştirdikten sonra Tekrar ölç'ü kullan."
+ "Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.": "Her ısıtıcı sadece aynı hedefteki kendi ilk ölçümüyle karşılaştırılır: sıcaklığı tutarken harcanan güç (hotend için aynı parça fanı hızında) ve soğuktan ısınma süresi. Isıtıcıyı, termistörü ya da çorabı değiştirdikten sonra Tekrar ölç'ü kullan.",
+ "Reached, but it needs a login. Open it to log in.": "Ulaşıldı ama giriş istiyor. Açıp giriş yap.",
+ "Moonraker answered with an error ({code}).": "Moonraker hata döndürdü ({code}).",
+ "Connected: {name}, Klipper ready.": "Bağlandı: {name}, Klipper hazır.",
+ "No answer. Check the address, that the printer is on, and cors_domains in its moonraker.conf.": "Cevap yok. Adresi, yazıcının açık olduğunu ve moonraker.conf'taki cors_domains ayarını kontrol et.",
+ "Connected: {name}, Klipper {state}.": "Bağlandı: {name}, Klipper {state}.",
+ "This address looks incomplete (an IP address has four numbers, like 192.168.1.20).": "Bu adres eksik görünüyor (IP adresinde dört sayı olur, örneğin 192.168.1.20).",
+ "Remove printer": "Yazıcıyı kaldır",
+ "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name} ({host}) bu tarayıcının yazıcı listesinden kaldırılsın mı? Yazıcıda hiçbir şey değişmez."
 }
