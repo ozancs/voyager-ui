@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23.3
+
+- Console: hovering a command says what it does (G28, G90, M104 and the other standard G-codes are described, Klipper commands and macros show their help text)
+- Restart and Firmware Restart go through Moonraker instead of the G-code queue, so they work while a long command (heater wait, calibration) is running. Also when typed in the console
+- Live Z: the arrows follow Invert Z like the Toolhead card (with a moving bed, up lifts the bed closer to the nozzle); the tooltips say which way the gap changes
+
 ## 0.23.2
 
 - Exclude object: excluding the last object that is still printing offers to cancel the print instead (otherwise Klipper keeps running the file without printing)
