@@ -4,7 +4,7 @@
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
-import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode, toast } from '../store';
+import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode, toast, cancelPrint } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
@@ -71,7 +71,7 @@ const why = computed(() => {
 });
 function cancel() {
   ask.value = false;
-  gcode('CANCEL_PRINT');
+  cancelPrint();
 }
 function reprint() {
   if (ps.value.filename) startPrint(ps.value.filename);

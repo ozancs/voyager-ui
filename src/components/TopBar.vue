@@ -25,6 +25,7 @@ import {
   dismiss,
   dismissAll,
   prettyName,
+  cancelPrint,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -392,7 +393,7 @@ function pause() {
         class="btn lg dgf"
         @click="
           askCancel = false;
-          gcode('CANCEL_PRINT');
+          cancelPrint();
         "
       >
         {{ t('Cancel print') }}

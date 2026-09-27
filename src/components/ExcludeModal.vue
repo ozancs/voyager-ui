@@ -6,7 +6,7 @@
 import { ref, computed } from 'vue';
 import Modal from './Modal.vue';
 import ObjectMap from './ObjectMap.vue';
-import { S, gcode } from '../store';
+import { S, gcode, cancelPrint } from '../store';
 import { t } from '../i18n';
 const emit = defineEmits(['close']);
 const pick = ref(null);
@@ -20,10 +20,10 @@ const isLast = computed(() => {
   const left = (eo.objects || []).map((o) => o.name).filter((n) => !eo.excluded_objects?.includes(n));
   return !!pick.value && left.length === 1 && left[0] === pick.value;
 });
-function cancelPrint() {
+function cancelInstead() {
   pick.value = null;
   emit('close');
-  gcode('CANCEL_PRINT').catch(() => {});
+  cancelPrint();
 }
 async function doExclude() {
   const n = pick.value;
@@ -80,7 +80,7 @@ async function doExclude() {
     <template #foot
       ><button class="btn lg" @click="pick = null">{{ t('Back') }}</button
       ><button class="btn lg" @click="doExclude">{{ t('Exclude only') }}</button
-      ><button class="btn lg dgf" @click="cancelPrint">{{ t('Cancel print') }}</button></template
+      ><button class="btn lg dgf" @click="cancelInstead">{{ t('Cancel print') }}</button></template
     >
   </Modal>
   <Modal v-else-if="pick" :title="t('Exclude object?')" @close="pick = null">

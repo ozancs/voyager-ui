@@ -238,7 +238,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     <div class="toasts">
       <TransitionGroup name="tst">
         <div v-for="ts in state.toasts" :key="ts.id" class="toast" :class="ts.kind">
-          <Icon v-if="ts.kind === 'error'" name="warn" :size="18" class="ti" />
+          <Icon v-if="ts.kind === 'error' || ts.kind === 'warn'" name="warn" :size="18" class="ti" :class="ts.kind" />
           <div class="col grow" style="gap: 3px; min-width: 0">
             <span class="tm"
               >{{ ts.msg }}<b v-if="ts.n > 1" class="mono tn">×{{ ts.n }}</b></span
@@ -423,6 +423,12 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
 .toast.error {
   border-color: rgba(240, 106, 106, 0.55);
   background: var(--toast-err);
+}
+.toast.warn {
+  border-color: var(--wn);
+}
+.ti.warn {
+  color: var(--wn);
 }
 .ti {
   color: var(--dg);

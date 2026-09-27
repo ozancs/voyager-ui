@@ -1421,5 +1421,7 @@
 "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.",
 "Last object",
 "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?",
-"Exclude only"
+"Exclude only",
+"Cancel is waiting in Klipper",
+"Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed."
 ]

@@ -1422,5 +1422,7 @@ export default {
  "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "{name} ({host})을(를) 이 브라우저의 프린터 목록에서 제거할까요? 프린터에는 아무 변화가 없습니다.",
  "Last object": "마지막 객체",
  "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "아직 출력 중인 마지막 객체입니다. 제외하면 프린터는 아무것도 출력하지 않으면서 파일을 계속 실행합니다(가열 및 이동). 대신 출력을 취소할까요?",
- "Exclude only": "제외만"
+ "Exclude only": "제외만",
+ "Cancel is waiting in Klipper": "취소가 Klipper에서 대기 중",
+ "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper가 바쁩니다. 보통 히터가 온도에 도달하기를 기다리는 중입니다. 대기가 끝나면 바로 취소가 실행됩니다. E-STOP은 즉시 멈추며, 이후 Firmware Restart가 필요합니다."
 }

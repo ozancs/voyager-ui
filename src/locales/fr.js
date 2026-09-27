@@ -1422,5 +1422,7 @@ export default {
  "Remove {name} ({host}) from the printer list of this browser? Nothing changes on the printer.": "Retirer {name} ({host}) de la liste des imprimantes de ce navigateur ? Rien ne change sur l'imprimante.",
  "Last object": "Dernier objet",
  "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "C'est le dernier objet encore imprimé. Après l'avoir exclu, l'imprimante continue le fichier (chauffe et déplacements) sans rien imprimer. Annuler l'impression à la place ?",
- "Exclude only": "Exclure seulement"
+ "Exclude only": "Exclure seulement",
+ "Cancel is waiting in Klipper": "L'annulation attend dans Klipper",
+ "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper est occupé, en général il attend qu'une chauffe atteigne sa température. L'annulation s'exécute dès que cette attente se termine. E-STOP arrête tout de suite, puis un Firmware Restart est nécessaire."
 }

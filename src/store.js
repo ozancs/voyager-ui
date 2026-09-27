@@ -462,6 +462,25 @@ export const gcode = async (script, { quiet = false } = {}) => {
   }
 };
 
+// CANCEL_PRINT waits in Klipper's G-code queue like any command: while the printer waits for a heater (M190,
+// M109, TEMPERATURE_WAIT in PRINT_START) it only runs after that wait. When it has not gone through after a
+// few seconds, say so, and that E-STOP stops at once (followed by a FIRMWARE_RESTART).
+export function cancelPrint() {
+  const tm = setTimeout(
+    () =>
+      toast(t('Cancel is waiting in Klipper'), 'warn', {
+        hint: t(
+          'Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.',
+        ),
+        ms: 15000,
+      }),
+    4000,
+  );
+  return gcode('CANCEL_PRINT')
+    .catch(() => {})
+    .finally(() => clearTimeout(tm));
+}
+
 let consoleSeq = 0; // ids stay unique after the 600 line cap, several lines can share a timestamp
 export function pushConsole(message, type = 'response', time = Date.now() / 1000) {
   state.console.push({ message, type, time, id: ++consoleSeq });
