@@ -3,6 +3,8 @@
 // "address:port" (Moonraker's own port, usually 7125, or the port of an nginx that proxies it).
 // The entry with id '' is the printer this page was loaded from (no host: same address as the page).
 // Switching printers reloads the page, so nothing from the previous printer stays in memory.
+import { ref } from 'vue';
+
 const LIST = 'voyager-ui-printers';
 const CUR = 'voyager-ui-printer';
 
@@ -22,11 +24,19 @@ export function loadPrinters() {
   return Array.isArray(l) ? l.filter((p) => p && p.id && HOST_RE.test(p.host || '')) : [];
 }
 
+// the saved list as reactive state: the printer menu and the All printers page follow it without a reload
+export const printerList = ref(loadPrinters());
 export function savePrinters(list) {
   try {
     localStorage.setItem(LIST, JSON.stringify(list.map(({ id, name, host }) => ({ id, name, host }))));
   } catch {}
+  printerList.value = loadPrinters();
 }
+// changed in another tab of this browser
+if (typeof window !== 'undefined')
+  window.addEventListener('storage', (e) => {
+    if (e.key === LIST) printerList.value = loadPrinters();
+  });
 
 // the printer this page talks to: an entry of the list, or null for the page's own address
 export function currentPrinter() {

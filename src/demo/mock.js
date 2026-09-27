@@ -1,6 +1,6 @@
 // Browser-side fake Moonraker for the live demo (npm run build:demo). Replaces WebSocket and fetch so the UI runs
 // without a printer. Everything is in memory: settings reset on reload, g-code is only echoed to the console card.
-import { currentHost } from '../printers';
+import { currentHost, savePrinters } from '../printers';
 
 let sockets = [];
 function wsAll(m) {
@@ -945,8 +945,7 @@ const DEMO_PRINTERS = [
   { id: 'demo-trident', name: 'Trident', host: 'trident.local' },
 ];
 try {
-  if (localStorage.getItem('voyager-ui-printers') === null)
-    localStorage.setItem('voyager-ui-printers', JSON.stringify(DEMO_PRINTERS));
+  if (localStorage.getItem('voyager-ui-printers') === null) savePrinters(DEMO_PRINTERS);
 } catch {}
 const DEMO_HOST = currentHost();
 const drop = (re) => {

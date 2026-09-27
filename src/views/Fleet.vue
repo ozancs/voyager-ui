@@ -11,7 +11,7 @@ import { go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
 
-const list = fleetList();
+const list = computed(fleetList);
 const here = location.host;
 const data = reactive({}); // id -> { state, status, hostname, cam }
 const tick = ref(0);
@@ -21,7 +21,7 @@ async function refresh() {
   if (busy) return;
   busy = true;
   await Promise.all(
-    list
+    list.value
       .filter((p) => !p.cur)
       .map(async (p) => {
         const prev = data[p.id] || {};
@@ -40,7 +40,7 @@ onBeforeUnmount(() => clearInterval(timer));
 
 // the connected printer from the live state, the others from polling
 const cards = computed(() =>
-  list.map((p) => {
+  list.value.map((p) => {
     if (p.cur) {
       const status = {
         print_stats: S('print_stats'),

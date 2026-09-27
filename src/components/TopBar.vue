@@ -6,7 +6,7 @@ import Icon from './Icon.vue';
 import Logo from './Logo.vue';
 import Modal from './Modal.vue';
 import Popover from './Popover.vue';
-import { loadPrinters, currentPrinter, selectPrinter } from '../printers';
+import { printerList, currentPrinter, selectPrinter } from '../printers';
 import PowerList from './PowerList.vue';
 import { powerAsk, flipPower } from '../power';
 const pAsk = computed(() => powerAsk.value);
@@ -73,7 +73,7 @@ const active = computed(() => ['printing', 'paused'].includes(printState.value))
 const here = location.host;
 const hostName = currentPrinter()?.host || here;
 // printer switcher next to the name
-const printers = loadPrinters();
+const printers = printerList;
 const curId = currentPrinter()?.id || '';
 const pmOpen = ref(false);
 const pmBtn = ref(null);
