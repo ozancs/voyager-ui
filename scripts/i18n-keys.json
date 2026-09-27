@@ -1423,5 +1423,9 @@
 "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?",
 "Exclude only",
 "Cancel is waiting in Klipper",
-"Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed."
+"Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.",
+"Bed down, farther from the nozzle",
+"Nozzle down, closer to the bed",
+"Bed up, closer to the nozzle",
+"Nozzle up, farther from the bed"
 ]

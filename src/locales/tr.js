@@ -1425,5 +1425,9 @@ export default {
  "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "Bu, hâlâ basılan son obje. Bunu exclude edersen yazıcı dosyayı çalıştırmaya devam eder (ısıtır ve hareket eder) ama hiçbir şey basmaz. Onun yerine baskıyı iptal edelim mi?",
  "Exclude only": "Sadece exclude et",
  "Cancel is waiting in Klipper": "İptal Klipper'da bekliyor",
- "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper meşgul, genelde bir ısıtıcının sıcaklığa ulaşmasını bekliyor. İptal bu bekleme biter bitmez çalışır. E-STOP hemen durdurur, sonra Firmware Restart gerekir."
+ "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper meşgul, genelde bir ısıtıcının sıcaklığa ulaşmasını bekliyor. İptal bu bekleme biter bitmez çalışır. E-STOP hemen durdurur, sonra Firmware Restart gerekir.",
+ "Bed down, farther from the nozzle": "Tabla aşağı, nozuldan uzaklaşır",
+ "Nozzle down, closer to the bed": "Nozul aşağı, tablaya yaklaşır",
+ "Bed up, closer to the nozzle": "Tabla yukarı, nozula yaklaşır",
+ "Nozzle up, farther from the bed": "Nozul yukarı, tabladan uzaklaşır"
 }

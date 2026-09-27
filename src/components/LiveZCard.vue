@@ -29,7 +29,10 @@ const step = ref(null);
 const cur = computed(() =>
   steps.value.includes(step.value) ? step.value : steps.value[Math.min(1, steps.value.length - 1)] || 0.01,
 );
+// d > 0: nozzle farther from the bed (Z offset up). The arrows follow the Invert Z setting like the Toolhead card:
+// with a moving bed (Invert Z on) the up arrow lifts the bed, which brings it closer to the nozzle.
 const adj = (d) => gcode(`SET_GCODE_OFFSET Z_ADJUST=${d > 0 ? '' : '-'}${cur.value} MOVE=1`);
+const bedMoves = computed(() => !!state.settings.invertZ);
 const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APPLY_ENDSTOP');
 </script>
 <template>
@@ -55,7 +58,12 @@ const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
       >
     </div>
     <div class="zo">
-      <button class="btn big" :aria-label="t('Lower nozzle')" @click="adj(-1)">
+      <button
+        class="btn big"
+        :aria-label="bedMoves ? t('Bed down, farther from the nozzle') : t('Nozzle down, closer to the bed')"
+        :data-tip="bedMoves ? t('Bed down, farther from the nozzle') : t('Nozzle down, closer to the bed')"
+        @click="adj(bedMoves ? 1 : -1)"
+      >
         <Icon name="down" :size="18" :stroke="2.6" />
       </button>
       <div class="zv">
@@ -64,7 +72,12 @@ const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
           (zoff >= 0 ? '+' : '') + zoff.toFixed(3)
         }}</b>
       </div>
-      <button class="btn big" :aria-label="t('Raise nozzle')" @click="adj(1)">
+      <button
+        class="btn big"
+        :aria-label="bedMoves ? t('Bed up, closer to the nozzle') : t('Nozzle up, farther from the bed')"
+        :data-tip="bedMoves ? t('Bed up, closer to the nozzle') : t('Nozzle up, farther from the bed')"
+        @click="adj(bedMoves ? -1 : 1)"
+      >
         <Icon name="up" :size="18" :stroke="2.6" />
       </button>
     </div>

@@ -1424,5 +1424,9 @@ export default {
  "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "Dit is het laatste object dat nog geprint wordt. Na uitsluiten loopt het bestand door (verwarmen en bewegen) zonder iets te printen. In plaats daarvan de print annuleren?",
  "Exclude only": "Alleen uitsluiten",
  "Cancel is waiting in Klipper": "Annuleren wacht in Klipper",
- "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper is bezig, meestal wacht hij tot een verwarming op temperatuur is. Het annuleren gebeurt zodra dat wachten voorbij is. E-STOP stopt meteen, daarna is een Firmware Restart nodig."
+ "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper is bezig, meestal wacht hij tot een verwarming op temperatuur is. Het annuleren gebeurt zodra dat wachten voorbij is. E-STOP stopt meteen, daarna is een Firmware Restart nodig.",
+ "Bed down, farther from the nozzle": "Bed omlaag, verder van de nozzle",
+ "Nozzle down, closer to the bed": "Nozzle omlaag, dichter bij het bed",
+ "Bed up, closer to the nozzle": "Bed omhoog, dichter bij de nozzle",
+ "Nozzle up, farther from the bed": "Nozzle omhoog, verder van het bed"
 }

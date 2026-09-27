@@ -1424,5 +1424,9 @@ export default {
  "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "这是仍在打印的最后一个对象。排除后打印机会继续执行文件（加热和移动）但不打印任何东西。改为取消打印吗？",
  "Exclude only": "仅排除",
  "Cancel is waiting in Klipper": "取消正在 Klipper 中排队",
- "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper 正忙，通常是在等待加热器达到温度。等待结束后会立即执行取消。E-STOP 会立即停止，之后需要 Firmware Restart。"
+ "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper 正忙，通常是在等待加热器达到温度。等待结束后会立即执行取消。E-STOP 会立即停止，之后需要 Firmware Restart。",
+ "Bed down, farther from the nozzle": "热床下降，远离喷嘴",
+ "Nozzle down, closer to the bed": "喷嘴下降，靠近热床",
+ "Bed up, closer to the nozzle": "热床上升，靠近喷嘴",
+ "Nozzle up, farther from the bed": "喷嘴上升，远离热床"
 }

@@ -1424,5 +1424,9 @@ export default {
  "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "Це останній об'єкт, що ще друкується. Після виключення принтер продовжить виконувати файл (нагрів і рух), нічого не друкуючи. Скасувати друк натомість?",
  "Exclude only": "Лише виключити",
  "Cancel is waiting in Klipper": "Скасування чекає в Klipper",
- "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper зайнятий, зазвичай чекає, поки нагрівач досягне температури. Скасування виконається одразу після цього очікування. E-STOP зупиняє миттєво, після нього потрібен Firmware Restart."
+ "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper зайнятий, зазвичай чекає, поки нагрівач досягне температури. Скасування виконається одразу після цього очікування. E-STOP зупиняє миттєво, після нього потрібен Firmware Restart.",
+ "Bed down, farther from the nozzle": "Стіл вниз, далі від сопла",
+ "Nozzle down, closer to the bed": "Сопло вниз, ближче до столу",
+ "Bed up, closer to the nozzle": "Стіл вгору, ближче до сопла",
+ "Nozzle up, farther from the bed": "Сопло вгору, далі від столу"
 }

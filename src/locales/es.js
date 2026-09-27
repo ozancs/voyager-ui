@@ -1424,5 +1424,9 @@ export default {
  "This is the last object still printing. After excluding it the printer keeps running the file (heating and moving) without printing anything. Cancel the print instead?": "Es el último objeto que se sigue imprimiendo. Si lo excluyes, la impresora sigue ejecutando el archivo (calentando y moviéndose) sin imprimir nada. ¿Cancelar la impresión en su lugar?",
  "Exclude only": "Solo excluir",
  "Cancel is waiting in Klipper": "La cancelación espera en Klipper",
- "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper está ocupado, normalmente esperando a que un calentador llegue a su temperatura. La cancelación se ejecuta en cuanto termine esa espera. E-STOP para al instante, después hace falta un Firmware Restart."
+ "Klipper is busy, usually waiting for a heater to reach its temperature. The cancel runs as soon as that wait ends. E-STOP stops right away, then a Firmware Restart is needed.": "Klipper está ocupado, normalmente esperando a que un calentador llegue a su temperatura. La cancelación se ejecuta en cuanto termine esa espera. E-STOP para al instante, después hace falta un Firmware Restart.",
+ "Bed down, farther from the nozzle": "Cama abajo, más lejos de la boquilla",
+ "Nozzle down, closer to the bed": "Boquilla abajo, más cerca de la cama",
+ "Bed up, closer to the nozzle": "Cama arriba, más cerca de la boquilla",
+ "Nozzle up, farther from the bed": "Boquilla arriba, más lejos de la cama"
 }
