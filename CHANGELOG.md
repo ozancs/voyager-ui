@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23.1
+
+- Fixed: the printer menu and All printers did not show added or removed printers until the page was reloaded
+- Manage printers: Test button next to each address (connected, needs a login or no answer); a printer can be saved either way. An IP address with fewer than four numbers gets a hint
+- All printers: saved printers can be renamed, get a new address or be removed
+
 ## 0.23.0
 
 - Check before printing: every way of starting a print first compares the file with the printer (material and remaining weight of the active Spoolman spool, nozzle size, temperatures, height, empty filament sensors) and asks when something does not fit. Without Spoolman or an active spool those checks are skipped. Can be turned off in Settings
