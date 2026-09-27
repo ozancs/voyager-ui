@@ -294,7 +294,7 @@ EOF
 
 # ---------------------------------------------------------------- Moonraker authorization
 # The browser reaches Moonraker through our nginx, so Moonraker sees the browser's LAN address.
-# That address must be in trusted_clients (or the user has to log in, which this UI does not do yet).
+# That address must be in trusted_clients, otherwise the UI asks for a Moonraker login.
 auth_check() {  # $1 conf file -> prints: ok | missing <subnet> | force_logins
   python3 - "$1" "$(hostname -I 2>/dev/null | awk '{print $1}')" <<'EOF'
 import sys, re, ipaddress
@@ -437,15 +437,15 @@ EOF
   case "$a" in
     ok) ;;
     force_logins)
-      warn "authorization" "force_logins is on in moonraker.conf. This UI has no login screen yet,"
-      echo "     set force_logins: False under [authorization] or add your network to trusted_clients."; status="login needed" ;;
+      ok "authorization" "force_logins is on: the UI asks for your Moonraker user name and password"
+      status="login with your Moonraker user" ;;
     missing*)
       net="${a#missing }"
-      echo "  ${Y}!${N} Moonraker does not trust $net yet, the UI would be refused from your PC."
+      echo "  ${Y}!${N} Moonraker does not trust $net yet, the UI would ask for a Moonraker login from your PC."
       echo "    ${D}it needs this under [authorization] in moonraker.conf:${N}"
       echo "      trusted_clients:"; echo "          $net"
       if yesno "  Add it now? (a backup is kept as moonraker.conf.bak-oznlab)" y; then add_trusted "$conf" "$net"; restart=1; echo "  added"
-      else status="add $net to trusted_clients"; fi ;;
+      else status="login needed (or add $net to trusted_clients)"; fi ;;
   esac
   [ "$restart" = 1 ] && restart_moonraker "$inst"
   SUMMARY+=("$inst|$p|$mrp|$status")

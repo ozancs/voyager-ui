@@ -114,4 +114,6 @@ What the installer does: checks the system first, finds every printer on the hos
 --uninstall              remove files, nginx site and update_manager section. Settings stay in the Moonraker database
 ```
 
-Not supported yet: Creality K1, Sonic Pad and other OpenWrt hosts, Moonraker with `force_logins`.
+Moonraker with `force_logins` or an address outside `trusted_clients`: the UI asks for your Moonraker user name and password. This was tested against a simulated Moonraker, not a real one yet, so reports are welcome.
+
+Not supported yet: Creality K1, Sonic Pad and other OpenWrt hosts.
