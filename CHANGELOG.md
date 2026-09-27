@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23.2
+
+- Exclude object: excluding the last object that is still printing offers to cancel the print instead (otherwise Klipper keeps running the file without printing)
+- Cancel print: when Klipper has not taken the cancel after a few seconds (usually because it is waiting for a heater), a warning says so and that E-STOP stops at once
+- Moonraker with force_logins: the installer no longer calls it unsupported, the UI asks for a login
+
 ## 0.23.1
 
 - Fixed: the printer menu and All printers did not show added or removed printers until the page was reloaded
