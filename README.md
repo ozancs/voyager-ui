@@ -10,11 +10,23 @@ A web interface for Klipper printers. Runs next to Mainsail or Fluidd on its own
 
 Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KIAUH.
 
+## Live demo
+
+**[Try it in your browser](https://ozancs.github.io/voyager-ui/)**. It is a simulated printer, nothing is real, so click anything. The printer menu next to the name has a few more demo printers.
+
 ## What it does
 
-A dashboard you arrange yourself (drag, resize, hide, colour the cards), a config editor that understands Klipper and checks your files before you save, and Ctrl+K to reach any page, macro, file or setting by typing a few letters.
+- **Your own dashboard.** Drag, resize, hide and colour the cards. It can switch to a second layout while printing.
+- **Checks the file before printing.** Wrong material or not enough filament on the spool (with Spoolman), wrong nozzle size, too hot or too tall: it asks before the print starts.
+- **All your printers in one place.** Switch between them, or see all of them on one page with progress and camera.
+- **Calibrations in one page.** Input shaper, PID, probe, bed leveling, Shake&Tune and more, with the results shown as plain numbers.
+- **Errors in plain words.** Common Klipper errors come with the usual cause and what to check.
+- **A config editor that knows Klipper.** It checks your files before you save and keeps a backup.
+- **Health page.** Board connection errors, driver faults, heaters compared with their own earlier behaviour, maintenance reminders.
+- **Ctrl+K.** Type a few letters to reach any page, macro, file or setting.
+- **14 languages.**
 
-Reading is boring. Go click around the **[live demo](https://ozancs.github.io/voyager-ui/)** (a simulated printer running in your browser, nothing is real). If it feels right, install it on your printer and try it there.
+The full list is at the bottom, under For the curious.
 
 Video: coming soon.
 
