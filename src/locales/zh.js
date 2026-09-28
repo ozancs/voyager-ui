@@ -1458,5 +1458,10 @@ export default {
  "Set the acceleration": "设置加速度",
  "Speed factor in percent": "速度倍率（百分比）",
  "Extrusion factor (flow) in percent": "挤出倍率（流量，百分比）",
- "Wait until all moves are done": "等待所有移动完成"
+ "Wait until all moves are done": "等待所有移动完成",
+ "A print is running": "正在打印",
+ "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} 会自行归零、探测或移动打印机。现在发送会在打印的行之间执行，喷嘴可能撞到模型或热床。",
+ "Send anyway": "仍然发送",
+ "Don’t send": "不发送",
+ "Locked while printing": "打印时已锁定"
 }

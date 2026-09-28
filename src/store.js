@@ -183,6 +183,7 @@ export const state = reactive({
   settingsOpen: null, // name of the settings dialog tab while it is open
   printersOpen: false, // the printer list dialog (printers.js)
   preprint: null, // { filename, issues, resolve } while the pre-print check asks (PreprintDialog.vue)
+  guard: null, // { script, cmd, resolve } while a risky command waits for a confirm during a print (GuardDialog.vue)
   dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
   etaLearn: { k: null, n: 0 }, // how much real prints differ from the slicer estimate (median of past prints)
 });
@@ -452,7 +453,43 @@ export function useApiEvent(method, fn) {
 export const excludeObjects = computed(() => S('exclude_object'));
 
 // ---------- actions ----------
-export const gcode = async (script, { quiet = false } = {}) => {
+// Commands that home, probe, level or shake the printer. Sent from the UI while a print runs or is paused,
+// Klipper would run them between the lines of the print: the toolhead dives to probe or home and hits the part.
+// gcode() asks first (GuardDialog.vue); macros count when their gcode calls one of these (checked 3 levels deep).
+const DANGER =
+  /^(G28|BED_MESH_CALIBRATE|QUAD_GANTRY_LEVEL|Z_TILT_ADJUST|SCREWS_TILT_CALCULATE|BED_TILT_CALIBRATE|DELTA_CALIBRATE|PROBE|PROBE_CALIBRATE|PROBE_ACCURACY|Z_ENDSTOP_CALIBRATE|MANUAL_PROBE|PROBE_EDDY_CURRENT_CALIBRATE|LDC_CALIBRATE_DRIVE_CURRENT|TEMPERATURE_PROBE_CALIBRATE|SHAPER_CALIBRATE|TEST_RESONANCES|AXES_SHAPER_CALIBRATION|COMPARE_BELTS_RESPONSES|CREATE_VIBRATIONS_PROFILE|AXES_MAP_CALIBRATION|EXCITATE_AXIS_AT_FREQ|PID_CALIBRATE|MPC_CALIBRATE|CALIBRATE_Z|BEACON_\w*CALIBRATE|CARTOGRAPHER_\w*CALIBRATE|OZNLAB_(TAP|MESH|MESH_SETUP|THERMAL_CAL|HOME_TEST|MAX_FLOW|RETRACT_TEST|TEMP_SCAN|TEST|SETUP))$/;
+function macroCalls(name, depth) {
+  if (depth > 3) return null;
+  const cfg = S('configfile').config || {};
+  const key = Object.keys(cfg).find((k) => k.toLowerCase() === 'gcode_macro ' + name.toLowerCase());
+  const body = key ? String(cfg[key].gcode || '') : '';
+  return body ? dangerIn(body, depth + 1) : null;
+}
+// the first risky command in a script (or in a macro it calls), or null
+export function dangerIn(script, depth = 0) {
+  for (const line of String(script || '').split('\n')) {
+    const word = line
+      .replace(/[;#].*$/, '')
+      .trim()
+      .split(/\s+/)[0]
+      ?.toUpperCase();
+    if (!word || !/^[A-Z_][A-Z0-9_]*$/.test(word)) continue;
+    if (DANGER.test(word)) return word;
+    const inner = macroCalls(word, depth);
+    if (inner) return depth ? inner : word + ' (' + inner + ')';
+  }
+  return null;
+}
+
+export const gcode = async (script, { quiet = false, force = false } = {}) => {
+  if (!force && isPrinting.value) {
+    const cmd = dangerIn(script);
+    if (cmd && !(await new Promise((resolve) => (state.guard = { script, cmd, resolve })))) {
+      state.guard = null;
+      return;
+    }
+    state.guard = null;
+  }
   pushConsole(script, 'command');
   try {
     await api.gcode(script);

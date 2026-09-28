@@ -5,7 +5,9 @@ import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import Toggle from './Toggle.vue';
 import CmdInput from './CmdInput.vue';
-import { state, gcode, macroList } from '../store';
+import { state, gcode, macroList, isPrinting, dangerIn } from '../store';
+// while printing, buttons whose command homes, probes or levels look locked (clicking still asks, see GuardDialog)
+const locked = (g) => isPrinting.value && !!dangerIn(g);
 import IconPicker from './IconPicker.vue';
 import { t } from '../i18n';
 
@@ -97,9 +99,9 @@ function onDrop(i) {
         v-for="(f, i) in favs"
         :key="f.id"
         class="fav"
-        :class="{ hot: f.highlight, busy: busy === f.id, drag: dragI === i }"
+        :class="{ hot: f.highlight, busy: busy === f.id, drag: dragI === i, locked: !state.favEdit && locked(f.gcode) }"
         :style="{ '--k': f.color || null }"
-        :data-tip="state.favEdit ? '' : f.gcode"
+        :data-tip="state.favEdit ? '' : locked(f.gcode) ? t('Locked while printing') + ': ' + f.gcode : f.gcode"
         :draggable="state.favEdit"
         @dragstart="dragI = i"
         @dragend="dragI = null"
@@ -188,6 +190,9 @@ function onDrop(i) {
 </template>
 
 <style scoped>
+.fav.locked {
+  opacity: 0.4;
+}
 /* its own band under the top bar: a touch lighter than the page and closed with a hairline, so the macro row reads as one thing */
 .fb {
   height: 60px;

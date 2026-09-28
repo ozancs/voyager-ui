@@ -1458,5 +1458,10 @@ export default {
  "Set the acceleration": "Ustaw przyspieszenie",
  "Speed factor in percent": "Współczynnik prędkości w procentach",
  "Extrusion factor (flow) in percent": "Współczynnik ekstruzji (przepływ) w procentach",
- "Wait until all moves are done": "Czekaj na zakończenie wszystkich ruchów"
+ "Wait until all moves are done": "Czekaj na zakończenie wszystkich ruchów",
+ "A print is running": "Trwa wydruk",
+ "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} samodzielnie bazuje, sonduje lub porusza drukarką. Wysłane teraz wykona się między liniami wydruku i dysza może uderzyć w wydruk lub stół.",
+ "Send anyway": "Wyślij mimo to",
+ "Don’t send": "Nie wysyłaj",
+ "Locked while printing": "Zablokowane podczas druku"
 }

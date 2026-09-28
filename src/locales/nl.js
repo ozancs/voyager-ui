@@ -1458,5 +1458,10 @@ export default {
  "Set the acceleration": "Versnelling instellen",
  "Speed factor in percent": "Snelheidsfactor in procent",
  "Extrusion factor (flow) in percent": "Extrusiefactor (flow) in procent",
- "Wait until all moves are done": "Wachten tot alle bewegingen klaar zijn"
+ "Wait until all moves are done": "Wachten tot alle bewegingen klaar zijn",
+ "A print is running": "Er loopt een print",
+ "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} homet, meet of beweegt de printer zelf. Nu verzonden draait het tussen de regels van de print en kan de nozzle tegen het onderdeel of het bed botsen.",
+ "Send anyway": "Toch verzenden",
+ "Don’t send": "Niet verzenden",
+ "Locked while printing": "Vergrendeld tijdens printen"
 }

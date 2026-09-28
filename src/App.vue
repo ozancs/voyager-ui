@@ -11,6 +11,7 @@ import ExcludeModal from './components/ExcludeModal.vue';
 import Icon from './components/Icon.vue';
 import UpdateModal from './components/UpdateModal.vue';
 import PreprintDialog from './components/PreprintDialog.vue';
+import GuardDialog from './components/GuardDialog.vue';
 import ExplainBox from './components/ExplainBox.vue';
 import { explain } from './explain';
 import Tooltip from './components/Tooltip.vue';
@@ -229,6 +230,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     <ExcludeModal v-if="state.showExclude" @close="state.showExclude = false" />
     <UpdateModal />
     <PreprintDialog />
+    <GuardDialog />
     <Transition name="fade"
       ><div v-if="state.connected && !state.booted" class="bootpill">
         <Icon name="refresh" :size="15" class="spin" /><span>{{ bootTask }}</span>

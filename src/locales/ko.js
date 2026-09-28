@@ -1458,5 +1458,10 @@ export default {
  "Set the acceleration": "가속도 설정",
  "Speed factor in percent": "속도 배율 (%)",
  "Extrusion factor (flow) in percent": "압출 배율 (플로우, %)",
- "Wait until all moves are done": "모든 이동이 끝날 때까지 대기"
+ "Wait until all moves are done": "모든 이동이 끝날 때까지 대기",
+ "A print is running": "출력 중입니다",
+ "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd}는 프린터를 스스로 홈/프로빙/이동시킵니다. 지금 보내면 출력 줄 사이에 실행되어 노즐이 출력물이나 베드에 부딪힐 수 있습니다.",
+ "Send anyway": "그래도 보내기",
+ "Don’t send": "보내지 않기",
+ "Locked while printing": "출력 중 잠김"
 }

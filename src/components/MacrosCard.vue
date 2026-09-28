@@ -4,7 +4,8 @@
 defineOptions({ inheritAttrs: false });
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
-import { state, S, gcode, macroList } from '../store';
+import { state, S, gcode, macroList, isPrinting, dangerIn } from '../store';
+const locked = (m) => isPrinting.value && !!dangerIn(m);
 import { macroParams } from '../macros';
 import { t } from '../i18n';
 
@@ -109,7 +110,12 @@ const pretty = (m) => m.replace(/_/g, ' ');
         }"
       >
         <div v-for="m in shown" :key="m" class="mb" :class="{ hidm: m.startsWith('_') }">
-          <button class="run" :data-tip="S('gcode_macro ' + m).description || m" @click="click(m, $event)">
+          <button
+            class="run"
+            :class="{ locked: locked(m) }"
+            :data-tip="(locked(m) ? t('Locked while printing') + ': ' : '') + (S('gcode_macro ' + m).description || m)"
+            @click="click(m, $event)"
+          >
             {{ pretty(m) }}
           </button>
           <button
@@ -148,6 +154,9 @@ const pretty = (m) => m.replace(/_/g, ' ');
 </template>
 
 <style scoped>
+.run.locked {
+  opacity: 0.4;
+}
 .mc {
   min-height: 0;
 }

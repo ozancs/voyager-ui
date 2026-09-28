@@ -302,6 +302,10 @@ Happy Hare:  MMU_GATE_MAP GATE=n MATERIAL=.. COLOR=rrggbb NAME=.. TEMP=.. SPOOLI
 AFC:         SET_MATERIAL / SET_COLOR / SET_SPOOL_ID LANE=..  (only the ones this AFC version has)  
 Picking a Spoolman spool fills the fields from it.
 
+**[src/components/GuardDialog.vue](../src/components/GuardDialog.vue)**  
+Asks before a homing, probing, leveling or calibration command is sent while a print runs or is paused  
+(store.js gcode(), dangerIn). Cancel is the default.
+
 **[src/components/Handoff.vue](../src/components/Handoff.vue)**  
 "Open on phone": a QR code of this exact page (same tab, same printer), made in the browser, no internet needed.
 

@@ -1457,5 +1457,10 @@
 "Set the acceleration",
 "Speed factor in percent",
 "Extrusion factor (flow) in percent",
-"Wait until all moves are done"
+"Wait until all moves are done",
+"A print is running",
+"{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.",
+"Send anyway",
+"Don’t send",
+"Locked while printing"
 ]

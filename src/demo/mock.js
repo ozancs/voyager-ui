@@ -168,6 +168,7 @@ const status = {
       z_tilt: { retries: '5', retry_tolerance: '0.05' },
       extruder: { pressure_advance: '0.035', max_temp: '300', min_temp: '0' },
       'heater_generic chamber': { max_temp: '70' },
+      'gcode_macro BED_MESH_AUTO': { gcode: 'BED_MESH_CALIBRATE ADAPTIVE=1' },
       'gcode_macro CHAMBER': {
         gcode: '{% set t = params.TEMP|default(50)|int %}\nSET_HEATER_TEMPERATURE HEATER=chamber TARGET={t}',
       },

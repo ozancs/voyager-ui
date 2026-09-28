@@ -1458,5 +1458,10 @@ export default {
  "Set the acceleration": "加速度を設定",
  "Speed factor in percent": "速度係数（%）",
  "Extrusion factor (flow) in percent": "押し出し係数（フロー、%）",
- "Wait until all moves are done": "すべての移動の完了を待機"
+ "Wait until all moves are done": "すべての移動の完了を待機",
+ "A print is running": "印刷中です",
+ "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} はプリンターを自動でホーミング・プローブ・移動します。今送ると印刷の行の合間に実行され、ノズルが造形物やベッドに衝突するおそれがあります。",
+ "Send anyway": "それでも送信",
+ "Don’t send": "送信しない",
+ "Locked while printing": "印刷中はロック"
 }

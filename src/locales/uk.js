@@ -1458,5 +1458,10 @@ export default {
  "Set the acceleration": "Задати прискорення",
  "Speed factor in percent": "Множник швидкості у відсотках",
  "Extrusion factor (flow) in percent": "Множник екструзії (потік) у відсотках",
- "Wait until all moves are done": "Чекати завершення всіх переміщень"
+ "Wait until all moves are done": "Чекати завершення всіх переміщень",
+ "A print is running": "Триває друк",
+ "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} сам паркує, зондує або рухає принтер. Якщо надіслати зараз, команда виконається між рядками друку, і сопло може врізатися в деталь або стіл.",
+ "Send anyway": "Все одно надіслати",
+ "Don’t send": "Не надсилати",
+ "Locked while printing": "Заблоковано під час друку"
 }

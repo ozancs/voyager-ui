@@ -1459,5 +1459,10 @@ export default {
  "Set the acceleration": "İvmeyi ayarla",
  "Speed factor in percent": "Hız çarpanı (yüzde)",
  "Extrusion factor (flow) in percent": "Ekstrüzyon çarpanı (akış, yüzde)",
- "Wait until all moves are done": "Tüm hareketler bitene kadar bekle"
+ "Wait until all moves are done": "Tüm hareketler bitene kadar bekle",
+ "A print is running": "Baskı devam ediyor",
+ "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} yazıcıyı kendi başına home'lar, prob'lar ya da hareket ettirir. Şimdi gönderilirse baskının satırları arasında çalışır ve nozul parçaya ya da tablaya çarpabilir.",
+ "Send anyway": "Yine de gönder",
+ "Don’t send": "Gönderme",
+ "Locked while printing": "Baskı sırasında kilitli"
 }
