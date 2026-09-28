@@ -769,3 +769,20 @@ input[type='checkbox']:focus-visible {
 .vgl-item .cell > .card.spread > :not(.card-h) {
   margin-block: auto;
 }
+
+/* Accent strength (Settings > Appearance): how far the accent colour reaches beyond buttons. 'subtle' is the
+   default and changes nothing; the other two tint the outline of cards, dialogs and pop-ups. */
+:root[data-accent='normal'] .card:not(.tint),
+:root[data-accent='normal'] .pop,
+:root[data-accent='normal'] .md {
+  border-color: color-mix(in srgb, var(--ac) 22%, var(--bd));
+}
+:root[data-accent='strong'] .card:not(.tint),
+:root[data-accent='strong'] .pop,
+:root[data-accent='strong'] .md {
+  border-color: color-mix(in srgb, var(--ac) 55%, var(--bd));
+}
+:root[data-accent='strong'] .card > .card-h {
+  border-bottom: 1px solid color-mix(in srgb, var(--ac) 25%, transparent);
+  padding-bottom: 8px;
+}

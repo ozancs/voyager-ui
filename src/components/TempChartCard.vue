@@ -5,19 +5,8 @@ import SensorPicker from './SensorPicker.vue';
 import { computed } from 'vue';
 import { state, sensors, hist } from '../store';
 import { t } from '../i18n';
-const COLORS = [
-  'var(--ac)',
-  '#5aa9ff',
-  '#3dd68c',
-  '#f5c451',
-  '#c38bff',
-  '#ff7ab6',
-  '#4fd1c5',
-  '#a3a7ae',
-  '#e8a87c',
-  '#9bd5ff',
-];
-const colorOf = (i) => COLORS[i % COLORS.length];
+import { sensorColor } from '../sensorStyle';
+const colorOf = (i, name) => sensorColor(state.settings.sensorColors, name, i);
 const W = 600,
   H = 160;
 const range = computed(() => state.settings.tempRange || 600);
@@ -79,7 +68,7 @@ const lines = computed(() => {
         d += (d ? 'L' : 'M') + x.toFixed(1) + ',' + y(t[k]).toFixed(1);
         if ((s.isHeater || s.isTempFan) && tg[k] > 0) dt += (dt ? 'L' : 'M') + x.toFixed(1) + ',' + y(tg[k]).toFixed(1);
       }
-      return { name: s.name, d, dt, color: colorOf(i) };
+      return { name: s.name, d, dt, color: colorOf(i, s.name) };
     })
     .filter(Boolean);
 });
@@ -98,7 +87,7 @@ const lines = computed(() => {
     </div>
     <div class="lg">
       <span v-for="(s, i) in sensors" :key="s.name"
-        ><i :style="{ background: colorOf(i) }"></i>{{ s.label }}
+        ><i :style="{ background: colorOf(i, s.name) }"></i>{{ s.label }}
         <b class="mono">{{ s.temperature != null ? s.temperature.toFixed(1) + '°' : '--' }}</b></span
       >
     </div>

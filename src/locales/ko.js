@@ -1463,5 +1463,16 @@ export default {
  "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd}는 프린터를 스스로 홈/프로빙/이동시킵니다. 지금 보내면 출력 줄 사이에 실행되어 노즐이 출력물이나 베드에 부딪힐 수 있습니다.",
  "Send anyway": "그래도 보내기",
  "Don’t send": "보내지 않기",
- "Locked while printing": "출력 중 잠김"
+ "Locked while printing": "출력 중 잠김",
+ "What’s new": "새로운 기능",
+ "Sensors": "센서",
+ "Colour of {name}": "{name} 색상",
+ "Show or hide": "표시 또는 숨기기",
+ "Accent strength": "강조 색 범위",
+ "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "강조 색을 어디까지 쓸지: 버튼만, 또는 카드와 대화상자 테두리까지.",
+ "The changelog could not be loaded.": "변경 내역을 불러오지 못했습니다.",
+ "installed": "설치됨",
+ "Subtle": "은은하게",
+ "Normal": "보통",
+ "Strong": "강하게"
 }

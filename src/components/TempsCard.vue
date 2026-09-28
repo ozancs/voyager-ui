@@ -8,19 +8,8 @@ import Popover from './Popover.vue';
 import { state, sensors, setHeater, applyPreset, gcode } from '../store';
 import { go } from '../router';
 import { t } from '../i18n';
-const COLORS = [
-  'var(--ac)',
-  '#5aa9ff',
-  '#3dd68c',
-  '#f5c451',
-  '#c38bff',
-  '#ff7ab6',
-  '#4fd1c5',
-  '#a3a7ae',
-  '#e8a87c',
-  '#9bd5ff',
-];
-const colorOf = (i) => COLORS[i % COLORS.length];
+import { sensorColor } from '../sensorStyle';
+const colorOf = (i, name) => sensorColor(state.settings.sensorColors, name, i);
 const showPresets = ref(false);
 const presetBtn = ref(null);
 const edit = ref({});
@@ -85,7 +74,7 @@ const presets = computed(() => state.settings.presets || []);
         </thead>
         <tbody>
           <tr v-for="(s, i) in sensors" :key="s.name">
-            <td class="nm"><i :style="{ background: colorOf(i) }"></i>{{ s.label }}</td>
+            <td class="nm"><i :style="{ background: colorOf(i, s.name) }"></i>{{ s.label }}</td>
             <td class="mono v">{{ s.temperature != null ? s.temperature.toFixed(1) + '°' : '--' }}</td>
             <td>
               <input

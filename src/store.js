@@ -8,6 +8,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue';
 import { api } from './api/moonraker';
 import { setLang, t } from './i18n';
 import { currentHost, currentPrinter, perPrinterKey } from './printers';
+import { sortSensors } from './sensorStyle';
 
 export const VERSION = '0.23.4';
 export const APP = 'voyager-ui';
@@ -105,6 +106,10 @@ export const DEFAULT_SETTINGS = () => ({
   cardColors: {}, // dashboard card -> tint name ('cool'...), '#rrggbb' or 'none' // per dashboard module options, e.g. macros: { scroll, showHidden, hidden: [] }
   heaterBase: {}, // 'extruder@250' -> { power, fan, t, heat, from } first measurement, compared on the Health page
   preprintCheck: true, // compare the file with the printer before a print starts (preprint.js)
+  seenVersion: '', // the version whose changelog was shown; a new one opens What's new once
+  sensorColors: {}, // sensor name -> colour picked in the eye menu (sensorStyle.js)
+  sensorOrder: [], // sensor names in the order the user put them (sensorStyle.js)
+  accentReach: 'subtle', // how far the accent colour reaches: subtle (buttons only) | normal | strong (card and dialog outlines)
 });
 
 export const DEFAULT_LAYOUT = () => [
@@ -184,6 +189,7 @@ export const state = reactive({
   printersOpen: false, // the printer list dialog (printers.js)
   preprint: null, // { filename, issues, resolve } while the pre-print check asks (PreprintDialog.vue)
   guard: null, // { script, cmd, resolve } while a risky command waits for a confirm during a print (GuardDialog.vue)
+  whatsNew: false, // the changelog dialog (WhatsNew.vue)
   dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
   etaLearn: { k: null, n: 0 }, // how much real prints differ from the slicer estimate (median of past prints)
 });
@@ -367,7 +373,7 @@ export const sensors = computed(() => {
   const h = S('heaters');
   const list = tempSensors.value;
   const heaters = new Set(h.available_heaters || []);
-  return list
+  return sortSensors(list, state.settings.sensorOrder)
     .filter((n) => !state.settings.hiddenSensors.includes(n))
     .map((n) => ({
       name: n,
@@ -781,6 +787,12 @@ function applyTheme() {
   } catch {}
 }
 watch(() => state.settings.theme, applyTheme, { immediate: true });
+// how far the accent colour reaches beyond buttons (style.css reads the attribute)
+watch(
+  () => state.settings.accentReach,
+  (a) => (document.documentElement.dataset.accent = a || 'subtle'),
+  { immediate: true },
+);
 // Interface size. The dashboard is laid out on a 1920 px wide screen; on a laptop (1440, 1512 ...) or a
 // 1440p monitor the whole UI is zoomed so cards keep the same proportions and the same number fits side by side.
 // Phones and small tablets (< 1100 px) keep 100 % and use the stacked layout.

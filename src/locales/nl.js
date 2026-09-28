@@ -1463,5 +1463,16 @@ export default {
  "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} homet, meet of beweegt de printer zelf. Nu verzonden draait het tussen de regels van de print en kan de nozzle tegen het onderdeel of het bed botsen.",
  "Send anyway": "Toch verzenden",
  "Don’t send": "Niet verzenden",
- "Locked while printing": "Vergrendeld tijdens printen"
+ "Locked while printing": "Vergrendeld tijdens printen",
+ "What’s new": "Wat is er nieuw",
+ "Sensors": "Sensoren",
+ "Colour of {name}": "Kleur van {name}",
+ "Show or hide": "Tonen of verbergen",
+ "Accent strength": "Accentsterkte",
+ "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "Hoe ver de accentkleur reikt: alleen knoppen, of ook de rand van kaarten en dialogen.",
+ "The changelog could not be loaded.": "Het wijzigingslogboek kon niet worden geladen.",
+ "installed": "geïnstalleerd",
+ "Subtle": "Subtiel",
+ "Normal": "Normaal",
+ "Strong": "Sterk"
 }

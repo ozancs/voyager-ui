@@ -652,6 +652,28 @@ function reset() {
               </div>
               <div class="rw">
                 <div class="k">
+                  <b>{{ t('Accent strength') }}</b
+                  ><span>{{
+                    t('How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.')
+                  }}</span>
+                </div>
+                <div class="seg v">
+                  <button
+                    v-for="[k, l] in [
+                      ['subtle', 'Subtle'],
+                      ['normal', 'Normal'],
+                      ['strong', 'Strong'],
+                    ]"
+                    :key="k"
+                    :class="{ on: (state.settings.accentReach || 'subtle') === k }"
+                    @click="state.settings.accentReach = k"
+                  >
+                    {{ t(l) }}
+                  </button>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
                   <b>{{ t('Printer icon') }}</b
                   ><span>{{
                     t('Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.')

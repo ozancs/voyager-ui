@@ -24,6 +24,7 @@ Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KI
 - **A config editor that knows Klipper.** It checks your files before you save and keeps a backup.
 - **Health page.** Board connection errors, driver faults, heaters compared with their own earlier behaviour, maintenance reminders.
 - **Ctrl+K.** Type a few letters to reach any page, macro, file or setting.
+- **What's new in the UI.** The changelog opens from the version in the footer, and once by itself after an update.
 - **14 languages.**
 
 The full list is at the bottom, under For the curious.

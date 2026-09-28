@@ -1463,5 +1463,16 @@ export default {
  "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} сам паркует, зондирует или двигает принтер. Если отправить сейчас, команда выполнится между строками печати, и сопло может врезаться в деталь или стол.",
  "Send anyway": "Всё равно отправить",
  "Don’t send": "Не отправлять",
- "Locked while printing": "Заблокировано во время печати"
+ "Locked while printing": "Заблокировано во время печати",
+ "What’s new": "Что нового",
+ "Sensors": "Датчики",
+ "Colour of {name}": "Цвет {name}",
+ "Show or hide": "Показать или скрыть",
+ "Accent strength": "Насыщенность акцента",
+ "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "Насколько далеко идёт акцентный цвет: только кнопки или ещё и контуры карточек и диалогов.",
+ "The changelog could not be loaded.": "Не удалось загрузить список изменений.",
+ "installed": "установлена",
+ "Subtle": "Слабый",
+ "Normal": "Обычный",
+ "Strong": "Сильный"
 }

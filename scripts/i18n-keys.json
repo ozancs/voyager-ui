@@ -1462,5 +1462,16 @@
 "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.",
 "Send anyway",
 "Don’t send",
-"Locked while printing"
+"Locked while printing",
+"What’s new",
+"Sensors",
+"Colour of {name}",
+"Show or hide",
+"Accent strength",
+"How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.",
+"The changelog could not be loaded.",
+"installed",
+"Subtle",
+"Normal",
+"Strong"
 ]

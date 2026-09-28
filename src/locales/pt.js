@@ -1463,5 +1463,16 @@ export default {
  "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} faz home, sonda ou move a impressora sozinho. Enviado agora corre entre as linhas da impressão e o bico pode bater na peça ou na mesa.",
  "Send anyway": "Enviar mesmo assim",
  "Don’t send": "Não enviar",
- "Locked while printing": "Bloqueado durante a impressão"
+ "Locked while printing": "Bloqueado durante a impressão",
+ "What’s new": "Novidades",
+ "Sensors": "Sensores",
+ "Colour of {name}": "Cor de {name}",
+ "Show or hide": "Mostrar ou ocultar",
+ "Accent strength": "Intensidade do destaque",
+ "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "Até onde vai a cor de destaque: só os botões, ou também os contornos de cartões e diálogos.",
+ "The changelog could not be loaded.": "Não foi possível carregar o registo de alterações.",
+ "installed": "instalada",
+ "Subtle": "Subtil",
+ "Normal": "Normal",
+ "Strong": "Forte"
 }

@@ -145,6 +145,12 @@ Anything else, attributes included, stays visible as text. The result goes into 
 Minimal hash router: #/<page>/<argument>. route.name picks the page in App.vue, route.arg is  
 for example the config file open in the editor.
 
+**[src/sensorStyle.js](../src/sensorStyle.js)**  
+Colour and order of the temperature sensors, shared by the Temperatures card, the graph and the eye menu so  
+a sensor looks the same everywhere. Both are kept per printer in the settings: sensorColors is  
+name -> '#rrggbb', sensorOrder is the names in the order the user put them. Pure functions, no store import  
+(the store sorts the sensor list with sortSensors, so it cannot import from a module that imports it back).
+
 **[src/smart.js](../src/smart.js)**  
 "Smart" commands for the Ctrl+K box: "chamber 40", "bed off", "fan 50", "speed 120", "z offset -0.05", "home xy"...  
 Every result is checked against the printer (heater exists, max_temp, homed axes, axis limits) before it is offered.
@@ -427,7 +433,8 @@ jumps back while a command is on its way.
 
 **[src/components/SensorPicker.vue](../src/components/SensorPicker.vue)**  
 Eye button in the Temperatures card and graph: pick which sensors they show (same list as Settings > Dashboard),  
-and for the graph the line width.
+their colour and their order, and for the graph the line width. Colour and order are shared by the card and  
+the graph (sensorStyle.js).
 
 **[src/components/SettingsDialog.vue](../src/components/SettingsDialog.vue)**  
 Interface settings as a dialog (like Mainsail's), categories on the left. Opened from the gear in the top bar.
@@ -492,6 +499,11 @@ One webcam, any Moonraker webcam service:
   ipstream                             -> plain <video>  
   iframe                               -> the page in an iframe  
 When nothing arrives for a while the view says so and what to check, instead of staying black.
+
+**[src/components/WhatsNew.vue](../src/components/WhatsNew.vue)**  
+What's new: the project's CHANGELOG.md, shown in the UI. The file is loaded only when this dialog opens  
+(its own chunk), so it costs nothing on a normal page load. Opened from the version in the footer, from  
+Settings, and once by itself after an update.
 
 
 ## Config editor (CodeMirror)

@@ -2,7 +2,7 @@
 // macro prompts, error toasts, sounds, job queue, config index (for search), health sampling.
 import { reactive, watch, computed, markRaw } from 'vue';
 import { api } from './api/moonraker';
-import { state, S, toast, printState, pushConsole, gcode, backupBeforeWrite, saveSettings } from './store';
+import { state, S, toast, printState, pushConsole, gcode, backupBeforeWrite, saveSettings, VERSION } from './store';
 import { holdFindings, heatFinding, COLD } from './heaterHealth';
 import { t } from './i18n';
 import { expandPaths } from './paths';
@@ -555,6 +555,19 @@ export function initFeatures() {
         loadQueue();
         loadPrintStats();
       }
+    },
+    { immediate: true },
+  );
+  // after an update, show what changed once (not on a fresh install, that would be the whole history)
+  watch(
+    () => state.settingsLoaded,
+    (ok) => {
+      if (!ok) return;
+      const seen = state.settings.seenVersion;
+      if (!seen) {
+        state.settings.seenVersion = VERSION;
+        saveSettings();
+      } else if (seen !== VERSION) state.whatsNew = true;
     },
     { immediate: true },
   );

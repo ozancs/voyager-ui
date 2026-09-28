@@ -1463,5 +1463,16 @@ export default {
  "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} はプリンターを自動でホーミング・プローブ・移動します。今送ると印刷の行の合間に実行され、ノズルが造形物やベッドに衝突するおそれがあります。",
  "Send anyway": "それでも送信",
  "Don’t send": "送信しない",
- "Locked while printing": "印刷中はロック"
+ "Locked while printing": "印刷中はロック",
+ "What’s new": "新着情報",
+ "Sensors": "センサー",
+ "Colour of {name}": "{name} の色",
+ "Show or hide": "表示または非表示",
+ "Accent strength": "アクセントの強さ",
+ "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "アクセント色をどこまで使うか: ボタンだけ、またはカードやダイアログの枠線にも。",
+ "The changelog could not be loaded.": "変更履歴を読み込めませんでした。",
+ "installed": "インストール済み",
+ "Subtle": "控えめ",
+ "Normal": "標準",
+ "Strong": "強め"
 }

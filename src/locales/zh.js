@@ -1463,5 +1463,16 @@ export default {
  "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} 会自行归零、探测或移动打印机。现在发送会在打印的行之间执行，喷嘴可能撞到模型或热床。",
  "Send anyway": "仍然发送",
  "Don’t send": "不发送",
- "Locked while printing": "打印时已锁定"
+ "Locked while printing": "打印时已锁定",
+ "What’s new": "新功能",
+ "Sensors": "传感器",
+ "Colour of {name}": "{name} 的颜色",
+ "Show or hide": "显示或隐藏",
+ "Accent strength": "强调色强度",
+ "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "强调色的应用范围：仅按钮，或者也包括卡片和对话框的边框。",
+ "The changelog could not be loaded.": "无法加载更新日志。",
+ "installed": "已安装",
+ "Subtle": "轻微",
+ "Normal": "正常",
+ "Strong": "强烈"
 }

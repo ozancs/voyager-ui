@@ -1464,5 +1464,16 @@ export default {
  "{cmd} homes, probes or moves the printer on its own. Sent now it runs between the lines of the print, and the nozzle can crash into the part or the bed.": "{cmd} yazıcıyı kendi başına home'lar, prob'lar ya da hareket ettirir. Şimdi gönderilirse baskının satırları arasında çalışır ve nozul parçaya ya da tablaya çarpabilir.",
  "Send anyway": "Yine de gönder",
  "Don’t send": "Gönderme",
- "Locked while printing": "Baskı sırasında kilitli"
+ "Locked while printing": "Baskı sırasında kilitli",
+ "What’s new": "Yenilikler",
+ "Sensors": "Sensörler",
+ "Colour of {name}": "{name} rengi",
+ "Show or hide": "Göster ya da gizle",
+ "Accent strength": "Aksan yoğunluğu",
+ "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "Aksan rengi nereye kadar uygulansın: sadece butonlar ya da kart ve pencere kenarlıkları da.",
+ "The changelog could not be loaded.": "Değişiklik listesi yüklenemedi.",
+ "installed": "yüklü",
+ "Subtle": "Hafif",
+ "Normal": "Normal",
+ "Strong": "Güçlü"
 }

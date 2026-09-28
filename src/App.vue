@@ -12,6 +12,7 @@ import Icon from './components/Icon.vue';
 import UpdateModal from './components/UpdateModal.vue';
 import PreprintDialog from './components/PreprintDialog.vue';
 import GuardDialog from './components/GuardDialog.vue';
+import WhatsNew from './components/WhatsNew.vue';
 import ExplainBox from './components/ExplainBox.vue';
 import { explain } from './explain';
 import Tooltip from './components/Tooltip.vue';
@@ -209,9 +210,9 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
           @exclude="state.showExclude = true"
         />
         <footer class="ft mono">
-          <span
-            ><b>{{ APP_NAME }}</b> v{{ VERSION }}</span
-          >
+          <button class="ver" :data-tip="t('What’s new')" @click="state.whatsNew = true">
+            <b>{{ APP_NAME }}</b> v{{ VERSION }}
+          </button>
           <span v-if="state.versions.klipper">Klipper {{ state.versions.klipper }}</span>
           <span v-if="state.versions.moonraker">Moonraker {{ state.versions.moonraker }}</span>
           <span v-if="state.versions.host">{{ state.versions.host }}</span>
@@ -231,6 +232,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     <UpdateModal />
     <PreprintDialog />
     <GuardDialog />
+    <WhatsNew />
     <Transition name="fade"
       ><div v-if="state.connected && !state.booted" class="bootpill">
         <Icon name="refresh" :size="15" class="spin" /><span>{{ bootTask }}</span>
@@ -349,6 +351,17 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
   border-top: 1px solid var(--bd);
   font-weight: 400;
   max-width: 760px;
+}
+.ver {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ver:hover {
+  color: var(--tx);
 }
 .ft {
   margin-top: auto;
