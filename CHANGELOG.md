@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.24.0
+
+- What's new: click the version at the bottom of the sidebar to see the changes of every release. It also opens once after an update
+- Settings > Appearance > Accent strength: subtle (as before), normal or strong. Normal and strong carry the accent colour into card borders and headers
+- Temperatures: the eye menu sets a colour and an order for every sensor (for example the nozzle above the bed). The card and the graph both follow it
+
 ## 0.23.4
 
 - Homing, probing, leveling and calibration commands ask before they are sent while a print runs or is paused (Klipper runs them between the lines of the print, so the toolhead can dive into the part). Macros that call one of these are caught too
@@ -33,7 +39,7 @@
 - Calibrations: a needed parameter with a list (HEATER, CHIP) starts at its first choice; the not-homed hint checks Z too
 - Upload & Print uploads first, then starts through the check
 - Demo: three more printers (Voron 2.4, Ender 3 V2, Trident), each with its own hardware and state
-- Security: a Spoolman spool colour goes into MMU commands only as a hex colour, the Spoolman link is used only when it is http(s), snapshot and file links open with noopener, status updates ignore __proto__
+- Security: a Spoolman spool colour goes into MMU commands only as a hex colour, the Spoolman link is used only when it is http(s), snapshot and file links open with noopener, status updates ignore **proto**
 
 ## 0.22.0
 
