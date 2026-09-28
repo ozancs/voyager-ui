@@ -1469,7 +1469,7 @@ export default {
  "Colour of {name}": "{name} の色",
  "Show or hide": "表示または非表示",
  "Accent strength": "アクセントの強さ",
- "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "アクセント色をどこまで使うか: ボタンだけ、またはカードやダイアログの枠線にも。",
+ "How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.": "インターフェースの色の量。標準と強では、カードの枠と小さなタイルも種類ごとに色付けします：ファン、ヒーター、ライト。",
  "The changelog could not be loaded.": "変更履歴を読み込めませんでした。",
  "installed": "インストール済み",
  "Subtle": "控えめ",

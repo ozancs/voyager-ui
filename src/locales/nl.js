@@ -1469,7 +1469,7 @@ export default {
  "Colour of {name}": "Kleur van {name}",
  "Show or hide": "Tonen of verbergen",
  "Accent strength": "Accentsterkte",
- "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "Hoe ver de accentkleur reikt: alleen knoppen, of ook de rand van kaarten en dialogen.",
+ "How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.": "Hoeveel kleur de interface gebruikt. Normaal en sterk kleuren ook kaartranden en de kleine tegels per soort: ventilatoren, verwarmingen, lampen.",
  "The changelog could not be loaded.": "Het wijzigingslogboek kon niet worden geladen.",
  "installed": "geïnstalleerd",
  "Subtle": "Subtiel",

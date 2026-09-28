@@ -654,7 +654,9 @@ function reset() {
                 <div class="k">
                   <b>{{ t('Accent strength') }}</b
                   ><span>{{
-                    t('How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.')
+                    t(
+                      'How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.',
+                    )
                   }}</span>
                 </div>
                 <div class="seg v">

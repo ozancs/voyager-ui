@@ -786,3 +786,46 @@ input[type='checkbox']:focus-visible {
   border-bottom: 1px solid color-mix(in srgb, var(--ac) 25%, transparent);
   padding-bottom: 8px;
 }
+
+/* the small tiles above the dashboard: none (subtle), a light (normal) or full (strong) category colour.
+   Heaters, fans, lights, filament sensors and the spool each keep their own hue. */
+.dc.k-heat {
+  --kc: var(--heat);
+}
+.dc.k-cool {
+  --kc: var(--cool);
+}
+.dc.k-light {
+  --kc: var(--light);
+}
+.dc.k-sense {
+  --kc: var(--sense);
+}
+.dc.k-spool {
+  --kc: var(--spool);
+}
+/* normal: the fill that shows the level (fan speed, heater power) takes the category colour, a faint wash
+   behind it. strong: a stronger fill and wash, and a coloured outline */
+:root[data-accent='normal'] .ds .dc[class*='k-'] {
+  --k: var(--kc);
+  --ka: 22%;
+  --kw: 5%;
+}
+:root[data-accent='strong'] .ds .dc[class*='k-'] {
+  --k: var(--kc);
+  --ka: 38%;
+  --kw: 11%;
+}
+:root:not([data-accent='subtle'])[data-look] .ds .dc[class*='k-']:not(.t-heat) {
+  background: color-mix(in srgb, var(--kc) var(--kw), var(--s1)) !important;
+}
+:root:not([data-accent='subtle'])[data-look] .ds .dc[class*='k-']:not(.t-heat)::before {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--lc, var(--kc)) var(--ka), transparent),
+    color-mix(in srgb, var(--lc, var(--kc)) calc(var(--ka) / 2), transparent) 60px
+  );
+}
+:root[data-accent='strong'] .ds .dc[class*='k-']:not(.edit):not(.over) {
+  border-color: color-mix(in srgb, var(--kc) 35%, transparent);
+}

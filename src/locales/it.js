@@ -1469,7 +1469,7 @@ export default {
  "Colour of {name}": "Colore di {name}",
  "Show or hide": "Mostra o nascondi",
  "Accent strength": "Intensità dell'accento",
- "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "Fin dove arriva il colore d'accento: solo i pulsanti, oppure anche i bordi di schede e finestre.",
+ "How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.": "Quanto colore usa l'interfaccia. Normale e forte colorano anche i bordi delle schede e i riquadri piccoli per tipo: ventole, riscaldatori, luci.",
  "The changelog could not be loaded.": "Non è stato possibile caricare il changelog.",
  "installed": "installata",
  "Subtle": "Tenue",

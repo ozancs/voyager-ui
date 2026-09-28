@@ -1468,7 +1468,7 @@
 "Colour of {name}",
 "Show or hide",
 "Accent strength",
-"How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.",
+"How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.",
 "The changelog could not be loaded.",
 "installed",
 "Subtle",

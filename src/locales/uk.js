@@ -1469,7 +1469,7 @@ export default {
  "Colour of {name}": "Колір {name}",
  "Show or hide": "Показати або сховати",
  "Accent strength": "Насиченість акценту",
- "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "Наскільки далеко йде акцентний колір: лише кнопки чи ще й контури карток і діалогів.",
+ "How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.": "Скільки кольору в інтерфейсі. Звичайний і сильний також фарбують рамки карток і маленькі плитки за типом: вентилятори, нагрівачі, світло.",
  "The changelog could not be loaded.": "Не вдалося завантажити список змін.",
  "installed": "встановлено",
  "Subtle": "Слабкий",

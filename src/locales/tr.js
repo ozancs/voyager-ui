@@ -1470,7 +1470,7 @@ export default {
  "Colour of {name}": "{name} rengi",
  "Show or hide": "Göster ya da gizle",
  "Accent strength": "Aksan yoğunluğu",
- "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "Aksan rengi nereye kadar uygulansın: sadece butonlar ya da kart ve pencere kenarlıkları da.",
+ "How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.": "Arayüzün ne kadar renkli olacağı. Normal ve güçlü, kart kenarlarını ve küçük kutucukları türüne göre de renklendirir: fanlar, ısıtıcılar, ışıklar.",
  "The changelog could not be loaded.": "Değişiklik listesi yüklenemedi.",
  "installed": "yüklü",
  "Subtle": "Hafif",

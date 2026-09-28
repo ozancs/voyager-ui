@@ -1469,7 +1469,7 @@ export default {
  "Colour of {name}": "{name} 的颜色",
  "Show or hide": "显示或隐藏",
  "Accent strength": "强调色强度",
- "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "强调色的应用范围：仅按钮，或者也包括卡片和对话框的边框。",
+ "How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.": "界面使用多少颜色。普通和强烈还会按类型为卡片边框和小方块着色：风扇、加热器、灯光。",
  "The changelog could not be loaded.": "无法加载更新日志。",
  "installed": "已安装",
  "Subtle": "轻微",

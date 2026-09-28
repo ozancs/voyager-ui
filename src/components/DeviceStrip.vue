@@ -177,6 +177,11 @@ function tint(d) {
     ? 't-heat'
     : '';
 }
+// category of a tile, coloured by Settings > Appearance > Accent strength (normal and strong, style.css)
+function kind(d) {
+  if (d.kind === 'temp') return canTarget(d) ? 'k-heat' : '';
+  return { fan: 'k-cool', pin: 'k-light', led: 'k-light', filament: 'k-sense', spoolman: 'k-spool' }[d.kind] || '';
+}
 const canTarget = (d) => (S('heaters').available_heaters || []).includes(d.obj) || d.obj.startsWith('temperature_fan ');
 onMounted(() => document.addEventListener('click', close));
 onBeforeUnmount(() => document.removeEventListener('click', close));
@@ -276,6 +281,7 @@ function sensorExtra(id) {
       class="dc"
       :class="[
         tint(d),
+        kind(d),
         {
           click: !state.editDash && (d.kind !== 'fan' || d.controllable),
           open: open === d.id,

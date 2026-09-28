@@ -1469,7 +1469,7 @@ export default {
  "Colour of {name}": "{name} 색상",
  "Show or hide": "표시 또는 숨기기",
  "Accent strength": "강조 색 범위",
- "How far the accent colour reaches: buttons only, or the outlines of cards and dialogs too.": "강조 색을 어디까지 쓸지: 버튼만, 또는 카드와 대화상자 테두리까지.",
+ "How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.": "인터페이스에 쓰는 색의 양. 보통과 강함은 카드 테두리와 작은 타일도 종류별로 색칠합니다: 팬, 히터, 조명.",
  "The changelog could not be loaded.": "변경 내역을 불러오지 못했습니다.",
  "installed": "설치됨",
  "Subtle": "은은하게",
