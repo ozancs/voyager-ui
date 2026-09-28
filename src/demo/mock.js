@@ -356,7 +356,7 @@ let db = {
     setupDone: true,
     lang: 'en',
     autoLayout: true,
-    uiScale: 'auto',
+    uiScale: 100,
     mmuSeen: true,
     hiddenCards: [],
     strip: {

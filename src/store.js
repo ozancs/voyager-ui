@@ -77,7 +77,8 @@ export const DEFAULT_SETTINGS = () => ({
   heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false }, // colour range and 3D z axis, auto = from the mesh
   favBar: 'always', // favorites bar under the top bar: always | dashboard | off (a Favorites card can go on the dashboard)
   compactCards: true, // dashboard cards with less padding, a thinner title bar and a tighter grid
-  uiScale: 'auto', // percent, or 'auto' = looks the same as on a 1920 px wide screen
+  uiScale: 100, // percent, or 'auto' = looks the same as on a 1920 px wide screen
+  scale100: true, // 0.24.1: the default went from auto to 100 %, older saved settings are moved once
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
   layoutPrint: null,
@@ -211,6 +212,9 @@ function lsSet(k, v) {
 export function mergeSettings(v) {
   const def = DEFAULT_SETTINGS();
   v = v || {};
+  // auto made the UI larger than expected on big monitors, so 100 % became the default. Settings saved before
+  // that still say auto (the whole object is saved, not only what was changed): move them to 100 % once.
+  if (!v.scale100) v = { ...v, scale100: true, uiScale: v.uiScale === 'auto' || v.uiScale == null ? 100 : v.uiScale };
   return {
     ...def,
     ...v,
@@ -803,7 +807,7 @@ export function uiZoomFor(pref, w = window.innerWidth) {
   return Math.min(1.6, Math.max(0.6, w / REF_WIDTH));
 }
 function applyScale() {
-  const pref = state.settings.uiScale ?? 'auto';
+  const pref = state.settings.uiScale ?? 100;
   const z = +uiZoomFor(pref).toFixed(3);
   const el = document.documentElement;
   if (z === 1) el.style.removeProperty('zoom');
@@ -815,7 +819,7 @@ function applyScale() {
   const ew = window.innerWidth / z;
   for (const bp of [1200, 1300, 1750, 1900]) el.classList.toggle('ew-lt-' + bp, ew <= bp);
   try {
-    localStorage.setItem(APP + '-scale', String(pref));
+    localStorage.setItem(APP + '-uiscale', String(pref));
   } catch {}
 }
 watch(() => state.settings.uiScale, applyScale, { immediate: true });
