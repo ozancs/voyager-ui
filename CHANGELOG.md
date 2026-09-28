@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.23.4
+
+- Homing, probing, leveling and calibration commands ask before they are sent while a print runs or is paused (Klipper runs them between the lines of the print, so the toolhead can dive into the part). Macros that call one of these are caught too
+- Favorites and macro buttons whose command is one of these look locked during a print
+
 ## 0.23.3
 
 - Console: hovering a command says what it does (G28, G90, M104 and the other standard G-codes are described, Klipper commands and macros show their help text)
