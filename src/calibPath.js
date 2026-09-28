@@ -1,5 +1,5 @@
-// Interactive calibration: the order a printer is usually tuned in, as steps the UI walks through with a
-// picture of what is happening. This file decides which steps a printer has and reads Klipper's console output
+// Guided calibrations: the calibrations a printer has, each run on its own with a picture of what is
+// happening. This file decides which steps a printer has and reads Klipper's console output
 // into numbers; CalibPath.vue draws it. Pure functions, no store import.
 
 // ctx: { commands: {NAME: help}, settings: configfile.settings, heaters: [names] }

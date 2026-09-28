@@ -1,5 +1,5 @@
 <script setup>
-// Calibrations page: the interactive calibration path on top (CalibPath.vue), then one tab per kind of calibration the printer has (Shake&Tune, input shaper, heaters, probe,
+// Calibrations page: guided calibrations on top, each on its own (CalibPath.vue), then one tab per kind of calibration the printer has (Shake&Tune, input shaper, heaters, probe,
 // bed leveling, motors, other). The command lists are in calibrations.js. A tab runs the chosen command with
 // its parameters, follows its console output and shows the numbers that matter. Values Klipper keeps for
 // SAVE_CONFIG (PID, shaper) can be saved from here; the Shake&Tune tab is its own page (ShakeTune.vue).

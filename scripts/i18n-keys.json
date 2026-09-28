@@ -1585,5 +1585,13 @@
 "Print again?",
 "{file} starts again. Take the last print off the bed first.",
 "{name}: {n}° is above its max_temp ({max}°)",
-"Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG."
+"Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.",
+"Guided calibrations",
+"Holds the temperature steady",
+"Gantry parallel to the bed",
+"How far to turn each bed screw",
+"How repeatable the probe is",
+"Paper test for the first layer",
+"Maps the shape of the bed",
+"Less ringing at high speed"
 ]

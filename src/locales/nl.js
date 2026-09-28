@@ -1586,5 +1586,13 @@ export default {
  "Print again?": "Opnieuw printen?",
  "{file} starts again. Take the last print off the bed first.": "{file} start opnieuw. Haal eerst de vorige print van het bed.",
  "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° is hoger dan de max_temp ({max}°)",
- "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG laadt losse beelden van het snapshot-adres. Heeft de camera alleen een stream, zet de dienst dan op MJPEG."
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG laadt losse beelden van het snapshot-adres. Heeft de camera alleen een stream, zet de dienst dan op MJPEG.",
+ "Guided calibrations": "Begeleide kalibraties",
+ "Holds the temperature steady": "Houdt de temperatuur stabiel",
+ "Gantry parallel to the bed": "Gantry parallel aan het bed",
+ "How far to turn each bed screw": "Hoeveel elke bedschroef moet draaien",
+ "How repeatable the probe is": "Hoe herhaalbaar de probe is",
+ "Paper test for the first layer": "Papiertest voor de eerste laag",
+ "Maps the shape of the bed": "Brengt de vorm van het bed in kaart",
+ "Less ringing at high speed": "Minder ringing bij hoge snelheid"
 }

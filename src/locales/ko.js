@@ -1586,5 +1586,13 @@ export default {
  "Print again?": "다시 출력할까요?",
  "{file} starts again. Take the last print off the bed first.": "{file} 출력을 다시 시작합니다. 먼저 베드에서 지난 출력물을 치우세요.",
  "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}°는 max_temp({max}°)보다 높습니다",
- "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG는 스냅샷 주소에서 사진을 한 장씩 불러옵니다. 카메라에 스트림만 있다면 서비스를 MJPEG로 바꾸세요."
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG는 스냅샷 주소에서 사진을 한 장씩 불러옵니다. 카메라에 스트림만 있다면 서비스를 MJPEG로 바꾸세요.",
+ "Guided calibrations": "가이드 캘리브레이션",
+ "Holds the temperature steady": "온도를 안정적으로 유지",
+ "Gantry parallel to the bed": "갠트리를 베드와 평행하게",
+ "How far to turn each bed screw": "베드 나사별 돌릴 양",
+ "How repeatable the probe is": "프로브의 반복 정밀도",
+ "Paper test for the first layer": "첫 레이어를 위한 종이 테스트",
+ "Maps the shape of the bed": "베드 모양을 측정",
+ "Less ringing at high speed": "고속에서 링잉 감소"
 }

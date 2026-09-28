@@ -1586,5 +1586,13 @@ export default {
  "Print again?": "¿Imprimir de nuevo?",
  "{file} starts again. Take the last print off the bed first.": "{file} empieza de nuevo. Retira primero la última pieza de la cama.",
  "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° supera su max_temp ({max}°)",
- "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG carga imágenes sueltas desde la dirección de snapshot. Si la cámara solo tiene stream, cambia el servicio a MJPEG."
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG carga imágenes sueltas desde la dirección de snapshot. Si la cámara solo tiene stream, cambia el servicio a MJPEG.",
+ "Guided calibrations": "Calibraciones guiadas",
+ "Holds the temperature steady": "Mantiene la temperatura estable",
+ "Gantry parallel to the bed": "Pórtico paralelo a la cama",
+ "How far to turn each bed screw": "Cuánto girar cada tornillo de la cama",
+ "How repeatable the probe is": "Qué tan repetible es la sonda",
+ "Paper test for the first layer": "Prueba del papel para la primera capa",
+ "Maps the shape of the bed": "Mapea la forma de la cama",
+ "Less ringing at high speed": "Menos ringing a alta velocidad"
 }

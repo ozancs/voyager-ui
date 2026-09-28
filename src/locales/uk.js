@@ -1586,5 +1586,13 @@ export default {
  "Print again?": "Надрукувати знову?",
  "{file} starts again. Take the last print off the bed first.": "{file} почнеться знову. Спершу зніміть попередній друк зі столу.",
  "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° вище за max_temp ({max}°)",
- "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG завантажує окремі кадри з адреси snapshot. Якщо в камери є лише потік, оберіть сервіс MJPEG."
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG завантажує окремі кадри з адреси snapshot. Якщо в камери є лише потік, оберіть сервіс MJPEG.",
+ "Guided calibrations": "Покрокові калібрування",
+ "Holds the temperature steady": "Тримає температуру рівно",
+ "Gantry parallel to the bed": "Портал паралельно столу",
+ "How far to turn each bed screw": "Наскільки повернути кожен гвинт столу",
+ "How repeatable the probe is": "Наскільки повторюваний датчик",
+ "Paper test for the first layer": "Тест з папером для першого шару",
+ "Maps the shape of the bed": "Знімає форму столу",
+ "Less ringing at high speed": "Менше ringing на високій швидкості"
 }

@@ -1586,5 +1586,13 @@ export default {
  "Print again?": "Réimprimer ?",
  "{file} starts again. Take the last print off the bed first.": "{file} redémarre. Retire d'abord la dernière pièce du plateau.",
  "{name}: {n}° is above its max_temp ({max}°)": "{name} : {n}° dépasse son max_temp ({max}°)",
- "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG charge des images une par une depuis l'adresse de snapshot. Si la caméra n'a qu'un flux, passe le service en MJPEG."
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG charge des images une par une depuis l'adresse de snapshot. Si la caméra n'a qu'un flux, passe le service en MJPEG.",
+ "Guided calibrations": "Calibrations guidées",
+ "Holds the temperature steady": "Garde la température stable",
+ "Gantry parallel to the bed": "Portique parallèle au plateau",
+ "How far to turn each bed screw": "De combien tourner chaque vis du plateau",
+ "How repeatable the probe is": "La répétabilité de la sonde",
+ "Paper test for the first layer": "Test du papier pour la première couche",
+ "Maps the shape of the bed": "Relève la forme du plateau",
+ "Less ringing at high speed": "Moins de ringing à haute vitesse"
 }

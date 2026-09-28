@@ -20,7 +20,7 @@ Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KI
 - **Checks the file before printing.** Wrong material or not enough filament on the spool (with Spoolman), wrong nozzle size, too hot or too tall: it asks before the print starts.
 - **All your printers in one place.** Switch between them, or see all of them on one page with progress and camera.
 - **Calibrations in one page.** Input shaper, PID, probe, bed leveling, Shake&Tune and more, with the results shown as plain numbers.
-- **Interactive calibration.** A step by step path through PID, leveling, probe accuracy, Z offset, bed mesh and input shaper, with a picture of what the printer is doing.
+- **Guided calibrations.** PID, leveling, bed screws, probe accuracy, Z offset, bed mesh and input shaper, each on its own, with a picture of what the printer is doing.
 - **Errors in plain words.** Common Klipper errors come with the usual cause and what to check.
 - **A config editor that knows Klipper.** It checks your files before you save and keeps a history of every version, with what changed and a way back.
 - **Health page.** Board connection errors, driver faults, heaters compared with their own earlier behaviour, maintenance reminders.
@@ -93,7 +93,7 @@ Everything the UI does, in one list:
 - Console, webcam (MJPEG, WebRTC, HLS), heightmap, g-code viewer, file manager, print history, job queue
 - Config editor with Klipper syntax colours, search and replace, folding, suggestions, live checks (repeated options, missing includes, unbalanced macro blocks), diff against the saved file or a backup. A backup is made before every save, and the History list shows every earlier version of a file (also Klipper's SAVE_CONFIG copies) with the sections that changed
 - Ctrl+K search: pages, macros, files, settings, config options, and quick commands like `bed 60`, `fan 50`, `z offset -0.05`
-- Calibrations page with a tab for each kind the printer has: input shaper, PID, probe and Z, bed leveling, motors, other calibration macros, and [Klippain Shake&Tune](https://github.com/Frix-x/klippain-shaketune) when installed (run its tests, compare two graphs side by side, write the chosen shaper to your config). On top, an interactive path through the calibrations the printer has, each drawn while it runs
+- Calibrations page with a tab for each kind the printer has: input shaper, PID, probe and Z, bed leveling, motors, other calibration macros, and [Klippain Shake&Tune](https://github.com/Frix-x/klippain-shaketune) when installed (run its tests, compare two graphs side by side, write the chosen shaper to your config). On top, guided calibrations: each one opens on its own and is drawn while it runs
 - Health page: MCU and CAN errors, TMC driver flags, host throttling, maintenance reminders based on print hours, and heaters compared with their own first measurement (holding power, heat-up time, temperature swing)
 - Check before printing: material and remaining weight of the active Spoolman spool, nozzle size, temperatures and height against the printer (only what both sides report is compared)
 - Common Klipper errors explained in plain words, under the error banner and behind the ? on console error lines

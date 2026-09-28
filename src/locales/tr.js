@@ -1587,5 +1587,13 @@ export default {
  "Print again?": "Tekrar basılsın mı?",
  "{file} starts again. Take the last print off the bed first.": "{file} yeniden başlayacak. Önce son baskıyı tabladan al.",
  "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° max_temp değerinin üstünde ({max}°)",
- "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG tek tek resimleri snapshot adresinden alır. Kamerada sadece stream varsa servisi MJPEG yap."
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG tek tek resimleri snapshot adresinden alır. Kamerada sadece stream varsa servisi MJPEG yap.",
+ "Guided calibrations": "Rehberli kalibrasyonlar",
+ "Holds the temperature steady": "Sıcaklığı sabit tutar",
+ "Gantry parallel to the bed": "Gantry tablaya paralel",
+ "How far to turn each bed screw": "Her tabla vidası ne kadar çevrilmeli",
+ "How repeatable the probe is": "Probe ne kadar tutarlı",
+ "Paper test for the first layer": "İlk katman için kağıt testi",
+ "Maps the shape of the bed": "Tablanın şeklini çıkarır",
+ "Less ringing at high speed": "Yüksek hızda daha az titreşim izi"
 }

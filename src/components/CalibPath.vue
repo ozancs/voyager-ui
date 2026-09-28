@@ -1,9 +1,9 @@
 <script setup>
-// Interactive calibration, at the top of the Calibrations page: the printer's calibrations as a path (heaters,
-// leveling, probe, Z offset, mesh, input shaper; calibPath.js decides which ones this printer has). A step opens
-// a dialog that runs the command and draws what is going on: the hotend glowing while PID tunes it, the gantry
+// Guided calibrations, at the top of the Calibrations page: one tile per calibration the printer has (heaters,
+// leveling, probe, Z offset, mesh, input shaper; calibPath.js decides which). Each is separate: a tile opens
+// its own dialog that runs the command and draws what is going on: the hotend glowing while PID tunes it, the gantry
 // settling pass after pass, the probe points landing on the bed, the toolhead shaking and the shapers it found.
-// Nothing is written to the config until "Save to config". Done steps are remembered per printer.
+// Nothing is written to the config until "Save to config". The last run of each is remembered per printer.
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
@@ -23,6 +23,16 @@ import {
 import { heatColor } from '../sensorStyle';
 import { t } from '../i18n';
 
+// one line under each calibration's name
+const SHORT = {
+  pid: 'Holds the temperature steady',
+  level: 'Gantry parallel to the bed',
+  screws: 'How far to turn each bed screw',
+  accuracy: 'How repeatable the probe is',
+  zoffset: 'Paper test for the first layer',
+  mesh: 'Maps the shape of the bed',
+  shaper: 'Less ringing at high speed',
+};
 const ICON = {
   pid: 'flame',
   level: 'tilt',
@@ -47,7 +57,6 @@ const steps = computed(() =>
   }),
 );
 const done = computed(() => state.settings.calibPath || {});
-const doneCount = computed(() => steps.value.filter((s) => done.value[s.key]).length);
 const fmtDay = (ts) => new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 function markDone(step, sum) {
   state.settings.calibPath = { ...(state.settings.calibPath || {}), [step.key]: { at: Date.now(), sum } };
@@ -55,7 +64,6 @@ function markDone(step, sum) {
 
 // ---------------------------------------------------------------- the open step
 const cur = ref(null); // the step shown in the dialog
-const idx = computed(() => steps.value.findIndex((s) => s.key === cur.value?.key));
 const run = ref(null); // { since, running, ended, cmd }
 const target = ref(0);
 const samples = ref(10);
@@ -70,14 +78,9 @@ function open(s) {
     target.value = sp || s.target;
   }
 }
-function next(dir) {
-  const s = steps.value[idx.value + dir];
-  if (s) open(s);
-}
 // the paper test is drawn here: the app-wide manual probe dialog stays away while this is open
 watch(cur, (c) => (state.calibWizard = !!c));
 onBeforeUnmount(() => (state.calibWizard = false));
-const nextUndone = computed(() => steps.value.find((s) => !done.value[s.key]) || steps.value[0]);
 
 const homed = computed(() => ['x', 'y', 'z'].every((a) => (S('toolhead').homed_axes || '').includes(a)));
 const needsHome = computed(() => cur.value && cur.value.kind !== 'pid' && !homed.value);
@@ -335,22 +338,20 @@ const why = {
 <template>
   <section v-if="steps.length" class="card cp">
     <div class="card-h">
-      <h2><Icon name="sparkle" :size="18" />{{ t('Interactive calibration') }}</h2>
-      <span class="mu sm">{{ t('{n} of {m} done', { n: doneCount, m: steps.length }) }}</span>
-      <button class="btn acc" :disabled="isPrinting" @click="open(nextUndone)">
-        <Icon name="play" :size="15" />{{ doneCount ? t('Continue') : t('Start') }}
-      </button>
+      <h2><Icon name="sparkle" :size="18" />{{ t('Guided calibrations') }}</h2>
+      <span v-if="isPrinting" class="mu sm">{{ t('Available when the print is done.') }}</span>
     </div>
-    <p v-if="isPrinting" class="mu sm" style="margin: 0">{{ t('Available when the print is done.') }}</p>
-    <div class="path">
-      <template v-for="(s, i) in steps" :key="s.key">
-        <i v-if="i" class="ln" :class="{ on: done[steps[i - 1].key] }"></i>
-        <button class="node" :class="{ ok: done[s.key] }" :disabled="isPrinting" @click="open(s)">
-          <span class="dot"><Icon :name="done[s.key] ? 'check' : ICON[s.kind]" :size="18" :stroke="2.4" /></span>
+    <div class="grid">
+      <button v-for="s in steps" :key="s.key" class="tile" :disabled="isPrinting" @click="open(s)">
+        <span class="dot"><Icon :name="ICON[s.kind]" :size="18" :stroke="2.4" /></span>
+        <span class="col grow" style="gap: 2px; min-width: 0">
           <b>{{ t(s.name) }}</b>
-          <span class="mu sm">{{ done[s.key] ? fmtDay(done[s.key].at) : t('not yet') }}</span>
-        </button>
-      </template>
+          <span class="mu sm">{{ t(SHORT[s.kind]) }}</span>
+          <span v-if="done[s.key]" class="last sm"
+            ><Icon name="check" :size="12" :stroke="2.6" />{{ fmtDay(done[s.key].at) }} · {{ done[s.key].sum }}</span
+          >
+        </span>
+      </button>
     </div>
   </section>
 
@@ -635,9 +636,6 @@ const why = {
       </div>
     </div>
     <template #foot>
-      <button class="btn lg" :disabled="idx <= 0 || run?.running" @click="next(-1)">
-        <Icon name="left" :size="16" />
-      </button>
       <span class="grow"></span>
       <button
         v-if="savePending && result && ['pid', 'zoffset', 'mesh', 'shaper'].includes(cur.kind)"
@@ -650,9 +648,6 @@ const why = {
       </button>
       <button v-if="!(cur.kind === 'zoffset' && mp.is_active)" class="btn lg acc" :disabled="!canStart" @click="start">
         <Icon name="play" :size="16" />{{ run?.ended ? t('Run again') : t('Start') }}
-      </button>
-      <button class="btn lg" :disabled="idx >= steps.length - 1 || run?.running" @click="next(1)">
-        {{ t('Next') }}<Icon name="right" :size="16" />
       </button>
     </template>
   </Modal>
@@ -667,62 +662,58 @@ const why = {
 .cp .card-h .sm {
   margin-left: auto;
 }
-.path {
+.sm {
+  font-size: 12px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.tile {
   display: flex;
   align-items: flex-start;
-  overflow-x: auto;
-  padding: 6px 2px 4px;
-}
-.ln {
-  flex: 1 1 24px;
-  min-width: 16px;
-  height: 2px;
-  margin-top: 21px;
-  background: var(--bd);
-}
-.ln.on {
-  background: var(--ok);
-}
-.node {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: 104px;
-  flex-shrink: 0;
-  background: none;
-  border: 0;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--bd);
+  background: var(--s2);
   color: var(--tx);
+  text-align: left;
   cursor: pointer;
-  text-align: center;
-  font-size: 13px;
+  font-size: 13.5px;
 }
-.node:disabled {
+.tile:hover:not(:disabled) {
+  border-color: var(--ac);
+}
+.tile:disabled {
   opacity: 0.5;
   cursor: default;
 }
+.tile .col,
+.res {
+  align-items: flex-start;
+  text-align: left;
+}
+.last {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ok);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .dot {
-  width: 44px;
-  height: 44px;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--s2);
-  border: 2px solid var(--bd);
-  transition: transform 0.15s;
-}
-.node:hover:not(:disabled) .dot {
-  transform: scale(1.08);
-  border-color: var(--ac);
-}
-.node.ok .dot {
-  background: color-mix(in srgb, var(--ok) 18%, var(--s2));
-  border-color: var(--ok);
-  color: var(--ok);
-}
-.sm {
-  font-size: 12px;
+  background: var(--s3);
+  color: var(--ac);
 }
 .st {
   display: grid;

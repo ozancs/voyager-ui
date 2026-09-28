@@ -1586,5 +1586,13 @@ export default {
  "Print again?": "再次打印？",
  "{file} starts again. Take the last print off the bed first.": "{file} 将重新开始。请先把上一个打印件从热床上取下。",
  "{name}: {n}° is above its max_temp ({max}°)": "{name}：{n}° 超过了 max_temp（{max}°）",
- "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG 从快照地址逐张加载图片。如果摄像头只有视频流，请把服务改为 MJPEG。"
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG 从快照地址逐张加载图片。如果摄像头只有视频流，请把服务改为 MJPEG。",
+ "Guided calibrations": "引导式校准",
+ "Holds the temperature steady": "让温度保持稳定",
+ "Gantry parallel to the bed": "龙门与热床平行",
+ "How far to turn each bed screw": "每颗热床螺丝要拧多少",
+ "How repeatable the probe is": "探针的重复精度",
+ "Paper test for the first layer": "首层的纸张测试",
+ "Maps the shape of the bed": "测量热床的形状",
+ "Less ringing at high speed": "高速时减少振纹"
 }

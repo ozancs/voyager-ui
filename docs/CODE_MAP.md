@@ -23,8 +23,8 @@ mount (the one that opened the pop-up) are ignored.
 Small pure helpers for the Health page and the dashboard grid, unit tested in tests/utils.test.js.
 
 **[src/calibPath.js](../src/calibPath.js)**  
-Interactive calibration: the order a printer is usually tuned in, as steps the UI walks through with a  
-picture of what is happening. This file decides which steps a printer has and reads Klipper's console output  
+Guided calibrations: the calibrations a printer has, each run on its own with a picture of what is  
+happening. This file decides which steps a printer has and reads Klipper's console output  
 into numbers; CalibPath.vue draws it. Pure functions, no store import.
 
 **[src/calibrations.js](../src/calibrations.js)**  
@@ -207,7 +207,7 @@ Minimal Moonraker JSON-RPC websocket client + HTTP helpers.
 ## Pages
 
 **[src/views/Calibrations.vue](../src/views/Calibrations.vue)**  
-Calibrations page: the interactive calibration path on top (CalibPath.vue), then one tab per kind of calibration the printer has (Shake&Tune, input shaper, heaters, probe,  
+Calibrations page: guided calibrations on top, each on its own (CalibPath.vue), then one tab per kind of calibration the printer has (Shake&Tune, input shaper, heaters, probe,  
 bed leveling, motors, other). The command lists are in calibrations.js. A tab runs the chosen command with  
 its parameters, follows its console output and shows the numbers that matter. Values Klipper keeps for  
 SAVE_CONFIG (PID, shaper) can be saved from here; the Shake&Tune tab is its own page (ShakeTune.vue).
@@ -272,11 +272,11 @@ one). Click a camera in the grid to open it on its own.
 ## Components and dashboard cards
 
 **[src/components/CalibPath.vue](../src/components/CalibPath.vue)**  
-Interactive calibration, at the top of the Calibrations page: the printer's calibrations as a path (heaters,  
-leveling, probe, Z offset, mesh, input shaper; calibPath.js decides which ones this printer has). A step opens  
-a dialog that runs the command and draws what is going on: the hotend glowing while PID tunes it, the gantry  
+Guided calibrations, at the top of the Calibrations page: one tile per calibration the printer has (heaters,  
+leveling, probe, Z offset, mesh, input shaper; calibPath.js decides which). Each is separate: a tile opens  
+its own dialog that runs the command and draws what is going on: the hotend glowing while PID tunes it, the gantry  
 settling pass after pass, the probe points landing on the bed, the toolhead shaking and the shapers it found.  
-Nothing is written to the config until "Save to config". Done steps are remembered per printer.
+Nothing is written to the config until "Save to config". The last run of each is remembered per printer.
 
 **[src/components/ChipList.vue](../src/components/ChipList.vue)**  
 A list of numbers shown as chips: click the x to remove, type a value and press Enter to add.

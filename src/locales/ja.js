@@ -1586,5 +1586,13 @@ export default {
  "Print again?": "もう一度印刷しますか？",
  "{file} starts again. Take the last print off the bed first.": "{file} をもう一度開始します。先にベッドから前回の造形物を取り外してください。",
  "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° は max_temp（{max}°）を超えています",
- "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG はスナップショットのアドレスから1枚ずつ画像を読み込みます。カメラにストリームしかない場合は、サービスを MJPEG にしてください。"
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG はスナップショットのアドレスから1枚ずつ画像を読み込みます。カメラにストリームしかない場合は、サービスを MJPEG にしてください。",
+ "Guided calibrations": "ガイド付きキャリブレーション",
+ "Holds the temperature steady": "温度を安定させる",
+ "Gantry parallel to the bed": "ガントリーをベッドと平行に",
+ "How far to turn each bed screw": "各ベッドネジをどれだけ回すか",
+ "How repeatable the probe is": "プローブの再現性",
+ "Paper test for the first layer": "1層目のための紙テスト",
+ "Maps the shape of the bed": "ベッドの形状を測定",
+ "Less ringing at high speed": "高速時のリンギングを減らす"
 }
