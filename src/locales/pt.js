@@ -1585,5 +1585,6 @@ export default {
  "{cmd} changes the bed mesh under the running print. The first layers can be squashed or lifted.": "{cmd} altera a malha da mesa durante a impressão em andamento. As primeiras camadas podem ficar esmagadas ou levantadas.",
  "Print again?": "Imprimir de novo?",
  "{file} starts again. Take the last print off the bed first.": "{file} começa de novo. Tire primeiro a última peça da mesa.",
- "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° está acima do max_temp ({max}°)"
+ "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° está acima do max_temp ({max}°)",
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG carrega imagens soltas do endereço de snapshot. Se a câmera só tem stream, mude o serviço para MJPEG."
 }

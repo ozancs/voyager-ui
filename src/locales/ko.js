@@ -1585,5 +1585,6 @@ export default {
  "{cmd} changes the bed mesh under the running print. The first layers can be squashed or lifted.": "{cmd}는 진행 중인 출력의 베드 메시를 변경합니다. 첫 레이어가 눌리거나 들뜰 수 있습니다.",
  "Print again?": "다시 출력할까요?",
  "{file} starts again. Take the last print off the bed first.": "{file} 출력을 다시 시작합니다. 먼저 베드에서 지난 출력물을 치우세요.",
- "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}°는 max_temp({max}°)보다 높습니다"
+ "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}°는 max_temp({max}°)보다 높습니다",
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG는 스냅샷 주소에서 사진을 한 장씩 불러옵니다. 카메라에 스트림만 있다면 서비스를 MJPEG로 바꾸세요."
 }

@@ -1585,5 +1585,6 @@ export default {
  "{cmd} changes the bed mesh under the running print. The first layers can be squashed or lifted.": "{cmd} cambia la mesh del piatto durante la stampa in corso. I primi strati possono risultare schiacciati o sollevati.",
  "Print again?": "Stampare di nuovo?",
  "{file} starts again. Take the last print off the bed first.": "{file} riparte. Togli prima l'ultima stampa dal piatto.",
- "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° è sopra il suo max_temp ({max}°)"
+ "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° è sopra il suo max_temp ({max}°)",
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG carica singole immagini dall'indirizzo snapshot. Se la camera ha solo lo stream, imposta il servizio su MJPEG."
 }

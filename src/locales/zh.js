@@ -1585,5 +1585,6 @@ export default {
  "{cmd} changes the bed mesh under the running print. The first layers can be squashed or lifted.": "{cmd} 会在打印进行中更改热床网格。前几层可能被压扁或翘起。",
  "Print again?": "再次打印？",
  "{file} starts again. Take the last print off the bed first.": "{file} 将重新开始。请先把上一个打印件从热床上取下。",
- "{name}: {n}° is above its max_temp ({max}°)": "{name}：{n}° 超过了 max_temp（{max}°）"
+ "{name}: {n}° is above its max_temp ({max}°)": "{name}：{n}° 超过了 max_temp（{max}°）",
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG 从快照地址逐张加载图片。如果摄像头只有视频流，请把服务改为 MJPEG。"
 }

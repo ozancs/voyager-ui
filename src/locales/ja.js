@@ -1585,5 +1585,6 @@ export default {
  "{cmd} changes the bed mesh under the running print. The first layers can be squashed or lifted.": "{cmd} は実行中の印刷のベッドメッシュを変更します。最初の層がつぶれたり浮いたりする可能性があります。",
  "Print again?": "もう一度印刷しますか？",
  "{file} starts again. Take the last print off the bed first.": "{file} をもう一度開始します。先にベッドから前回の造形物を取り外してください。",
- "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° は max_temp（{max}°）を超えています"
+ "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° は max_temp（{max}°）を超えています",
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG はスナップショットのアドレスから1枚ずつ画像を読み込みます。カメラにストリームしかない場合は、サービスを MJPEG にしてください。"
 }

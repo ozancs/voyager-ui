@@ -1586,5 +1586,6 @@ export default {
  "{cmd} changes the bed mesh under the running print. The first layers can be squashed or lifted.": "{cmd} çalışan baskının altındaki tabla mesh'ini değiştirir. İlk katmanlar ezilebilir ya da kalkabilir.",
  "Print again?": "Tekrar basılsın mı?",
  "{file} starts again. Take the last print off the bed first.": "{file} yeniden başlayacak. Önce son baskıyı tabladan al.",
- "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° max_temp değerinin üstünde ({max}°)"
+ "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° max_temp değerinin üstünde ({max}°)",
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG tek tek resimleri snapshot adresinden alır. Kamerada sadece stream varsa servisi MJPEG yap."
 }

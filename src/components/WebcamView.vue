@@ -63,7 +63,24 @@ function gotFrame() {
     clearTimeout(watchdog);
   }
 }
+// mjpegstreamer-adaptive polls snapshot_url. Cameras that only have a stream (phone apps, ESP32-CAM, other
+// servers: stream_url like /video) never answer there, so after a failure the stream is shown instead.
+const viaStream = ref(false);
+const kind = computed(() => (mode.value === 'snapshot' && viaStream.value ? 'mjpeg' : mode.value));
+const tried = computed(() =>
+  kind.value === 'snapshot' ? api.url(props.cam?.snapshot_url || '/webcam/?action=snapshot') : props.cam?.stream_url,
+);
 function fail(msg) {
+  if (
+    mode.value === 'snapshot' &&
+    !viaStream.value &&
+    props.cam?.stream_url &&
+    props.cam.stream_url !== props.cam.snapshot_url
+  ) {
+    viaStream.value = true;
+    start();
+    return;
+  }
   status.value = 'error';
   errMsg.value = msg || '';
 }
@@ -162,9 +179,11 @@ async function startHls() {
   hls.attachMedia(v);
 }
 
-async function start() {
+async function start(fresh) {
   stop();
   const g = ++gen;
+  if (fresh === true) viaStream.value = false;
+  if (mode.value === 'snapshot' && !props.cam?.snapshot_url && props.cam?.stream_url) viaStream.value = true;
   if (!props.cam) return;
   status.value = mode.value === 'unsupported' ? 'unsupported' : 'loading';
   errMsg.value = '';
@@ -180,7 +199,7 @@ async function start() {
     frames = 0;
   }, 1000);
   try {
-    if (mode.value === 'mjpeg') {
+    if (kind.value === 'mjpeg') {
       src.value = streamUrl.value;
       // browsers do not reliably fire "load" for MJPEG streams, so look at the decoded size instead
       timer = setInterval(() => {
@@ -189,7 +208,7 @@ async function start() {
           clearInterval(timer);
         }
       }, 400);
-    } else if (mode.value === 'snapshot') {
+    } else if (kind.value === 'snapshot') {
       const iv = 1000 / Math.max(1, Math.min(props.cam.target_fps || 10, 15));
       timer = setInterval(poll, iv);
       poll();
@@ -235,20 +254,23 @@ onBeforeUnmount(() => {
   stop();
   document.removeEventListener('visibilitychange', onVis);
 });
-watch(() => props.cam, start);
+watch(
+  () => props.cam,
+  () => start(true),
+);
 defineExpose({ retry: start });
 </script>
 <template>
   <div class="wc">
     <img
-      v-if="mode === 'mjpeg' || mode === 'snapshot'"
+      v-if="kind === 'mjpeg' || kind === 'snapshot'"
       ref="imgEl"
       v-show="src && status !== 'error'"
       :src="src"
       :style="{ transform }"
       :alt="t('Webcam')"
       @load="gotFrame"
-      @error="mode === 'mjpeg' && fail()"
+      @error="kind === 'mjpeg' && fail()"
     />
     <video
       v-else-if="isVideo"
@@ -281,9 +303,14 @@ defineExpose({ retry: start });
       <span>{{
         t('Check that the camera service (crowsnest) is running and the stream address opens in the browser.')
       }}</span>
-      <code>{{ service }} · {{ cam.stream_url }}</code>
+      <code>{{ service }} · {{ tried }}</code>
+      <span v-if="mode === 'snapshot'" class="hint2">{{
+        t(
+          'Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.',
+        )
+      }}</span>
       <span v-if="errMsg" class="mono em">{{ errMsg }}</span>
-      <button class="btn" @click="start"><Icon name="refresh" :size="15" />{{ t('Try again') }}</button>
+      <button class="btn" @click="start(true)"><Icon name="refresh" :size="15" />{{ t('Try again') }}</button>
     </div>
     <div v-else-if="status === 'unsupported'" class="msg">
       <Icon name="cam" :size="26" />
@@ -296,7 +323,7 @@ defineExpose({ retry: start });
     <template v-if="overlay && cam && status === 'live'">
       <span class="live">{{ t('LIVE') }}</span>
       <span class="info"
-        >{{ cam.name }}<template v-if="mode === 'snapshot'"> · {{ fps }} fps</template
+        >{{ cam.name }}<template v-if="kind === 'snapshot'"> · {{ fps }} fps</template
         ><template v-else-if="isVideo">
           · {{ mode.startsWith('webrtc') ? 'WebRTC' : mode === 'hls' ? 'HLS' : 'video' }}</template
         ></span
@@ -305,6 +332,11 @@ defineExpose({ retry: start });
   </div>
 </template>
 <style scoped>
+.hint2 {
+  font-size: 12px;
+  opacity: 0.75;
+  max-width: 440px;
+}
 .wc {
   position: relative;
   flex: 1;

@@ -1585,5 +1585,6 @@ export default {
  "{cmd} changes the bed mesh under the running print. The first layers can be squashed or lifted.": "{cmd} verandert de bedmesh onder de lopende print. De eerste lagen kunnen geplet of opgetild worden.",
  "Print again?": "Opnieuw printen?",
  "{file} starts again. Take the last print off the bed first.": "{file} start opnieuw. Haal eerst de vorige print van het bed.",
- "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° is hoger dan de max_temp ({max}°)"
+ "{name}: {n}° is above its max_temp ({max}°)": "{name}: {n}° is hoger dan de max_temp ({max}°)",
+ "Adaptive MJPEG loads single pictures from the snapshot address. If the camera only has a stream, set the service to MJPEG.": "Adaptive MJPEG laadt losse beelden van het snapshot-adres. Heeft de camera alleen een stream, zet de dienst dan op MJPEG."
 }
