@@ -1474,5 +1474,10 @@ export default {
  "installed": "установлена",
  "Subtle": "Слабый",
  "Normal": "Обычный",
- "Strong": "Сильный"
+ "Strong": "Сильный",
+ "Sensors, colours and order": "Датчики, цвета и порядок",
+ "Sensor": "Датчик",
+ "Show": "Показ",
+ "Order": "Порядок",
+ "Change colour": "Изменить цвет"
 }

@@ -34,3 +34,11 @@ export function moveSensor(names, order, name, dir) {
   [list[i], list[j]] = [list[j], list[i]];
   return list;
 }
+
+// colour of a temperature reading: plain text up to 35 °C, warming to amber by 80 °C and to red by 230 °C
+export function heatColor(temp) {
+  if (temp == null || temp < 35) return '';
+  const amber = Math.round(Math.min(1, (temp - 35) / 45) * 100);
+  const red = Math.round(Math.max(0, Math.min(1, (temp - 80) / 150)) * 100);
+  return `color-mix(in srgb, #ff4d3d ${red}%, color-mix(in srgb, #f5a524 ${amber}%, var(--tx)))`;
+}

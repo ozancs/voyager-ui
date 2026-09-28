@@ -1474,5 +1474,10 @@ export default {
  "installed": "geïnstalleerd",
  "Subtle": "Subtiel",
  "Normal": "Normaal",
- "Strong": "Sterk"
+ "Strong": "Sterk",
+ "Sensors, colours and order": "Sensoren, kleuren en volgorde",
+ "Sensor": "Sensor",
+ "Show": "Tonen",
+ "Order": "Volgorde",
+ "Change colour": "Kleur wijzigen"
 }

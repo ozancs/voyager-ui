@@ -1474,5 +1474,10 @@ export default {
  "installed": "zainstalowana",
  "Subtle": "Delikatny",
  "Normal": "Normalny",
- "Strong": "Mocny"
+ "Strong": "Mocny",
+ "Sensors, colours and order": "Czujniki, kolory i kolejność",
+ "Sensor": "Czujnik",
+ "Show": "Pokaż",
+ "Order": "Kolejność",
+ "Change colour": "Zmień kolor"
 }

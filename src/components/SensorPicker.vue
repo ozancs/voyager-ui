@@ -1,5 +1,5 @@
 <script setup>
-// Eye button in the Temperatures card and graph: pick which sensors they show (same list as Settings > Dashboard),
+// Edit button in the Temperatures card and graph: pick which sensors they show (same list as Settings > Dashboard),
 // their colour and their order, and for the graph the line width. Colour and order are shared by the card and
 // the graph (sensorStyle.js).
 import { ref, computed } from 'vue';
@@ -40,29 +40,31 @@ function move(s, dir) {
   <div class="sp">
     <button
       ref="btn"
-      class="btn ibtn"
+      class="btn"
       :class="{ on: open }"
-      :aria-label="t('Shown sensors')"
-      :data-tip="t('Shown sensors')"
+      :data-tip="t('Sensors, colours and order')"
       @click.stop="open = !open"
     >
-      <Icon name="eye" :size="16" :stroke="2.4" />
+      <Icon name="pencil" :size="15" :stroke="2.4" />{{ t('Edit') }}
     </button>
-    <Popover v-if="open" :anchor="btn" @close="open = false">
-      <span class="lbl">{{ t('Sensors') }}</span>
+    <Popover v-if="open" :anchor="btn" :width="300" @close="open = false">
+      <div class="hd">
+        <span class="c1">{{ t('Colour') }}</span
+        ><span class="c2">{{ t('Sensor') }}</span
+        ><span class="c3">{{ t('Show') }}</span
+        ><span class="c4">{{ t('Order') }}</span>
+      </div>
       <div class="rows">
         <div v-for="(s, i) in list" :key="s" class="srow" :class="{ off: hidden(s) }">
-          <label class="dot" :aria-label="t('Colour of {name}', { name: prettyName(s) })">
-            <i :style="{ background: colorOf(s, i) }"></i>
+          <label class="sw" :data-tip="t('Change colour')" :aria-label="t('Colour of {name}', { name: prettyName(s) })">
+            <i :style="{ background: colorOf(s, i) }"><Icon name="palette" :size="11" :stroke="2.6" /></i>
             <input
               type="color"
               :value="colorOf(s, i).startsWith('#') ? colorOf(s, i) : '#5aa9ff'"
               @input="setColor(s, $event.target.value)"
             />
           </label>
-          <button class="nm" :aria-pressed="!hidden(s)" :data-tip="t('Show or hide')" @click="toggle(s)">
-            {{ prettyName(s) }}
-          </button>
+          <span class="nm">{{ prettyName(s) }}</span>
           <button
             v-if="state.settings.sensorColors?.[s]"
             class="mini"
@@ -71,6 +73,15 @@ function move(s, dir) {
             @click="resetColor(s)"
           >
             <Icon name="rot" :size="13" />
+          </button>
+          <button
+            class="mini eye"
+            :aria-pressed="!hidden(s)"
+            :aria-label="t('Show or hide')"
+            :data-tip="t('Show or hide')"
+            @click="toggle(s)"
+          >
+            <Icon :name="hidden(s) ? 'eyeoff' : 'eye'" :size="15" :stroke="2.2" />
           </button>
           <button class="mini" :disabled="i === 0" :aria-label="t('Move up')" @click="move(s, -1)">
             <Icon name="up" :size="14" :stroke="2.6" />
@@ -100,38 +111,76 @@ function move(s, dir) {
 .sp {
   position: relative;
 }
+.hd {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--mu2);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--bd);
+}
+.hd .c1 {
+  width: 40px;
+}
+.hd .c2 {
+  flex: 1;
+}
+.hd .c3 {
+  width: 26px;
+  text-align: center;
+}
+.hd .c4 {
+  width: 48px;
+  text-align: center;
+}
+/* grows with the sensor count; only a very long list on a short window scrolls */
 .rows {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  max-height: 260px;
+  max-height: calc(75vh / var(--zoom, 1));
   overflow: auto;
 }
 .srow {
   display: flex;
   align-items: center;
   gap: 4px;
-  height: 30px;
+  min-height: 34px;
+  border-bottom: 1px solid var(--bd);
+}
+.srow:last-child {
+  border-bottom: 0;
 }
 .srow.off .nm {
   color: var(--mu2);
-  text-decoration: line-through;
 }
-.dot {
+.srow.off .sw i {
+  opacity: 0.35;
+}
+.sw {
   position: relative;
-  width: 18px;
-  height: 18px;
+  width: 40px;
+  height: 26px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
   cursor: pointer;
 }
-.dot i {
-  display: block;
-  width: 11px;
-  height: 11px;
-  margin: 3px;
-  border-radius: 50%;
+.sw i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 20px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.55);
 }
-.dot input {
+.sw:hover i {
+  outline: 2px solid var(--mu2);
+  outline-offset: 1px;
+}
+.sw input {
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -140,26 +189,30 @@ function move(s, dir) {
 .nm {
   flex: 1;
   min-width: 0;
-  text-align: left;
-  background: none;
-  border: 0;
-  padding: 0 2px;
-  color: var(--tx);
   font-size: 12.5px;
-  cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .mini {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   border-radius: 6px;
   background: none;
   color: var(--mu);
   cursor: pointer;
+}
+.mini.eye {
+  width: 26px;
+  color: var(--tx);
+}
+.srow.off .mini.eye {
+  color: var(--mu2);
 }
 .mini:hover:not(:disabled) {
   background: var(--s2);

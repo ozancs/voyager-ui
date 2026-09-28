@@ -1474,5 +1474,10 @@ export default {
  "installed": "설치됨",
  "Subtle": "은은하게",
  "Normal": "보통",
- "Strong": "강하게"
+ "Strong": "강하게",
+ "Sensors, colours and order": "센서, 색상 및 순서",
+ "Sensor": "센서",
+ "Show": "표시",
+ "Order": "순서",
+ "Change colour": "색상 변경"
 }

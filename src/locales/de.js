@@ -1474,5 +1474,10 @@ export default {
  "installed": "installiert",
  "Subtle": "Dezent",
  "Normal": "Normal",
- "Strong": "Stark"
+ "Strong": "Stark",
+ "Sensors, colours and order": "Sensoren, Farben und Reihenfolge",
+ "Sensor": "Sensor",
+ "Show": "Zeigen",
+ "Order": "Reihenfolge",
+ "Change colour": "Farbe ändern"
 }

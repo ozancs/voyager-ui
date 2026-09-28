@@ -1474,5 +1474,10 @@ export default {
  "installed": "インストール済み",
  "Subtle": "控えめ",
  "Normal": "標準",
- "Strong": "強め"
+ "Strong": "強め",
+ "Sensors, colours and order": "センサー、色、順番",
+ "Sensor": "センサー",
+ "Show": "表示",
+ "Order": "順番",
+ "Change colour": "色を変更"
 }

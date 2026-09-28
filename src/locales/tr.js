@@ -1475,5 +1475,10 @@ export default {
  "installed": "yüklü",
  "Subtle": "Hafif",
  "Normal": "Normal",
- "Strong": "Güçlü"
+ "Strong": "Güçlü",
+ "Sensors, colours and order": "Sensörler, renkler ve sıra",
+ "Sensor": "Sensör",
+ "Show": "Göster",
+ "Order": "Sıra",
+ "Change colour": "Rengi değiştir"
 }

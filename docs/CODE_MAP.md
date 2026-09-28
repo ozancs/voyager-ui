@@ -432,7 +432,7 @@ the printer's value is only taken over again once it has caught up (or after a s
 jumps back while a command is on its way.
 
 **[src/components/SensorPicker.vue](../src/components/SensorPicker.vue)**  
-Eye button in the Temperatures card and graph: pick which sensors they show (same list as Settings > Dashboard),  
+Edit button in the Temperatures card and graph: pick which sensors they show (same list as Settings > Dashboard),  
 their colour and their order, and for the graph the line width. Colour and order are shared by the card and  
 the graph (sensorStyle.js).
 

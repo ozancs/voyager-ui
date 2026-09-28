@@ -1474,5 +1474,10 @@ export default {
  "installed": "已安装",
  "Subtle": "轻微",
  "Normal": "正常",
- "Strong": "强烈"
+ "Strong": "强烈",
+ "Sensors, colours and order": "传感器、颜色和顺序",
+ "Sensor": "传感器",
+ "Show": "显示",
+ "Order": "顺序",
+ "Change colour": "更改颜色"
 }

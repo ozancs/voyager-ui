@@ -1474,5 +1474,10 @@ export default {
  "installed": "instalada",
  "Subtle": "Subtil",
  "Normal": "Normal",
- "Strong": "Forte"
+ "Strong": "Forte",
+ "Sensors, colours and order": "Sensores, cores e ordem",
+ "Sensor": "Sensor",
+ "Show": "Mostrar",
+ "Order": "Ordem",
+ "Change colour": "Mudar cor"
 }
