@@ -84,7 +84,17 @@ export const DEFAULT_SETTINGS = () => ({
   layoutPrint: null,
   mobileOrder: null, // card order of the one-column phone dashboard, set in Customize on a phone
   hiddenCardsPrint: [],
-  sound: { enabled: false, volume: 0.6, complete: true, error: true, paused: true, heated: false },
+  // alerts for print events: sounds, a system notification while the tab is in the background, spoken text
+  sound: {
+    enabled: false,
+    volume: 0.6,
+    complete: true,
+    error: true,
+    paused: true,
+    heated: false,
+    desktop: false,
+    speak: false,
+  },
   // jog / extrude presets, shared with Mainsail and Fluidd when sync is on
   control: {
     feedXY: 100,
@@ -189,6 +199,9 @@ export const state = reactive({
   settingsOpen: null, // name of the settings dialog tab while it is open
   printersOpen: false, // the printer list dialog (printers.js)
   preprint: null, // { filename, issues, resolve } while the pre-print check asks (PreprintDialog.vue)
+  locked: false, // Lock (lock.js): read-only mode for this browser
+  tablet: false, // Tablet mode (tablet.js)
+  pip: null, // webcam name floating over the pages (FloatingCam.vue)
   guard: null, // { script, cmd, resolve } while a risky command waits for a confirm during a print (GuardDialog.vue)
   whatsNew: false, // the changelog dialog (WhatsNew.vue)
   dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
@@ -290,16 +303,22 @@ export function fmtDate(ts) {
 export function toast(msg, kind = 'info', opts = {}) {
   // same message twice within a few seconds (e.g. rpc error + "!!" echo) shows once
   const now = Date.now();
-  const dup = state.toasts.find((t) => t.msg === msg);
+  const dup = !opts.undo && state.toasts.find((t) => t.msg === msg);
   if (dup) {
     dup.n = (dup.n || 1) + 1;
     return;
   }
   const id = Math.random().toString(36).slice(2);
   state.toasts.push({ id, msg, kind, t: now, ...opts });
-  if (state.toasts.length > 4) state.toasts.splice(0, state.toasts.length - 4);
+  // at most 4 plain toasts; undo toasts are never pushed out (their Undo button would go with them)
+  const plain = state.toasts.filter((x) => !x.undo);
+  if (plain.length > 4) {
+    const drop = new Set(plain.slice(0, plain.length - 4));
+    state.toasts = state.toasts.filter((x) => !drop.has(x));
+  }
   const ms = opts.ms ?? (kind === 'error' ? 9000 : 3500);
   if (ms) setTimeout(() => closeToast(id), ms);
+  return id;
 }
 export function closeToast(id) {
   state.toasts = state.toasts.filter((t) => t.id !== id);
@@ -313,19 +332,27 @@ const nickname = currentPrinter()?.name || '';
 export const printerName = computed(
   () => nickname || state.settings.printerName || state.printerName || state.versions.host || t('Printer'),
 );
-watch(
-  printerName,
-  (n) => {
-    document.title = n + ' · ' + APP_NAME;
-  },
-  { immediate: true },
-);
 export const printState = computed(() => S('print_stats').state || 'standby');
 export const isPrinting = computed(() => ['printing', 'paused'].includes(printState.value));
 export const progress = computed(() => {
   const p = S('virtual_sdcard').progress ?? S('display_status').progress ?? 0;
   return Math.max(0, Math.min(1, p));
 });
+// the tab title shows the print: "42% bracket_v3 · Voron" while printing, "Paused ..." or "Done ..." after
+const tabTitle = computed(() => {
+  const base = printerName.value + ' · ' + APP_NAME;
+  const file = (S('print_stats').filename || '')
+    .split('/')
+    .pop()
+    .replace(/\.gcode$/i, '');
+  const st = printState.value;
+  if (st === 'printing') return Math.floor(progress.value * 100) + '% ' + file + ' · ' + printerName.value;
+  if (st === 'paused') return '⏸ ' + t('Paused') + ' ' + file + ' · ' + printerName.value;
+  if (st === 'complete' && file) return '✓ ' + file + ' · ' + printerName.value;
+  if (st === 'error') return '⚠ ' + printerName.value + ' · ' + APP_NAME;
+  return base;
+});
+watch(tabTitle, (v) => (document.title = v), { immediate: true });
 export const printTimes = computed(() => {
   const ps = S('print_stats');
   const dur = ps.print_duration || 0;
@@ -468,37 +495,112 @@ export const excludeObjects = computed(() => S('exclude_object'));
 // gcode() asks first (GuardDialog.vue); macros count when their gcode calls one of these (checked 3 levels deep).
 const DANGER =
   /^(G28|BED_MESH_CALIBRATE|QUAD_GANTRY_LEVEL|Z_TILT_ADJUST|SCREWS_TILT_CALCULATE|BED_TILT_CALIBRATE|DELTA_CALIBRATE|PROBE|PROBE_CALIBRATE|PROBE_ACCURACY|Z_ENDSTOP_CALIBRATE|MANUAL_PROBE|PROBE_EDDY_CURRENT_CALIBRATE|LDC_CALIBRATE_DRIVE_CURRENT|TEMPERATURE_PROBE_CALIBRATE|SHAPER_CALIBRATE|TEST_RESONANCES|AXES_SHAPER_CALIBRATION|COMPARE_BELTS_RESPONSES|CREATE_VIBRATIONS_PROFILE|AXES_MAP_CALIBRATION|EXCITATE_AXIS_AT_FREQ|PID_CALIBRATE|MPC_CALIBRATE|CALIBRATE_Z|BEACON_\w*CALIBRATE|CARTOGRAPHER_\w*CALIBRATE|OZNLAB_(TAP|MESH|MESH_SETUP|THERMAL_CAL|HOME_TEST|MAX_FLOW|RETRACT_TEST|TEMP_SCAN|TEST|SETUP))$/;
+// Commands that end the print (restart), drop the motors or swap the Z compensation under the running print.
+const KILL = /^(SAVE_CONFIG|RESTART|FIRMWARE_RESTART)$/;
+const MOTORS = /^(M84|M18|SET_STEPPER_ENABLE|SET_KINEMATIC_POSITION)$/;
+const MESH = /^(BED_MESH_CLEAR|BED_MESH_PROFILE|BED_MESH_OFFSET)$/;
+export const dangerKind = (cmd) => {
+  const w = String(cmd || '').split(' ')[0];
+  return KILL.test(w) ? 'kill' : MOTORS.test(w) ? 'motors' : MESH.test(w) ? 'mesh' : 'move';
+};
+const risky = (w) => DANGER.test(w) || KILL.test(w) || MOTORS.test(w) || MESH.test(w);
+function cfgBody(section) {
+  const cfg = S('configfile').config || {};
+  const key = Object.keys(cfg).find((k) => k.toLowerCase() === section.toLowerCase());
+  return key ? String(cfg[key].gcode || '') : '';
+}
 function macroCalls(name, depth) {
   if (depth > 3) return null;
-  const cfg = S('configfile').config || {};
-  const key = Object.keys(cfg).find((k) => k.toLowerCase() === 'gcode_macro ' + name.toLowerCase());
-  const body = key ? String(cfg[key].gcode || '') : '';
+  const body = cfgBody('gcode_macro ' + name);
   return body ? dangerIn(body, depth + 1) : null;
 }
-// the first risky command in a script (or in a macro it calls), or null
+// the command name the way Klipper reads it: an optional line number is skipped, G28X10 is G28, and
+// extended commands are letters, digits and underscores
+export function cmdWord(line) {
+  const w = line
+    .replace(/[;#].*$/, '')
+    .trim()
+    .replace(/^N\d+\s*/i, '')
+    .split(/\s+/)[0]
+    ?.toUpperCase();
+  if (!w) return '';
+  const trad = w.match(/^[GMT]\d+(\.\d+)?/);
+  if (trad && !/^[GMT]\d+[A-Z0-9]*_/.test(w)) return trad[0];
+  return /^[A-Z_][A-Z0-9_]*$/.test(w) ? w : '';
+}
+// the first risky command in a script (or in a macro it calls), or null. Template tags are taken out first so a
+// command inside {% if %} ... {% endif %} on one line is still seen; delayed gcode started from it is followed too.
 export function dangerIn(script, depth = 0) {
-  for (const line of String(script || '').split('\n')) {
-    const word = line
-      .replace(/[;#].*$/, '')
-      .trim()
-      .split(/\s+/)[0]
-      ?.toUpperCase();
-    if (!word || !/^[A-Z_][A-Z0-9_]*$/.test(word)) continue;
-    if (DANGER.test(word)) return word;
-    const inner = macroCalls(word, depth);
+  const text = String(script || '')
+    .replace(/\{%[\s\S]*?%\}/g, '\n')
+    .replace(/\{#[\s\S]*?#\}/g, '\n');
+  for (const line of text.split('\n')) {
+    const word = cmdWord(line);
+    if (!word) continue;
+    if (risky(word) && !(word === 'BED_MESH_PROFILE' && !/\bLOAD\s*=/i.test(line))) return word;
+    let inner = null;
+    if (word === 'UPDATE_DELAYED_GCODE' && depth <= 3) {
+      const id = line.match(/ID\s*=\s*([\w-]+)/i)?.[1];
+      const dur = line.match(/DURATION\s*=\s*([\d.]+)/i)?.[1];
+      if (id && dur !== '0') {
+        const body = cfgBody('delayed_gcode ' + id);
+        inner = body ? dangerIn(body, depth + 1) : null;
+      }
+    } else inner = macroCalls(word, depth);
     if (inner) return depth ? inner : word + ' (' + inner + ')';
   }
   return null;
 }
 
+// one question at a time: a new one answers the one still open with "no" instead of leaving it hanging
+export function askGuard(script, cmd) {
+  state.guard?.resolve(false);
+  return new Promise((resolve) => {
+    const g = {
+      id: Math.random(),
+      script,
+      cmd,
+      kind: dangerKind(cmd),
+      resolve: (v) => {
+        if (state.guard?.id === g.id) state.guard = null; // state.guard is a reactive copy, compare by id
+        resolve(v);
+      },
+    };
+    state.guard = g;
+  });
+}
+
+// a double click sends a command twice: the same script again within 400 ms is dropped. Moves and Z steps are
+// left alone, clicking +1 twice quickly means 2 mm.
+let lastSent = { s: '', at: 0 };
+const REPEATABLE = /\b(G0|G1|TESTZ|SET_GCODE_OFFSET)\b/i;
+// a plain yes/no question in the same dialog (GuardDialog.vue): { title, text, ok } -> true / false
+export function askConfirm({ title, text, ok }) {
+  state.guard?.resolve(false);
+  return new Promise((resolve) => {
+    const g = {
+      id: Math.random(),
+      custom: { title, text, ok },
+      resolve: (v) => {
+        if (state.guard?.id === g.id) state.guard = null;
+        resolve(v);
+      },
+    };
+    state.guard = g;
+  });
+}
+
 export const gcode = async (script, { quiet = false, force = false } = {}) => {
+  const now = Date.now();
+  if (script === lastSent.s && now - lastSent.at < 400 && !REPEATABLE.test(script)) return;
+  lastSent = { s: script, at: now };
+  if (state.locked) {
+    if (!quiet) toast(api.lockedMsg?.() || 'Locked', 'warn');
+    return;
+  }
   if (!force && isPrinting.value) {
     const cmd = dangerIn(script);
-    if (cmd && !(await new Promise((resolve) => (state.guard = { script, cmd, resolve })))) {
-      state.guard = null;
-      return;
-    }
-    state.guard = null;
+    if (cmd && !(await askGuard(script, cmd))) return;
   }
   pushConsole(script, 'command');
   try {
@@ -511,13 +613,26 @@ export const gcode = async (script, { quiet = false, force = false } = {}) => {
 
 // RESTART and FIRMWARE_RESTART go through Moonraker's restart endpoints, not the G-code queue: sent as G-code
 // they wait behind a long command (a heater wait, a calibration) and seem to do nothing.
-export async function restartKlipper(firmware = false) {
+export async function restartKlipper(firmware = false, { force = false } = {}) {
+  const cmd = firmware ? 'FIRMWARE_RESTART' : 'RESTART';
+  if (!force && isPrinting.value && !(await askGuard(cmd, cmd))) return false;
   pushConsole(firmware ? 'FIRMWARE_RESTART' : 'RESTART', 'command');
   try {
     await api.call(firmware ? 'printer.firmware_restart' : 'printer.restart');
   } catch (e) {
     toast(e.message, 'error');
   }
+}
+
+// PAUSE / RESUME: one at a time, so a double click cannot pause and then resume on the same spot once the
+// button has flipped. They skip the print guard (a PAUSE macro that parks is expected to move).
+let prBusy = false;
+export function pauseResume(cmd) {
+  if (prBusy) return Promise.resolve();
+  prBusy = true;
+  return gcode(cmd, { force: true })
+    .catch(() => {})
+    .finally(() => setTimeout(() => (prBusy = false), 1500));
 }
 
 // CANCEL_PRINT waits in Klipper's G-code queue like any command: while the printer waits for a heater (M190,
@@ -534,7 +649,7 @@ export function cancelPrint() {
       }),
     4000,
   );
-  return gcode('CANCEL_PRINT')
+  return gcode('CANCEL_PRINT', { force: true })
     .catch(() => {})
     .finally(() => clearTimeout(tm));
 }
@@ -681,11 +796,31 @@ export async function backupBeforeWrite(root, path) {
 
 export function setHeater(name, target) {
   target = Math.max(0, Number(target) || 0);
+  // Klipper refuses targets above max_temp with an error; say it in plain words instead
+  const max = Number(S('configfile').settings?.[name.toLowerCase()]?.max_temp);
+  if (max && target > max) {
+    toast(t('{name}: {n}° is above its max_temp ({max}°)', { name: prettyName(name), n: target, max }), 'warn');
+    return Promise.resolve();
+  }
   if (name.startsWith('temperature_fan '))
     return gcode(`SET_TEMPERATURE_FAN_TARGET TEMPERATURE_FAN=${shortName(name)} TARGET=${target}`);
   return gcode(`SET_HEATER_TEMPERATURE HEATER=${shortName(name)} TARGET=${target}`);
 }
 
+// the active Spoolman spool's own temperatures, offered first in Presets (never applied on its own: choosing a
+// spool must not heat the printer)
+export const spoolPreset = computed(() => {
+  const f = state.spoolman.spool?.filament;
+  const e = Number(f?.settings_extruder_temp) || 0,
+    b = Number(f?.settings_bed_temp) || 0;
+  if (!e && !b) return null;
+  const name = [f.material, f.name].filter(Boolean).join(' ') || t('Spool');
+  return { id: 'spool', name, spool: true, temps: { extruder: e || null, heater_bed: b || null } };
+});
+export const allPresets = computed(() => [
+  ...(spoolPreset.value ? [spoolPreset.value] : []),
+  ...(state.settings.presets || []),
+]);
 export async function applyPreset(p) {
   for (const [name, t] of Object.entries(p.temps || {})) {
     if (t == null || t === '') continue;

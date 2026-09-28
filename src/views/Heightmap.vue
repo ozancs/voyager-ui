@@ -142,7 +142,7 @@ function doSave() {
           <button class="btn lg acc" :disabled="isPrinting" @click="gcode('BED_MESH_CALIBRATE')">
             <Icon name="mesh" :stroke="2.4" />{{ t('Calibrate') }}
           </button>
-          <button class="btn lg" :disabled="!bm.profile_name" @click="gcode('BED_MESH_CLEAR')">
+          <button class="btn lg" :disabled="!bm.profile_name || isPrinting" @click="gcode('BED_MESH_CLEAR')">
             <Icon name="x" :stroke="2.4" />{{ t('Clear') }}
           </button>
         </div>
@@ -158,7 +158,9 @@ function doSave() {
         <div v-for="p in profiles" :key="p" class="pr">
           <b class="grow">{{ p }}</b>
           <span v-if="p === bm.profile_name" class="chip" style="color: var(--tx)"><i></i>{{ t('Active') }}</span>
-          <button v-else class="btn" @click="gcode(`BED_MESH_PROFILE LOAD=${p}`)">{{ t('Load') }}</button>
+          <button v-else class="btn" :disabled="isPrinting" @click="gcode(`BED_MESH_PROFILE LOAD=${p}`)">
+            {{ t('Load') }}
+          </button>
           <button class="btn clear ibtn sm" :aria-label="t('Remove')" @click="gcode(`BED_MESH_PROFILE REMOVE=${p}`)">
             <Icon name="trash" :size="16" />
           </button>

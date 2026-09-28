@@ -7,7 +7,7 @@ import Modal from '../components/Modal.vue';
 import { state, S, saveSettings, toast, gcode, isPrinting, backupBeforeWrite, restartKlipper } from '../store';
 import { api } from '../api/moonraker';
 import { t, tn } from '../i18n';
-import { setOption, hasSection } from '../cfgedit';
+import { writeOptions } from '../cfgwrite';
 const drafts = ref({});
 const saving = ref(false);
 const result = ref(null);
@@ -35,48 +35,15 @@ const id = (f) => f.section + '|' + f.key;
 const changes = computed(() =>
   state.settings.quickConfig.filter((f) => drafts.value[id(f)] !== undefined && drafts.value[id(f)] !== current(f)),
 );
-async function cfgFiles() {
-  const r = await api.call('server.files.list', { root: 'config' });
-  const all = r
-    .map((f) => f.path)
-    .filter((p) => /\.cfg$/.test(p) && !/^printer-\d{8}_\d{6}\.cfg$/.test(p) && !/(backup|bak|pre_|pre-)/i.test(p));
-  return ['printer.cfg', ...all.filter((p) => p !== 'printer.cfg')];
-}
+// written by cfgwrite.js: only into printer.cfg and the files it includes, a backup of each first
 async function save(restart) {
   saving.value = true;
-  const log = [];
   try {
-    const files = await cfgFiles();
-    const texts = {};
-    for (const f of changes.value) {
-      const v = drafts.value[id(f)];
-      let done = false;
-      for (const fn of files) {
-        if (texts[fn] === undefined)
-          texts[fn] = await api.getText(`/server/files/config/${fn.split('/').map(encodeURIComponent).join('/')}`);
-        if (!hasSection(texts[fn], f.section)) continue;
-        const r = setOption(texts[fn], f.section, f.key, v);
-        if (r) {
-          texts[fn] = r.text;
-          texts['__dirty_' + fn] = true;
-          log.push({ f, v, file: fn, where: r.where });
-          done = true;
-          break;
-        }
-      }
-      if (!done) log.push({ f, v, error: 'section not found in any .cfg' });
-    }
-    for (const fn of Object.keys(texts)) {
-      if (!texts['__dirty_' + fn]) continue;
-      await backupBeforeWrite('config', fn);
-      await api.upload(new Blob([texts[fn]], { type: 'text/plain' }), {
-        root: 'config',
-        path: fn.split('/').slice(0, -1).join('/'),
-        name: fn.split('/').pop(),
-      });
-    }
+    const log = await writeOptions(
+      changes.value.map((f) => ({ f, section: f.section, key: f.key, value: drafts.value[id(f)] })),
+    );
     drafts.value = {};
-    result.value = log;
+    result.value = log.map((l) => ({ ...l, v: l.value }));
     if (restart && !log.some((l) => l.error)) await restartKlipper();
   } catch (e) {
     toast(t('Save failed: {e}', { e: e.message }), 'error');

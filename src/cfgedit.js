@@ -58,3 +58,41 @@ export function hasSection(text, section) {
     return m && m[1].trim().toLowerCase() === sec;
   });
 }
+
+// Klipper's own file order: printer.cfg, then every [include] in the order it meets them (globs sorted,
+// paths relative to the including file). texts is filled with what was read on the way.
+export async function includedFiles(all, read, texts = {}) {
+  const set = new Set(all);
+  const order = [],
+    seen = new Set();
+  const glob = (pat) =>
+    new RegExp(
+      '^' +
+        pat
+          .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+          .replace(/\*\*/g, '\u0000')
+          .replace(/\*/g, '[^/]*')
+          .replace(/\?/g, '[^/]')
+          .replace(/\u0000/g, '.*') +
+        '$',
+    );
+  async function visit(fn) {
+    if (seen.has(fn) || !set.has(fn)) return;
+    seen.add(fn);
+    order.push(fn);
+    if (texts[fn] === undefined) texts[fn] = await read(fn);
+    const dir = fn.includes('/') ? fn.slice(0, fn.lastIndexOf('/') + 1) : '';
+    for (const m of String(texts[fn]).matchAll(/^\[include\s+([^\]]+)\]/gm)) {
+      // relative to the including file; "./" and "../" resolved like a path
+      const parts = [];
+      for (const seg of (dir + m[1].trim()).split('/'))
+        if (seg === '..') parts.pop();
+        else if (seg !== '.' && seg !== '') parts.push(seg);
+      const pat = parts.join('/');
+      const re = glob(pat);
+      for (const f of all.filter((x) => re.test(x)).sort()) await visit(f);
+    }
+  }
+  await visit('printer.cfg');
+  return order;
+}

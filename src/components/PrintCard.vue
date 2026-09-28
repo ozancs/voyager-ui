@@ -4,11 +4,23 @@
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
-import { state, S, printState, progress, printTimes, layerInfo, fmtTime, gcode, toast, cancelPrint } from '../store';
+import {
+  state,
+  S,
+  printState,
+  progress,
+  printTimes,
+  layerInfo,
+  fmtTime,
+  gcode,
+  toast,
+  cancelPrint,
+  pauseResume,
+} from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
-import { startPrint } from '../preprint';
+import { startPrint, askReprint } from '../preprint';
 const emit = () => {
   state.showExclude = true;
 };
@@ -73,8 +85,9 @@ function cancel() {
   ask.value = false;
   cancelPrint();
 }
-function reprint() {
-  if (ps.value.filename) startPrint(ps.value.filename);
+async function reprint() {
+  const f = ps.value.filename;
+  if (f && (await askReprint(f))) startPrint(f);
 }
 </script>
 <template>
@@ -143,10 +156,10 @@ function reprint() {
     <div class="acts">
       <template v-if="active">
         <div class="row">
-          <button v-if="printState === 'paused'" class="btn lg acc grow" @click="gcode('RESUME')">
+          <button v-if="printState === 'paused'" class="btn lg acc grow" @click="pauseResume('RESUME')">
             <Icon name="play" :stroke="2.4" />{{ t('Resume') }}
           </button>
-          <button v-else class="btn lg grow" @click="gcode('PAUSE')">
+          <button v-else class="btn lg grow" @click="pauseResume('PAUSE')">
             <Icon name="pause" :stroke="2.4" />{{ t('Pause') }}
           </button>
           <button class="btn lg dg grow" @click="ask = true"><Icon name="sq" :stroke="2.4" />{{ t('Cancel') }}</button>

@@ -155,6 +155,7 @@ const status = {
       printer: { max_velocity: 500, max_accel: 10000, square_corner_velocity: 5, minimum_cruise_ratio: 0.5 },
       'output_pin kasa_ledi_guc': { pwm: false },
       'temperature_sensor ebb_mcu': { sensor_type: 'temperature_mcu', sensor_mcu: 'EBBCan' },
+      resonance_tester: { accel_chip: 'adxl345', probe_points: [[175, 175, 20]] },
     },
     config: {
       printer: {
@@ -455,7 +456,7 @@ let gcodeScript = function (sc) {
       '// action:prompt_show',
     ]);
   else if (S.startsWith('RESPOND') && S.includes('PROMPT_END')) emitLines(['// action:prompt_end']);
-  else if (S === 'PROBE_CALIBRATE')
+  else if (S === 'PROBE_CALIBRATE' || S === 'Z_ENDSTOP_CALIBRATE')
     pushStatus({ manual_probe: { is_active: true, z_position: 5, z_position_lower: null, z_position_upper: null } });
   else if (S.startsWith('TESTZ')) {
     const m = S.match(/Z=([-+]?[\d.]*)/);
@@ -466,7 +467,14 @@ let gcodeScript = function (sc) {
       if (v < 0) pushStatus({ manual_probe: { z_position: +(z + v).toFixed(3), z_position_upper: z } });
       else pushStatus({ manual_probe: { z_position: +(z + v).toFixed(3), z_position_lower: z } });
     }
-  } else if (S === 'ACCEPT' || S === 'ABORT') pushStatus({ manual_probe: { is_active: false } });
+  } else if (S === 'ACCEPT') {
+    const z = status.manual_probe.z_position ?? 0;
+    pushStatus({ manual_probe: { is_active: false }, configfile: { save_config_pending: true } });
+    emitLines([
+      `// probe: z_offset: ${(2.5 - z).toFixed(3)}`,
+      '// The SAVE_CONFIG command will update the printer config file with the above and restart the printer.',
+    ]);
+  } else if (S === 'ABORT') pushStatus({ manual_probe: { is_active: false } });
   else if (S === 'SCREWS_TILT_CALCULATE') {
     emitLines(
       [
@@ -1019,6 +1027,8 @@ const PROFILE = {
       status.toolhead.axis_maximum = [235, 235, 250, 0];
       status.toolhead.homed_axes = '';
       status.configfile.save_config_pending = false;
+      delete status.configfile.settings.resonance_tester;
+      status.configfile.settings.screws_tilt_adjust = {};
       status.configfile.config.printer.kinematics = 'cartesian';
       status.configfile.config.printer.max_velocity = '300';
       status.configfile.config.printer.max_accel = '3000';
@@ -1567,7 +1577,8 @@ gcode:
 `;
 // ---- live printer: progress, layers, temperatures, occasional console lines ----
 let tk = 0,
-  GLEN = 0;
+  GLEN = 0,
+  pidSim = null;
 function tick() {
   tk++;
   const st = status;
@@ -1575,9 +1586,21 @@ function tick() {
   const hover = (h, spread) => {
     if (h.target) h.temperature = h.target - spread / 2 + Math.random() * spread;
   };
-  hover(st.extruder, 0.8);
-  st.extruder.power = st.extruder.target ? 0.4 + Math.random() * 0.04 : 0;
-  hover(st.heater_bed, 0.3);
+  if (pidSim) {
+    // warming up, then damped swings around the target
+    const h = st[pidSim.h];
+    pidSim.t++;
+    const rise = Math.min(1, pidSim.t / 8);
+    h.target = pidSim.tg;
+    h.temperature =
+      pidSim.from +
+      (pidSim.tg - pidSim.from) * rise +
+      (rise === 1 ? 6 * Math.sin(pidSim.t / 1.7) * Math.exp(-(pidSim.t - 8) / 14) : 0);
+    h.power = h.temperature < pidSim.tg ? 1 : 0;
+  }
+  if (!pidSim || pidSim.h !== 'extruder') hover(st.extruder, 0.8);
+  if (!pidSim) st.extruder.power = st.extruder.target ? 0.4 + Math.random() * 0.04 : 0;
+  if (!pidSim || pidSim.h !== 'heater_bed') hover(st.heater_bed, 0.3);
   hover(st['heater_generic chamber'], 0.5);
   st['temperature_sensor EBB_MCU'].temperature = 48 + Math.random() * 0.6;
   const ps = st.print_stats,
@@ -1740,22 +1763,62 @@ gcodeScript = function (sc) {
     out.push(
       '// The SAVE_CONFIG command will update the printer config file with these parameters and restart the printer.',
     );
-    emitLines(out, 300);
-    setTimeout(() => pushStatus({ configfile: { save_config_pending: true } }), 300 * out.length);
-    return 'ok';
+    emitLines(out, 700);
+    return new Promise((res) =>
+      setTimeout(() => {
+        pushStatus({ configfile: { save_config_pending: true } });
+        res('ok');
+      }, 700 * out.length),
+    );
   }
   if (/^PID_CALIBRATE\b/.test(S)) {
-    const h = (/HEATER=(\S+)/.exec(S) || [])[1] || 'EXTRUDER';
-    emitLines(
-      [
-        `// PID calibrate: heating ${h.toLowerCase()}`,
-        '// PID parameters: pid_Kp=22.865 pid_Ki=1.292 pid_Kd=101.178',
-        '// The SAVE_CONFIG command will update the printer config file with these parameters and restart the printer.',
-      ],
-      900,
+    // the heater warms up and swings around the target a few times (tick() draws it), then the result
+    const h = ((/HEATER=(\S+)/.exec(S) || [])[1] || 'EXTRUDER').toLowerCase();
+    const tg = +((/TARGET=([\d.]+)/.exec(S) || [])[1] || 200);
+    pidSim = { h, tg, t: 0, from: status[h]?.temperature ?? 25 };
+    emitLines([`// PID calibrate: heating ${h} to ${tg}`]);
+    return new Promise((res) =>
+      setTimeout(() => {
+        pidSim = null;
+        pushStatus({ [h]: { target: 0, power: 0 } });
+        emitLines([
+          '// PID parameters: pid_Kp=22.865 pid_Ki=1.292 pid_Kd=101.178',
+          '// The SAVE_CONFIG command will update the printer config file with these parameters and restart the printer.',
+        ]);
+        pushStatus({ configfile: { save_config_pending: true } });
+        res('ok');
+      }, 24000),
     );
-    setTimeout(() => pushStatus({ configfile: { save_config_pending: true } }), 2800);
-    return 'ok';
+  }
+  if (/^BED_MESH_CALIBRATE\b/.test(S)) {
+    const [x0, y0] = [20, 20],
+      [x1, y1] = [(status.toolhead.axis_maximum[0] || 300) - 20, (status.toolhead.axis_maximum[1] || 300) - 20];
+    const n = 7,
+      out = [],
+      m = [];
+    for (let j = 0; j < n; j++) {
+      const row = [];
+      for (let i = 0; i < n; i++) {
+        const ii = j % 2 ? n - 1 - i : i; // serpentine like Klipper
+        const x = x0 + ((x1 - x0) * ii) / (n - 1),
+          y = y0 + ((y1 - y0) * j) / (n - 1);
+        const z = 2.5 + 0.06 * Math.sin(ii / 1.6) - 0.04 * Math.cos(j / 2) + 0.01 * Math.random();
+        row[ii] = z - 2.5;
+        out.push(`// probe at ${x.toFixed(3)},${y.toFixed(3)} is z=${z.toFixed(6)}`);
+      }
+      m.push(row);
+    }
+    out.push('// Mesh Bed Leveling Complete', '// Bed Mesh state has been saved to profile [default]');
+    emitLines(out, 180);
+    return new Promise((res) =>
+      setTimeout(() => {
+        pushStatus({
+          bed_mesh: { probed_matrix: m, profile_name: 'default' },
+          configfile: { save_config_pending: true },
+        });
+        res('ok');
+      }, 180 * out.length),
+    );
   }
   if (/^PROBE_ACCURACY\b/.test(S)) {
     const n = +((/SAMPLES=(\d+)/.exec(S) || [])[1] || 10);
@@ -1767,8 +1830,8 @@ gcodeScript = function (sc) {
     out.push(
       '// probe accuracy results: maximum 2.485000, minimum 2.479000, range 0.006000, average 2.482200, median 2.482500, standard deviation 0.001720',
     );
-    emitLines(out, 120);
-    return 'ok';
+    emitLines(out, 350);
+    return new Promise((res) => setTimeout(() => res('ok'), 350 * out.length));
   }
   if (S === 'QUAD_GANTRY_LEVEL' || S === 'Z_TILT_ADJUST') {
     emitLines(
@@ -1777,9 +1840,9 @@ gcodeScript = function (sc) {
         '// Retries: 1/5 Probed points range: 0.031000 tolerance: 0.007500',
         '// Retries: 2/5 Probed points range: 0.004000 tolerance: 0.007500',
       ],
-      700,
+      1500,
     );
-    return 'ok';
+    return new Promise((res) => setTimeout(() => res('ok'), 4600));
   }
   if (S === 'MEASURE_AXES_NOISE') {
     emitLines(['// Axes noise for xy-axis accelerometer: 38.211 (x), 45.093 (y), 81.502 (z)'], 600);
@@ -1891,9 +1954,9 @@ class FakeSocket {
   }
   send(d) {
     const m = JSON.parse(d);
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        const result = handle(m);
+        const result = await handle(m); // long commands (PID, mesh) answer when they end, like Klipper
         if (m.id !== undefined) this._recv(JSON.stringify({ jsonrpc: '2.0', id: m.id, result }));
       } catch (e) {
         if (m.id !== undefined)

@@ -18,6 +18,11 @@ const chosen = computed({
   },
 });
 const cam = computed(() => cams.value.find((w) => w.name === chosen.value) || cams.value[0] || null);
+// one floating window at a time; the card shows where its camera went instead of a second stream
+const floating = computed(() => state.pip && state.pip.card === props.id);
+function float() {
+  state.pip = floating.value || !cam.value ? null : { card: props.id, cam: cam.value.name };
+}
 function snapshot() {
   if (cam.value) window.open(api.url(cam.value.snapshot_url), '_blank', 'noopener');
 }
@@ -37,6 +42,20 @@ function snapshot() {
       </select>
       <h2 v-else>{{ cam?.name || t('Webcam') }}</h2>
       <div class="acts">
+        <button
+          class="btn ibtn"
+          :class="{ on: floating }"
+          :disabled="!cam"
+          :aria-label="floating ? t('Back to the card') : t('Float')"
+          :data-tip="
+            floating
+              ? t('Back to the card')
+              : t('Float over the page: stays on screen while scrolling and on other pages')
+          "
+          @click="float"
+        >
+          <Icon name="layers" :size="17" :stroke="2.4" />
+        </button>
         <button
           class="btn ibtn"
           :disabled="!cam"
@@ -59,10 +78,30 @@ function snapshot() {
         </button>
       </div>
     </div>
-    <WebcamView :cam="cam" />
+    <div v-if="floating" class="away">
+      <Icon name="layers" :size="22" />
+      <span>{{ t('Floating over the page') }}</span>
+      <button class="btn" @click="state.pip = null">{{ t('Back to the card') }}</button>
+    </div>
+    <WebcamView v-else :cam="cam" />
   </section>
 </template>
 <style scoped>
+.away {
+  flex: 1;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--mu);
+  border: 1px dashed var(--bd);
+  border-radius: var(--r);
+}
+.btn.on {
+  background: var(--s3);
+}
 .card-h {
   flex-wrap: nowrap;
 }

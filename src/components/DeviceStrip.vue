@@ -18,6 +18,7 @@ import {
   setHeater,
   gcode,
   saveSettings,
+  allPresets,
 } from '../store';
 import { t } from '../i18n';
 const open = ref(null);
@@ -168,7 +169,7 @@ watch(
 const tgt = ref('');
 function setT(d, v) {
   if (v === '' || v == null || isNaN(+v)) return;
-  setHeater(d.obj, +v);
+  setHeater(d.obj, +v)?.catch?.(() => {});
   open.value = null;
 }
 function tint(d) {
@@ -231,8 +232,10 @@ const isPwm = (id) => {
   const s = S('configfile').settings?.[id.toLowerCase()];
   return !!s?.pwm;
 };
+// v is 0..1; Klipper wants 0..scale for a pin with a scale option (S(id).value reports it back as 0..1)
 function setPin(id, v) {
-  gcode(`SET_PIN PIN=${shortName(id)} VALUE=${v}`);
+  const sc = Number(S('configfile').settings?.[id.toLowerCase()]?.scale) || 1;
+  gcode(`SET_PIN PIN=${shortName(id)} VALUE=${+(Number(v) * sc).toFixed(3)}`).catch(() => {});
 }
 const spool = computed(() => state.spoolman.spool);
 const spoolUrl = computed(() => {
@@ -365,11 +368,7 @@ function sensorExtra(id) {
           </div>
           <div class="seg">
             <button @click="setT(d, 0)">{{ t('Off') }}</button
-            ><button
-              v-for="p in state.settings.presets.filter((p) => p.temps[d.obj])"
-              :key="p.id"
-              @click="setT(d, p.temps[d.obj])"
-            >
+            ><button v-for="p in allPresets.filter((p) => p.temps[d.obj])" :key="p.id" @click="setT(d, p.temps[d.obj])">
               {{ p.name }} {{ p.temps[d.obj] }}
             </button>
           </div>

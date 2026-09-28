@@ -1,6 +1,17 @@
 // "Smart" commands for the Ctrl+K box: "chamber 40", "bed off", "fan 50", "speed 120", "z offset -0.05", "home xy"...
 // Every result is checked against the printer (heater exists, max_temp, homed axes, axis limits) before it is offered.
-import { state, S, prettyName, shortName, gcode, setHeater, setFan, applyPreset } from './store';
+import {
+  state,
+  S,
+  prettyName,
+  shortName,
+  gcode,
+  setHeater,
+  setFan,
+  applyPreset,
+  isPrinting,
+  allPresets,
+} from './store';
 import { t } from './i18n';
 import { macroParams, mainParam } from './macros';
 
@@ -157,7 +168,7 @@ export function smartResults(raw) {
 
   // presets and home work without a number
   if (p.num == null && !p.word) {
-    for (const pr of state.settings.presets || []) {
+    for (const pr of allPresets.value) {
       const pn = norm(pr.name);
       if (name === pn || name === 'preheat ' + pn || name === pn + ' preheat' || name === pn + ' ısıt') {
         const txt = Object.entries(pr.temps || {})
@@ -384,9 +395,9 @@ function build(tg, p, homed) {
         t: t(tg.kind === 'extrude' ? 'Extrude {v} mm' : 'Retract {v} mm', { v: n }),
         s: `M83 · G1 E${d} F300`,
         icon: tg.kind === 'extrude' ? 'load' : 'unload',
-        run: () => gcode(`M83\nG1 E${d} F300`),
-        warn: hot ? '' : t('Hotend is too cold'),
-        disabled: !hot,
+        run: () => gcode(`SAVE_GCODE_STATE NAME=vy_ext\nM83\nG1 E${d} F300\nRESTORE_GCODE_STATE NAME=vy_ext`),
+        warn: isPrinting.value ? t('Not while printing') : hot ? '' : t('Hotend is too cold'),
+        disabled: !hot || isPrinting.value,
         confirm: true,
       };
     }
@@ -400,12 +411,14 @@ function build(tg, p, homed) {
       const rel = p.signed;
       const target = rel ? (pos ?? 0) + n : n;
       const F = tg.axis === 'z' ? 600 : 6000;
-      const bad = !homed.includes(tg.axis)
-        ? t('Home {axes} first', { axes: A })
-        : (min != null && target < min) || (max != null && target > max)
-          ? t('Outside {a} limits ({min} to {max})', { a: A, min: fmt(min), max: fmt(max) })
-          : '';
-      const cmd = rel ? `G91\nG1 ${A}${n} F${F}\nG90` : `G90\nG1 ${A}${n} F${F}`;
+      const bad = isPrinting.value
+        ? t('Not while printing')
+        : !homed.includes(tg.axis)
+          ? t('Home {axes} first', { axes: A })
+          : (min != null && target < min) || (max != null && target > max)
+            ? t('Outside {a} limits ({min} to {max})', { a: A, min: fmt(min), max: fmt(max) })
+            : '';
+      const cmd = `SAVE_GCODE_STATE NAME=vy_move\n${rel ? 'G91' : 'G90'}\nG1 ${A}${n} F${F}\nRESTORE_GCODE_STATE NAME=vy_move`;
       return {
         t: rel ? t('Move {a} by {v} mm', { a: A, v: (n > 0 ? '+' : '') + n }) : t('Move {a} to {v} mm', { a: A, v: n }),
         s: `${t('now')} ${fmt(pos, 2)} → ${fmt(target, 2)}`,

@@ -21,7 +21,9 @@ import {
   uiZoomFor,
 } from '../store';
 import { api } from '../api/moonraker';
-import { playSound } from '../features';
+import { playSound, speak, desktopPermission, askDesktop } from '../features';
+import { undoable } from '../undo';
+import { setTablet } from '../tablet';
 import { sync, detect, importFrom, push } from '../sync';
 import { go } from '../router';
 import { iconUrl, readIcon, LOGOS, probeMainsailLogos } from '../printerIcon';
@@ -93,6 +95,11 @@ async function pickIcon(e) {
   }
 }
 const zoomNow = computed(() => uiZoomFor(state.settings.uiScale ?? 100));
+const deskPerm = ref(desktopPermission());
+async function setDesktop(on) {
+  if (on && deskPerm.value !== 'granted') deskPerm.value = await askDesktop();
+  snd.value.desktop = on && deskPerm.value === 'granted';
+}
 const SOUNDS = [
   ['complete', 'Print finished', 'complete'],
   ['paused', 'Print paused (e.g. runout)', 'paused'],
@@ -203,10 +210,24 @@ async function saveCam() {
 const delCam = ref(null);
 async function removeCam() {
   const n = delCam.value.name;
+  const saved = state.webcams.find((w) => w.name === n);
   delCam.value = null;
   try {
     await api.call('server.webcams.delete_item', { name: n });
     state.webcams = state.webcams.filter((w) => w.name !== n);
+    // removed at once, Undo saves the same camera again
+    if (saved)
+      undoable(t('{name} removed', { name: n }), {
+        undo: async () => {
+          const { uid, source, ...cfg } = saved;
+          try {
+            await api.call('server.webcams.post_item', cfg);
+            state.webcams = [...state.webcams, saved];
+          } catch (e) {
+            toast(e.message, 'error');
+          }
+        },
+      });
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -743,6 +764,17 @@ function reset() {
               </div>
               <div class="rw">
                 <div class="k">
+                  <b>{{ t('Tablet mode') }}</b
+                  ><span>{{
+                    t(
+                      'For a touch screen next to the printer: bigger buttons, full screen, the screen stays on. Only this browser.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle :model-value="state.tablet" :label="t('Tablet mode')" @update:model-value="setTablet" />
+              </div>
+              <div class="rw">
+                <div class="k">
                   <b>{{ t('Side menu') }}</b
                   ><span>{{ t('Auto-hide: move the mouse to the left edge and the menu opens over the page.') }}</span>
                 </div>
@@ -793,36 +825,77 @@ function reset() {
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Play sounds') }}</b
-                  ><span>{{ t('Sounds play in this browser tab, so the page has to be open somewhere.') }}</span>
+                  ><span>{{ t('Each event has its own sound. Errors are the loudest.') }}</span>
                 </div>
-                <div class="row" style="gap: 8px">
-                  <button class="btn" :disabled="!snd.enabled" @click="playSound('complete')">
-                    <Icon name="volume" :size="16" />{{ t('Test') }}</button
-                  ><Toggle v-model="snd.enabled" :label="t('Play sounds')" />
+                <Toggle v-model="snd.enabled" :label="t('Play sounds')" />
+              </div>
+              <div v-if="snd.enabled" class="rw">
+                <div class="k">
+                  <b>{{ t('Volume') }}</b>
+                </div>
+                <input
+                  v-model.number="snd.volume"
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.05"
+                  class="rng v"
+                  :style="{ '--f': (snd.volume - 0.1) / 0.9 }"
+                  :aria-label="t('Volume')"
+                />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('System notifications') }}</b
+                  ><span>{{
+                    deskPerm === 'denied'
+                      ? t(
+                          'The browser blocks notifications for this page. Allow them in the site settings of the browser.',
+                        )
+                      : deskPerm === 'unsupported'
+                        ? t('This browser cannot show notifications for this page (it needs https or localhost).')
+                        : t('A notification from the browser when this tab is in the background or minimized.')
+                  }}</span>
+                </div>
+                <Toggle
+                  :model-value="!!snd.desktop && deskPerm === 'granted'"
+                  :disabled="deskPerm === 'denied' || deskPerm === 'unsupported'"
+                  :label="t('System notifications')"
+                  @update:model-value="setDesktop"
+                />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Read events aloud') }}</b
+                  ><span>{{ t('The browser says what happened, in the interface language.') }}</span>
+                </div>
+                <div class="row" style="gap: 6px">
+                  <button
+                    class="btn clear ibtn sm"
+                    :aria-label="t('Test')"
+                    @click="speak(t('Print finished: {file}', { file: 'benchy' }))"
+                  >
+                    <Icon name="play" :size="14" /></button
+                  ><Toggle v-model="snd.speak" :label="t('Read events aloud')" />
                 </div>
               </div>
-              <template v-if="snd.enabled">
-                <div class="rw">
-                  <div class="k">
-                    <b>{{ t('Volume') }}</b>
-                  </div>
-                  <input
-                    v-model.number="snd.volume"
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.05"
-                    class="rng v"
-                    :style="{ '--f': (snd.volume - 0.1) / 0.9 }"
-                    :aria-label="t('Volume')"
-                  />
-                </div>
+              <template v-if="snd.enabled || snd.desktop || snd.speak">
+                <span class="hint">{{
+                  t(
+                    'Alerts need this page open in a tab, in front or behind. For a closed browser use Phone notifications.',
+                  )
+                }}</span>
                 <div v-for="[k, l, tone] in SOUNDS" :key="k" class="rw">
                   <div class="k">
                     <b>{{ t(l) }}</b>
                   </div>
                   <div class="row" style="gap: 6px">
-                    <button class="btn clear ibtn sm" :aria-label="t('Play')" @click="playSound(tone)">
+                    <button
+                      class="btn clear ibtn sm"
+                      :disabled="!snd.enabled"
+                      :aria-label="t('Play')"
+                      @click="playSound(tone)"
+                    >
                       <Icon name="play" :size="14" /></button
                     ><Toggle v-model="snd[k]" :label="t(l)" />
                   </div>

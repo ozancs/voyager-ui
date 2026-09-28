@@ -15,6 +15,7 @@ function text(el) {
 let touchAt = 0; // hover tooltips make no sense on a touch screen and would stick after a tap
 function over(e) {
   if (Date.now() - touchAt < 1500) return;
+  if (document.documentElement.classList.contains('tablet')) return; // touch screen: no hover tooltips
   const el = e.target.closest?.('[data-tip],button[aria-label],a[aria-label],label[aria-label]');
   if (el === cur) return;
   cur = el;

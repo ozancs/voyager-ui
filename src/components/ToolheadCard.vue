@@ -44,7 +44,9 @@ function jog(axis, d) {
     toast(t('{axis} is at its limit', { axis }));
     return;
   }
-  gcode(`SAVE_GCODE_STATE NAME=_ui_jog\nG91\nG1 ${axis}${dd} F${feedOf(axis)}\nRESTORE_GCODE_STATE NAME=_ui_jog`);
+  gcode(`SAVE_GCODE_STATE NAME=_ui_jog\nG91\nG1 ${axis}${dd} F${feedOf(axis)}\nRESTORE_GCODE_STATE NAME=_ui_jog`).catch(
+    () => {},
+  );
 }
 // editable position fields: keep showing the current value while editing
 const edit = ref({});
@@ -64,7 +66,9 @@ function moveTo(axis, e) {
     toast(t('{axis}{v} is outside {lo}..{hi}', { axis, v, lo: String(lo), hi: String(hi) }), 'error');
     return;
   }
-  gcode(`SAVE_GCODE_STATE NAME=_ui_move\nG90\nG1 ${axis}${v} F${feedOf(axis)}\nRESTORE_GCODE_STATE NAME=_ui_move`);
+  gcode(
+    `SAVE_GCODE_STATE NAME=_ui_move\nG90\nG1 ${axis}${v} F${feedOf(axis)}\nRESTORE_GCODE_STATE NAME=_ui_move`,
+  ).catch(() => {});
 }
 const speed = computed(() => Math.round((gm.value.speed_factor ?? 1) * 100));
 const flow = computed(() => Math.round((gm.value.extrude_factor ?? 1) * 100));

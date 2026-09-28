@@ -22,6 +22,11 @@ mount (the one that opened the pop-up) are ignored.
 **[src/calc.js](../src/calc.js)**  
 Small pure helpers for the Health page and the dashboard grid, unit tested in tests/utils.test.js.
 
+**[src/calibPath.js](../src/calibPath.js)**  
+Interactive calibration: the order a printer is usually tuned in, as steps the UI walks through with a  
+picture of what is happening. This file decides which steps a printer has and reads Klipper's console output  
+into numbers; CalibPath.vue draws it. Pure functions, no store import.
+
 **[src/calibrations.js](../src/calibrations.js)**  
 The calibration commands the Calibrations page knows: Klipper's own (PID, input shaper, probe, leveling) and  
 the ones common plugins add (Shake&Tune, Beacon, Cartographer, klipper_z_calibration, TMC autotune).  
@@ -29,13 +34,18 @@ A tab shows only when the printer has at least one of its commands. Commands tha
 but are not in this list (a macro named FLOW_CALIBRATION, say) end up in the "Other" tab.  
 parseResult() reads the useful numbers out of the console lines a command printed.
 
+**[src/cfgHistory.js](../src/cfgHistory.js)**  
+Config history: the earlier versions of every config file, from the copies the UI makes before it writes a file  
+(backups/<file>-klipperui-<date>.cfg, store.js backupBeforeWrite) and the ones Klipper makes on SAVE_CONFIG  
+(printer-<date>.cfg). Pure functions; ConfigEditor.vue lists them, compares them and loads one back.
+
 **[src/cfgedit.js](../src/cfgedit.js)**  
 Helpers to find and replace an option inside Klipper config text (used by the Printer settings page).  
 setOption returns the new text, or null when the section is not in this file.
 
 **[src/cfgwrite.js](../src/cfgwrite.js)**  
 Writing option values into the printer's .cfg files: finds the file that has the section (printer.cfg first,  
-then the other .cfg files), changes the line with setOption (the SAVE_CONFIG block wins when the option is  
+then the files it includes, in Klipper's order; files Klipper does not load are never touched), changes the line with setOption (the SAVE_CONFIG block wins when the option is  
 there), saves a backup of each file first and uploads it. Klipper needs a restart to use the new values.
 
 **[src/explain.js](../src/explain.js)**  
@@ -87,6 +97,12 @@ picker opens or a button that uses one of its icons is shown. Its names are stor
 **[src/legacy.js](../src/legacy.js)**  
 Runs before anything else reads localStorage: browser data saved under the earlier names of this UI  
 (oznlab_klipperui, carbon-ui) is moved to the current name once.
+
+**[src/lock.js](../src/lock.js)**  
+Lock: a read-only mode for this browser, for a tablet next to the printer, children or a shared workshop.  
+While locked, everything that would move, heat, print, restart or change files is refused in the Moonraker  
+client (api.lockedMsg), so no button can get around it. E-STOP keeps working. An optional PIN is asked to  
+unlock. It keeps hands off the buttons; it is not a login (clearing the browser's site data removes it).
 
 **[src/macros.js](../src/macros.js)**  
 Macro parameters, read from the macro's gcode template (params.X / params.X|default(...)).
@@ -171,6 +187,16 @@ language (Mainsail only), jog speeds and step presets, extrusion presets, temper
 imported from either UI. Only namespaces that already exist are written, keys are written one by one with dotted  
 paths so nothing else in their database is touched. The other UI picks the values up when its page reloads.
 
+**[src/tablet.js](../src/tablet.js)**  
+Tablet mode, for a tablet or touch screen that stays next to the printer: larger touch targets, no hover  
+tooltips, full screen and the screen kept on (Wake Lock) while the page is visible. Kept per browser.
+
+**[src/undo.js](../src/undo.js)**  
+Undo for deletes: the item disappears from the list at once, the real delete runs 10 seconds later. The toast in  
+the corner shows the time left and an Undo button. Things that cannot be brought back (files, history jobs) are  
+only hidden until then (hideKeys + isHidden); things that can (a saved printer, a webcam) are removed at once and  
+put back by `undo`. Closing the page within the 10 seconds leaves the files as they were.
+
 
 ## Moonraker client
 
@@ -181,7 +207,7 @@ Minimal Moonraker JSON-RPC websocket client + HTTP helpers.
 ## Pages
 
 **[src/views/Calibrations.vue](../src/views/Calibrations.vue)**  
-Calibrations page: one tab per kind of calibration the printer has (Shake&Tune, input shaper, heaters, probe,  
+Calibrations page: the interactive calibration path on top (CalibPath.vue), then one tab per kind of calibration the printer has (Shake&Tune, input shaper, heaters, probe,  
 bed leveling, motors, other). The command lists are in calibrations.js. A tab runs the chosen command with  
 its parameters, follows its console output and shows the numbers that matter. Values Klipper keeps for  
 SAVE_CONFIG (PID, shaper) can be saved from here; the Shake&Tune tab is its own page (ShakeTune.vue).
@@ -245,6 +271,13 @@ one). Click a camera in the grid to open it on its own.
 
 ## Components and dashboard cards
 
+**[src/components/CalibPath.vue](../src/components/CalibPath.vue)**  
+Interactive calibration, at the top of the Calibrations page: the printer's calibrations as a path (heaters,  
+leveling, probe, Z offset, mesh, input shaper; calibPath.js decides which ones this printer has). A step opens  
+a dialog that runs the command and draws what is going on: the hotend glowing while PID tunes it, the gantry  
+settling pass after pass, the probe points landing on the bed, the toolhead shaking and the shapers it found.  
+Nothing is written to the config until "Save to config". Done steps are remembered per printer.
+
 **[src/components/ChipList.vue](../src/components/ChipList.vue)**  
 A list of numbers shown as chips: click the x to remove, type a value and press Enter to add.
 
@@ -302,6 +335,11 @@ dragging onto a folder. Text files open in the config editor, images in ImageVie
 **[src/components/FirstRun.vue](../src/components/FirstRun.vue)**  
 First start: language, printer name, Z direction, alerts, job queue. Can be run again from Settings.
 
+**[src/components/FloatingCam.vue](../src/components/FloatingCam.vue)**  
+Floating webcam: the "float" button on a webcam card lifts its camera into a small window that stays on screen  
+while scrolling and on every page. Drag it by its bar, resize it from the corner, close it and the camera is  
+back in its card. Position and size are kept for this browser.
+
 **[src/components/GateFilament.vue](../src/components/GateFilament.vue)**  
 Set what is loaded in one MMU gate / AFC lane: material, colour, name, temperature and the Spoolman spool.  
 Happy Hare:  MMU_GATE_MAP GATE=n MATERIAL=.. COLOR=rrggbb NAME=.. TEMP=.. SPOOLID=..  
@@ -309,7 +347,8 @@ AFC:         SET_MATERIAL / SET_COLOR / SET_SPOOL_ID LANE=..  (only the ones thi
 Picking a Spoolman spool fills the fields from it.
 
 **[src/components/GuardDialog.vue](../src/components/GuardDialog.vue)**  
-Asks before a homing, probing, leveling or calibration command is sent while a print runs or is paused  
+Asks before a command that would hurt the running print is sent (homing, probing, restarts, motors off, mesh  
+changes)  
 (store.js gcode(), dangerIn). Cancel is the default.
 
 **[src/components/Handoff.vue](../src/components/Handoff.vue)**  
@@ -342,6 +381,9 @@ where the full Toolhead card takes too much room.
 **[src/components/LoadingPanel.vue](../src/components/LoadingPanel.vue)**  
 Placeholder shown while a page loads. After a few seconds it says what it is still waiting for,  
 so a slow printer does not look like a broken page.
+
+**[src/components/LockButton.vue](../src/components/LockButton.vue)**  
+Lock button in the top bar (lock.js). Locking can set a PIN; unlocking asks for it.
 
 **[src/components/LoginScreen.vue](../src/components/LoginScreen.vue)**  
 Shown only when Moonraker refuses this browser (force_logins, or not a trusted client).

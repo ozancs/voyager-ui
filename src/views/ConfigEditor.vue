@@ -28,6 +28,7 @@ import { state, S, toast, gcode, isPrinting, backupBeforeWrite, useApiEvent, res
 import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
+import { history as cfgVersions, summarize } from '../cfgHistory';
 import { klipper } from '../editor/klipperLang';
 import { lintKlipper } from '../editor/lint';
 import { sectionLinks } from '../editor/sectionLinks';
@@ -288,6 +289,7 @@ function makeState(tab, doc) {
   return EditorState.create({ doc, extensions: extensions(tab) });
 }
 
+let viewKey = ''; // the tab whose document the editor shows right now
 async function openTab(l) {
   const key = keyOf(l);
   let tab = tabs.value.find((x) => x.key === key);
@@ -302,6 +304,7 @@ async function openTab(l) {
     } catch (e) {
       toast(e.message, 'error');
       tab.orig = '';
+      tab.failed = true; // never saved: an empty document here would overwrite the real file
     }
     tab.loading = false;
     TABS.states[key] = markRaw(makeState(tab, tab.orig));
@@ -312,11 +315,11 @@ async function openTab(l) {
   if (keyOf(loc.value) !== key) return; // the user opened another file while this one was loading
   if (!view.value) view.value = markRaw(new EditorView({ state: TABS.states[key], parent: host.value }));
   else if (view.value.state !== TABS.states[key]) view.value.setState(TABS.states[key]);
+  viewKey = key;
   applyJump();
 }
 function remember() {
-  const a = active.value;
-  if (a && view.value) TABS.states[a.key] = markRaw(view.value.state);
+  if (viewKey && view.value && TABS.states[viewKey]) TABS.states[viewKey] = markRaw(view.value.state);
 }
 function closeTab(tab) {
   if (tab.dirty && !confirm(t('{f} has unsaved changes. Close anyway?', { f: tab.path }))) return;
@@ -337,8 +340,7 @@ watch(
   (n, o) => {
     if (o) {
       const ot = tabs.value.find((x) => x.key === o);
-      if (ot && !ot.loading && view.value && view.value.state === TABS.states[o])
-        TABS.states[o] = markRaw(view.value.state);
+      if (ot && !ot.loading && view.value && viewKey === o) TABS.states[o] = markRaw(view.value.state);
     }
     openTab(loc.value);
   },
@@ -420,6 +422,16 @@ async function save(restart) {
   const a = active.value,
     v = view.value;
   if (!a || !v || a.root === 'logs') return;
+  // the editor must be showing this tab's own, fully loaded document
+  if (a.loading || a.failed || viewKey !== a.key)
+    return toast(t('This file did not load. Reopen it before saving.'), 'error');
+  if (!restart && !a.dirty) return;
+  // Save & Restart from the keyboard follows the same rule as the button: no restart while a print runs
+  if (restart && (isPrinting.value || a.root === 'gcodes')) {
+    if (isPrinting.value) toast(t('Saved without restart: a print is running.'), 'warn');
+    restart = false;
+    if (!a.dirty) return;
+  }
   saving.value = true;
   const text = v.state.doc.toString();
   try {
@@ -488,35 +500,57 @@ const showOutline = ref(true);
 const diff = ref(null); // { title, a, b, from }
 const diffHost = ref(null);
 let mv = null;
-const backups = computed(() => {
-  const a = active.value;
-  if (!a || a.root !== 'config') return [];
-  const base = a.path
-      .replace(/\.(cfg|conf)$/, '')
-      .split('/')
-      .join('__'),
-    oldBase = a.path
-      .split('/')
-      .pop()
-      .replace(/\.(cfg|conf)$/, '');
-  const list = files.value.filter(
-    (f) =>
-      f.startsWith('backups/' + base + '-klipperui-') ||
-      f.startsWith('backups/' + oldBase + '-klipperui-') ||
-      (a.path === 'printer.cfg' && /^(backups\/)?printer-\d{8}_\d{6}\.cfg$/.test(f)),
-  );
-  return list
-    .sort()
-    .reverse()
-    .slice(0, 30)
-    .map((f) => {
-      const m = f.match(/(\d{8})_(\d{4,6})/);
-      const when = m
-        ? `${m[1].slice(0, 4)}-${m[1].slice(4, 6)}-${m[1].slice(6)} ${m[2].slice(0, 2)}:${m[2].slice(2, 4)}`
-        : f;
-      return { f, when, klipper: !f.includes('-klipperui-') };
-    });
-});
+const backups = computed(() => (active.value?.root === 'config' ? cfgVersions(files.value, active.value.path) : []));
+// History dialog: this file's versions or every file's, each with what changed compared to now
+const hist = ref(null); // { all }
+const histRows = computed(() =>
+  hist.value ? cfgVersions(files.value, hist.value.all ? null : active.value?.path).slice(0, 80) : [],
+);
+const summaries = ref({});
+const cfgUrl = (f) => '/server/files/config/' + f.split('/').map(encodeURIComponent).join('/');
+async function summarizeRows() {
+  const cache = {};
+  for (const r of histRows.value) {
+    if (!hist.value) return;
+    if (summaries.value[r.f]) continue;
+    try {
+      const old = (await api.getText(cfgUrl(r.f))).replace(/\r\n/g, '\n');
+      let cur = cache[r.file];
+      if (cur == null)
+        cur = cache[r.file] =
+          r.file === active.value?.path && view.value
+            ? view.value.state.doc.toString()
+            : (await api.getText(cfgUrl(r.file)).catch(() => '')).replace(/\r\n/g, '\n');
+      summaries.value = { ...summaries.value, [r.f]: summarize(old, cur) };
+    } catch {
+      summaries.value = { ...summaries.value, [r.f]: { error: true } };
+    }
+  }
+}
+function openHistory(all = false) {
+  summaries.value = {};
+  hist.value = { all };
+  summarizeRows();
+}
+watch(
+  () => hist.value?.all,
+  () => hist.value && summarizeRows(),
+);
+async function pickHistory(r) {
+  hist.value = null;
+  if (active.value?.path !== r.file) {
+    openFile(r.file);
+    // wait for the file to be open in the editor, then compare
+    for (
+      let i = 0;
+      i < 50 && !(active.value?.path === r.file && !active.value.loading && viewKey === active.value.key);
+      i++
+    )
+      await new Promise((res) => setTimeout(res, 100));
+    if (active.value?.path !== r.file) return;
+  }
+  showDiff(r);
+}
 async function showDiff(backup) {
   const cur = view.value.state.doc.toString();
   let a = active.value.orig,
@@ -556,11 +590,13 @@ function closeDiff() {
   mv = null;
   diff.value = null;
 }
-function loadBackup() {
+function loadBackup(andSave = false) {
   const d = diff.value;
   view.value.dispatch({ changes: { from: 0, to: view.value.state.doc.length, insert: d.a } });
   closeDiff();
-  toast(t('Backup loaded into the editor. Save to keep it.'));
+  // the current version is copied to backups/ by save() first, so a restore can itself be undone from History
+  if (andSave) save(false);
+  else toast(t('Backup loaded into the editor. Save to keep it.'));
 }
 
 const curDoc = computed(() => (cursor.value.section ? docUrl(cursor.value.section) : ''));
@@ -637,15 +673,10 @@ function openSearch() {
         <button class="btn" :disabled="!active?.dirty" @click="showDiff()">
           <Icon name="diff" :size="15" />{{ t('Changes') }}
         </button>
-        <div v-if="backups.length" class="dropdown">
-          <button class="btn"><Icon name="clock" :size="15" />{{ t('Backups') }}<Icon name="down" :size="12" /></button>
-          <div class="menu card">
-            <button v-for="b in backups" :key="b.f" class="mi" @click="showDiff(b)">
-              <span>{{ b.when }}</span
-              ><span class="mu">{{ b.klipper ? 'SAVE_CONFIG' : t('before save') }}</span>
-            </button>
-          </div>
-        </div>
+        <button class="btn" :disabled="active?.root !== 'config'" @click="openHistory(false)">
+          <Icon name="clock" :size="15" />{{ t('History')
+          }}<span v-if="backups.length" class="mu">{{ backups.length }}</span>
+        </button>
         <a
           v-if="curDoc"
           class="btn clear"
@@ -743,16 +774,114 @@ function openSearch() {
     </div>
     <div ref="diffHost" class="diff"></div>
     <template #foot>
-      <button v-if="diff.from" class="btn lg" @click="loadBackup">
-        <Icon name="restart" :size="16" />{{ t('Load this backup') }}
+      <button v-if="diff.from" class="btn lg" @click="loadBackup(false)">
+        <Icon name="pencil" :size="16" />{{ t('Load into the editor') }}
+      </button>
+      <button v-if="diff.from" class="btn lg" :disabled="saving" @click="loadBackup(true)">
+        <Icon name="rot" :size="16" />{{ t('Restore this version') }}
       </button>
       <button class="btn lg acc" @click="closeDiff">{{ t('Close') }}</button>
     </template>
+  </Modal>
+  <Modal v-if="hist" :title="t('Config history')" width="760px" @close="hist = null">
+    <div class="seg" style="align-self: flex-start">
+      <button :class="{ on: !hist.all }" @click="hist.all = false">{{ active?.path || '' }}</button>
+      <button :class="{ on: hist.all }" @click="hist.all = true">{{ t('All files') }}</button>
+    </div>
+    <span class="hint">{{
+      t(
+        'A copy is kept every time this UI saves a config file, and Klipper keeps one on every SAVE_CONFIG. Pick a version to see what changed and to bring it back.',
+      )
+    }}</span>
+    <div v-if="!histRows.length" class="empty">{{ t('No earlier versions yet') }}</div>
+    <div class="hl">
+      <button v-for="r in histRows" :key="r.f" class="hr" @click="pickHistory(r)">
+        <div class="hh">
+          <b class="mono">{{ r.when }}</b>
+          <span v-if="hist.all" class="fn">{{ r.file }}</span>
+          <span class="chip">{{ r.klipper ? 'SAVE_CONFIG' : t('before a save') }}</span>
+        </div>
+        <div class="hs">
+          <template v-if="!summaries[r.f]"><span class="mu">…</span></template>
+          <template v-else-if="summaries[r.f].error"
+            ><span class="mu">{{ t('Could not be read') }}</span></template
+          >
+          <template v-else-if="summaries[r.f].same"
+            ><span class="mu">{{ t('Same as now') }}</span></template
+          >
+          <template v-else>
+            <span class="h-add">+{{ summaries[r.f].added }}</span
+            ><span class="h-rm">−{{ summaries[r.f].removed }}</span>
+            <span v-for="c in summaries[r.f].changed.slice(0, 6)" :key="c.name" class="sc" :class="c.kind"
+              >[{{ c.name }}]</span
+            ><span v-if="summaries[r.f].changed.length > 6" class="mu">+{{ summaries[r.f].changed.length - 6 }}</span>
+          </template>
+        </div>
+      </button>
+    </div>
   </Modal>
   <ImageViewer v-if="img" :list="img.list" :start="img.start" @close="img = null" />
 </template>
 
 <style scoped>
+.hl {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(60vh / var(--zoom, 1));
+  overflow: auto;
+}
+.hr {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--bd);
+  padding: 10px 6px;
+  color: var(--tx);
+  cursor: pointer;
+  border-radius: 6px;
+}
+.hr:hover {
+  background: var(--s2);
+}
+.hh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hh .fn {
+  color: var(--mu);
+  font-size: 13px;
+}
+.hh .chip {
+  margin-left: auto;
+  font-size: 11.5px;
+}
+.hs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 12.5px;
+  font-family: var(--fm);
+}
+.hs .h-add {
+  color: var(--ok);
+}
+.hs .h-rm {
+  color: var(--dg);
+}
+.hs .sc {
+  color: var(--mu);
+}
+.hs .sc.added {
+  color: var(--ok);
+}
+.hs .sc.removed {
+  color: var(--dg);
+  text-decoration: line-through;
+}
 .ce {
   display: flex;
   gap: 16px;

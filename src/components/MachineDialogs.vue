@@ -73,7 +73,7 @@ const tiltRows = computed(() =>
   </div>
 
   <!-- manual probe -->
-  <div v-else-if="mp.is_active" class="ov">
+  <div v-else-if="mp.is_active && !state.calibWizard" class="ov">
     <div class="dlg card" role="dialog" :aria-label="t('Manual probe')">
       <div class="card-h">
         <h2>{{ t('Manual probe') }}</h2>

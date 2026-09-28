@@ -206,6 +206,11 @@ export class Moonraker {
 
   // optional hook so the UI can show what is being loaded
   onTask = null;
+  // Lock (read-only mode): while it returns an error message, calls that change the printer or its files are
+  // refused here, whichever button sent them. E-STOP, reading and the UI's own settings still work.
+  lockedMsg = null;
+  static WRITES =
+    /^printer\.(gcode\.script|print\.|restart|firmware_restart)|^machine\.(reboot|shutdown|services\.|device_power\.post|update\.)|^server\.(files\.(delete|move|copy|post_directory|zip)|history\.delete|job_queue\.(post|delete|start|pause|jump)|webcams\.(post|delete)|spoolman\.post|announcements\.dismiss|restart)/;
 
   call(method, params) {
     const done = this.onTask ? this.onTask(method) : null;
@@ -240,6 +245,13 @@ export class Moonraker {
   }
 
   async _call(method, params) {
+    const lock = this.lockedMsg?.();
+    if (lock && Moonraker.WRITES.test(method)) throw new Error(lock);
+    // anything that moves, heats or restarts the printer is sent now or not at all: queued while the socket is
+    // down, a few clicks on a jog button would all run at once when it comes back
+    const acts =
+      /^printer\.(gcode\.script|print\.|restart|firmware_restart)|^machine\.(reboot|shutdown|device_power\.post)/;
+    if (acts.test(method) && this.ws?.readyState !== 1) throw new Error('not connected');
     await this.ready();
     return new Promise((resolve, reject) => {
       if (!this.ws || this.ws.readyState !== 1) return reject(new Error('not connected'));
@@ -268,6 +280,8 @@ export class Moonraker {
 
   // Upload a File/Blob. root: 'gcodes' | 'config'. Returns moonraker response.
   upload(file, { root = 'gcodes', path = '', name, print = false, onProgress } = {}) {
+    const lock = this.lockedMsg?.();
+    if (lock) return Promise.reject(new Error(lock));
     return new Promise((resolve, reject) => {
       const fd = new FormData();
       fd.append('root', root);

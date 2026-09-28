@@ -11,6 +11,7 @@ import { api } from '../api/moonraker';
 import { go } from '../router';
 import { downloadMany } from '../features';
 import { t } from '../i18n';
+import { undoable, isHidden } from '../undo';
 const roots = ref(['config']);
 const root = ref('config');
 const path = ref('');
@@ -51,8 +52,15 @@ useApiEvent('notify_filelist_changed', () => {
 const rows = computed(() => {
   const { k, d } = sort.value;
   const cmp = (a, b) => (k === 'filename' ? String(a.name).localeCompare(b.name) : (a[k] ?? 0) - (b[k] ?? 0)) * d;
-  const ds = dirs.value.map((x) => ({ ...x, name: x.dirname, dir: true })).sort(cmp);
-  const fs = files.value.map((x) => ({ ...x, name: x.filename })).sort(cmp);
+  const gone = (n) => isHidden('f:' + full.value + '/' + n);
+  const ds = dirs.value
+    .filter((x) => !gone(x.dirname))
+    .map((x) => ({ ...x, name: x.dirname, dir: true }))
+    .sort(cmp);
+  const fs = files.value
+    .filter((x) => !gone(x.filename))
+    .map((x) => ({ ...x, name: x.filename }))
+    .sort(cmp);
   return [...ds, ...fs];
 });
 function sortBy(k) {
@@ -139,10 +147,7 @@ async function confirmModal() {
       await api.upload(new Blob([''], { type: 'text/plain' }), { root: root.value, path: path.value, name: m.value });
     else if (m.kind === 'rename')
       await api.call('server.files.move', { source: `${base}/${m.item.name}`, dest: `${base}/${m.value}` });
-    else if (m.kind === 'delete') {
-      if (m.item.dir) await api.call('server.files.delete_directory', { path: `${base}/${m.item.name}`, force: true });
-      else await api.call('server.files.delete_file', { path: `${base}/${m.item.name}` });
-    }
+    else if (m.kind === 'delete') deleteLater([m.item], base);
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -175,21 +180,30 @@ function dlPicked() {
     root.value,
   );
 }
-async function deletePicked() {
-  const its = pickedRows.value;
+function deletePicked() {
   modal.value = null;
-  let fail = 0;
-  for (const it of its) {
-    try {
-      if (it.dir) await api.call('server.files.delete_directory', { path: `${full.value}/${it.name}`, force: true });
-      else await api.call('server.files.delete_file', { path: `${full.value}/${it.name}` });
-    } catch {
-      fail++;
-    }
-  }
+  deleteLater(pickedRows.value, full.value);
   picked.value = new Set();
-  if (fail) toast(t('{n} file(s) could not be deleted', { n: fail }), 'error');
-  load();
+}
+// hidden at once, deleted after the undo time (undo.js)
+function deleteLater(its, base) {
+  if (!its.length) return;
+  undoable(its.length === 1 ? t('{f} deleted', { f: its[0].name }) : t('{n} files deleted', { n: its.length }), {
+    hideKeys: its.map((it) => 'f:' + base + '/' + it.name),
+    commit: async () => {
+      let fail = 0;
+      for (const it of its) {
+        try {
+          if (it.dir) await api.call('server.files.delete_directory', { path: `${base}/${it.name}`, force: true });
+          else await api.call('server.files.delete_file', { path: `${base}/${it.name}` });
+        } catch {
+          fail++;
+        }
+      }
+      if (fail) toast(t('{n} file(s) could not be deleted', { n: fail }), 'error');
+      load();
+    },
+  });
 }
 const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', delete: 'Delete', bulkdelete: 'Delete' };
 </script>

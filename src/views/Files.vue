@@ -11,6 +11,7 @@ import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
 import { startPrint } from '../preprint';
+import { undoable, isHidden } from '../undo';
 const path = ref('gcodes');
 const cached = state.cache.files;
 const dirs = ref(cached?.dirs || []),
@@ -92,6 +93,7 @@ const list = computed(() => {
   const k = sort.value.k,
     d = sort.value.d;
   return files.value
+    .filter((x) => !isHidden('g:' + path.value + '/' + x.filename))
     .filter((x) => !f || x.filename.toLowerCase().includes(f))
     .sort((a, b) => ((a[k] ?? 0) > (b[k] ?? 0) ? d : -d));
 });
@@ -124,19 +126,25 @@ async function preheat(f) {
   if (b) await gcode(`SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET=${b}`);
   if (!e && !b) toast(t('No temperatures in file metadata'));
 }
-async function doDelete() {
+function doDelete() {
   const fs = del.value;
+  const base = path.value;
   del.value = null;
-  let fail = 0;
-  for (const f of fs) {
-    try {
-      await api.call('server.files.delete_file', { path: `${path.value}/${f.filename}` });
-    } catch {
-      fail++;
-    }
-  }
   picked.value = new Set();
-  if (fail) toast(t('{n} file(s) could not be deleted', { n: fail }), 'error');
+  undoable(fs.length === 1 ? t('{f} deleted', { f: fs[0].filename }) : t('{n} files deleted', { n: fs.length }), {
+    hideKeys: fs.map((f) => 'g:' + base + '/' + f.filename),
+    commit: async () => {
+      let fail = 0;
+      for (const f of fs) {
+        try {
+          await api.call('server.files.delete_file', { path: `${base}/${f.filename}` });
+        } catch {
+          fail++;
+        }
+      }
+      if (fail) toast(t('{n} file(s) could not be deleted', { n: fail }), 'error');
+    },
+  });
 }
 async function upload(e) {
   const fs = [...e.target.files];

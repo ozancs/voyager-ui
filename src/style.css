@@ -829,3 +829,25 @@ input[type='checkbox']:focus-visible {
 :root[data-accent='strong'] .ds .dc[class*='k-']:not(.edit):not(.over) {
   border-color: color-mix(in srgb, var(--kc) 35%, transparent);
 }
+
+/* Tablet mode (tablet.js): finger-sized controls */
+html.tablet .btn {
+  min-height: 44px;
+}
+html.tablet .btn.sm,
+html.tablet .btn.ibtn.sm {
+  min-height: 36px;
+  min-width: 36px;
+}
+html.tablet .btn.ibtn {
+  min-width: 44px;
+}
+html.tablet input[type='range'] {
+  height: 32px;
+}
+html.tablet .toggle {
+  transform: scale(1.15);
+}
+html.tablet kbd {
+  display: none;
+}

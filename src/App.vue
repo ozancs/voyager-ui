@@ -26,6 +26,9 @@ import SettingsDialog from './components/SettingsDialog.vue';
 import PrintersDialog from './components/PrintersDialog.vue';
 import { initSync } from './sync';
 import { initFeatures } from './features';
+import './lock';
+import FloatingCam from './components/FloatingCam.vue';
+import './tablet';
 import { nextTick } from 'vue';
 initFeatures();
 import { state, gcode, VERSION, activeTasks, APP_NAME, closeToast, restartKlipper } from './store';
@@ -239,6 +242,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
       </div></Transition
     >
     <Tooltip />
+    <FloatingCam v-if="state.pip" />
     <div class="toasts">
       <TransitionGroup name="tst">
         <div v-for="ts in state.toasts" :key="ts.id" class="toast" :class="ts.kind">
@@ -259,7 +263,11 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
               {{ t('Open console') }}
             </button>
           </div>
+          <button v-if="ts.undo" class="btn sm undo" @click="ts.undo()">
+            <Icon name="rot" :size="14" />{{ t('Undo') }}
+          </button>
           <button class="tx" :aria-label="t('Dismiss')" @click="closeToast(ts.id)"><Icon name="x" :size="14" /></button>
+          <i v-if="ts.until" class="tbar" :style="{ animationDuration: Math.max(0, ts.until - ts.t) + 'ms' }"></i>
         </div>
       </TransitionGroup>
     </div>
@@ -434,6 +442,33 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
   width: 400px;
   max-width: calc(100vw - 40px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.toast {
+  position: relative;
+  overflow: hidden;
+}
+.undo {
+  align-self: center;
+  flex-shrink: 0;
+}
+/* time left before an undoable delete runs */
+.tbar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: var(--ac);
+  transform-origin: left;
+  animation: tbar linear forwards;
+}
+@keyframes tbar {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 .toast.error {
   border-color: rgba(240, 106, 106, 0.55);

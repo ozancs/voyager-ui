@@ -11,6 +11,7 @@ import { fleetList, pollPrinter, timeLeft, testPrinter, looksIncomplete } from '
 import { go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
+import { undoable } from '../undo';
 
 const list = computed(fleetList);
 const here = location.host;
@@ -132,8 +133,13 @@ const del = ref(null); // card asking to be removed
 function doDelete() {
   const c = del.value;
   del.value = null;
-  savePrinters(printerList.value.filter((p) => p.id !== c.p.id));
+  const before = printerList.value.slice();
+  savePrinters(before.filter((p) => p.id !== c.p.id));
   delete data[c.p.id];
+  // removed at once (only this browser's list changes), Undo puts it back where it was
+  undoable(t('{name} removed', { name: c.p.name || c.p.host }), {
+    undo: () => savePrinters(before.map((p) => printerList.value.find((x) => x.id === p.id) || p)),
+  });
   if (c.p.cur) selectPrinter(''); // the printer on screen was removed: back to this page's own address
 }
 function open(c) {

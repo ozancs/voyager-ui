@@ -9,6 +9,7 @@ import Popover from './Popover.vue';
 import { printerList, currentPrinter, selectPrinter } from '../printers';
 import PowerList from './PowerList.vue';
 import { powerAsk, flipPower } from '../power';
+import LockButton from './LockButton.vue';
 const pAsk = computed(() => powerAsk.value);
 const closeAsk = () => (powerAsk.value = null);
 import {
@@ -27,11 +28,12 @@ import {
   prettyName,
   cancelPrint,
   restartKlipper,
+  pauseResume,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
-import { startPrint } from '../preprint';
+import { startPrint, askReprint } from '../preprint';
 
 const emit = defineEmits(['exclude', 'menu']);
 const fileInput = ref(null);
@@ -54,9 +56,9 @@ const eta = computed(() =>
     ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
     : '--',
 );
-function reprint() {
+async function reprint() {
   const f = S('print_stats').filename;
-  if (f) startPrint(f);
+  if (f && (await askReprint(f))) startPrint(f);
 }
 
 const stateColor = computed(
@@ -105,8 +107,8 @@ async function estop() {
   }
 }
 const POWER = [
-  { k: 'restart', label: 'Restart Klipper', icon: 'restart', run: () => restartKlipper() },
-  { k: 'fw', label: 'Firmware Restart', icon: 'bolt', run: () => restartKlipper(true) },
+  { k: 'restart', label: 'Restart Klipper', icon: 'restart', run: () => restartKlipper(false, { force: true }) },
+  { k: 'fw', label: 'Firmware Restart', icon: 'bolt', run: () => restartKlipper(true, { force: true }) },
   { k: 'moon', label: 'Restart Moonraker', icon: 'refresh', run: () => api.call('server.restart') },
   { k: 'reboot', label: 'Reboot Host', icon: 'rot', confirm: true, run: () => api.call('machine.reboot') },
   {
@@ -150,7 +152,7 @@ function runConfirmed() {
   Promise.resolve(p.run()).catch((e) => toast(e.message, 'error'));
 }
 function pause() {
-  gcode(printState.value === 'paused' ? 'RESUME' : 'PAUSE');
+  pauseResume(printState.value === 'paused' ? 'RESUME' : 'PAUSE');
 }
 </script>
 
@@ -247,10 +249,15 @@ function pause() {
             ><span class="hide-m">{{ t('ETA {time}', { time: eta }) }}</span>
           </div>
         </div>
-        <button v-if="printState === 'paused'" class="btn pbtn" :aria-label="t('Resume')" @click="gcode('RESUME')">
+        <button
+          v-if="printState === 'paused'"
+          class="btn pbtn"
+          :aria-label="t('Resume')"
+          @click="pauseResume('RESUME')"
+        >
           <Icon name="play" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Resume') }}</span>
         </button>
-        <button v-else class="btn pbtn" :aria-label="t('Pause')" @click="gcode('PAUSE')">
+        <button v-else class="btn pbtn" :aria-label="t('Pause')" @click="pauseResume('PAUSE')">
           <Icon name="pause" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Pause') }}</span>
         </button>
         <button class="btn pbtn" :aria-label="t('Cancel print')" @click="askCancel = true">
@@ -293,7 +300,13 @@ function pause() {
     <button class="btn lg srch hide-s" :aria-label="t('Search (Ctrl+K)')" @click="state.spotlight = true">
       <Icon name="search" :size="18" :stroke="2.4" /><kbd class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
     </button>
-    <button class="btn lg hide-s" :disabled="!savePending" :aria-label="t('Save Config')" @click="gcode('SAVE_CONFIG')">
+    <button
+      class="btn lg hide-s"
+      :disabled="!savePending || active"
+      :aria-label="t('Save Config')"
+      :data-tip="active && savePending ? t('Save Config restarts Klipper. Available when the print is done.') : null"
+      @click="gcode('SAVE_CONFIG')"
+    >
       <Icon name="save" :stroke="2.4" /><span class="hide-m">{{ t('Save Config') }}</span>
     </button>
     <button
@@ -355,6 +368,7 @@ function pause() {
     <button class="btn ibtn hide-s" :aria-label="t('Interface settings')" @click="state.settingsOpen = 'general'">
       <Icon name="gear" :size="22" :stroke="2.4" />
     </button>
+    <LockButton />
     <div class="rel">
       <button class="btn ibtn" :aria-label="t('Power')" @click="showPower = !showPower">
         <Icon name="power" :size="22" :stroke="2.4" />

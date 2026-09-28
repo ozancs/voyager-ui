@@ -2,7 +2,19 @@
 // macro prompts, error toasts, sounds, job queue, config index (for search), health sampling.
 import { reactive, watch, computed, markRaw } from 'vue';
 import { api } from './api/moonraker';
-import { state, S, toast, printState, pushConsole, gcode, backupBeforeWrite, saveSettings, VERSION } from './store';
+import {
+  state,
+  S,
+  toast,
+  printState,
+  pushConsole,
+  gcode,
+  backupBeforeWrite,
+  saveSettings,
+  VERSION,
+  printerName,
+  prettyName,
+} from './store';
 import { holdFindings, heatFinding, COLD } from './heaterHealth';
 import { t } from './i18n';
 import { expandPaths } from './paths';
@@ -122,21 +134,27 @@ const unlock = () => {
 window.addEventListener('pointerdown', unlock, { once: false, passive: true });
 window.addEventListener('keydown', unlock, { passive: true });
 
+// each event has its own character so it is known without looking: finished rises and resolves, paused is
+// two soft low knocks, heated is one short bell, an error is a loud falling siren played three times
 const TONES = {
   complete: [
-    [523, 0, 0.18],
-    [659, 0.16, 0.18],
-    [784, 0.32, 0.34],
+    [523, 0, 0.16, 'triangle'],
+    [659, 0.13, 0.16, 'triangle'],
+    [784, 0.26, 0.16, 'triangle'],
+    [1047, 0.39, 0.5, 'triangle'],
   ],
-  error: [
-    [220, 0, 0.22, 'square'],
-    [185, 0.28, 0.32, 'square'],
-  ],
+  error: [0, 0.5, 1].flatMap((d) => [
+    [880, d, 0.2, 'sawtooth', 1.4],
+    [587, d + 0.2, 0.26, 'sawtooth', 1.4],
+  ]),
   paused: [
-    [660, 0, 0.14],
-    [660, 0.22, 0.14],
+    [392, 0, 0.22],
+    [294, 0.3, 0.34],
   ],
-  heated: [[880, 0, 0.25]],
+  heated: [
+    [1319, 0, 0.6],
+    [2637, 0, 0.25, 'sine', 0.3],
+  ],
 };
 export function playSound(kind) {
   const cfg = state.settings.sound || {};
@@ -144,30 +162,91 @@ export function playSound(kind) {
   if (!a) return;
   const vol = (cfg.volume ?? 0.6) * 0.25;
   const t0 = a.currentTime + 0.02;
-  for (const [f, at, len, type] of TONES[kind] || []) {
+  for (const [f, at, len, type, gain = 1] of TONES[kind] || []) {
     const o = a.createOscillator(),
       g = a.createGain();
     o.type = type || 'sine';
     o.frequency.value = f;
     g.gain.setValueAtTime(0, t0 + at);
-    g.gain.linearRampToValueAtTime(vol, t0 + at + 0.015);
+    g.gain.linearRampToValueAtTime(Math.min(0.5, vol * gain), t0 + at + 0.015);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + len);
     o.connect(g).connect(a.destination);
     o.start(t0 + at);
     o.stop(t0 + at + len + 0.05);
   }
 }
-const want = (k) => state.settings.sound?.enabled && state.settings.sound?.[k];
+
+// System notification (only while this tab is in the background; in front the toast says it) and spoken text.
+// Both need the page open somewhere: a closed tab gets nothing, for that the phone notifications (Moonraker's
+// notifier) are there.
+export function desktopPermission() {
+  return typeof Notification === 'undefined' ? 'unsupported' : Notification.permission;
+}
+export async function askDesktop() {
+  if (typeof Notification === 'undefined') return 'unsupported';
+  try {
+    return await Notification.requestPermission();
+  } catch {
+    return Notification.permission;
+  }
+}
+function desktop(title, body, kind) {
+  if (!state.settings.sound?.desktop || desktopPermission() !== 'granted' || !document.hidden) return;
+  try {
+    const n = new Notification(title, {
+      body,
+      tag: 'voyager-' + kind,
+      icon: 'favicon.svg',
+      requireInteraction: kind === 'error',
+    });
+    n.onclick = () => {
+      window.focus();
+      n.close();
+    };
+  } catch {}
+}
+const SPEECH_LANG = { zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR', uk: 'uk-UA', pt: 'pt-BR' };
+export function speak(text) {
+  if (typeof speechSynthesis === 'undefined' || !text) return;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    const lang = state.settings.lang || document.documentElement.lang || 'en';
+    u.lang = SPEECH_LANG[lang] || lang;
+    u.volume = Math.min(1, (state.settings.sound?.volume ?? 0.6) + 0.2);
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } catch {}
+}
+// one event, every channel the user turned on
+export function alertEvent(kind, text) {
+  const snd = state.settings.sound || {};
+  if (!snd[kind]) return;
+  if (snd.enabled) playSound(kind);
+  desktop(printerName.value || 'Voyager', text, kind);
+  if (snd.speak) setTimeout(() => speak(text), snd.enabled ? (kind === 'error' ? 1600 : 900) : 0);
+}
+const shortFile = () =>
+  (S('print_stats').filename || '')
+    .split('/')
+    .pop()
+    .replace(/\.gcode$/i, '');
 watch(printState, (now, before) => {
   if (!state.booted) return;
-  if (now === 'complete' && before === 'printing') want('complete') && playSound('complete');
-  else if (now === 'error') want('error') && playSound('error');
-  else if (now === 'paused' && before === 'printing') want('paused') && playSound('paused');
+  if (now === 'complete' && before === 'printing')
+    alertEvent('complete', t('Print finished: {file}', { file: shortFile() }));
+  else if (now === 'error')
+    alertEvent('error', t('Print stopped with an error: {msg}', { msg: S('print_stats').message || '' }));
+  else if (now === 'paused' && before === 'printing')
+    alertEvent('paused', t('Print paused: {file}', { file: shortFile() }));
 });
 watch(
   () => state.klippy,
   (k, b) => {
-    if (b === 'ready' && (k === 'shutdown' || k === 'error') && want('error')) playSound('error');
+    if (b === 'ready' && (k === 'shutdown' || k === 'error'))
+      alertEvent(
+        'error',
+        t('Klipper stopped: {msg}', { msg: String(S('webhooks').state_message || '').split('\n')[0] }),
+      );
   },
 );
 const reached = {};
@@ -185,7 +264,7 @@ function checkHeated() {
     } // first sample after connecting: no sound for heaters that were already there
     if (Math.abs(s.temperature - s.target) < 1) {
       reached[n] = s.target;
-      if (want('heated')) playSound('heated');
+      alertEvent('heated', t('{heater} reached {temp}°', { heater: prettyName(n), temp: Math.round(s.target) }));
     }
   }
 }

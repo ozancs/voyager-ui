@@ -20,9 +20,11 @@ Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KI
 - **Checks the file before printing.** Wrong material or not enough filament on the spool (with Spoolman), wrong nozzle size, too hot or too tall: it asks before the print starts.
 - **All your printers in one place.** Switch between them, or see all of them on one page with progress and camera.
 - **Calibrations in one page.** Input shaper, PID, probe, bed leveling, Shake&Tune and more, with the results shown as plain numbers.
+- **Interactive calibration.** A step by step path through PID, leveling, probe accuracy, Z offset, bed mesh and input shaper, with a picture of what the printer is doing.
 - **Errors in plain words.** Common Klipper errors come with the usual cause and what to check.
-- **A config editor that knows Klipper.** It checks your files before you save and keeps a backup.
+- **A config editor that knows Klipper.** It checks your files before you save and keeps a history of every version, with what changed and a way back.
 - **Health page.** Board connection errors, driver faults, heaters compared with their own earlier behaviour, maintenance reminders.
+- **Safer while printing.** Restarts, homing, probing, motors off and mesh changes ask first during a print. A lock button makes a browser read-only, and deletes can be undone for 10 seconds.
 - **Ctrl+K.** Type a few letters to reach any page, macro, file or setting.
 - **What's new in the UI.** The changelog opens from the version in the footer, and once by itself after an update.
 - **14 languages.**
@@ -89,9 +91,9 @@ Everything the UI does, in one list:
 - Favorites bar for macros and commands
 - Temperatures, fans, LEDs, filament sensors and Spoolman in one strip of tiles
 - Console, webcam (MJPEG, WebRTC, HLS), heightmap, g-code viewer, file manager, print history, job queue
-- Config editor with Klipper syntax colours, search and replace, folding, suggestions, live checks (repeated options, missing includes, unbalanced macro blocks), diff against the saved file or a backup. A backup is made before every save
+- Config editor with Klipper syntax colours, search and replace, folding, suggestions, live checks (repeated options, missing includes, unbalanced macro blocks), diff against the saved file or a backup. A backup is made before every save, and the History list shows every earlier version of a file (also Klipper's SAVE_CONFIG copies) with the sections that changed
 - Ctrl+K search: pages, macros, files, settings, config options, and quick commands like `bed 60`, `fan 50`, `z offset -0.05`
-- Calibrations page with a tab for each kind the printer has: input shaper, PID, probe and Z, bed leveling, motors, other calibration macros, and [Klippain Shake&Tune](https://github.com/Frix-x/klippain-shaketune) when installed (run its tests, compare two graphs side by side, write the chosen shaper to your config)
+- Calibrations page with a tab for each kind the printer has: input shaper, PID, probe and Z, bed leveling, motors, other calibration macros, and [Klippain Shake&Tune](https://github.com/Frix-x/klippain-shaketune) when installed (run its tests, compare two graphs side by side, write the chosen shaper to your config). On top, an interactive path through the calibrations the printer has, each drawn while it runs
 - Health page: MCU and CAN errors, TMC driver flags, host throttling, maintenance reminders based on print hours, and heaters compared with their own first measurement (holding power, heat-up time, temperature swing)
 - Check before printing: material and remaining weight of the active Spoolman spool, nozzle size, temperatures and height against the printer (only what both sides report is compared)
 - Common Klipper errors explained in plain words, under the error banner and behind the ? on console error lines
@@ -99,7 +101,13 @@ Everything the UI does, in one list:
 - Power devices and phone notifications (Telegram, Discord, ntfy, Pushover) through Moonraker
 - Dialogs for macro prompts, PROBE_CALIBRATE, BED_SCREWS_ADJUST, SCREWS_TILT_CALCULATE
 - Settings dialog like Mainsail's. Printer name, jog steps, extrusion and temperature presets are kept in sync with Mainsail and Fluidd
-- Scales to the screen, so a laptop shows the same layout as a big monitor
+- Interface size setting (Auto scales a laptop to the same layout as a big monitor), tablet mode with larger buttons, full screen and the screen kept on
+- During a print, commands that would hurt it (restart, SAVE_CONFIG, homing, probing, motors off, bed mesh changes) ask first, also inside macros
+- Lock button: this browser can watch but not control the printer, with an optional PIN. E-STOP keeps working
+- Deletes of files, history jobs, saved printers and webcams can be undone for 10 seconds
+- Webcam can float over the page and stay on screen on every page
+- Sounds for each event, browser notifications while the tab is in the background, spoken alerts
+- Progress in the browser tab title
 - 14 languages. Everything except English and Turkish was machine translated, corrections welcome
 
 What the installer does: checks the system first, finds every printer on the host, asks which ones to set up, picks a free port for each, writes an nginx site (webcam ports come from `crowsnest.conf`), checks `trusted_clients` and adds an `[update_manager voyager-ui]` section to `moonraker.conf`. Options:

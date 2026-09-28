@@ -2,7 +2,7 @@
 // both sides report are compared; anything unknown (no Spoolman, no active spool, no weight, no metadata) is
 // skipped, never guessed. Problems open a dialog (PreprintDialog.vue) with "Print anyway" and "Cancel".
 // Every place that starts a print goes through startPrint().
-import { state, S, toast } from './store';
+import { state, S, toast, askConfirm } from './store';
 import { api } from './api/moonraker';
 import { t } from './i18n';
 import { checkPrint } from './preprintCheck';
@@ -45,7 +45,27 @@ export async function startPrint(filename) {
   }
   const issues = meta ? checkPrint(context(meta)) : [];
   if (!issues.length) return start(filename);
-  const go = await new Promise((resolve) => (state.preprint = { filename, issues, resolve }));
-  state.preprint = null;
+  state.preprint?.resolve(false); // an older question still open counts as "no"
+  const go = await new Promise((resolve) => {
+    const q = {
+      id: Math.random(),
+      filename,
+      issues,
+      resolve: (v) => {
+        if (state.preprint?.id === q.id) state.preprint = null;
+        resolve(v);
+      },
+    };
+    state.preprint = q;
+  });
   return go ? start(filename) : false;
+}
+
+// Reprint starts the same file again with one click: ask first, the last part may still be on the bed
+export function askReprint(filename) {
+  return askConfirm({
+    title: t('Print again?'),
+    text: t('{file} starts again. Take the last print off the bed first.', { file: filename.split('/').pop() }),
+    ok: t('Print'),
+  });
 }

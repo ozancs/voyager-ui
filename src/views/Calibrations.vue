@@ -1,11 +1,12 @@
 <script setup>
-// Calibrations page: one tab per kind of calibration the printer has (Shake&Tune, input shaper, heaters, probe,
+// Calibrations page: the interactive calibration path on top (CalibPath.vue), then one tab per kind of calibration the printer has (Shake&Tune, input shaper, heaters, probe,
 // bed leveling, motors, other). The command lists are in calibrations.js. A tab runs the chosen command with
 // its parameters, follows its console output and shows the numbers that matter. Values Klipper keeps for
 // SAVE_CONFIG (PID, shaper) can be saved from here; the Shake&Tune tab is its own page (ShakeTune.vue).
 import { ref, computed, watchEffect } from 'vue';
 import Icon from '../components/Icon.vue';
 import ShakeTune from './ShakeTune.vue';
+import CalibPath from '../components/CalibPath.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
 import { availableGroups, buildCommand, missingParams, parseResult } from '../calibrations';
 import { route, go } from '../router';
@@ -72,6 +73,7 @@ function applyShaper(r) {
 
 <template>
   <div class="cal">
+    <CalibPath />
     <div v-if="groups.length" class="seg tabs" role="tablist">
       <button
         v-for="g in groups"

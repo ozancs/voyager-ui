@@ -5,7 +5,7 @@ import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import SensorPicker from './SensorPicker.vue';
 import Popover from './Popover.vue';
-import { state, sensors, setHeater, applyPreset, gcode } from '../store';
+import { state, sensors, setHeater, applyPreset, gcode, allPresets } from '../store';
 import { go } from '../router';
 import { t } from '../i18n';
 import { sensorColor, heatColor } from '../sensorStyle';
@@ -18,7 +18,7 @@ function commitTarget(s, e) {
   edit.value[s.name] = undefined;
   if (v !== '' && Number(v) !== s.target) setHeater(s.name, v);
 }
-const presets = computed(() => state.settings.presets || []);
+const presets = allPresets;
 </script>
 <template>
   <section class="card temps">
@@ -41,7 +41,10 @@ const presets = computed(() => state.settings.presets || []);
                 showPresets = false;
               "
             >
-              <b>{{ p.name }}</b
+              <b
+                ><Icon v-if="p.spool" name="spool" :size="14" style="margin-right: 6px; vertical-align: -2px" />{{
+                  p.name
+                }}</b
               ><span class="mono mu" style="font-size: 12px">{{
                 Object.values(p.temps)
                   .filter((v) => v)

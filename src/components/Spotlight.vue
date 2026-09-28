@@ -9,6 +9,7 @@ import { cfgIndex, loadConfigIndex, playSound } from '../features';
 import { smartResults, rawCommand } from '../smart';
 import { flipPower } from '../power';
 import { t } from '../i18n';
+import { setTablet } from '../tablet';
 
 const q = ref('');
 const idx = ref(0);
@@ -68,14 +69,15 @@ const SETTINGS = [
   ['backup', 'Backup & restore settings', 'export import reset'],
 ];
 const ACTIONS = computed(() => [
-  { t: 'Home all axes', s: 'G28', icon: 'home', run: () => gcode('G28'), dest: 'Runs G28' },
-  { t: 'Motors off', s: 'M84', icon: 'motor', run: () => gcode('M84'), dest: 'Runs M84' },
+  { t: 'Home all axes', s: 'G28', icon: 'home', run: () => gcode('G28'), dest: 'Runs G28', off: isPrinting.value },
+  { t: 'Motors off', s: 'M84', icon: 'motor', run: () => gcode('M84'), dest: 'Runs M84', off: isPrinting.value },
   {
     t: 'Cooldown',
     s: 'turn off all heaters',
     icon: 'fan',
     run: () => gcode('TURN_OFF_HEATERS'),
     dest: 'Runs TURN_OFF_HEATERS',
+    off: isPrinting.value,
   },
   {
     t: 'Save config',
@@ -92,6 +94,13 @@ const ACTIONS = computed(() => [
     run: () => restartKlipper(true),
     dest: 'Restarts Klipper + MCUs',
     off: isPrinting.value,
+  },
+  {
+    t: state.tablet ? 'Tablet mode off' : 'Tablet mode on',
+    s: 'touch screen full screen kiosk',
+    icon: 'phone',
+    run: () => setTablet(!state.tablet),
+    dest: 'Bigger buttons, full screen',
   },
   {
     t: 'Customize dashboard',
@@ -358,6 +367,7 @@ const armed = ref('');
 const keyOf = (r) => r.cat + '|' + r.t + '|' + (r.s || '');
 watch([q, idx], () => (armed.value = ''));
 function run(r, alt = false) {
+  if (alt && !r?.alt) alt = false; // Shift+Enter on a result without a second action is a plain Enter
   if (!r || (r.disabled && !alt)) return;
   if (!alt && r.confirm && armed.value !== keyOf(r)) {
     armed.value = keyOf(r);

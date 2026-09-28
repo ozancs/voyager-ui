@@ -8,6 +8,7 @@ import { state, fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../stor
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
 import { startPrint } from '../preprint';
+import { undoable, isHidden } from '../undo';
 const jobs = ref(state.cache.jobs || []);
 const totals = ref(state.cache.totals || null);
 const loading = ref(!state.cache.jobs);
@@ -69,6 +70,7 @@ const filtered = computed(() => {
   const val = (j) =>
     k === 'estimated' ? (j.metadata?.estimated_time ?? 0) : k === 'filename' ? j.filename.toLowerCase() : (j[k] ?? 0);
   return jobs.value
+    .filter((j) => !isHidden('j:' + j.job_id))
     .filter((j) => !f || j.filename.toLowerCase().includes(f) || j.status.includes(f))
     .sort((a, b) => (val(a) > val(b) ? d : val(a) < val(b) ? -d : 0));
 });
@@ -158,27 +160,31 @@ function thumb(j) {
 async function reprint(j) {
   await startPrint(j.filename);
 }
-async function remove() {
+function remove() {
   const list = del.value;
   del.value = null;
-  let fail = 0;
-  for (const j of list) {
-    // some moonraker versions key jobs differently; try the id as given, then without padding
-    const ids = [...new Set([j.job_id, String(j.job_id).replace(/^0+/, ''), String(parseInt(j.job_id, 16))])];
-    let ok = false;
-    for (const uid of ids) {
-      try {
-        await api.call('server.history.delete_job', { uid });
-        ok = true;
-        break;
-      } catch {}
-    }
-    if (!ok) fail++;
-  }
   picked.value = new Set();
-  await load();
-  if (fail) toast(t('{n} job(s) could not be deleted (already removed?). List refreshed.', { n: fail }), 'error');
-  else toast(t('{n} job(s) deleted', { n: list.length }));
+  undoable(list.length === 1 ? t('Job deleted') : t('{n} jobs deleted', { n: list.length }), {
+    hideKeys: list.map((j) => 'j:' + j.job_id),
+    commit: async () => {
+      let fail = 0;
+      for (const j of list) {
+        // some moonraker versions key jobs differently; try the id as given, then without padding
+        const ids = [...new Set([j.job_id, String(j.job_id).replace(/^0+/, ''), String(parseInt(j.job_id, 16))])];
+        let ok = false;
+        for (const uid of ids) {
+          try {
+            await api.call('server.history.delete_job', { uid });
+            ok = true;
+            break;
+          } catch {}
+        }
+        if (!ok) fail++;
+      }
+      await load();
+      if (fail) toast(t('{n} job(s) could not be deleted (already removed?). List refreshed.', { n: fail }), 'error');
+    },
+  });
 }
 function exportCsv() {
   const rows = [['file', 'status', 'start', 'estimated_s', 'print_s', 'total_s', 'filament_mm', 'slicer']];
