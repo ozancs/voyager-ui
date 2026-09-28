@@ -4,6 +4,7 @@
 // put back by `undo`. Closing the page within the 10 seconds leaves the files as they were.
 import { reactive } from 'vue';
 import { toast, closeToast } from './store';
+import { api } from './api/moonraker';
 import { t } from './i18n';
 
 export const UNDO_MS = 10000;
@@ -39,4 +40,21 @@ export function undoable(label, { commit, undo, hideKeys = [] } = {}) {
     },
   });
   return id;
+}
+
+// the files of a folder that are still the ones the user deleted: a file uploaded again under the same name
+// within the undo time (a re-slice from the slicer) has another modified time or size and is kept
+export async function stillSame(dir, items) {
+  try {
+    const r = await api.call('server.files.get_directory', { path: dir, extended: false });
+    const now = new Map([...(r.files || []).map((f) => [f.filename, f]), ...(r.dirs || []).map((d) => [d.dirname, d])]);
+    return items.filter((it) => {
+      const cur = now.get(it.name);
+      if (!cur) return false; // already gone
+      if (it.dir) return true;
+      return cur.modified === it.modified && (it.size == null || cur.size === it.size);
+    });
+  } catch {
+    return items;
+  }
 }

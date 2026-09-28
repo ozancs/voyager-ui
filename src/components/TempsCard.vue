@@ -13,10 +13,14 @@ const colorOf = (i, name) => sensorColor(state.settings.sensorColors, name, i);
 const showPresets = ref(false);
 const presetBtn = ref(null);
 const edit = ref({});
+const typed = {}; // only a value the user typed is sent: focusing and leaving the field sends nothing
 function commitTarget(s, e) {
   const v = e.target.value;
   edit.value[s.name] = undefined;
-  if (v !== '' && Number(v) !== s.target) setHeater(s.name, v);
+  if (!typed[s.name]) return;
+  typed[s.name] = false;
+  const n = Number(v);
+  if (v !== '' && Number.isFinite(n) && n !== s.target) setHeater(s.name, n);
 }
 const presets = allPresets;
 </script>
@@ -88,8 +92,14 @@ const presets = allPresets;
                 :class="{ on: s.target > 0 }"
                 type="number"
                 :value="edit[s.name] ?? s.target?.toFixed(0)"
-                @focus="edit[s.name] = s.target?.toFixed(0)"
-                @input="edit[s.name] = $event.target.value"
+                @focus="
+                  edit[s.name] = s.target?.toFixed(0);
+                  typed[s.name] = false;
+                "
+                @input="
+                  edit[s.name] = $event.target.value;
+                  typed[s.name] = true;
+                "
                 @keydown.enter="$event.target.blur()"
                 @blur="commitTarget(s, $event)"
                 :aria-label="t('{name} target', { name: s.label })"

@@ -11,7 +11,7 @@ import { api } from '../api/moonraker';
 import { go } from '../router';
 import { downloadMany } from '../features';
 import { t } from '../i18n';
-import { undoable, isHidden } from '../undo';
+import { undoable, isHidden, stillSame } from '../undo';
 const roots = ref(['config']);
 const root = ref('config');
 const path = ref('');
@@ -192,7 +192,7 @@ function deleteLater(its, base) {
     hideKeys: its.map((it) => 'f:' + base + '/' + it.name),
     commit: async () => {
       let fail = 0;
-      for (const it of its) {
+      for (const it of await stillSame(base, its)) {
         try {
           if (it.dir) await api.call('server.files.delete_directory', { path: `${base}/${it.name}`, force: true });
           else await api.call('server.files.delete_file', { path: `${base}/${it.name}` });

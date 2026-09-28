@@ -18,8 +18,8 @@ const TEXT = {
   <Modal v-if="state.guard?.custom" :title="state.guard.custom.title" @close="answer(false)">
     <p style="margin: 0">{{ state.guard.custom.text }}</p>
     <template #foot>
-      <button class="btn lg" @click="answer(false)">{{ t('Cancel') }}</button>
-      <button class="btn lg acc" autofocus @click="answer(true)">{{ state.guard.custom.ok }}</button>
+      <button class="btn lg" autofocus @click="answer(false)">{{ t('Cancel') }}</button>
+      <button class="btn lg acc" @click="answer(true)">{{ state.guard.custom.ok }}</button>
     </template>
   </Modal>
   <Modal v-else-if="state.guard" :title="t('A print is running')" @close="answer(false)">

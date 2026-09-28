@@ -15,9 +15,11 @@ const props = defineProps({
 });
 const el = ref(null);
 let Plotly = null;
+let alive = true;
 async function draw() {
-  if (!props.z || !el.value) return;
+  if (!props.z || !props.z.length || !Array.isArray(props.z[0]) || !el.value) return;
   if (!Plotly) Plotly = (await import('plotly.js-gl3d-dist-min')).default;
+  if (!alive || !el.value) return; // the page was left while Plotly was loading
   const rows = props.z.length,
     cols = props.z[0].length;
   const [x0, y0] = props.min || [0, 0],
@@ -113,6 +115,7 @@ async function draw() {
 onMounted(draw);
 watch(() => [props.z, props.lim, props.zmax, props.palette, props.wire], draw);
 onBeforeUnmount(() => {
+  alive = false;
   if (Plotly && el.value) Plotly.purge(el.value);
 });
 </script>

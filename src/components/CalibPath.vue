@@ -79,7 +79,7 @@ function open(s) {
   }
 }
 // the paper test is drawn here: the app-wide manual probe dialog stays away while this is open
-watch(cur, (c) => (state.calibWizard = !!c));
+watch(cur, (c) => (state.calibWizard = c?.kind === 'zoffset'));
 onBeforeUnmount(() => (state.calibWizard = false));
 
 const homed = computed(() => ['x', 'y', 'z'].every((a) => (S('toolhead').homed_axes || '').includes(a)));
@@ -309,7 +309,21 @@ const tilt = computed(() => {
 
 // ---------------------------------------------------------------- z offset: paper test
 const STEPS_Z = [1, 0.1, 0.05, 0.01];
-const testz = (d) => gcode(`TESTZ Z=${d}`).catch(() => {});
+// lowering: never a step bigger than the gap that is left (a -1 at 0.25 mm would push the nozzle into the bed),
+// and one step at a time (a double tap on a touch screen would send two)
+const zNow = computed(() => mp.value.z_position);
+const tooBig = (d) => zNow.value != null && d > Math.max(zNow.value, 0.01) + 1e-9;
+let zBusy = false;
+async function testz(d) {
+  if (zBusy || (d < 0 && tooBig(-d))) return;
+  zBusy = true;
+  try {
+    await gcode(`TESTZ Z=${d}`);
+  } catch {
+    // shown as a toast
+  }
+  setTimeout(() => (zBusy = false), 250);
+}
 const gapPx = computed(() => {
   const z = mp.value.z_position;
   if (z == null) return 40;
@@ -552,7 +566,9 @@ const why = {
         <template v-if="cur.kind === 'zoffset' && mp.is_active">
           <div class="zg">
             <span class="mu sm">{{ t('Lower') }}</span>
-            <button v-for="d in STEPS_Z" :key="'d' + d" class="btn" @click="testz(-d)">−{{ d }}</button>
+            <button v-for="d in STEPS_Z" :key="'d' + d" class="btn" :disabled="tooBig(d)" @click="testz(-d)">
+              −{{ d }}
+            </button>
             <span class="mu sm">{{ t('Raise') }}</span>
             <button v-for="d in STEPS_Z" :key="'u' + d" class="btn" @click="testz(d)">+{{ d }}</button>
           </div>

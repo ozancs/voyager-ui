@@ -16,7 +16,9 @@ const hasProbe = computed(() =>
       o.startsWith('probe_eddy') ||
       o === 'bltouch' ||
       o.startsWith('beacon') ||
-      o.startsWith('cartographer'),
+      o.startsWith('cartographer') ||
+      o === 'scanner' ||
+      o.startsWith('probe_eddy_ng'),
   ),
 );
 const steps = computed(() =>

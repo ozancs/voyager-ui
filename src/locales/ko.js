@@ -1594,5 +1594,7 @@ export default {
  "How repeatable the probe is": "프로브의 반복 정밀도",
  "Paper test for the first layer": "첫 레이어를 위한 종이 테스트",
  "Maps the shape of the bed": "베드 모양을 측정",
- "Less ringing at high speed": "고속에서 링잉 감소"
+ "Less ringing at high speed": "고속에서 링잉 감소",
+ "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: # ; * 및 \" 문자는 Klipper로 보낼 수 없습니다",
+ "Only letters, numbers, dot, minus and underscore: {list}": "영문자, 숫자, 점, 빼기, 밑줄만 가능: {list}"
 }

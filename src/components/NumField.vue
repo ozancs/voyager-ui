@@ -32,13 +32,21 @@ function bump(d) {
   emit('update:modelValue', v);
   emit('commit', v);
 }
+// sent only when the user typed something: tabbing through a field must not send back an old value the printer
+// has changed since (a macro setting pressure advance while the field had focus). "0,04" is read as 0.04.
+let typed = false;
 function commit() {
   editing.value = false;
-  const v = Number(local.value);
-  if (String(local.value).trim() === '' || isNaN(v)) {
+  if (!typed) {
     local.value = props.modelValue;
     return;
-  } // an emptied field is not 0
+  }
+  typed = false;
+  const v = Number(String(local.value).trim().replace(',', '.'));
+  if (String(local.value).trim() === '' || !Number.isFinite(v)) {
+    local.value = props.modelValue;
+    return;
+  } // an emptied field is not 0, and Infinity is not a number to send
   emit('update:modelValue', clamp(v));
   emit('commit', clamp(v));
 }
@@ -50,8 +58,14 @@ function commit() {
       <button type="button" :aria-label="t('Decrease')" @click="bump(-1)">−</button>
       <input
         :value="editing ? local : fmt(local)"
-        @focus="editing = true"
-        @input="local = $event.target.value"
+        @focus="
+          editing = true;
+          typed = false;
+        "
+        @input="
+          local = $event.target.value;
+          typed = true;
+        "
         @keydown.enter="$event.target.blur()"
         @blur="commit"
         :aria-label="label"

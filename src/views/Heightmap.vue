@@ -54,8 +54,9 @@ function color(z) {
 const rows = computed(() => (matrix.value ? [...matrix.value].reverse() : []));
 const profiles = computed(() => Object.keys(bm.value.profiles || {}));
 function doSave() {
-  if (!saveName.value) return;
-  gcode(`BED_MESH_PROFILE SAVE="${saveName.value}"`);
+  const name = saveName.value.replace(/["\r\n#;*]/g, '').trim();
+  if (!name) return;
+  gcode(`BED_MESH_PROFILE SAVE="${name}"`);
   showSave.value = false;
   saveName.value = '';
 }
@@ -161,7 +162,11 @@ function doSave() {
           <button v-else class="btn" :disabled="isPrinting" @click="gcode(`BED_MESH_PROFILE LOAD=${p}`)">
             {{ t('Load') }}
           </button>
-          <button class="btn clear ibtn sm" :aria-label="t('Remove')" @click="gcode(`BED_MESH_PROFILE REMOVE=${p}`)">
+          <button
+            class="btn clear ibtn sm"
+            :aria-label="t('Remove')"
+            @click="gcode(`BED_MESH_PROFILE REMOVE=&quot;${p}&quot;`)"
+          >
             <Icon name="trash" :size="16" />
           </button>
         </div>

@@ -393,10 +393,20 @@ export function availableGroups(commands) {
   return out;
 }
 
-// the command line from an item and the typed values. Values are single words, anything else is dropped.
+// a typed value as it is sent: "2,5" is 2.5, a unicode minus is a minus
+export const cleanVal = (v) =>
+  String(v ?? '')
+    .trim()
+    .replace(/^([-−]?\d+),(\d+)$/, '$1.$2')
+    .replace(/^−/, '-');
+const OK_VAL = /^[A-Za-z0-9._-]+$/;
+// typed values that cannot be sent (spaces, # ; " ...): Run stays off instead of leaving them out silently
+export const invalidParams = (item, vals) =>
+  (item.params || []).filter((x) => cleanVal(vals[x.k]) && !OK_VAL.test(cleanVal(vals[x.k]))).map((x) => x.k);
+// the command line from an item and the typed values. Values are single words (invalidParams blocks the rest).
 export function buildCommand(item, vals, extra = '') {
   const p = (item.params || [])
-    .map((x) => [x.k, String(vals[x.k] ?? '').trim()])
+    .map((x) => [x.k, cleanVal(vals[x.k])])
     .filter(([, v]) => v && /^[A-Za-z0-9._-]+$/.test(v))
     .map(([k, v]) => `${k}=${v}`);
   const e = String(extra || '')

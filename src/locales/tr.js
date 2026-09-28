@@ -1595,5 +1595,7 @@ export default {
  "How repeatable the probe is": "Probe ne kadar tutarlı",
  "Paper test for the first layer": "İlk katman için kağıt testi",
  "Maps the shape of the bed": "Tablanın şeklini çıkarır",
- "Less ringing at high speed": "Yüksek hızda daha az titreşim izi"
+ "Less ringing at high speed": "Yüksek hızda daha az titreşim izi",
+ "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: # ; * ve \" karakterleri Klipper'a gönderilemez",
+ "Only letters, numbers, dot, minus and underscore: {list}": "Sadece harf, rakam, nokta, eksi ve alt çizgi: {list}"
 }

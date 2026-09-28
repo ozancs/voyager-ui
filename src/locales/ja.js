@@ -1594,5 +1594,7 @@ export default {
  "How repeatable the probe is": "プローブの再現性",
  "Paper test for the first layer": "1層目のための紙テスト",
  "Maps the shape of the bed": "ベッドの形状を測定",
- "Less ringing at high speed": "高速時のリンギングを減らす"
+ "Less ringing at high speed": "高速時のリンギングを減らす",
+ "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: # ; * と \" は Klipper に送れません",
+ "Only letters, numbers, dot, minus and underscore: {list}": "英数字、ドット、マイナス、アンダースコアのみ: {list}"
 }

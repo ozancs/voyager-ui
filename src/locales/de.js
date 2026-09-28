@@ -1594,5 +1594,7 @@ export default {
  "How repeatable the probe is": "Wie wiederholgenau die Sonde ist",
  "Paper test for the first layer": "Papiertest für die erste Schicht",
  "Maps the shape of the bed": "Erfasst die Form des Betts",
- "Less ringing at high speed": "Weniger Ringing bei hoher Geschwindigkeit"
+ "Less ringing at high speed": "Weniger Ringing bei hoher Geschwindigkeit",
+ "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: die Zeichen # ; * und \" können nicht an Klipper gesendet werden",
+ "Only letters, numbers, dot, minus and underscore: {list}": "Nur Buchstaben, Ziffern, Punkt, Minus und Unterstrich: {list}"
 }

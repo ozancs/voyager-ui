@@ -1593,5 +1593,7 @@
 "How repeatable the probe is",
 "Paper test for the first layer",
 "Maps the shape of the bed",
-"Less ringing at high speed"
+"Less ringing at high speed",
+"{name}: the characters # ; * and \" cannot be sent to Klipper",
+"Only letters, numbers, dot, minus and underscore: {list}"
 ]

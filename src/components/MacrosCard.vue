@@ -4,7 +4,7 @@
 defineOptions({ inheritAttrs: false });
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
-import { state, S, gcode, macroList, isPrinting, dangerIn } from '../store';
+import { state, S, gcode, macroList, isPrinting, dangerIn, toast } from '../store';
 const locked = (m) => isPrinting.value && !!dangerIn(m);
 import { macroParams } from '../macros';
 import { t } from '../i18n';
@@ -76,6 +76,10 @@ function openParams(m) {
 }
 function runPop() {
   const p = pop.value;
+  // Klipper cuts a line at # ; and * even inside quotes, and a " or a line break breaks the command: refuse
+  // instead of running the macro with a value it never gets
+  const bad = Object.entries(p.vals).find(([, v]) => /[#;*"\n\r]/.test(v));
+  if (bad) return toast(t('{name}: the characters # ; * and " cannot be sent to Klipper', { name: bad[0] }), 'warn');
   const args = Object.entries(p.vals)
     .filter(([, v]) => v !== '')
     .map(([k, v]) => `${k}=${/\s/.test(v) ? '"' + v + '"' : v}`)

@@ -11,6 +11,7 @@ import { state, gcode, toast, isPrinting, useApiEvent, fmtDate, restartKlipper }
 import { api } from '../api/moonraker';
 import { writeOptions } from '../cfgwrite';
 import { t } from '../i18n';
+import { cleanVal } from '../calibrations';
 
 // the tests and their parameters (names and defaults from the Shake&Tune docs)
 const TESTS = [
@@ -81,9 +82,14 @@ const TESTS = [
 const installed = computed(() => Object.keys(state.commands || {}).some((c) => /^_?AXES_SHAPER_CALIBRATION$/i.test(c)));
 const test = ref(TESTS[0]);
 const vals = ref({});
+const invalid = computed(() =>
+  test.value.params
+    .map(([k]) => k)
+    .filter((k) => cleanVal(vals.value[k]) && !/^[A-Za-z0-9._-]+$/.test(cleanVal(vals.value[k]))),
+);
 const cmdLine = computed(() => {
   const p = test.value.params
-    .map(([k]) => [k, String(vals.value[k] ?? '').trim()])
+    .map(([k]) => [k, cleanVal(vals.value[k])])
     .filter(([, v]) => v && /^[A-Za-z0-9._-]+$/.test(v))
     .map(([k, v]) => `${k}=${v}`);
   return [test.value.cmd, ...p].join(' ');
@@ -284,11 +290,14 @@ const shortName = (n) => n.replace(/\.png$/i, '');
             </label>
           </div>
           <code class="cl">{{ cmdLine }}</code>
-          <button class="btn lg acc" :disabled="isPrinting || run?.running" @click="start">
+          <button class="btn lg acc" :disabled="isPrinting || run?.running || invalid.length > 0" @click="start">
             <Icon :name="run?.running ? 'refresh' : 'play'" :class="{ spin: run?.running }" :size="18" />{{
               run?.running ? t('Running…') : t('Run test')
             }}
           </button>
+          <p v-if="invalid.length" class="mu sm" style="margin: 0; color: var(--dg)">
+            {{ t('Only letters, numbers, dot, minus and underscore: {list}', { list: invalid.join(', ') }) }}
+          </p>
           <p class="mu sm" style="margin: 0">{{ t('The toolhead moves and shakes. Keep the bed clear.') }}</p>
         </template>
       </section>

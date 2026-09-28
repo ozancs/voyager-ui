@@ -538,16 +538,12 @@ watch(
 );
 async function pickHistory(r) {
   hist.value = null;
-  if (active.value?.path !== r.file) {
+  const ready = () => active.value?.path === r.file && !active.value.loading && viewKey === active.value.key;
+  if (!ready()) {
     openFile(r.file);
-    // wait for the file to be open in the editor, then compare
-    for (
-      let i = 0;
-      i < 50 && !(active.value?.path === r.file && !active.value.loading && viewKey === active.value.key);
-      i++
-    )
-      await new Promise((res) => setTimeout(res, 100));
-    if (active.value?.path !== r.file) return;
+    // wait for the file to be open in the editor, then compare; never compare against another tab
+    for (let i = 0; i < 100 && !ready(); i++) await new Promise((res) => setTimeout(res, 100));
+    if (!ready()) return toast(t('This file did not load. Reopen it before saving.'), 'error');
   }
   showDiff(r);
 }
@@ -566,7 +562,7 @@ async function showDiff(backup) {
     }
     title = t('Backup from {when} compared to the editor', { when: backup.when });
   }
-  diff.value = { title, a, b: cur, from: backup || null };
+  diff.value = { title, a, b: cur, from: backup || null, key: active.value.key };
   await nextTick();
   mv?.destroy();
   const ext = [
@@ -592,6 +588,11 @@ function closeDiff() {
 }
 function loadBackup(andSave = false) {
   const d = diff.value;
+  // only into the tab the comparison was made for
+  if (!d || d.key !== active.value?.key || viewKey !== d.key) {
+    closeDiff();
+    return toast(t('This file did not load. Reopen it before saving.'), 'error');
+  }
   view.value.dispatch({ changes: { from: 0, to: view.value.state.doc.length, insert: d.a } });
   closeDiff();
   // the current version is copied to backups/ by save() first, so a restore can itself be undone from History

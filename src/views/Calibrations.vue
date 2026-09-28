@@ -8,7 +8,7 @@ import Icon from '../components/Icon.vue';
 import ShakeTune from './ShakeTune.vue';
 import CalibPath from '../components/CalibPath.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
-import { availableGroups, buildCommand, missingParams, parseResult } from '../calibrations';
+import { availableGroups, buildCommand, missingParams, invalidParams, parseResult } from '../calibrations';
 import { route, go } from '../router';
 import { t } from '../i18n';
 
@@ -39,6 +39,7 @@ watchEffect(() => {
 });
 const cmdLine = computed(() => (item.value ? buildCommand(item.value, v.value, extra.value[item.value.cmd]) : ''));
 const missing = computed(() => (item.value ? missingParams(item.value, v.value) : []));
+const invalid = computed(() => (item.value ? invalidParams(item.value, v.value) : []));
 const homed = computed(() => ['x', 'y', 'z'].every((a) => (S('toolhead').homed_axes || '').includes(a)));
 const savePending = computed(() => S('configfile').save_config_pending);
 
@@ -150,11 +151,18 @@ function applyShaper(r) {
               <Icon name="home" :size="16" />{{ t('Home all') }}
             </button>
           </div>
-          <button class="btn lg acc" :disabled="isPrinting || run?.running || missing.length > 0" @click="start">
+          <button
+            class="btn lg acc"
+            :disabled="isPrinting || run?.running || missing.length > 0 || invalid.length > 0"
+            @click="start"
+          >
             <Icon :name="run?.running ? 'refresh' : 'play'" :class="{ spin: run?.running }" :size="18" />{{
               run?.running ? t('Running…') : t('Run')
             }}
           </button>
+          <p v-if="invalid.length" class="mu sm" style="margin: 0; color: var(--dg)">
+            {{ t('Only letters, numbers, dot, minus and underscore: {list}', { list: invalid.join(', ') }) }}
+          </p>
           <p v-if="missing.length" class="mu sm" style="margin: 0">
             {{ t('Fill in: {list}', { list: missing.join(', ') }) }}
           </p>

@@ -6,12 +6,12 @@ import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import QueueCard from '../components/QueueCard.vue';
 import { queueApi, downloadMany } from '../features';
-import { state, fmtTime, fmtBytes, fmtDate, toast, isPrinting, gcode, useApiEvent } from '../store';
+import { state, fmtTime, fmtBytes, fmtDate, toast, isPrinting, gcode, useApiEvent, setHeater } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
 import { startPrint } from '../preprint';
-import { undoable, isHidden } from '../undo';
+import { undoable, isHidden, stillSame } from '../undo';
 const path = ref('gcodes');
 const cached = state.cache.files;
 const dirs = ref(cached?.dirs || []),
@@ -122,8 +122,10 @@ async function print(f) {
 async function preheat(f) {
   const e = f.first_layer_extr_temp,
     b = f.first_layer_bed_temp;
-  if (e) await gcode(`SET_HEATER_TEMPERATURE HEATER=extruder TARGET=${e}`);
-  if (b) await gcode(`SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET=${b}`);
+  // through setHeater (max_temp check), and only heaters this printer has
+  const has = (h) => (state.objects || []).includes(h);
+  if (e && has('extruder')) await setHeater('extruder', e).catch(() => {});
+  if (b && has('heater_bed')) await setHeater('heater_bed', b).catch(() => {});
   if (!e && !b) toast(t('No temperatures in file metadata'));
 }
 function doDelete() {
@@ -135,7 +137,11 @@ function doDelete() {
     hideKeys: fs.map((f) => 'g:' + base + '/' + f.filename),
     commit: async () => {
       let fail = 0;
-      for (const f of fs) {
+      const same = await stillSame(
+        base,
+        fs.map((f) => ({ name: f.filename.split('/').pop(), path: f.filename, modified: f.modified, size: f.size })),
+      );
+      for (const f of fs.filter((x) => same.some((y) => y.path === x.filename))) {
         try {
           await api.call('server.files.delete_file', { path: `${base}/${f.filename}` });
         } catch {

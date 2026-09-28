@@ -1594,5 +1594,7 @@ export default {
  "How repeatable the probe is": "Hoe herhaalbaar de probe is",
  "Paper test for the first layer": "Papiertest voor de eerste laag",
  "Maps the shape of the bed": "Brengt de vorm van het bed in kaart",
- "Less ringing at high speed": "Minder ringing bij hoge snelheid"
+ "Less ringing at high speed": "Minder ringing bij hoge snelheid",
+ "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: de tekens # ; * en \" kunnen niet naar Klipper worden gestuurd",
+ "Only letters, numbers, dot, minus and underscore: {list}": "Alleen letters, cijfers, punt, min en underscore: {list}"
 }

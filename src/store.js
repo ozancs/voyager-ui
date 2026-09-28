@@ -333,7 +333,8 @@ export const printerName = computed(
   () => nickname || state.settings.printerName || state.printerName || state.versions.host || t('Printer'),
 );
 export const printState = computed(() => S('print_stats').state || 'standby');
-export const isPrinting = computed(() => ['printing', 'paused'].includes(printState.value));
+// only while Klipper runs: after a shutdown print_stats can still say "printing", but that print is over
+export const isPrinting = computed(() => state.klippy === 'ready' && ['printing', 'paused'].includes(printState.value));
 export const progress = computed(() => {
   const p = S('virtual_sdcard').progress ?? S('display_status').progress ?? 0;
   return Math.max(0, Math.min(1, p));
@@ -590,15 +591,21 @@ export function askConfirm({ title, text, ok }) {
   });
 }
 
+// print control: the user already chose to cancel, pause or resume, and these macros are expected to park
+const PRINT_CONTROL = /^(CANCEL_PRINT|PAUSE|RESUME|M600)$/;
 export const gcode = async (script, { quiet = false, force = false } = {}) => {
-  const now = Date.now();
-  if (script === lastSent.s && now - lastSent.at < 400 && !REPEATABLE.test(script)) return;
-  lastSent = { s: script, at: now };
   if (state.locked) {
     if (!quiet) toast(api.lockedMsg?.() || 'Locked', 'warn');
     return;
   }
-  if (!force && isPrinting.value) {
+  const now = Date.now();
+  if (script === lastSent.s && now - lastSent.at < 400 && !REPEATABLE.test(script)) return;
+  const mine = (lastSent = { s: script, at: now });
+  const lines = String(script)
+    .split('\n')
+    .filter((l) => l.trim());
+  const control = lines.length === 1 && PRINT_CONTROL.test(cmdWord(lines[0]));
+  if (!force && !control && isPrinting.value) {
     const cmd = dangerIn(script);
     if (cmd && !(await askGuard(script, cmd))) return;
   }
@@ -606,6 +613,7 @@ export const gcode = async (script, { quiet = false, force = false } = {}) => {
   try {
     await api.gcode(script);
   } catch (e) {
+    if (lastSent === mine) lastSent = { s: '', at: 0 }; // a failed send can be retried at once
     if (!quiet) toast(e.message, 'error');
     throw e;
   }
@@ -1054,6 +1062,10 @@ async function initKlippyOnce() {
     loadCurrentMeta();
   } catch (e) {
     toast(t('Klipper init failed: {err}', { err: e.message }), 'error');
+    // a timeout on a slow host at boot: try again instead of staying empty until the next Klipper event
+    setTimeout(() => {
+      if (!state.booted && state.connected && state.klippy === 'ready') initKlippy();
+    }, 3000);
   }
 }
 

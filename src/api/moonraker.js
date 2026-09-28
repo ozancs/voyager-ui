@@ -210,7 +210,7 @@ export class Moonraker {
   // refused here, whichever button sent them. E-STOP, reading and the UI's own settings still work.
   lockedMsg = null;
   static WRITES =
-    /^printer\.(gcode\.script|print\.|restart|firmware_restart)|^machine\.(reboot|shutdown|services\.|device_power\.post|update\.)|^server\.(files\.(delete|move|copy|post_directory|zip)|history\.delete|job_queue\.(post|delete|start|pause|jump)|webcams\.(post|delete)|spoolman\.post|announcements\.dismiss|restart)/;
+    /^printer\.(gcode\.script|print\.|restart|firmware_restart)|^machine\.(reboot|shutdown|services\.|device_power\.post|update\.(full|upgrade|client|klipper|moonraker|system|recover|rollback))|^server\.(files\.(delete|move|copy|post_directory)|history\.delete|job_queue\.(post|delete|start|pause|jump)|webcams\.(post|delete)|spoolman\.post|announcements\.dismiss|restart)/;
 
   call(method, params) {
     const done = this.onTask ? this.onTask(method) : null;

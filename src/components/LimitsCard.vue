@@ -26,6 +26,7 @@ const cfg = computed(() => S('configfile').settings?.printer || {});
 const hasMcr = computed(() => th.value.minimum_cruise_ratio !== undefined);
 function reset() {
   const c = cfg.value;
+  if (c.max_velocity == null || c.max_accel == null) return; // config not read yet
   let s = `SET_VELOCITY_LIMIT VELOCITY=${c.max_velocity} ACCEL=${c.max_accel} SQUARE_CORNER_VELOCITY=${c.square_corner_velocity ?? 5}`;
   if (hasMcr.value && c.minimum_cruise_ratio != null) s += ` MINIMUM_CRUISE_RATIO=${c.minimum_cruise_ratio}`;
   gcode(s);
@@ -35,7 +36,9 @@ function reset() {
   <section class="card spread">
     <div class="card-h">
       <h2>{{ t('Machine Limits') }}</h2>
-      <button class="btn" @click="reset"><Icon name="refresh" :size="16" :stroke="2.4" />{{ t('Reset') }}</button>
+      <button class="btn" :disabled="cfg.max_velocity == null" @click="reset">
+        <Icon name="refresh" :size="16" :stroke="2.4" />{{ t('Reset') }}
+      </button>
     </div>
     <div class="g2">
       <NumField

@@ -17,8 +17,9 @@ export function backupOf(f, files = []) {
   if (!m) return null;
   const guess = m[1].split('__').join('/') + '.' + m[2];
   if (files.includes(guess)) return guess;
-  // older backups kept only the file name
-  return files.find((x) => x.split('/').pop() === m[1] + '.' + m[2]) || guess;
+  // older backups kept only the file name: use it only when exactly one file has that name
+  const same = files.filter((x) => x.split('/').pop() === m[1] + '.' + m[2]);
+  return same.length === 1 ? same[0] : same.length ? null : guess;
 }
 
 // every backup, newest first: { f, file, when, klipper }. With `only` just that file's.

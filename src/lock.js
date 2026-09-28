@@ -32,6 +32,7 @@ state.locked = !!saved?.on;
 export const lockHasPin = () => !!read()?.pin;
 
 export async function lockUi(pin = '') {
+  pin = String(pin || '').trim();
   const v = { on: true, pin: pin ? await hash(pin) : '' };
   try {
     localStorage.setItem(KEY, JSON.stringify(v));
@@ -41,13 +42,18 @@ export async function lockUi(pin = '') {
 // true when unlocked; false when the PIN is wrong
 export async function unlockUi(pin = '') {
   const cur = read();
-  if (cur?.pin && (await hash(pin)) !== cur.pin) return false;
+  if (cur?.pin && (await hash(String(pin || '').trim())) !== cur.pin) return false;
   try {
     localStorage.removeItem(KEY);
   } catch {}
   state.locked = false;
   return true;
 }
+
+// locked or unlocked in another tab of this browser
+window.addEventListener('storage', (e) => {
+  if (e.key === KEY) state.locked = !!read()?.on;
+});
 
 api.lockedMsg = () => (state.locked ? t('Controls are locked. Unlock them with the lock button at the top.') : null);
 watch(

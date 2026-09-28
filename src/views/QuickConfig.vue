@@ -42,7 +42,10 @@ async function save(restart) {
     const log = await writeOptions(
       changes.value.map((f) => ({ f, section: f.section, key: f.key, value: drafts.value[id(f)] })),
     );
-    drafts.value = {};
+    // keep what was typed for the rows that could not be written
+    const keep = {};
+    for (const l of log) if (l.error) keep[id(l.f)] = l.value;
+    drafts.value = keep;
     result.value = log.map((l) => ({ ...l, v: l.value }));
     if (restart && !log.some((l) => l.error)) await restartKlipper();
   } catch (e) {

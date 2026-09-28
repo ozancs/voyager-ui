@@ -11,17 +11,19 @@ import { t } from '../i18n';
 const props = defineProps({ gate: Object, kind: String });
 const emit = defineEmits(['close']);
 const MATERIALS = ['PLA', 'PLA+', 'PETG', 'ABS', 'ASA', 'TPU', 'PA', 'PA-CF', 'PC', 'PET-CF', 'PVA', 'HIPS'];
-const hex = (c) =>
-  /^#[0-9a-f]{6}$/i.test(c || '')
-    ? c
-    : /^rgb/.test(c || '')
-      ? '#' +
-        c
-          .match(/\d+/g)
-          .slice(0, 3)
-          .map((x) => (+x).toString(16).padStart(2, '0'))
-          .join('')
-      : '#888888';
+// "#rrggbb" or "rgb(r, g, b)" -> "#rrggbb"; anything else (an empty or short MMU colour) is grey
+function hex(c) {
+  if (/^#[0-9a-f]{6}$/i.test(c || '')) return c;
+  const n = String(c || '').match(/\d+/g) || [];
+  if (!/^rgb/.test(c || '') || n.length < 3) return '#888888';
+  return (
+    '#' +
+    n
+      .slice(0, 3)
+      .map((x) => Math.min(255, +x).toString(16).padStart(2, '0'))
+      .join('')
+  );
+}
 const f = ref({
   material: props.gate.material || '',
   color: hex(props.gate.color),

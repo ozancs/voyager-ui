@@ -1594,5 +1594,7 @@ export default {
  "How repeatable the probe is": "Наскільки повторюваний датчик",
  "Paper test for the first layer": "Тест з папером для першого шару",
  "Maps the shape of the bed": "Знімає форму столу",
- "Less ringing at high speed": "Менше ringing на високій швидкості"
+ "Less ringing at high speed": "Менше ringing на високій швидкості",
+ "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: символи # ; * і \" не можна надіслати до Klipper",
+ "Only letters, numbers, dot, minus and underscore: {list}": "Лише літери, цифри, крапка, мінус і підкреслення: {list}"
 }

@@ -1594,5 +1594,7 @@ export default {
  "How repeatable the probe is": "探针的重复精度",
  "Paper test for the first layer": "首层的纸张测试",
  "Maps the shape of the bed": "测量热床的形状",
- "Less ringing at high speed": "高速时减少振纹"
+ "Less ringing at high speed": "高速时减少振纹",
+ "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}：字符 # ; * 和 \" 无法发送给 Klipper",
+ "Only letters, numbers, dot, minus and underscore: {list}": "只能使用字母、数字、点、减号和下划线：{list}"
 }

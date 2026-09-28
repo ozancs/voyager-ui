@@ -170,7 +170,7 @@ function remove() {
       let fail = 0;
       for (const j of list) {
         // some moonraker versions key jobs differently; try the id as given, then without padding
-        const ids = [...new Set([j.job_id, String(j.job_id).replace(/^0+/, ''), String(parseInt(j.job_id, 16))])];
+        const ids = [...new Set([j.job_id, String(j.job_id).replace(/^0+/, '')])];
         let ok = false;
         for (const uid of ids) {
           try {

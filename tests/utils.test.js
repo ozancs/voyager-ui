@@ -185,3 +185,23 @@ describe('config includes', () => {
     expect(order).toEqual(['printer.cfg', 'hw/a.cfg', 'hw/b.cfg', 'extra.cfg', 'macros.cfg']);
   });
 });
+
+import { lastDefinition } from '../src/cfgedit.js';
+describe('where an option is defined', () => {
+  it('takes the last definition in load order', async () => {
+    const texts = {
+      'printer.cfg': '[extruder]\nrotation_distance: 22\n[include tuning.cfg]\n',
+      'tuning.cfg': '[extruder]\nrotation_distance: 22.6\n',
+    };
+    const children = {};
+    await includedFiles(Object.keys(texts), async (f) => texts[f], texts, children);
+    expect(lastDefinition(texts, children, 'extruder', 'rotation_distance')).toEqual({
+      key: 'tuning.cfg',
+      section: 'tuning.cfg',
+    });
+    texts['printer.cfg'] +=
+      '#*# <---------------------- SAVE_CONFIG ---------------------->\n#*# [extruder]\n#*# rotation_distance = 23\n';
+    expect(lastDefinition(texts, children, 'extruder', 'rotation_distance').key).toBe('printer.cfg');
+    expect(lastDefinition(texts, children, 'extruder', 'pid_kp')).toEqual({ key: null, section: 'tuning.cfg' });
+  });
+});

@@ -44,8 +44,9 @@ Helpers to find and replace an option inside Klipper config text (used by the Pr
 setOption returns the new text, or null when the section is not in this file.
 
 **[src/cfgwrite.js](../src/cfgwrite.js)**  
-Writing option values into the printer's .cfg files: finds the file that has the section (printer.cfg first,  
-then the files it includes, in Klipper's order; files Klipper does not load are never touched), changes the line with setOption (the SAVE_CONFIG block wins when the option is  
+Writing option values into the printer's .cfg files: finds the file Klipper takes the option from (the last  
+definition in load order, or the last file with the section; files Klipper does not load are never touched),  
+changes the line with setOption (the SAVE_CONFIG block wins when the option is  
 there), saves a backup of each file first and uploads it. Klipper needs a restart to use the new values.
 
 **[src/explain.js](../src/explain.js)**  
