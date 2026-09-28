@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.24.1
+
+- Interface size is 100 % by default. Auto made everything larger on screens wider than 1920 px; settings that still say Auto move to 100 % once (Auto can still be picked in Settings > Appearance)
+- Temperatures: the eye button is now Edit. The editor shows a colour chip, a show/hide eye and up/down arrows for every sensor and fits all sensors without a scroll bar
+- Temperatures: rows are separated by a line, and readings turn amber and then red as they get hotter
+- System card: the tiles fill the card instead of leaving an empty column
+
 ## 0.24.0
 
 - What's new: click the version at the bottom of the sidebar to see the changes of every release. It also opens once after an update
