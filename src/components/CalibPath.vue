@@ -794,6 +794,10 @@ const RUNS = _reactive({});
   opacity: 0.5;
   cursor: default;
 }
+.tile .col {
+  min-width: 0;
+  overflow: hidden;
+}
 .tile .col,
 .res {
   align-items: flex-start;
@@ -803,13 +807,14 @@ const RUNS = _reactive({});
   color: var(--wn);
 }
 .last {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  display: block;
+  max-width: 100%;
   color: var(--ok);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+}
+.last :deep(svg) {
+  vertical-align: -1px;
+  margin-right: 4px;
 }
 .dot {
   flex-shrink: 0;
