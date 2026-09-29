@@ -1600,5 +1600,10 @@ export default {
  "Only letters, numbers, dot, minus and underscore: {list}": "Sadece harf, rakam, nokta, eksi ve alt çizgi: {list}",
  "Large file": "Büyük dosya",
  "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} {size}. Yüklemek bu sekmeyi yavaşlatabilir, telefon ya da tablette çökertebilir.",
- "Open anyway": "Yine de aç"
+ "Open anyway": "Yine de aç",
+ "{name} is running": "{name} çalışıyor",
+ "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper bunu tek komut olarak çalıştırır, bitene kadar konsolda bir şey görünmez.",
+ "{name} stopped with an error": "{name} hatayla durdu",
+ "{name} finished": "{name} bitti",
+ "{name} is still running. Start this one when it has finished.": "{name} hâlâ çalışıyor. Bunu o bitince başlat."
 }

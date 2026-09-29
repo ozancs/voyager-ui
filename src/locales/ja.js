@@ -1599,5 +1599,10 @@ export default {
  "Only letters, numbers, dot, minus and underscore: {list}": "英数字、ドット、マイナス、アンダースコアのみ: {list}",
  "Large file": "大きなファイル",
  "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} は {size} です。読み込むとこのタブが遅くなったり、スマホやタブレットでは落ちることがあります。",
- "Open anyway": "それでも開く"
+ "Open anyway": "それでも開く",
+ "{name} is running": "{name} を実行中",
+ "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper は1つのコマンドとして実行するため、終わるまでコンソールには何も出ません。",
+ "{name} stopped with an error": "{name} がエラーで停止しました",
+ "{name} finished": "{name} が完了しました",
+ "{name} is still running. Start this one when it has finished.": "{name} はまだ実行中です。終わってから開始してください。"
 }

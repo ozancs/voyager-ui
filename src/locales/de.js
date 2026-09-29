@@ -1599,5 +1599,10 @@ export default {
  "Only letters, numbers, dot, minus and underscore: {list}": "Nur Buchstaben, Ziffern, Punkt, Minus und Unterstrich: {list}",
  "Large file": "Große Datei",
  "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} ist {size} groß. Das Laden kann diesen Tab verlangsamen oder auf Handy und Tablet abstürzen lassen.",
- "Open anyway": "Trotzdem öffnen"
+ "Open anyway": "Trotzdem öffnen",
+ "{name} is running": "{name} läuft",
+ "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper führt es als einen Befehl aus, die Konsole bleibt bis zum Ende still.",
+ "{name} stopped with an error": "{name} mit Fehler beendet",
+ "{name} finished": "{name} fertig",
+ "{name} is still running. Start this one when it has finished.": "{name} läuft noch. Starte dies, wenn es fertig ist."
 }

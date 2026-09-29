@@ -262,6 +262,16 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
             >
               {{ t('Open console') }}
             </button>
+            <button
+              v-if="ts.action"
+              class="tl"
+              @click="
+                closeToast(ts.id);
+                ts.action.run();
+              "
+            >
+              {{ ts.action.label }}
+            </button>
           </div>
           <button v-if="ts.undo" class="btn sm undo" @click="ts.undo()">
             <Icon name="rot" :size="14" />{{ t('Undo') }}

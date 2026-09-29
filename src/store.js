@@ -201,6 +201,7 @@ export const state = reactive({
   preprint: null, // { filename, issues, resolve } while the pre-print check asks (PreprintDialog.vue)
   locked: false, // Lock (lock.js): read-only mode for this browser
   tablet: false, // Tablet mode (tablet.js)
+  calibOpen: '', // guided calibration to open on the Calibrations page (CalibPath.vue)
   pip: null, // webcam name floating over the pages (FloatingCam.vue)
   guard: null, // { script, cmd, resolve } while a risky command waits for a confirm during a print (GuardDialog.vue)
   whatsNew: false, // the changelog dialog (WhatsNew.vue)

@@ -1599,5 +1599,10 @@ export default {
  "Only letters, numbers, dot, minus and underscore: {list}": "Лише літери, цифри, крапка, мінус і підкреслення: {list}",
  "Large file": "Великий файл",
  "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} важить {size}. Завантаження може сповільнити цю вкладку або обвалити її на телефоні чи планшеті.",
- "Open anyway": "Усе одно відкрити"
+ "Open anyway": "Усе одно відкрити",
+ "{name} is running": "{name} виконується",
+ "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper виконує це однією командою, консоль мовчить до кінця.",
+ "{name} stopped with an error": "{name} зупинено з помилкою",
+ "{name} finished": "{name} завершено",
+ "{name} is still running. Start this one when it has finished.": "{name} ще виконується. Запустіть це, коли воно закінчиться."
 }

@@ -1599,5 +1599,10 @@ export default {
  "Only letters, numbers, dot, minus and underscore: {list}": "Только буквы, цифры, точка, минус и подчёркивание: {list}",
  "Large file": "Большой файл",
  "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} весит {size}. Загрузка может замедлить эту вкладку или обрушить её на телефоне или планшете.",
- "Open anyway": "Всё равно открыть"
+ "Open anyway": "Всё равно открыть",
+ "{name} is running": "{name} выполняется",
+ "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper выполняет это одной командой, консоль молчит до конца.",
+ "{name} stopped with an error": "{name} остановлено с ошибкой",
+ "{name} finished": "{name} завершено",
+ "{name} is still running. Start this one when it has finished.": "{name} ещё выполняется. Запустите это, когда оно закончится."
 }

@@ -1599,5 +1599,10 @@ export default {
  "Only letters, numbers, dot, minus and underscore: {list}": "Alleen letters, cijfers, punt, min en underscore: {list}",
  "Large file": "Groot bestand",
  "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} is {size}. Laden kan dit tabblad traag maken, of laten vastlopen op een telefoon of tablet.",
- "Open anyway": "Toch openen"
+ "Open anyway": "Toch openen",
+ "{name} is running": "{name} loopt",
+ "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper voert het uit als één commando, de console blijft stil tot het klaar is.",
+ "{name} stopped with an error": "{name} gestopt met een fout",
+ "{name} finished": "{name} klaar",
+ "{name} is still running. Start this one when it has finished.": "{name} loopt nog. Start deze als die klaar is."
 }

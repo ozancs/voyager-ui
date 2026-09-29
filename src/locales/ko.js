@@ -1599,5 +1599,10 @@ export default {
  "Only letters, numbers, dot, minus and underscore: {list}": "영문자, 숫자, 점, 빼기, 밑줄만 가능: {list}",
  "Large file": "큰 파일",
  "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file}은(는) {size}입니다. 불러오면 이 탭이 느려지거나 휴대폰·태블릿에서는 멈출 수 있습니다.",
- "Open anyway": "그래도 열기"
+ "Open anyway": "그래도 열기",
+ "{name} is running": "{name} 실행 중",
+ "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper가 하나의 명령으로 실행하므로 끝날 때까지 콘솔에 아무것도 나오지 않습니다.",
+ "{name} stopped with an error": "{name} 오류로 중단됨",
+ "{name} finished": "{name} 완료",
+ "{name} is still running. Start this one when it has finished.": "{name}이(가) 아직 실행 중입니다. 끝나면 시작하세요."
 }

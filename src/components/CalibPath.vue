@@ -7,7 +7,7 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
-import { state, S, gcode, toast, isPrinting, spoolPreset } from '../store';
+import { state, S, gcode, toast, closeToast, isPrinting, spoolPreset } from '../store';
 import { api } from '../api/moonraker';
 import {
   pathSteps,
@@ -22,6 +22,7 @@ import {
 } from '../calibPath';
 import { heatColor } from '../sensorStyle';
 import { t } from '../i18n';
+import { go } from '../router';
 
 // one line under each calibration's name
 const SHORT = {
@@ -58,21 +59,24 @@ const steps = computed(() =>
 );
 const done = computed(() => state.settings.calibPath || {});
 const fmtDay = (ts) => new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-function markDone(step, sum) {
-  state.settings.calibPath = { ...(state.settings.calibPath || {}), [step.key]: { at: Date.now(), sum } };
+function markDone(step, sum, at) {
+  const cur = state.settings.calibPath?.[step.key];
+  if (cur && cur.at === at && cur.sum === sum) return; // the same run seen again when the dialog is reopened
+  state.settings.calibPath = { ...(state.settings.calibPath || {}), [step.key]: { at, sum } };
 }
 
 // ---------------------------------------------------------------- the open step
 const cur = ref(null); // the step shown in the dialog
-const run = ref(null); // { since, running, ended, cmd }
+// Runs live outside the dialog (RUNS, module level): closing the dialog or leaving the page does not lose a
+// calibration that is still running, its tile says so and a toast brings you back to it.
+const run = computed(() => (cur.value ? RUNS[cur.value.key] || null : null));
+const running = computed(() => steps.value.find((s) => RUNS[s.key]?.running) || null);
 const target = ref(0);
 const samples = ref(10);
 const axis = ref('');
 function open(s) {
-  if (run.value?.running) return;
   cur.value = s;
-  run.value = null;
-  hist.value = [];
+  if (!RUNS[s.key]?.running) hist.value = [];
   if (s.kind === 'pid') {
     const sp = spoolPreset.value?.temps?.[s.heater];
     target.value = sp || s.target;
@@ -94,18 +98,57 @@ const out = computed(() =>
 const errLine = computed(() => out.value.find((l) => /^!!/.test(l)));
 
 async function send(cmd) {
+  const step = cur.value;
   const since = state.console.length ? state.console[state.console.length - 1].id : 0;
-  run.value = { since, running: true, ended: false, cmd };
+  RUNS[step.key] = { since, running: true, ended: false, cmd, at: Date.now() };
+  const r = RUNS[step.key]; // the reactive entry, so the tile and the dialog follow it
+  const reopen = { label: t('Open'), run: () => openFromToast(step.key) };
+  const tid = toast(t('{name} is running', { name: t(step.name) }), 'info', {
+    ms: 0,
+    hint: t('Klipper runs it as one command, so the console stays quiet until it ends.'),
+    action: reopen,
+  });
+  let failed = false;
   try {
     await gcode(cmd);
   } catch {
-    // shown as a toast and in the output
+    failed = true; // shown as a toast and in the output
   }
-  if (run.value) {
-    run.value.running = false;
-    run.value.ended = true;
-  }
+  r.running = false;
+  r.ended = true;
+  closeToast(tid);
+  // remembered on the tile even when the dialog was closed meanwhile
+  // (a moment later: the last output lines can arrive just after the command's answer)
+  setTimeout(() => {
+    const sum = !failed && summaryFor(step, r);
+    if (sum) markDone(step, sum, r.at);
+  }, 800);
+  if (cur.value?.key !== step.key)
+    toast(
+      failed ? t('{name} stopped with an error', { name: t(step.name) }) : t('{name} finished', { name: t(step.name) }),
+      failed ? 'error' : 'info',
+      {
+        ms: 15000,
+        action: reopen,
+      },
+    );
 }
+// the toast's Open button: back to the Calibrations page with this calibration's dialog
+function openFromToast(key) {
+  state.calibOpen = key;
+  go('calibrations');
+}
+watch(
+  [() => state.calibOpen, steps],
+  ([k]) => {
+    const s = k && steps.value.find((x) => x.key === k);
+    if (s) {
+      state.calibOpen = '';
+      open(s);
+    }
+  },
+  { immediate: true },
+);
 const home = () => gcode('G28').catch(() => {});
 function commandFor(s) {
   if (s.kind === 'pid') return `PID_CALIBRATE HEATER=${s.heater} TARGET=${Math.round(target.value)}`;
@@ -120,7 +163,7 @@ const canStart = computed(
     !isPrinting.value &&
     !state.locked &&
     state.klippy === 'ready' &&
-    !run.value?.running &&
+    !running.value &&
     !needsHome.value &&
     !(cur.value.kind === 'pid' && !(target.value > 30 && target.value <= pidMax.value - 5)),
 );
@@ -160,6 +203,40 @@ const zres = computed(() => (cur.value?.kind === 'zoffset' ? parseZOffset(out.va
 const mp = computed(() => S('manual_probe'));
 
 // a finished step is remembered with a short summary
+// the short result of a finished run, read from the console lines since it started (used when the dialog is
+// closed; the open dialog shows the same through its own computeds)
+function summaryFor(step, r) {
+  const ls = state.console.filter((l) => l.id > r.since && l.type !== 'command').map((l) => strip(l.message));
+  if (ls.some((l) => /^!!/.test(l))) return null;
+  if (step.kind === 'pid') {
+    const p = parsePid(ls);
+    return p && `Kp ${p.kp} · Ki ${p.ki} · Kd ${p.kd}`;
+  }
+  if (step.kind === 'accuracy') {
+    const a = parseAccuracy(ls);
+    return a && t('range {r} mm', { r: a.range });
+  }
+  if (step.kind === 'level') {
+    const p = parseLevel(ls).pop();
+    return p && p.range <= p.tol ? t('range {r} mm', { r: p.range }) : null;
+  }
+  if (step.kind === 'screws') {
+    const sc = parseScrews(ls);
+    return sc.length ? (sc.every((x) => x.base || x.turns < 0.1) ? t('level') : t('adjust the screws')) : null;
+  }
+  if (step.kind === 'mesh') {
+    const zs = (S('bed_mesh').probed_matrix || []).flat().filter((v) => typeof v === 'number');
+    return zs.length ? t('range {r} mm', { r: +(Math.max(...zs) - Math.min(...zs)).toFixed(3) }) : 'ok';
+  }
+  if (step.kind === 'shaper') {
+    const sh = parseShaper(ls);
+    const txt = Object.entries(sh)
+      .map(([a, v]) => `${a.toUpperCase()} ${v.type} ${v.freq} Hz`)
+      .join(' · ');
+    return txt || null;
+  }
+  return null;
+}
 const result = computed(() => {
   const s = cur.value;
   if (!s || !run.value) return null;
@@ -177,7 +254,7 @@ const result = computed(() => {
       .join(' · ');
   return null;
 });
-watch(result, (r) => r && cur.value && markDone(cur.value, r));
+watch(result, (r) => r && cur.value && run.value && markDone(cur.value, r, run.value.at));
 const savePending = computed(() => S('configfile').save_config_pending);
 function saveConfig() {
   gcode('SAVE_CONFIG').catch(() => {});
@@ -348,6 +425,11 @@ const why = {
     'The accelerometer measures how the printer rings when it shakes the toolhead, and picks the filter that cancels it. It is loud; that is normal.',
 };
 </script>
+<script>
+import { reactive as _reactive } from 'vue';
+// running and finished calibrations by step key, kept while the app is open (see the setup script above)
+const RUNS = _reactive({});
+</script>
 
 <template>
   <section v-if="steps.length" class="card cp">
@@ -361,7 +443,10 @@ const why = {
         <span class="col grow" style="gap: 2px; min-width: 0">
           <b>{{ t(s.name) }}</b>
           <span class="mu sm">{{ t(SHORT[s.kind]) }}</span>
-          <span v-if="done[s.key]" class="last sm"
+          <span v-if="RUNS[s.key]?.running" class="last sm run"
+            ><Icon name="refresh" :size="12" :stroke="2.6" class="spin" />{{ t('Running…') }}</span
+          >
+          <span v-else-if="done[s.key]" class="last sm"
             ><Icon name="check" :size="12" :stroke="2.6" />{{ fmtDay(done[s.key].at) }} · {{ done[s.key].sum }}</span
           >
         </span>
@@ -540,6 +625,9 @@ const why = {
       <div class="side">
         <p class="mu" style="margin: 0">{{ t(why[cur.kind]) }}</p>
 
+        <div v-if="running && running.key !== cur.key" class="warn">
+          {{ t('{name} is still running. Start this one when it has finished.', { name: t(running.name) }) }}
+        </div>
         <div v-if="isPrinting" class="warn">{{ t('Available when the print is done.') }}</div>
         <div v-else-if="state.locked" class="warn">{{ t('Controls are locked.') }}</div>
         <div v-else-if="needsHome" class="warn row">
@@ -710,6 +798,9 @@ const why = {
 .res {
   align-items: flex-start;
   text-align: left;
+}
+.last.run {
+  color: var(--wn);
 }
 .last {
   display: flex;

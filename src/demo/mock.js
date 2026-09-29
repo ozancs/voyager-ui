@@ -1776,6 +1776,7 @@ gcodeScript = function (sc) {
     const h = ((/HEATER=(\S+)/.exec(S) || [])[1] || 'EXTRUDER').toLowerCase();
     const tg = +((/TARGET=([\d.]+)/.exec(S) || [])[1] || 200);
     pidSim = { h, tg, t: 0, from: status[h]?.temperature ?? 25 };
+    pushStatus({ [h]: { target: tg } });
     emitLines([`// PID calibrate: heating ${h} to ${tg}`]);
     return new Promise((res) =>
       setTimeout(() => {

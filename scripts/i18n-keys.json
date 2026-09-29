@@ -1598,5 +1598,10 @@
 "Only letters, numbers, dot, minus and underscore: {list}",
 "Large file",
 "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.",
-"Open anyway"
+"Open anyway",
+"{name} is running",
+"Klipper runs it as one command, so the console stays quiet until it ends.",
+"{name} stopped with an error",
+"{name} finished",
+"{name} is still running. Start this one when it has finished."
 ]

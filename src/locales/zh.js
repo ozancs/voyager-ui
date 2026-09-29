@@ -1599,5 +1599,10 @@ export default {
  "Only letters, numbers, dot, minus and underscore: {list}": "只能使用字母、数字、点、减号和下划线：{list}",
  "Large file": "大文件",
  "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} 大小为 {size}。加载它可能让此标签页变慢，在手机或平板上甚至会崩溃。",
- "Open anyway": "仍然打开"
+ "Open anyway": "仍然打开",
+ "{name} is running": "{name} 进行中",
+ "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper 把它作为一条命令执行，结束前控制台不会有输出。",
+ "{name} stopped with an error": "{name} 出错停止",
+ "{name} finished": "{name} 已完成",
+ "{name} is still running. Start this one when it has finished.": "{name} 仍在进行。等它结束后再开始这个。"
 }
