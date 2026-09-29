@@ -107,7 +107,7 @@ export const DEFAULT_SETTINGS = () => ({
     extFeeds: [1, 2, 5, 10],
   },
   autoUpdateCheck: true, // ask Moonraker to check GitHub for updates every 6 hours (it only does so by itself every 4 weeks)
-  sync: true, // mirror shared settings (name, language, jog presets, temperature presets) into the Mainsail / Fluidd database
+  sync: false, // (off unless turned on in Settings) mirror shared settings (name, language, jog presets, temperature presets) into the Mainsail / Fluidd database
   errorToasts: true,
   maintenance: null, // filled with defaults on first visit of the Health page
   lang: '', // '' = not chosen yet (first run asks)

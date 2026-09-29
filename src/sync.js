@@ -223,12 +223,13 @@ export async function importFrom(which) {
 }
 
 // first run next to an existing Mainsail / Fluidd: take their values once so the user does not start from scratch
+// (only read). Writing back into their settings is off until turned on in Settings > Mainsail / Fluidd.
 let started = false;
 export async function initSync() {
   if (started) return;
   started = true;
   await detect();
-  if (!state.settings.syncImported && state.settings.sync !== false && (sync.mainsail || sync.fluidd)) {
+  if (!state.settings.syncImported && (sync.mainsail || sync.fluidd)) {
     try {
       await importFrom(sync.mainsail ? 'mainsail' : 'fluidd');
     } catch {}

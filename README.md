@@ -100,7 +100,7 @@ Everything the UI does, in one list:
 - MMU card for Happy Hare and Box Turtle (AFC)
 - Power devices and phone notifications (Telegram, Discord, ntfy, Pushover) through Moonraker
 - Dialogs for macro prompts, PROBE_CALIBRATE, BED_SCREWS_ADJUST, SCREWS_TILT_CALCULATE
-- Settings dialog like Mainsail's. Printer name, jog steps, extrusion and temperature presets are kept in sync with Mainsail and Fluidd
+- Settings dialog like Mainsail's. Printer name, jog steps, extrusion and temperature presets are taken from Mainsail or Fluidd on first start, and can be kept in sync with them (Settings > Mainsail / Fluidd)
 - Interface size setting (Auto scales a laptop to the same layout as a big monitor), tablet mode with larger buttons, full screen and the screen kept on
 - During a print, commands that would hurt it (restart, SAVE_CONFIG, homing, probing, motors off, bed mesh changes) ask first, also inside macros
 - Lock button: this browser can watch but not control the printer, with an optional PIN. E-STOP keeps working
@@ -110,7 +110,7 @@ Everything the UI does, in one list:
 - Progress in the browser tab title
 - 14 languages. Everything except English and Turkish was machine translated, corrections welcome
 
-What the installer does: checks the system first, finds every printer on the host, asks which ones to set up, picks a free port for each, writes an nginx site (webcam ports come from `crowsnest.conf`), checks `trusted_clients` and adds an `[update_manager voyager-ui]` section to `moonraker.conf`. Options:
+What the installer does: checks the system first, finds every printer on the host, asks which ones to set up, picks a free port for each, checks the download against the SHA256 published with the release, writes an nginx site (webcam ports come from `crowsnest.conf`) and adds an `[update_manager voyager-ui]` section to `moonraker.conf`. If your network is not in `trusted_clients` it asks whether to add it (default no, then the UI asks for a Moonraker login). It only replaces a folder it installed itself, never a git clone or a folder of yours with the same name. Options:
 
 ```
 --port 8001              use this port
@@ -120,7 +120,7 @@ What the installer does: checks the system first, finds every printer on the hos
 --no-updater             skip the update_manager section
 --yes                    take every suggested answer
 --zip voyager-ui.zip     install from a downloaded release (offline, or to roll back)
---uninstall              remove files, nginx site and update_manager section. Settings stay in the Moonraker database
+--uninstall              remove files, nginx site, update_manager section and the trusted_clients entry it added. Settings stay in the Moonraker database
 ```
 
 Moonraker with `force_logins` or an address outside `trusted_clients`: the UI asks for your Moonraker user name and password. This was tested against a simulated Moonraker, not a real one yet, so reports are welcome.

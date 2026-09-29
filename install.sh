@@ -16,6 +16,9 @@
 #   --check              only run the system check, change nothing
 #   --uninstall          remove the UI from every instance
 set -e
+# Everything runs inside main(), called on the last line: a download cut off halfway through "curl | bash"
+# runs nothing at all instead of half a script.
+main() {
 
 REPO="ozancs/voyager-ui"
 NAME="voyager-ui"
@@ -69,6 +72,10 @@ ask() {
 yesno() { ask "$1 (y/n)" "${2:-y}"; [[ "$REPLY" =~ ^[YyEe] ]]; }
 
 SUDO=sudo; [ "$(id -u)" = 0 ] && SUDO=""
+# a folder this installer made: our release files and no git checkout. Anything else with the same name
+# (a clone of the repo, the user's own folder) is never deleted.
+is_ours() { [ -d "$1" ] && [ ! -e "$1/.git" ] && { grep -qs '"voyager-ui"' "$1/release_info.json" || grep -qs 'Voyager' "$1/index.html"; }; }
+TRUSTED_LOG="$HOME/.voyager-ui-trusted"   # conf|subnet|created, for --uninstall to take back
 restart_moonraker() {  # $1 = instance folder name, restarts only that Moonraker
   local unit="moonraker"; [ -n "$1" ] && [ "$1" != "printer_data" ] && systemctl list-unit-files 2>/dev/null | grep -q "^moonraker-${1%_data}\.service" && unit="moonraker-${1%_data}"
   $SUDO systemctl restart "$unit" 2>/dev/null || $SUDO systemctl restart moonraker 2>/dev/null || true
@@ -138,13 +145,38 @@ n = re.sub(r'\n?\[update_manager ' + re.escape(name) + r'\][^\[]*', '\n', s)
 if n != s: open(p, 'w').write(n.rstrip('\n') + '\n'); print('  removed update_manager from', p)
 EOF
 }
+remove_trusted() {  # $1 conf, $2 subnet, $3 "created" when the installer also wrote the trusted_clients line
+  cp "$1" "$1.bak-voyager-uninstall"
+  python3 - "$1" "$2" "$3" <<'EOF'
+import sys, re
+p, net, created = sys.argv[1], sys.argv[2], sys.argv[3]
+s = open(p).read()
+m = re.search(r'^\[authorization\][^\[]*', s, re.M)
+if not m: sys.exit()
+sec = m.group(0)
+new = re.sub(r'^[ \t]+' + re.escape(net) + r'[ \t]*\n', '', sec, count=1, flags=re.M)
+if created == 'created':
+    new = re.sub(r'^[ \t]*trusted_clients[ \t]*[:=][ \t]*\n(?![ \t]+\S)', '', new, count=1, flags=re.M)
+if new != sec: open(p, 'w').write(s.replace(sec, new, 1))
+EOF
+}
 if [ "$UNINSTALL" = 1 ]; then
   say "uninstalling"
   for s in /etc/nginx/sites-available/$NAME /etc/nginx/sites-available/$NAME-*; do
     [ -e "$s" ] || continue; $SUDO rm -f "$s" "/etc/nginx/sites-enabled/$(basename "$s")"; echo "  removed nginx site $(basename "$s")"
   done
   { $SUDO nginx -t >/dev/null 2>&1 && $SUDO systemctl reload nginx; } || true
-  for d in "$HOME/$NAME" "$HOME/$NAME"-*; do [ -d "$d" ] && rm -rf "$d" && echo "  removed $d"; done
+  for d in "$HOME/$NAME" "$HOME/$NAME"-*; do
+    [ -d "$d" ] || continue
+    if is_ours "$d"; then rm -rf "$d" && echo "  removed $d"; else echo "  kept $d (not a folder this installer made)"; fi
+  done
+  # trusted_clients entries this installer added
+  if [ -f "$TRUSTED_LOG" ]; then
+    while IFS='|' read -r c net created; do
+      [ -f "$c" ] && remove_trusted "$c" "$net" "$created" && echo "  removed $net from trusted_clients in $c"
+    done < "$TRUSTED_LOG"
+    rm -f "$TRUSTED_LOG"
+  fi
   find_instances
   for i in "${!INST[@]}"; do
     n="$NAME"; [ "${INST[$i]}" != printer_data ] && n="$NAME-${INST[$i]}"
@@ -244,6 +276,15 @@ if [ -z "$ZIP" ]; then
   say "downloading latest release"
   URL="https://github.com/$REPO/releases/latest/download/$NAME.zip"
   if command -v curl >/dev/null; then curl -fL --progress-bar -o "$TMP/ui.zip" "$URL"; else wget -q --show-progress -O "$TMP/ui.zip" "$URL"; fi
+  # the release publishes a SHA256 next to the zip: a download that does not match it is not installed
+  if command -v curl >/dev/null; then curl -fsL -o "$TMP/ui.sha256" "$URL.sha256" 2>/dev/null || true; else wget -q -O "$TMP/ui.sha256" "$URL.sha256" 2>/dev/null || true; fi
+  if [ -s "$TMP/ui.sha256" ] && command -v sha256sum >/dev/null; then
+    want="$(awk '{print $1}' "$TMP/ui.sha256")"; got="$(sha256sum "$TMP/ui.zip" | awk '{print $1}')"
+    if [ "$want" != "$got" ]; then echo "${R}download does not match its SHA256, nothing was installed${N}"; exit 1; fi
+    say "checksum ok"
+  else
+    say "no checksum published for this release, skipped"
+  fi
   ZIP="$TMP/ui.zip"
 fi
 [ -f "$ZIP" ] || { echo "$ZIP not found"; exit 1; }
@@ -261,7 +302,9 @@ for OLD in carbon-ui oznlab_klipperui; do
   done
   # only a web root is removed, never a git checkout that happens to carry the old name
   if [ -f "$HOME/$OLD/index.html" ] && [ ! -d "$HOME/$OLD/.git" ]; then rm -rf "$HOME/$OLD"; fi
-  rm -rf "$HOME/printer_data/config/$OLD" 2>/dev/null || true
+  # an old web root inside config/: only when it holds the UI's files and no config of the user's
+  od="$HOME/printer_data/config/$OLD"
+  if [ -f "$od/index.html" ] && ! ls "$od"/*.cfg "$od"/*.conf >/dev/null 2>&1; then rm -rf "$od"; fi
 done
 
 # ---------------------------------------------------------------- ports
@@ -366,6 +409,10 @@ for i in "${CHOSEN[@]}"; do
   echo "  web UI port $p${own:+ (kept from the last install)}"
 
   say "files -> $web"
+  if [ -e "$web" ] && ! is_ours "$web"; then
+    bad "$inst" "$web exists and is not a Voyager UI install (a git clone?). Move it away and run again."
+    continue
+  fi
   rm -rf "$web"; mkdir -p "$web"; cp -r "$SRCDIR/." "$web/"; chmod -R a+rX "$web"; chmod o+x "$HOME"
 
   cams=($(cam_ports "$dir")); camloc=""
@@ -444,7 +491,10 @@ EOF
       echo "  ${Y}!${N} Moonraker does not trust $net yet, the UI would ask for a Moonraker login from your PC."
       echo "    ${D}it needs this under [authorization] in moonraker.conf:${N}"
       echo "      trusted_clients:"; echo "          $net"
-      if yesno "  Add it now? (a backup is kept as moonraker.conf.bak-oznlab)" y; then add_trusted "$conf" "$net"; restart=1; echo "  added"
+      echo "    ${D}every device in $net can then control the printer without a login${N}"
+      if yesno "  Add it now? (a backup is kept as moonraker.conf.bak-oznlab)" n; then
+        created=""; grep -qE '^\s*trusted_clients\s*[:=]' "$conf" || created=created
+        add_trusted "$conf" "$net"; echo "$conf|$net|$created" >> "$TRUSTED_LOG"; restart=1; echo "  added (--uninstall takes it out again)"
       else status="login needed (or add $net to trusted_clients)"; fi ;;
   esac
   [ "$restart" = 1 ] && restart_moonraker "$inst"
@@ -476,3 +526,6 @@ for row in "${SUMMARY[@]}"; do
   else bad "$inst" "page did not load on :$p (HTTP $page)"; fi
 done
 echo
+}
+
+main "$@"

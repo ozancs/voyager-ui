@@ -18,5 +18,7 @@ jobs:
       - run: bash scripts/pack.sh "${GITHUB_REF_NAME}"
       - uses: softprops/action-gh-release@v2
         with:
-          files: voyager-ui.zip
+          files: |
+            voyager-ui.zip
+            voyager-ui.zip.sha256
           generate_release_notes: true
