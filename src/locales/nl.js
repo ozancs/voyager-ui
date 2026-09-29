@@ -1596,5 +1596,8 @@ export default {
  "Maps the shape of the bed": "Brengt de vorm van het bed in kaart",
  "Less ringing at high speed": "Minder ringing bij hoge snelheid",
  "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: de tekens # ; * en \" kunnen niet naar Klipper worden gestuurd",
- "Only letters, numbers, dot, minus and underscore: {list}": "Alleen letters, cijfers, punt, min en underscore: {list}"
+ "Only letters, numbers, dot, minus and underscore: {list}": "Alleen letters, cijfers, punt, min en underscore: {list}",
+ "Large file": "Groot bestand",
+ "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} is {size}. Laden kan dit tabblad traag maken, of laten vastlopen op een telefoon of tablet.",
+ "Open anyway": "Toch openen"
 }

@@ -1597,5 +1597,8 @@ export default {
  "Maps the shape of the bed": "Tablanın şeklini çıkarır",
  "Less ringing at high speed": "Yüksek hızda daha az titreşim izi",
  "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: # ; * ve \" karakterleri Klipper'a gönderilemez",
- "Only letters, numbers, dot, minus and underscore: {list}": "Sadece harf, rakam, nokta, eksi ve alt çizgi: {list}"
+ "Only letters, numbers, dot, minus and underscore: {list}": "Sadece harf, rakam, nokta, eksi ve alt çizgi: {list}",
+ "Large file": "Büyük dosya",
+ "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} {size}. Yüklemek bu sekmeyi yavaşlatabilir, telefon ya da tablette çökertebilir.",
+ "Open anyway": "Yine de aç"
 }

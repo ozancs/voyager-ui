@@ -1596,5 +1596,8 @@ export default {
  "Maps the shape of the bed": "Знімає форму столу",
  "Less ringing at high speed": "Менше ringing на високій швидкості",
  "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: символи # ; * і \" не можна надіслати до Klipper",
- "Only letters, numbers, dot, minus and underscore: {list}": "Лише літери, цифри, крапка, мінус і підкреслення: {list}"
+ "Only letters, numbers, dot, minus and underscore: {list}": "Лише літери, цифри, крапка, мінус і підкреслення: {list}",
+ "Large file": "Великий файл",
+ "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} важить {size}. Завантаження може сповільнити цю вкладку або обвалити її на телефоні чи планшеті.",
+ "Open anyway": "Усе одно відкрити"
 }

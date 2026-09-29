@@ -1596,5 +1596,8 @@ export default {
  "Maps the shape of the bed": "Mapeia o formato da mesa",
  "Less ringing at high speed": "Menos ringing em alta velocidade",
  "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: os caracteres # ; * e \" não podem ser enviados ao Klipper",
- "Only letters, numbers, dot, minus and underscore: {list}": "Só letras, números, ponto, menos e sublinhado: {list}"
+ "Only letters, numbers, dot, minus and underscore: {list}": "Só letras, números, ponto, menos e sublinhado: {list}",
+ "Large file": "Arquivo grande",
+ "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} tem {size}. Carregá-lo pode deixar esta aba lenta ou travá-la no celular ou tablet.",
+ "Open anyway": "Abrir mesmo assim"
 }

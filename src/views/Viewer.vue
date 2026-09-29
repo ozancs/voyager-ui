@@ -6,7 +6,7 @@ import Icon from '../components/Icon.vue';
 import ObjectMap from '../components/ObjectMap.vue';
 import RangeSlider from '../components/RangeSlider.vue';
 import Toggle from '../components/Toggle.vue';
-import { state, S, layerInfo, printState, toast } from '../store';
+import { state, S, layerInfo, printState, toast, askConfirm, fmtBytes } from '../store';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
 const emit = defineEmits(['exclude']);
@@ -44,8 +44,32 @@ async function ensurePreview() {
   });
   return preview.value;
 }
+// the whole file is read into memory: above this size ask first (a phone or tablet tab can run out of memory)
+const BIG = 50 * 1024 * 1024;
+const sizes = {};
+async function sizeOf(fn) {
+  if (sizes[fn] != null) return sizes[fn];
+  try {
+    return (await api.call('server.files.metadata', { filename: fn })).size ?? 0;
+  } catch {
+    return 0;
+  }
+}
 async function load(fn) {
   if (!fn) return;
+  const size = await sizeOf(fn);
+  if (
+    size > BIG &&
+    !(await askConfirm({
+      title: t('Large file'),
+      text: t('{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.', {
+        file: fn.split('/').pop(),
+        size: fmtBytes(size),
+      }),
+      ok: t('Open anyway'),
+    }))
+  )
+    return;
   file.value = fn;
   loading.value = t('Downloading…');
   try {
@@ -113,7 +137,9 @@ onMounted(async () => {
   ro = new ResizeObserver(onResize);
   ro.observe(wrap.value);
   try {
-    files.value = (await api.call('server.files.list', { root: 'gcodes' }))
+    const all = await api.call('server.files.list', { root: 'gcodes' });
+    for (const f of all) sizes[f.path] = f.size;
+    files.value = all
       .sort((a, b) => b.modified - a.modified)
       .slice(0, 60)
       .map((f) => f.path);

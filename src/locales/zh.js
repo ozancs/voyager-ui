@@ -1596,5 +1596,8 @@ export default {
  "Maps the shape of the bed": "测量热床的形状",
  "Less ringing at high speed": "高速时减少振纹",
  "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}：字符 # ; * 和 \" 无法发送给 Klipper",
- "Only letters, numbers, dot, minus and underscore: {list}": "只能使用字母、数字、点、减号和下划线：{list}"
+ "Only letters, numbers, dot, minus and underscore: {list}": "只能使用字母、数字、点、减号和下划线：{list}",
+ "Large file": "大文件",
+ "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} 大小为 {size}。加载它可能让此标签页变慢，在手机或平板上甚至会崩溃。",
+ "Open anyway": "仍然打开"
 }

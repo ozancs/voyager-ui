@@ -1596,5 +1596,8 @@ export default {
  "Maps the shape of the bed": "ベッドの形状を測定",
  "Less ringing at high speed": "高速時のリンギングを減らす",
  "{name}: the characters # ; * and \" cannot be sent to Klipper": "{name}: # ; * と \" は Klipper に送れません",
- "Only letters, numbers, dot, minus and underscore: {list}": "英数字、ドット、マイナス、アンダースコアのみ: {list}"
+ "Only letters, numbers, dot, minus and underscore: {list}": "英数字、ドット、マイナス、アンダースコアのみ: {list}",
+ "Large file": "大きなファイル",
+ "{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.": "{file} は {size} です。読み込むとこのタブが遅くなったり、スマホやタブレットでは落ちることがあります。",
+ "Open anyway": "それでも開く"
 }

@@ -1595,5 +1595,8 @@
 "Maps the shape of the bed",
 "Less ringing at high speed",
 "{name}: the characters # ; * and \" cannot be sent to Klipper",
-"Only letters, numbers, dot, minus and underscore: {list}"
+"Only letters, numbers, dot, minus and underscore: {list}",
+"Large file",
+"{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.",
+"Open anyway"
 ]
