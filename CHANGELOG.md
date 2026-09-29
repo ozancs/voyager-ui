@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.25.2
+
+- Guided calibrations: a long result wraps inside its tile instead of running over the edge
+
 ## 0.25.1
 
 - Guided calibrations keep running when their dialog is closed or the page is left. The tile shows it is running, a message in the corner says so with an Open button, and another one says when it has finished. The result is kept on the tile

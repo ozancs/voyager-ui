@@ -10,7 +10,7 @@ import { setLang, t } from './i18n';
 import { currentHost, currentPrinter, perPrinterKey } from './printers';
 import { sortSensors } from './sensorStyle';
 
-export const VERSION = '0.25.1';
+export const VERSION = '0.25.2';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';
