@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.25.1
+
+- Guided calibrations keep running when their dialog is closed or the page is left. The tile shows it is running, a message in the corner says so with an Open button, and another one says when it has finished. The result is kept on the tile
+- The other calibrations can be opened while one runs; they can be started when it has finished
+
 ## 0.25.0
 
 - Guided calibrations on the Calibrations page: PID, gantry leveling or Z tilt, bed screws, probe accuracy, Z offset (paper test), bed mesh and input shaper. Each one opens on its own and shows what the printer is doing while it runs (the hotend glowing, probe points landing on the bed, the toolhead shaking, the shapers it found). Nothing is written to the config until Save to config
