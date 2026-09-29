@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.25.3
+
+- Installer: only replaces or removes folders it installed itself, never a git clone or a folder of yours with the same name
+- Installer: checks the download against the SHA256 published with the release
+- Installer: adding your network to trusted_clients now defaults to no, and --uninstall takes out what it added
+- Installer: a download cut off halfway through `curl | bash` runs nothing
+- Writing shared settings into Mainsail's and Fluidd's settings is off until you turn it on in Settings > Mainsail / Fluidd (their values are still read once on first start)
+
 ## 0.25.2
 
 - Guided calibrations: a long result wraps inside its tile instead of running over the edge
