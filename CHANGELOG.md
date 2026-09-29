@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.25.0
+
+- Guided calibrations on the Calibrations page: PID, gantry leveling or Z tilt, bed screws, probe accuracy, Z offset (paper test), bed mesh and input shaper. Each one opens on its own and shows what the printer is doing while it runs (the hotend glowing, probe points landing on the bed, the toolhead shaking, the shapers it found). Nothing is written to the config until Save to config
+- Config history: the History button in the config editor lists every earlier version of a file (copies made before each save and Klipper's SAVE_CONFIG copies) with the sections that changed. Compare with the current file, load it into the editor or restore it
+- Lock button in the top bar: this browser can watch the printer but not control it (no moves, heating, printing, restarts or file changes), with an optional PIN. E-STOP keeps working
+- Tablet mode (Settings > Appearance or Ctrl+K): bigger buttons, full screen, the screen stays on
+- Webcam can float over the page: the button in the webcam card header lifts it into a small window you can drag and resize, it stays on screen on every page
+- Undo for 10 seconds after deleting files, history jobs, saved printers and webcams
+- Sounds & alerts: each event has its own sound (errors are the loudest), browser notifications while the tab is in the background, events read aloud
+- Presets start with the temperatures of the active Spoolman spool
+- The browser tab shows the print progress
+- Accent strength now also colours the small tiles by kind (fans, heaters, lights, filament, spool) on Normal and Strong
+- Webcams set to adaptive MJPEG fall back to the stream when there is no snapshot, and the error shows the address it tried
+- The G-code viewer asks before loading a file over 50 MB
+- Safer while printing: SAVE_CONFIG, restarts, homing, probing, motors off and bed mesh changes ask first from any button, the console, Ctrl+K or inside a macro. Cancel, Pause and Resume are never held up
+- Fixes: temperature and number fields no longer send an old value when you only click in and out; the Z offset paper test cannot step into the bed; Printer settings write where Klipper reads the value; Ctrl+Shift+S in the config editor no longer restarts during a print; clicks while disconnected are not sent all at once when the connection comes back; macro values with # ; * or " are refused instead of being cut off; heater targets above max_temp get a clear message; Reprint asks first
+
 ## 0.24.1
 
 - Interface size is 100 % by default. Auto made everything larger on screens wider than 1920 px; settings that still say Auto move to 100 % once (Auto can still be picked in Settings > Appearance)
