@@ -1,10 +1,11 @@
 <script setup>
 // Set what is loaded in one MMU gate / AFC lane: material, colour, name, temperature and the Spoolman spool.
-// Happy Hare:  MMU_GATE_MAP GATE=n MATERIAL=.. COLOR=rrggbb NAME=.. TEMP=.. SPOOLID=..
+// Happy Hare:  MMU_GATE_MAP GATE=n MATERIAL=.. COLOR=rrggbb NAME=.. TEMP=.. SPOOLID=.. AVAILABLE=0|1
 // AFC:         SET_MATERIAL / SET_COLOR / SET_SPOOL_ID LANE=..  (only the ones this AFC version has)
 // Picking a Spoolman spool fills the fields from it.
 import { ref, computed, onMounted } from 'vue';
 import Modal from './Modal.vue';
+import Toggle from './Toggle.vue';
 import { state, gcode, toast } from '../store';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -30,7 +31,10 @@ const f = ref({
   name: props.gate.name || '',
   temp: props.gate.temp || '',
   spool: props.gate.spoolId > 0 ? props.gate.spoolId : '',
+  // Happy Hare gate status: -1 unknown, 0 empty, 1 filament in the gate, 2 filament from the buffer
+  available: props.gate.status > 0,
 });
+const wasAvailable = props.gate.status > 0;
 const has = (c) => Object.keys(state.commands || {}).some((k) => k.toUpperCase() === c);
 const spools = ref(null);
 onMounted(async () => {
@@ -77,6 +81,8 @@ async function save() {
       if (clean(f.value.name)) c += ` NAME="${clean(f.value.name)}"`; // Klipper splits parameters with shlex, quotes keep spaces
       if (+f.value.temp > 0) c += ` TEMP=${Math.round(+f.value.temp)}`;
       c += ` SPOOLID=${+f.value.spool > 0 ? +f.value.spool : -1}`;
+      // sent only when changed, so a gate fed from the buffer (status 2) keeps that state
+      if (f.value.available !== wasAvailable) c += ` AVAILABLE=${f.value.available ? 1 : 0}`;
       await gcode(c);
     } else {
       const L = props.gate.id;
@@ -124,6 +130,10 @@ const title = computed(
           ><span class="lbl">{{ t('Temp') }} °C</span
           ><input v-model.number="f.temp" class="input" type="number" min="0" max="400"
         /></label>
+      </div>
+      <div class="row" style="justify-content: space-between">
+        <span>{{ t('Filament available in gate') }}</span>
+        <Toggle v-model="f.available" :label="t('Filament available in gate')" />
       </div>
     </template>
     <code class="mu sm">{{

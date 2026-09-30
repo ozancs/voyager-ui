@@ -343,7 +343,7 @@ back in its card. Position and size are kept for this browser.
 
 **[src/components/GateFilament.vue](../src/components/GateFilament.vue)**  
 Set what is loaded in one MMU gate / AFC lane: material, colour, name, temperature and the Spoolman spool.  
-Happy Hare:  MMU_GATE_MAP GATE=n MATERIAL=.. COLOR=rrggbb NAME=.. TEMP=.. SPOOLID=..  
+Happy Hare:  MMU_GATE_MAP GATE=n MATERIAL=.. COLOR=rrggbb NAME=.. TEMP=.. SPOOLID=.. AVAILABLE=0|1  
 AFC:         SET_MATERIAL / SET_COLOR / SET_SPOOL_ID LANE=..  (only the ones this AFC version has)  
 Picking a Spoolman spool fills the fields from it.
 

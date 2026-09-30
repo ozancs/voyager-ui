@@ -1604,5 +1604,7 @@ export default {
  "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper가 하나의 명령으로 실행하므로 끝날 때까지 콘솔에 아무것도 나오지 않습니다.",
  "{name} stopped with an error": "{name} 오류로 중단됨",
  "{name} finished": "{name} 완료",
- "{name} is still running. Start this one when it has finished.": "{name}이(가) 아직 실행 중입니다. 끝나면 시작하세요."
+ "{name} is still running. Start this one when it has finished.": "{name}이(가) 아직 실행 중입니다. 끝나면 시작하세요.",
+ "Filament available in gate": "게이트에 필라멘트 있음",
+ "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune은 그래프를 config 폴더 밖의 {dir}에 저장합니다. 이 페이지에서는 읽을 수 없습니다."
 }

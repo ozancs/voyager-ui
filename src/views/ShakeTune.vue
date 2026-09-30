@@ -7,7 +7,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import ImageViewer from '../components/ImageViewer.vue';
-import { state, gcode, toast, isPrinting, useApiEvent, fmtDate, restartKlipper } from '../store';
+import { state, S, gcode, toast, isPrinting, useApiEvent, fmtDate, restartKlipper } from '../store';
 import { api } from '../api/moonraker';
 import { writeOptions } from '../cfgwrite';
 import { t } from '../i18n';
@@ -159,13 +159,44 @@ async function doSave() {
   saving.value = false;
 }
 
-// ---- graphs saved by Shake&Tune (config/K-ShakeTune_results, older versions config/ShakeTune_results) ----
+// ---- graphs saved by Shake&Tune ----
+// The folder comes from result_folder in [shaketune] when it is inside the config folder (Moonraker only serves
+// files there); without the option, any folder ending in ShakeTune_results (K-ShakeTune_results, older
+// ShakeTune_results).
 const images = ref([]); // { path, name, folder, modified }
+const outside = ref(''); // result_folder when it is outside the config folder
+async function resultFolder() {
+  const raw = String(S('configfile').config?.shaketune?.result_folder || '').trim();
+  if (!raw) return null;
+  let root = '';
+  try {
+    root = (await api.call('server.files.roots')).find((r) => r.name === 'config')?.path || '';
+  } catch {}
+  const r = root.replace(/\/+$/, ''),
+    f = raw.replace(/\/+$/, '');
+  if (r && (f + '/').startsWith(r + '/')) return f.slice(r.length + 1);
+  // "~/printer_data/config/X" (home unknown here): match the end of the config path, longest first
+  if (f.startsWith('~/')) {
+    const rel = f.slice(2),
+      segs = r.split('/').filter(Boolean);
+    for (let k = 0; k < segs.length - 1; k++) {
+      const tail = segs.slice(k).join('/');
+      if (rel.startsWith(tail + '/')) return rel.slice(tail.length + 1);
+    }
+  }
+  const m = f.match(/(?:^|\/)config\/(.+)$/); // no roots answer: the part after config/
+  if (!r && m) return m[1];
+  outside.value = raw;
+  return '';
+}
 async function loadImages() {
   try {
+    const dir = await resultFolder();
+    const inDir =
+      dir == null ? (p) => /ShakeTune_results\//i.test(p) : dir ? (p) => p.startsWith(dir + '/') : () => false;
     const r = await api.call('server.files.list', { root: 'config' });
     images.value = r
-      .filter((f) => /ShakeTune_results\//i.test(f.path) && /\.png$/i.test(f.path))
+      .filter((f) => inDir(f.path) && /\.png$/i.test(f.path))
       .map((f) => {
         const parts = f.path.split('/');
         return { path: f.path, name: parts[parts.length - 1], folder: parts[parts.length - 2], modified: f.modified };
@@ -177,7 +208,7 @@ async function loadImages() {
 }
 onMounted(loadImages);
 useApiEvent('notify_filelist_changed', ([p]) => {
-  if (p?.item?.root === 'config' && /ShakeTune_results/i.test(p.item.path || '')) loadImages();
+  if (p?.item?.root === 'config' && /\.png$/i.test(p.item.path || '')) loadImages();
 });
 const folder = ref('input_shaper');
 watch(test, (x) => (folder.value = x.folder));
@@ -236,7 +267,14 @@ const shortName = (n) => n.replace(/\.png$/i, '');
           {{ t(f.n) }} <span class="mu">{{ f.count }}</span>
         </button>
       </div>
-      <div v-if="!list.length" class="empty">{{ t('No graphs yet. Run a test and it shows up here.') }}</div>
+      <div v-if="outside" class="empty">
+        {{
+          t('Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.', {
+            dir: outside,
+          })
+        }}
+      </div>
+      <div v-else-if="!list.length" class="empty">{{ t('No graphs yet. Run a test and it shows up here.') }}</div>
       <div v-else class="body">
         <div class="thumbs">
           <button

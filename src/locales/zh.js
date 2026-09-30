@@ -1604,5 +1604,7 @@ export default {
  "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper 把它作为一条命令执行，结束前控制台不会有输出。",
  "{name} stopped with an error": "{name} 出错停止",
  "{name} finished": "{name} 已完成",
- "{name} is still running. Start this one when it has finished.": "{name} 仍在进行。等它结束后再开始这个。"
+ "{name} is still running. Start this one when it has finished.": "{name} 仍在进行。等它结束后再开始这个。",
+ "Filament available in gate": "料道中有耗材",
+ "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune 把图表保存在 {dir}，位于 config 文件夹之外，本页面无法读取。"
 }

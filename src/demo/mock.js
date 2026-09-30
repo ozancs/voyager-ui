@@ -1726,8 +1726,10 @@ gcodeScript = function (sc) {
       if (a.NAME) set('gate_name', a.NAME);
       if (a.TEMP) set('gate_temperature', +a.TEMP);
       if (a.SPOOLID) set('gate_spool_id', +a.SPOOLID);
+      if (a.AVAILABLE != null) set('gate_status', +a.AVAILABLE);
       pushStatus({
         mmu: {
+          gate_status: x.gate_status,
           gate_material: x.gate_material,
           gate_color_rgb: x.gate_color_rgb,
           gate_name: x.gate_name,

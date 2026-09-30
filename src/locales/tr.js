@@ -1605,5 +1605,7 @@ export default {
  "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper bunu tek komut olarak çalıştırır, bitene kadar konsolda bir şey görünmez.",
  "{name} stopped with an error": "{name} hatayla durdu",
  "{name} finished": "{name} bitti",
- "{name} is still running. Start this one when it has finished.": "{name} hâlâ çalışıyor. Bunu o bitince başlat."
+ "{name} is still running. Start this one when it has finished.": "{name} hâlâ çalışıyor. Bunu o bitince başlat.",
+ "Filament available in gate": "Gate'te filament var",
+ "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune grafiklerini config klasörünün dışına, {dir} içine kaydediyor. Bu sayfa oradaki dosyaları okuyamıyor."
 }

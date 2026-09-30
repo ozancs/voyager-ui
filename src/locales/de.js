@@ -1604,5 +1604,7 @@ export default {
  "Klipper runs it as one command, so the console stays quiet until it ends.": "Klipper führt es als einen Befehl aus, die Konsole bleibt bis zum Ende still.",
  "{name} stopped with an error": "{name} mit Fehler beendet",
  "{name} finished": "{name} fertig",
- "{name} is still running. Start this one when it has finished.": "{name} läuft noch. Starte dies, wenn es fertig ist."
+ "{name} is still running. Start this one when it has finished.": "{name} läuft noch. Starte dies, wenn es fertig ist.",
+ "Filament available in gate": "Filament im Gate vorhanden",
+ "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune speichert seine Grafiken in {dir}, außerhalb des Config-Ordners. Diese Seite kann sie dort nicht lesen."
 }

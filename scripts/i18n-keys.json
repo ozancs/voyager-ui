@@ -1603,5 +1603,7 @@
 "Klipper runs it as one command, so the console stays quiet until it ends.",
 "{name} stopped with an error",
 "{name} finished",
-"{name} is still running. Start this one when it has finished."
+"{name} is still running. Start this one when it has finished.",
+"Filament available in gate",
+"Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them."
 ]
