@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.25.6
+
+- Guided calibrations: while one runs, the message in the corner stays until it ends, with the elapsed time, a progress bar and an Open button back to it. After E-STOP or a Klipper shutdown the dialog says a Firmware Restart is needed
+- The print guard and the pre-print check open on top of a macro prompt instead of behind it
+- Demo: E-STOP works like on a real printer, and the demo printer no longer has the OznLab Sensor
+
 ## 0.25.5
 
 - Installer: the webcam addresses (/webcam/, /webcam2/ ...) now lead to the same cameras as in Mainsail or Fluidd. Before, with cameras that do not start at port 8080, they came out swapped, turned the wrong way, or one did not load. Run the install command again to update the nginx site; settings stay
