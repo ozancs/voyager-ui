@@ -1608,5 +1608,6 @@ export default {
  "Filament available in gate": "Филамент есть в гейте",
  "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune сохраняет графики в {dir}, вне папки config, откуда эта страница не может их прочитать.",
  "This window stays open until it has finished. E-STOP stops it at once.": "Это окно открыто, пока всё не закончится. E-STOP останавливает сразу.",
- "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper остановлен (E-STOP или ошибка). Перед следующим запуском нужен Firmware Restart."
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper остановлен (E-STOP или ошибка). Перед следующим запуском нужен Firmware Restart.",
+ "{name}: reference cleared. The next steady hold and the next heat-up from cold become the new reference.": "{name}: эталон сброшен. Следующее стабильное удержание и следующий нагрев с холодного станут новым эталоном."
 }

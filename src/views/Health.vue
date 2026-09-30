@@ -215,6 +215,16 @@ const ago = (ts) => {
 const RING = 2 * Math.PI * 22;
 const ringOff = (tk) => RING * (1 - Math.min(1, maintUsed(tk) / tk.hours));
 const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(--mu2)', info: 'var(--bl)' };
+// the reference is taken again from the next steady hold and the next heat-up from cold; while the heater holds
+// right now, the new reference is the current reading within a few seconds, so say what happened
+function measureAgain(h) {
+  resetHeaterBase(h.n);
+  toast(
+    t('{name}: reference cleared. The next steady hold and the next heat-up from cold become the new reference.', {
+      name: h.label || prettyName(h.n),
+    }),
+  );
+}
 </script>
 
 <template>
@@ -307,8 +317,7 @@ const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(
               heaterFindingText(h.n, f)
             }}</span>
             <span v-if="baseOf(h.n)" class="mu sm"
-              >{{ baseOf(h.n) }}
-              <button class="lnk" @click="resetHeaterBase(h.n)">{{ t('Measure again') }}</button></span
+              >{{ baseOf(h.n) }} <button class="lnk" @click="measureAgain(h)">{{ t('Measure again') }}</button></span
             >
           </div>
           <button v-if="h.target && h.l.holding" class="btn sm2" @click="pidFor = h">{{ t('PID tune') }}</button>

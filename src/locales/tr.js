@@ -1609,5 +1609,6 @@ export default {
  "Filament available in gate": "Gate'te filament var",
  "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune grafiklerini config klasörünün dışına, {dir} içine kaydediyor. Bu sayfa oradaki dosyaları okuyamıyor.",
  "This window stays open until it has finished. E-STOP stops it at once.": "Bu pencere bitene kadar açık kalır. E-STOP hemen durdurur.",
- "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper durdu (E-STOP ya da bir hata). Sonraki çalıştırmadan önce Firmware Restart gerekiyor."
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper durdu (E-STOP ya da bir hata). Sonraki çalıştırmadan önce Firmware Restart gerekiyor.",
+ "{name}: reference cleared. The next steady hold and the next heat-up from cold become the new reference.": "{name}: referans silindi. Bir sonraki sabit tutma ve soğuktan ısınma yeni referans olacak."
 }

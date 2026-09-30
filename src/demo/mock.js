@@ -1654,7 +1654,8 @@ function tick() {
       tk,
     ],
   });
-  if (tk % 40 === 0) emitLines([`// layer ${ps.info.current_layer}/${ps.info.total_layer} done`]);
+  if (tk % 40 === 0 && ps.state === 'printing')
+    emitLines([`// layer ${ps.info.current_layer}/${ps.info.total_layer} done`]);
 }
 
 // a few macros react so the demo feels alive

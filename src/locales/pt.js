@@ -1608,5 +1608,6 @@ export default {
  "Filament available in gate": "Filamento disponível no gate",
  "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "O Shake&Tune salva os gráficos em {dir}, fora da pasta config, onde esta página não consegue lê-los.",
  "This window stays open until it has finished. E-STOP stops it at once.": "Esta janela fica aberta até terminar. E-STOP para na hora.",
- "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "O Klipper parou (E-STOP ou um erro). É preciso um Firmware Restart antes da próxima vez."
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "O Klipper parou (E-STOP ou um erro). É preciso um Firmware Restart antes da próxima vez.",
+ "{name}: reference cleared. The next steady hold and the next heat-up from cold become the new reference.": "{name}: referência apagada. A próxima manutenção estável e o próximo aquecimento a frio viram a nova referência."
 }

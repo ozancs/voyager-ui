@@ -1608,5 +1608,6 @@ export default {
  "Filament available in gate": "게이트에 필라멘트 있음",
  "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune은 그래프를 config 폴더 밖의 {dir}에 저장합니다. 이 페이지에서는 읽을 수 없습니다.",
  "This window stays open until it has finished. E-STOP stops it at once.": "끝날 때까지 이 창은 열려 있습니다. E-STOP을 누르면 바로 멈춥니다.",
- "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper가 멈췄습니다(E-STOP 또는 오류). 다음 실행 전에 Firmware Restart가 필요합니다."
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper가 멈췄습니다(E-STOP 또는 오류). 다음 실행 전에 Firmware Restart가 필요합니다.",
+ "{name}: reference cleared. The next steady hold and the next heat-up from cold become the new reference.": "{name}: 기준을 지웠습니다. 다음 안정 유지와 다음 냉간 가열이 새 기준이 됩니다."
 }

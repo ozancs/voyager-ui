@@ -266,7 +266,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
               v-if="ts.action"
               class="tl"
               @click="
-                closeToast(ts.id);
+                if (!ts.sticky) closeToast(ts.id); // a running calibration's message stays until it ends
                 ts.action.run();
               "
             >

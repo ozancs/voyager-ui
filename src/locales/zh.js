@@ -1608,5 +1608,6 @@ export default {
  "Filament available in gate": "料道中有耗材",
  "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune 把图表保存在 {dir}，位于 config 文件夹之外，本页面无法读取。",
  "This window stays open until it has finished. E-STOP stops it at once.": "在完成前此窗口会保持打开。E-STOP 可立即停止。",
- "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper 已停止（E-STOP 或出错）。下次运行前需要 Firmware Restart。"
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper 已停止（E-STOP 或出错）。下次运行前需要 Firmware Restart。",
+ "{name}: reference cleared. The next steady hold and the next heat-up from cold become the new reference.": "{name}：已清除参考值。下一次稳定保持和下一次冷启动加热将作为新的参考。"
 }

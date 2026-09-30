@@ -1607,5 +1607,6 @@
 "Filament available in gate",
 "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.",
 "This window stays open until it has finished. E-STOP stops it at once.",
-"Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run."
+"Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.",
+"{name}: reference cleared. The next steady hold and the next heat-up from cold become the new reference."
 ]
