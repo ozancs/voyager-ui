@@ -13,7 +13,7 @@ function never() {
 }
 </script>
 <template>
-  <Modal v-if="state.preprint" :title="t('Before you print')" @close="answer(false)">
+  <Modal v-if="state.preprint" :title="t('Before you print')" :z="190" @close="answer(false)">
     <p class="mono sm mu" style="margin: 0; word-break: break-all">{{ state.preprint.filename }}</p>
     <div v-for="(i, k) in state.preprint.issues" :key="k" class="it">
       <Icon

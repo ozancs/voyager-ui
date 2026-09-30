@@ -2,7 +2,8 @@
 // Dialog frame: title, close button, content and a footer row for buttons. Escape closes only the dialog on top.
 import Icon from './Icon.vue';
 import { t } from '../i18n';
-defineProps({ title: String, width: { type: String, default: '520px' } });
+// z: stacking for dialogs that must come over everything else (the print guard over a macro prompt)
+defineProps({ title: String, width: { type: String, default: '520px' }, z: { type: Number, default: 0 } });
 const emit = defineEmits(['close']);
 // Esc closes the topmost dialog only (a confirm on top of another dialog must not close both)
 import { onMounted, onBeforeUnmount } from 'vue';
@@ -26,7 +27,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <Teleport to="body">
-    <div class="ov" @mousedown.self="emit('close')">
+    <div class="ov" :style="z ? { zIndex: z } : null" @mousedown.self="emit('close')">
       <div class="md card" :style="{ width }" role="dialog" :aria-label="title">
         <div class="card-h">
           <h2>{{ title }}</h2>

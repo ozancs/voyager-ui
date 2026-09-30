@@ -46,7 +46,7 @@ const objects = ['mmu'].concat([
   'gcode_macro FILAMENT_UNLOAD',
   'gcode_macro _CLIENT_VARIABLE',
   'gcode_macro PRINT_START',
-  'gcode_macro OZNLAB_SENSOR_MENU',
+  'gcode_macro PROBE_MENU',
   'gcode_macro BED_MESH_AUTO',
   'gcode_macro CLEAN_NOZZLE',
   'gcode_macro HEAT_SOAK',
@@ -320,7 +320,7 @@ const status = {
   'tmc2209 stepper_z': { run_current: 0.8, hold_current: 0.8, drv_status: { stst: 1 } },
   'tmc2240 extruder': { run_current: 0.65, temperature: 48.5, drv_status: { stst: 1 } },
   'canbus_stats EBBCan': { rx_error: 0, tx_error: 0, tx_retries: 3, bus_state: 'active' },
-  'gcode_macro OZNLAB_SENSOR_MENU': { description: 'OznLab Sensor setup menu' },
+  'gcode_macro PROBE_MENU': { description: 'Eddy probe setup menu' },
   firmware_retraction: { retract_length: 0.8, retract_speed: 35, unretract_extra_length: 0, unretract_speed: 30 },
   'gcode_macro BED_MESH_AUTO': {},
   'gcode_macro CLEAN_NOZZLE': {},
@@ -344,7 +344,7 @@ let db = {
   'carbon-ui/settings': {
     favorites: [
       { id: 'x1', name: 'Brush Nozzle', icon: 'brush', gcode: 'BRUSH_ONLY', highlight: false },
-      { id: 'x2', name: 'Sensor Menu', icon: 'grip', gcode: 'OZNLAB_SENSOR_MENU', highlight: true },
+      { id: 'x2', name: 'Probe Menu', icon: 'grip', gcode: 'PROBE_MENU', highlight: true },
       { id: 'x3', name: 'Load', icon: 'load', gcode: 'FILAMENT_LOAD', highlight: false },
       { id: 'x4', name: 'Unload', icon: 'unload', gcode: 'FILAMENT_UNLOAD', highlight: false },
       { id: 'x5', name: 'Heat soak', icon: 'flame', gcode: 'HEAT_SOAK', highlight: false },
@@ -441,14 +441,14 @@ function pushStatus(o) {
 }
 let gcodeScript = function (sc) {
   const S = sc.trim().toUpperCase();
-  if (S === 'OZNLAB_SENSOR_MENU')
+  if (S === 'PROBE_MENU')
     emitLines([
-      '// action:prompt_begin OznLab Sensor',
+      '// action:prompt_begin Eddy probe',
       '// action:prompt_text Eddy sensor found on EBBCan. Frequency 3.42 MHz, drive current 15.',
       '// action:prompt_text What do you want to do?',
       '// action:prompt_button_group_start',
-      '// action:prompt_button Calibrate drive current|LDC_CALIBRATE_DRIVE_CURRENT CHIP=oznlab|primary',
-      '// action:prompt_button Map height|PROBE_EDDY_CURRENT_CALIBRATE CHIP=oznlab|primary',
+      '// action:prompt_button Calibrate drive current|LDC_CALIBRATE_DRIVE_CURRENT CHIP=btt_eddy|primary',
+      '// action:prompt_button Map height|PROBE_EDDY_CURRENT_CALIBRATE CHIP=btt_eddy|primary',
       '// action:prompt_button_group_end',
       '// action:prompt_button Probe accuracy test|PROBE_ACCURACY|info',
       '// action:prompt_button Temperature compensation|TEMPERATURE_PROBE_CALIBRATE|warning',
@@ -971,24 +971,7 @@ const idle = (ext = 24, bed = 23) => {
 // what each demo printer has on top of (or instead of) the main demo printer
 const PROFILE = {
   '': {
-    // the main demo printer also has an OznLab Sensor
-    add: ['oznlab_sensor hotend'],
-    help: {
-      OZNLAB_CHECK: 'OznLab Sensor health report (no motion)',
-      OZNLAB_STATUS: 'Frequency and noise of the OznLab Sensor',
-      OZNLAB_SETUP: 'Guided first-time setup, one step per call',
-      OZNLAB_TAP: 'Nozzle-on-bed tap using the OznLab Sensor',
-      OZNLAB_HOME_TEST: 'Tap homing dry run',
-      OZNLAB_THERMAL_CAL: 'Nozzle drift per degree C',
-      OZNLAB_CALIBRATE_PA: 'Measure melt pressure rise time and set pressure advance',
-      OZNLAB_PA_SCALE: 'One-time setup per filament',
-      OZNLAB_MAX_FLOW: 'Find the real volumetric limit',
-      OZNLAB_RETRACT_TEST: 'Find the retraction length that actually drops the melt pressure',
-      OZNLAB_TEMP_SCAN: 'Pressure vs nozzle temperature at a fixed flow',
-      OZNLAB_MESH_SETUP: 'Pick the bed mesh area with the nozzle',
-      OZNLAB_MESH: 'Bed mesh with the nozzle as the probe',
-      OZNLAB_MESH_COMPARE: 'Compare two bed mesh profiles point by point',
-    },
+    // the main demo printer as it is
   },
   'voron24.local': {
     hostname: 'voron24',
@@ -1014,7 +997,7 @@ const PROFILE = {
     hostname: 'ender3v2',
     console: ['// Klipper state: Ready', 'M140 S60', 'ok', 'M140 S0', 'ok'],
     remove:
-      /^(mmu|probe_eddy_current|adxl345|quad_gantry_level|heater_generic|temperature_sensor|temperature_fan|fan_generic|neopixel|output_pin|smart_filament|mcu EBBCan|canbus_stats|tmc|firmware_retraction|gcode_macro (OZNLAB|CHAMBER|HEAT_SOAK|LOAD_ABS|LIGHTS|FILAMENT))/,
+      /^(mmu|probe_eddy_current|adxl345|quad_gantry_level|heater_generic|temperature_sensor|temperature_fan|fan_generic|neopixel|output_pin|smart_filament|mcu EBBCan|canbus_stats|tmc|firmware_retraction|gcode_macro (PROBE_MENU|CHAMBER|HEAT_SOAK|LOAD_ABS|LIGHTS|FILAMENT))/,
     add: ['bltouch'],
     helpKeep:
       /^(PID_CALIBRATE|PROBE_CALIBRATE|PROBE_ACCURACY|SCREWS_TILT_CALCULATE|BED_MESH_CALIBRATE|BED_MESH_PROFILE|SAVE_CONFIG|G28|SET_HEATER_TEMPERATURE|SET_FAN_SPEED)$/,
@@ -1047,7 +1030,7 @@ const PROFILE = {
       'M600',
       '// Filament change: paused',
     ],
-    remove: /^(mmu|probe_eddy_current|adxl345|quad_gantry_level|smart_filament_sensor|gcode_macro OZNLAB)/,
+    remove: /^(mmu|probe_eddy_current|adxl345|quad_gantry_level|smart_filament_sensor|gcode_macro PROBE_MENU)/,
     add: ['cartographer', 'z_tilt'],
     helpRemove:
       /^(MMU_|CHANGE_TOOL|TOOL_UNLOAD|LANE_UNLOAD|PROBE_EDDY|LDC_|QUAD_GANTRY|SHAPER_CALIBRATE|MEASURE_AXES|ACCELEROMETER|AXES_|COMPARE_BELTS|CREATE_VIBRATIONS|EXCITATE)/,
@@ -1853,39 +1836,6 @@ gcodeScript = function (sc) {
   }
   if (S === 'ACCELEROMETER_QUERY') {
     emitLines(['// accelerometer values (x, y, z): 470.719200, 941.438400, 9728.196800'], 100);
-    return 'ok';
-  }
-  if (/^OZNLAB_CHECK\b/.test(S)) {
-    emitLines(
-      [
-        '// OznLab Sensor v0.9.8 check [PASS]\n  [ OK ] LDC1612 found on EBBCan i2c3_PB3_PB4 at 43\n  [ OK ] 3.4210 MHz, noise 1.1 Hz, 200 samples/s\n  [ OK ] no read errors\n  [ OK ] PRINT_START calls CALIBRATE_PA, TAP and MONITOR',
-      ],
-      300,
-    );
-    return 'ok';
-  }
-  if (/^OZNLAB_STATUS\b/.test(S)) {
-    emitLines(['// OznLab: 3.4210 MHz, noise 1.1 Hz, 200 samples/s, no errors'], 900);
-    return 'ok';
-  }
-  if (/^OZNLAB_TAP\b/.test(S)) {
-    emitLines(['// OznLab tap: z offset 0.043 set (5 taps within 0.004 mm) - SAVE_CONFIG to keep it'], 2500);
-    return 'ok';
-  }
-  if (/^OZNLAB_CALIBRATE_PA\b/.test(S)) {
-    emitLines(['// OznLab PA: pressure advance 0.0412 set (was 0.0350)'], 3000);
-    return 'ok';
-  }
-  if (/^OZNLAB_MAX_FLOW\b/.test(S)) {
-    emitLines(
-      [
-        '// OznLab Sensor max flow: stepping 1.0 -> 20.0 mm/s in 1.0 mm/s steps',
-        '//   8.0 mm/s (19.2 mm3/s): pressure 410 Hz, ripple 12 Hz',
-        '//   12.0 mm/s (28.9 mm3/s): pressure 655 Hz, ripple 31 Hz',
-        '// OznLab Sensor max flow: last good 12.0 mm/s = 28.9 mm3/s (pressure ripple)\n  Put about 26.0 mm3/s in the slicer (10% margin).',
-      ],
-      900,
-    );
     return 'ok';
   }
   if (/^AXES_SHAPER_CALIBRATION\b/i.test(S)) {

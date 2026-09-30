@@ -15,14 +15,14 @@ const TEXT = {
 };
 </script>
 <template>
-  <Modal v-if="state.guard?.custom" :title="state.guard.custom.title" @close="answer(false)">
+  <Modal v-if="state.guard?.custom" :title="state.guard.custom.title" :z="190" @close="answer(false)">
     <p style="margin: 0">{{ state.guard.custom.text }}</p>
     <template #foot>
       <button class="btn lg" autofocus @click="answer(false)">{{ t('Cancel') }}</button>
       <button class="btn lg acc" @click="answer(true)">{{ state.guard.custom.ok }}</button>
     </template>
   </Modal>
-  <Modal v-else-if="state.guard" :title="t('A print is running')" @close="answer(false)">
+  <Modal v-else-if="state.guard" :title="t('A print is running')" :z="190" @close="answer(false)">
     <p style="margin: 0">{{ t(TEXT[state.guard.kind] || TEXT.move, { cmd: state.guard.cmd }) }}</p>
     <code class="cl">{{ state.guard.script }}</code>
     <template #foot>
