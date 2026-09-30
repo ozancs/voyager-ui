@@ -317,22 +317,36 @@ port_used() {
 port_owner() { $SUDO -n ss -ltnpH 2>/dev/null | awk -v p="$1" '$4 ~ "[:.]"p"$"' | grep -oE '"[^"]+"' | head -1 | tr -d '"'; }
 free_port_from() { local p=$1; while [ "$p" -lt 65535 ] && port_used "$p"; do p=$((p+1)); done; echo "$p"; }
 
-# ---------------------------------------------------------------- webcams from crowsnest
-cam_ports() {  # ports of [cam ...] sections, in file order, 8080.. when unknown
-  local f="$1/config/crowsnest.conf" ps=""
-  [ -f "$f" ] && ps=$(python3 - "$f" <<'EOF'
-import sys, re
-s = open(sys.argv[1]).read()
+# ---------------------------------------------------------------- webcams
+# The webcam addresses Moonraker keeps (/webcam/, /webcam2/ ...) were made for Mainsail's or Fluidd's nginx, so the
+# same address must lead to the same camera here: their site is read and copied. Without one, the standard mapping
+# KIAUH installs: /webcam/ -> 8080, /webcam2/ -> 8081, /webcam3/ -> 8082, /webcam4/ -> 8083.
+# (Numbering the cameras of crowsnest.conf instead swapped cameras whose ports do not start at 8080.)
+cam_map() {  # prints "path port" lines
+  python3 - <<'EOF'
+import glob, re
+def read(f):
+    try: return open(f).read()
+    except Exception: return ''
+ups = {}
+for f in glob.glob('/etc/nginx/conf.d/*.conf') + glob.glob('/etc/nginx/sites-available/*'):
+    for name, body in re.findall(r'upstream\s+(\S+)\s*\{([^}]*)\}', read(f)):
+        m = re.search(r'server\s+[\w.\[\]:-]*?:(\d+)', body)
+        if m: ups[name] = m.group(1)
 out = []
-for sec in re.split(r'^\[', s, flags=re.M):
-    if sec.lower().startswith('cam'):
-        m = re.search(r'^\s*port\s*[:=]\s*(\d+)', sec, re.M)
-        if m: out.append(m.group(1))
-print(' '.join(out))
+for site in ['mainsail', 'fluidd']:
+    for f in sorted(glob.glob('/etc/nginx/sites-available/' + site + '*')):
+        for path, body in re.findall(r'location\s+(/webcam\d*/)\s*\{([^}]*)\}', read(f)):
+            m = re.search(r'proxy_pass\s+https?://([^/;\s]+)', body)
+            if not m: continue
+            host = m.group(1)
+            port = ups.get(host) or (host.rsplit(':', 1)[1] if ':' in host else '')
+            if port.isdigit() and path not in [o[0] for o in out]: out.append((path, port))
+        if out: break
+    if out: break
+if not out: out = [('/webcam/', '8080'), ('/webcam2/', '8081'), ('/webcam3/', '8082'), ('/webcam4/', '8083')]
+for path, port in out: print(path, port)
 EOF
-)
-  [ -z "$ps" ] && ps="8080 8081 8082 8083"
-  echo "$ps"
 }
 
 # ---------------------------------------------------------------- Moonraker authorization
@@ -415,14 +429,15 @@ for i in "${CHOSEN[@]}"; do
   fi
   rm -rf "$web"; mkdir -p "$web"; cp -r "$SRCDIR/." "$web/"; chmod -R a+rX "$web"; chmod o+x "$HOME"
 
-  cams=($(cam_ports "$dir")); camloc=""
-  for k in "${!cams[@]}"; do
-    path="/webcam/"; [ "$k" -gt 0 ] && path="/webcam$((k+1))/"
-    camloc+="    location $path { postpone_output 0; proxy_buffering off; proxy_ignore_headers X-Accel-Buffering; proxy_pass http://127.0.0.1:${cams[$k]}/; }"$'\n'
-  done
+  camloc=""; camsay=""
+  while read -r path port; do
+    [[ "$path" =~ ^/webcam[0-9]*/$ && "$port" =~ ^[0-9]+$ ]] || continue
+    camloc+="    location $path { postpone_output 0; proxy_buffering off; proxy_ignore_headers X-Accel-Buffering; proxy_pass http://127.0.0.1:$port/; }"$'\n'
+    camsay+="${path}->$port "
+  done < <(cam_map)
 
   V6=""; [ "$V6ON" = 1 ] && V6="    listen [::]:$p;"
-  say "nginx :$p -> Moonraker :$mrp, webcams ${cams[*]}"
+  say "nginx :$p -> Moonraker :$mrp, webcams $camsay"
   if [ -f "$site" ]; then cp "$site" "$TMP/$n.site.bak"; fi
   WROTE+=("$n")
   $SUDO tee "$site" >/dev/null <<EOF

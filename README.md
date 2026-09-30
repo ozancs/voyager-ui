@@ -110,7 +110,7 @@ Everything the UI does, in one list:
 - Progress in the browser tab title
 - 14 languages. Everything except English and Turkish was machine translated, corrections welcome
 
-What the installer does: checks the system first, finds every printer on the host, asks which ones to set up, picks a free port for each, checks the download against the SHA256 published with the release, writes an nginx site (webcam ports come from `crowsnest.conf`) and adds an `[update_manager voyager-ui]` section to `moonraker.conf`. If your network is not in `trusted_clients` it asks whether to add it (default no, then the UI asks for a Moonraker login). It only replaces a folder it installed itself, never a git clone or a folder of yours with the same name. Options:
+What the installer does: checks the system first, finds every printer on the host, asks which ones to set up, picks a free port for each, checks the download against the SHA256 published with the release, writes an nginx site (the /webcam/ addresses lead to the same cameras as in Mainsail or Fluidd) and adds an `[update_manager voyager-ui]` section to `moonraker.conf`. If your network is not in `trusted_clients` it asks whether to add it (default no, then the UI asks for a Moonraker login). It only replaces a folder it installed itself, never a git clone or a folder of yours with the same name. Options:
 
 ```
 --port 8001              use this port
