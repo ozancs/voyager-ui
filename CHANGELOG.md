@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.25.5
+
+- Installer: the webcam addresses (/webcam/, /webcam2/ ...) now lead to the same cameras as in Mainsail or Fluidd. Before, with cameras that do not start at port 8080, they came out swapped, turned the wrong way, or one did not load. Run the install command again to update the nginx site; settings stay
+
 ## 0.25.4
 
 - Shake&Tune: the graphs are read from `result_folder` in `[shaketune]` (when it is inside the config folder)
