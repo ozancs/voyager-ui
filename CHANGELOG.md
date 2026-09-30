@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.25.4
+
+- Shake&Tune: the graphs are read from `result_folder` in `[shaketune]` (when it is inside the config folder)
+- Happy Hare: "Filament available in gate" switch in the gate editor
+
 ## 0.25.3
 
 - Installer: only replaces or removes folders it installed itself, never a git clone or a folder of yours with the same name
