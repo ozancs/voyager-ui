@@ -1518,10 +1518,27 @@ function handle(m) {
       });
       return {};
     }
+    case 'printer.emergency_stop':
+      // like Klipper: everything stops, heaters off, Klipper in shutdown until a firmware restart
+      pidSim = null;
+      emitLines(['!! Shutdown due to webhooks request']);
+      pushStatus({
+        webhooks: { state: 'shutdown', state_message: 'Shutdown due to webhooks request' },
+        print_stats:
+          status.print_stats.state === 'printing' || status.print_stats.state === 'paused'
+            ? { state: 'error', message: 'Shutdown due to webhooks request' }
+            : {},
+        extruder: { target: 0, power: 0 },
+        heater_bed: { target: 0, power: 0 },
+      });
+      wsAll({ jsonrpc: '2.0', method: 'notify_klippy_shutdown', params: [] });
+      return 'ok';
     case 'printer.restart':
     case 'printer.firmware_restart':
       emitLines(['// demo: Klipper restarted']);
       pushStatus({ webhooks: { state: 'ready', state_message: 'Printer is ready' } });
+      if (status.print_stats.state === 'error') pushStatus({ print_stats: { state: 'standby', message: '' } });
+      wsAll({ jsonrpc: '2.0', method: 'notify_klippy_ready', params: [] });
       return 'ok';
     case 'printer.print.start':
       pushStatus({ print_stats: { state: 'printing', filename: p.filename, print_duration: 0 } });
@@ -1763,8 +1780,10 @@ gcodeScript = function (sc) {
     pidSim = { h, tg, t: 0, from: status[h]?.temperature ?? 25 };
     pushStatus({ [h]: { target: tg } });
     emitLines([`// PID calibrate: heating ${h} to ${tg}`]);
-    return new Promise((res) =>
+    const mine = pidSim;
+    return new Promise((res, rej) =>
       setTimeout(() => {
+        if (pidSim !== mine) return rej({ code: 400, message: 'PID calibration interrupted' }); // E-STOP
         pidSim = null;
         pushStatus({ [h]: { target: 0, power: 0 } });
         emitLines([

@@ -1606,5 +1606,7 @@ export default {
  "{name} finished": "{name} terminado",
  "{name} is still running. Start this one when it has finished.": "{name} sigue en curso. Inicia este cuando termine.",
  "Filament available in gate": "Filamento disponible en la compuerta",
- "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune guarda sus gráficas en {dir}, fuera de la carpeta config, donde esta página no puede leerlas."
+ "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune guarda sus gráficas en {dir}, fuera de la carpeta config, donde esta página no puede leerlas.",
+ "This window stays open until it has finished. E-STOP stops it at once.": "Esta ventana sigue abierta hasta que termine. E-STOP lo detiene al instante.",
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper se detuvo (E-STOP o un error). Hace falta un Firmware Restart antes de la próxima vez."
 }

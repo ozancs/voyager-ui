@@ -1606,5 +1606,7 @@ export default {
  "{name} finished": "{name} 已完成",
  "{name} is still running. Start this one when it has finished.": "{name} 仍在进行。等它结束后再开始这个。",
  "Filament available in gate": "料道中有耗材",
- "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune 把图表保存在 {dir}，位于 config 文件夹之外，本页面无法读取。"
+ "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune 把图表保存在 {dir}，位于 config 文件夹之外，本页面无法读取。",
+ "This window stays open until it has finished. E-STOP stops it at once.": "在完成前此窗口会保持打开。E-STOP 可立即停止。",
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper 已停止（E-STOP 或出错）。下次运行前需要 Firmware Restart。"
 }

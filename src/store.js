@@ -312,7 +312,7 @@ export function toast(msg, kind = 'info', opts = {}) {
   const id = Math.random().toString(36).slice(2);
   state.toasts.push({ id, msg, kind, t: now, ...opts });
   // at most 4 plain toasts; undo toasts are never pushed out (their Undo button would go with them)
-  const plain = state.toasts.filter((x) => !x.undo);
+  const plain = state.toasts.filter((x) => !x.undo && !x.sticky);
   if (plain.length > 4) {
     const drop = new Set(plain.slice(0, plain.length - 4));
     state.toasts = state.toasts.filter((x) => !drop.has(x));
@@ -320,6 +320,11 @@ export function toast(msg, kind = 'info', opts = {}) {
   const ms = opts.ms ?? (kind === 'error' ? 9000 : 3500);
   if (ms) setTimeout(() => closeToast(id), ms);
   return id;
+}
+// change a toast that is on screen (a running calibration updates its time and progress)
+export function updateToast(id, patch) {
+  const x = state.toasts.find((t) => t.id === id);
+  if (x) Object.assign(x, patch);
 }
 export function closeToast(id) {
   state.toasts = state.toasts.filter((t) => t.id !== id);

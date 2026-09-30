@@ -3,7 +3,13 @@
 import Icon from './Icon.vue';
 import { t } from '../i18n';
 // z: stacking for dialogs that must come over everything else (the print guard over a macro prompt)
-defineProps({ title: String, width: { type: String, default: '520px' }, z: { type: Number, default: 0 } });
+// locked: cannot be closed for now (no X, Escape and a click outside do nothing)
+const props = defineProps({
+  title: String,
+  width: { type: String, default: '520px' },
+  z: { type: Number, default: 0 },
+  locked: Boolean,
+});
 const emit = defineEmits(['close']);
 // Esc closes the topmost dialog only (a confirm on top of another dialog must not close both)
 import { onMounted, onBeforeUnmount } from 'vue';
@@ -12,7 +18,7 @@ const me = {};
 const esc = (e) => {
   if (e.key === 'Escape' && stack[stack.length - 1] === me) {
     e.stopPropagation();
-    emit('close');
+    if (!props.locked) emit('close');
   }
 };
 onMounted(() => {
@@ -27,11 +33,11 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <Teleport to="body">
-    <div class="ov" :style="z ? { zIndex: z } : null" @mousedown.self="emit('close')">
+    <div class="ov" :style="z ? { zIndex: z } : null" @mousedown.self="!locked && emit('close')">
       <div class="md card" :style="{ width }" role="dialog" :aria-label="title">
         <div class="card-h">
           <h2>{{ title }}</h2>
-          <button class="btn clear ibtn sm" :aria-label="t('Close')" @click="emit('close')">
+          <button v-if="!locked" class="btn clear ibtn sm" :aria-label="t('Close')" @click="emit('close')">
             <Icon name="x" :size="18" />
           </button>
         </div>

@@ -276,7 +276,12 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
           <button v-if="ts.undo" class="btn sm undo" @click="ts.undo()">
             <Icon name="rot" :size="14" />{{ t('Undo') }}
           </button>
-          <button class="tx" :aria-label="t('Dismiss')" @click="closeToast(ts.id)"><Icon name="x" :size="14" /></button>
+          <button v-if="!ts.sticky" class="tx" :aria-label="t('Dismiss')" @click="closeToast(ts.id)">
+            <Icon name="x" :size="14" />
+          </button>
+          <i v-if="ts.bar != null" class="tbar live" :class="{ ind: ts.bar === true }">
+            <b :style="ts.bar === true ? null : { width: Math.min(100, ts.bar * 100) + '%' }"></b>
+          </i>
           <i v-if="ts.until" class="tbar" :style="{ animationDuration: Math.max(0, ts.until - ts.t) + 'ms' }"></i>
         </div>
       </TransitionGroup>
@@ -471,6 +476,37 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
   background: var(--ac);
   transform-origin: left;
   animation: tbar linear forwards;
+}
+.tbar.live {
+  animation: none;
+  transform: none;
+  background: var(--s3);
+}
+.tbar.live b {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--ac);
+  transition: width 0.4s;
+}
+/* no count to show: a moving bar */
+.tbar.live.ind b {
+  width: 30%;
+  animation: tind 1.4s ease-in-out infinite;
+}
+@keyframes tind {
+  from {
+    left: -30%;
+  }
+  to {
+    left: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tbar.live.ind b {
+    animation: none;
+    width: 100%;
+    opacity: 0.4;
+  }
 }
 @keyframes tbar {
   from {

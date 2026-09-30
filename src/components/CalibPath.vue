@@ -7,7 +7,7 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
-import { state, S, gcode, toast, closeToast, isPrinting, spoolPreset } from '../store';
+import { state, S, gcode, toast, closeToast, updateToast, isPrinting, spoolPreset } from '../store';
 import { api } from '../api/moonraker';
 import {
   pathSteps,
@@ -82,6 +82,39 @@ function open(s) {
     target.value = sp || s.target;
   }
 }
+// ---------------------------------------------------------------- progress while running
+const now = ref(Date.now());
+let clock = null;
+watch(
+  () => run.value?.running,
+  (on) => {
+    clearInterval(clock);
+    if (on) clock = setInterval(() => (now.value = Date.now()), 1000);
+  },
+  { immediate: true },
+);
+onBeforeUnmount(() => clearInterval(clock));
+const elapsed = computed(() => {
+  const s = Math.max(0, Math.round((now.value - (run.value?.at || now.value)) / 1000));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+});
+// how far along, when the output tells: probe points of a mesh or an accuracy test, else null (moving bar)
+const meshTotal = computed(() => {
+  const pc = String(
+    S('configfile').settings?.bed_mesh?.probe_count ?? S('configfile').config?.bed_mesh?.probe_count ?? '',
+  );
+  const n = pc
+    .split(/[,\s]+/)
+    .filter(Boolean)
+    .map(Number);
+  return n.length ? (n[0] || 0) * (n[1] || n[0] || 0) : 0;
+});
+const progress = computed(() => {
+  const k = cur.value?.kind;
+  if (k === 'mesh' && meshTotal.value) return { n: probes.value.length, of: meshTotal.value };
+  if (k === 'accuracy') return { n: probes.value.length, of: Math.max(3, Math.min(50, Math.round(samples.value))) };
+  return null;
+});
 // the paper test is drawn here: the app-wide manual probe dialog stays away while this is open
 watch(cur, (c) => (state.calibWizard = c?.kind === 'zoffset'));
 onBeforeUnmount(() => (state.calibWizard = false));
@@ -103,20 +136,30 @@ async function send(cmd) {
   RUNS[step.key] = { since, running: true, ended: false, cmd, at: Date.now() };
   const r = RUNS[step.key]; // the reactive entry, so the tile and the dialog follow it
   const reopen = { label: t('Open'), run: () => openFromToast(step.key) };
-  const tid = toast(t('{name} is running', { name: t(step.name) }), 'info', {
+  // a message in the corner for as long as it runs: it cannot be closed, shows the time and how far along,
+  // and Open brings the dialog back
+  const line = () => {
+    const secs = Math.round((Date.now() - r.at) / 1000),
+      pr = progressOf(step, r);
+    return {
+      hint: Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0') + (pr ? ` · ${pr.n} / ${pr.of}` : ''),
+      bar: pr ? pr.n / pr.of : true,
+    };
+  };
+  r.toast = toast(t('{name} is running', { name: t(step.name) }), 'info', {
     ms: 0,
-    hint: t('Klipper runs it as one command, so the console stays quiet until it ends.'),
+    sticky: true,
     action: reopen,
+    ...line(),
   });
+  r.tick = setInterval(() => updateToast(r.toast, line()), 1000);
   let failed = false;
   try {
     await gcode(cmd);
   } catch {
     failed = true; // shown as a toast and in the output
   }
-  r.running = false;
-  r.ended = true;
-  closeToast(tid);
+  endRun(r);
   // remembered on the tile even when the dialog was closed meanwhile
   // (a moment later: the last output lines can arrive just after the command's answer)
   setTimeout(() => {
@@ -133,6 +176,31 @@ async function send(cmd) {
       },
     );
 }
+function endRun(r) {
+  r.running = false;
+  r.ended = true;
+  clearInterval(r.tick);
+  closeToast(r.toast);
+}
+// probe points so far and how many there will be (mesh, accuracy test), or null when unknown
+function progressOf(step, r) {
+  const ls = state.console.filter((l) => l.id > r.since && l.type !== 'command').map((l) => strip(l.message));
+  const n = parseProbes(ls).length;
+  if (step.kind === 'mesh' && meshTotal.value) return { n: Math.min(n, meshTotal.value), of: meshTotal.value };
+  if (step.kind === 'accuracy') {
+    const of = +(/SAMPLES=(\d+)/.exec(r.cmd) || [])[1] || 10;
+    return { n: Math.min(n, of), of };
+  }
+  return null;
+}
+// E-STOP or a Klipper shutdown ends whatever was running, even before the command's answer comes back
+watch(
+  () => state.klippy,
+  (k) => {
+    if (k === 'ready') return;
+    for (const r of Object.values(RUNS)) if (r.running) endRun(r);
+  },
+);
 // the toast's Open button: back to the Calibrations page with this calibration's dialog
 function openFromToast(key) {
   state.calibOpen = key;
@@ -730,12 +798,23 @@ const RUNS = _reactive({});
           </div>
           <button class="btn" @click="applyShaper">{{ t('Try it now without saving') }}</button>
         </div>
+        <div v-if="run?.ended && state.klippy !== 'ready'" class="warn">
+          {{ t('Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.') }}
+        </div>
         <div v-if="errLine" class="warn">{{ errLine.replace(/^!!\s*/, '') }}</div>
-        <div v-if="run?.running && cur.kind !== 'zoffset'" class="row mu sm">
-          <Icon name="refresh" :size="14" class="spin" /><span class="grow">{{
-            t('Running. Only E-STOP stops it before it ends.')
-          }}</span>
-          <button class="btn dg" @click="estop">{{ t('E-STOP') }}</button>
+        <div v-if="run?.running && cur.kind !== 'zoffset'" class="prog">
+          <div class="row">
+            <b class="grow"
+              >{{ t('Running') }}
+              <span class="mono mu">{{ elapsed }}</span>
+              <span v-if="progress" class="mono mu"> · {{ progress.n }} / {{ progress.of }}</span></b
+            >
+            <button class="btn dg" @click="estop">{{ t('E-STOP') }}</button>
+          </div>
+          <div class="bar" :class="{ ind: !progress }">
+            <i :style="progress ? { width: Math.min(100, (progress.n / progress.of) * 100) + '%' } : null"></i>
+          </div>
+          <span class="mu sm">{{ t('This window stays open until it has finished. E-STOP stops it at once.') }}</span>
         </div>
       </div>
     </div>
@@ -826,6 +905,48 @@ const RUNS = _reactive({});
   justify-content: center;
   background: var(--s3);
   color: var(--ac);
+}
+.prog {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--s2);
+}
+.prog .bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--s3);
+  overflow: hidden;
+}
+.prog .bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--ac);
+  border-radius: 3px;
+  transition: width 0.4s;
+}
+/* no count to show: a moving bar */
+.prog .bar.ind i {
+  width: 30%;
+  animation: ind 1.4s ease-in-out infinite;
+}
+@keyframes ind {
+  from {
+    left: -30%;
+  }
+  to {
+    left: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prog .bar.ind i {
+    animation: none;
+    width: 100%;
+    opacity: 0.4;
+  }
 }
 .st {
   display: grid;

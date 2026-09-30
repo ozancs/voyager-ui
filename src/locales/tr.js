@@ -1607,5 +1607,7 @@ export default {
  "{name} finished": "{name} bitti",
  "{name} is still running. Start this one when it has finished.": "{name} hâlâ çalışıyor. Bunu o bitince başlat.",
  "Filament available in gate": "Gate'te filament var",
- "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune grafiklerini config klasörünün dışına, {dir} içine kaydediyor. Bu sayfa oradaki dosyaları okuyamıyor."
+ "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune grafiklerini config klasörünün dışına, {dir} içine kaydediyor. Bu sayfa oradaki dosyaları okuyamıyor.",
+ "This window stays open until it has finished. E-STOP stops it at once.": "Bu pencere bitene kadar açık kalır. E-STOP hemen durdurur.",
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper durdu (E-STOP ya da bir hata). Sonraki çalıştırmadan önce Firmware Restart gerekiyor."
 }

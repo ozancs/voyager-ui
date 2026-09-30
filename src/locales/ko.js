@@ -1606,5 +1606,7 @@ export default {
  "{name} finished": "{name} 완료",
  "{name} is still running. Start this one when it has finished.": "{name}이(가) 아직 실행 중입니다. 끝나면 시작하세요.",
  "Filament available in gate": "게이트에 필라멘트 있음",
- "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune은 그래프를 config 폴더 밖의 {dir}에 저장합니다. 이 페이지에서는 읽을 수 없습니다."
+ "Shake&Tune saves its graphs in {dir}, outside the config folder, where this page cannot read them.": "Shake&Tune은 그래프를 config 폴더 밖의 {dir}에 저장합니다. 이 페이지에서는 읽을 수 없습니다.",
+ "This window stays open until it has finished. E-STOP stops it at once.": "끝날 때까지 이 창은 열려 있습니다. E-STOP을 누르면 바로 멈춥니다.",
+ "Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.": "Klipper가 멈췄습니다(E-STOP 또는 오류). 다음 실행 전에 Firmware Restart가 필요합니다."
 }
