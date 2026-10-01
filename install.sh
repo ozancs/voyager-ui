@@ -7,7 +7,7 @@
 # to install for, picks free ports, checks that Moonraker will accept the UI and then installs.
 #
 # Options (pass after "bash -s --" when piping, or directly when running the file):
-#   --port 8000          first port to try for the web UI (Mainsail stays on 80)
+#   --port 1977          first port to try for the web UI (Mainsail stays on 80; installs made earlier keep their port)
 #   --zip FILE           install from a local zip instead of downloading the latest release
 #   --printer NAME[,..]  install only for these instances (folder names like printer_data), or "all"
 #   --moonraker-port N   Moonraker port, when it cannot be found automatically (single instance)
@@ -22,7 +22,7 @@ main() {
 
 REPO="ozancs/voyager-ui"
 NAME="voyager-ui"
-PORT=8000
+PORT=1977  # the year Voyager 1 launched; an existing install keeps the port it already has
 PORT_SET=0
 ZIP=""
 UPDATER=1
@@ -42,7 +42,7 @@ while [ $# -gt 0 ]; do
     --no-updater) UPDATER=0; shift ;;
     --check) CHECK_ONLY=1; shift ;;
     --uninstall) UNINSTALL=1; shift ;;
-    [0-9]*) PORT="$1"; PORT_SET=1; shift ;;          # old style: install.sh 8000 [zip]
+    [0-9]*) PORT="$1"; PORT_SET=1; shift ;;          # old style: install.sh 1977 [zip]
     *.zip) ZIP="$1"; shift ;;
     -h|--help) if [ -f "$0" ]; then sed -n '2,19p' "$0"; else echo "options: see https://github.com/ozancs/voyager-ui#install"; fi; exit 0 ;;
     *) echo "unknown option: $1"; exit 1 ;;

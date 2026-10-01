@@ -49,7 +49,7 @@ Once you are on the printer, run this and answer the questions:
 curl -fsSL https://raw.githubusercontent.com/ozancs/voyager-ui/main/install.sh | bash
 ```
 
-Then open `http://<printer-ip>:8000` in your browser. Mainsail or Fluidd stays on port 80 as before.
+Then open `http://<printer-ip>:1977` in your browser (1977: the year Voyager 1 launched). Mainsail or Fluidd stays on port 80 as before. An install made before 0.26 keeps port 8000; pass `--port 1977` to the installer to move it.
 
 ## Update
 
@@ -68,7 +68,7 @@ Each printer has to allow the page's address in `moonraker.conf`, otherwise the 
 ```ini
 [authorization]
 cors_domains:
-    http://192.168.1.10:8000
+    http://192.168.1.10:1977
 ```
 
 Use the address you open Voyager UI with. The list is kept in the browser, so every browser has its own list. Dashboard layout and other settings stay on each printer.
