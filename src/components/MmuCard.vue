@@ -6,6 +6,8 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import GateFilament from './GateFilament.vue';
+import MmuPath from './MmuPath.vue';
+import MmuToolMap from './MmuToolMap.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
 import { t } from '../i18n';
 
@@ -140,6 +142,9 @@ const canSetFilament = computed(() =>
   kind.value === 'hh' ? has('MMU_GATE_MAP') : has('SET_COLOR') || has('SET_MATERIAL'),
 );
 const busy = computed(() => (kind.value === 'hh' ? m.value.action && m.value.action !== 'Idle' : false));
+const toolMap = ref(false);
+// the path needs Happy Hare's filament position; older versions without it keep the plain card
+const hasPath = computed(() => kind.value === 'hh' && m.value.filament_pos != null);
 </script>
 
 <template>
@@ -175,7 +180,12 @@ const busy = computed(() => (kind.value === 'hh' ? m.value.action && m.value.act
         </div>
         <div v-if="current" class="sw big-sw" :style="{ background: current.color || 'var(--s3)' }"></div>
       </div>
-      <div v-if="kind === 'hh' && m.bowden_progress >= 0 && busy" class="bar state" :style="{ '--pst': 'var(--wn)' }">
+      <MmuPath v-if="hasPath" :mmu="m" :color="current?.color" />
+      <div
+        v-else-if="kind === 'hh' && m.bowden_progress >= 0 && busy"
+        class="bar state"
+        :style="{ '--pst': 'var(--wn)' }"
+      >
         <div :style="{ width: m.bowden_progress + '%' }"></div>
       </div>
       <div v-if="kind === 'hh' && m.reason_for_pause && ['paused', 'pause_locked'].includes(m.print_state)" class="why">
@@ -253,9 +263,13 @@ const busy = computed(() => (kind.value === 'hh' ? m.value.action && m.value.act
         >
           <Icon :name="ic" :size="15" />{{ armed === c ? t('Again') : t(l) }}
         </button>
+        <button v-if="kind === 'hh' && has('MMU_TTG_MAP')" class="btn" @click="toolMap = true">
+          <Icon name="shuffle" :size="15" />{{ t('Tool map') }}
+        </button>
       </div>
     </template>
     <GateFilament v-if="editGate" :gate="editGate" :kind="kind" @close="editGate = null" />
+    <MmuToolMap v-if="toolMap" @close="toolMap = false" />
   </section>
 </template>
 

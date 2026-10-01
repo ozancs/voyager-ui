@@ -102,6 +102,10 @@ const status = {
     gate_temperature: [215, 240, 255, 0, 260, 225],
     gate_spool_id: [14, -1, 12, -1, -1, -1],
     ttg_map: [0, 1, 2, 3, 4, 5],
+    endless_spool: 1,
+    endless_spool_groups: [0, 1, 2, 3, 0, 5],
+    filament_direction: 1,
+    sensors: { mmu_gate: true, extruder: true, toolhead: true },
     reason_for_pause: '',
   },
   AFC: { current_load: 'lane2', current_state: 'Idle' },
@@ -385,6 +389,8 @@ let db = {
       { i: 'macros', x: 3, y: 12, w: 6, h: 3 },
       { i: 'extruder', x: 9, y: 12, w: 3, h: 7 },
       { i: 'spool', x: 3, y: 15, w: 6, h: 4 },
+      { i: 'mmu', x: 0, y: 19, w: 9, h: 7 },
+      { i: 'timelapse', x: 9, y: 19, w: 3, h: 4 },
     ],
     // printing: print status across the top, then what matters during a print
     layoutPrint: [
@@ -398,6 +404,8 @@ let db = {
       { i: 'limits', x: 9, y: 12, w: 3, h: 7 },
       { i: 'tempchart', x: 0, y: 14, w: 6, h: 5 },
       { i: 'extruder', x: 6, y: 14, w: 3, h: 7 },
+      { i: 'mmu', x: 0, y: 19, w: 9, h: 7 },
+      { i: 'timelapse', x: 9, y: 19, w: 3, h: 4 },
     ],
     sound: { enabled: true, volume: 0.6, complete: true, error: true, paused: true, heated: false },
     heaterBase: {
@@ -1385,6 +1393,8 @@ function handle(m) {
       return demoHelp({
         MMU_GATE_MAP: 'Gate map',
         MMU_CHANGE_TOOL: 'Change tool',
+        MMU_TTG_MAP: 'Tool to gate map',
+        MMU_ENDLESS_SPOOL: 'Endless spool',
         MMU_SELECT: 'Select gate',
         MMU_CHECK_GATE: 'Check gate',
         MMU_LOAD: 'Load',
@@ -1852,6 +1862,18 @@ gcodeScript = function (sc) {
   if ((m = S.match(/SET_PIN PIN=(\w+) VALUE=([\d.]+)/))) {
     const k = Object.keys(status).find((x) => x.toLowerCase() === 'output_pin ' + m[1].toLowerCase());
     if (k) pushStatus({ [k]: { value: +m[2] } });
+    return 'ok';
+  }
+  if ((m = S.match(/^MMU_TTG_MAP\b(.*)/))) {
+    const x = status.mmu;
+    const mp = /MAP=([\d,]+)/.exec(m[1]);
+    if (/RESET=1/.test(m[1])) pushStatus({ mmu: { ttg_map: x.ttg_map.map((_, i) => i) } });
+    else if (mp) pushStatus({ mmu: { ttg_map: mp[1].split(',').map(Number) } });
+    emitLines(['// MMU TTG map updated']);
+    return 'ok';
+  }
+  if ((m = S.match(/^MMU_ENDLESS_SPOOL\b.*ENABLE=(\d)/))) {
+    pushStatus({ mmu: { endless_spool: +m[1] } });
     return 'ok';
   }
   if (/^MMU_GATE_MAP /.test(S)) {
