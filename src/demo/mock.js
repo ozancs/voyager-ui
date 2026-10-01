@@ -506,6 +506,15 @@ let gcodeScript = function (sc) {
 };
 const files = [
   {
+    filename: 'calicat_PLA.gcode.3mf', // OrcaSlicer "send as 3mf": a zip with Metadata/plate_1.gcode inside
+    modified: Date.now() / 1000 - 1800,
+    size: 410000,
+    estimated_time: 3100,
+    filament_total: 4100,
+    layer_height: 0.2,
+    thumbnails: [],
+  },
+  {
     filename: 'bracket_v3.gcode',
     modified: Date.now() / 1000 - 3600,
     size: 2400000,
@@ -1973,6 +1982,68 @@ function gcodeFile() {
   }
   return g;
 }
+// a .gcode.3mf like OrcaSlicer makes: a stored (uncompressed) zip with the plate's G-code in Metadata/
+function zip3mf(text) {
+  const enc = new TextEncoder();
+  const name = enc.encode('Metadata/plate_1.gcode');
+  const data = enc.encode(text);
+  let crc = 0xffffffff;
+  for (const b of data) {
+    crc ^= b;
+    for (let k = 0; k < 8; k++) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+  }
+  crc = (crc ^ 0xffffffff) >>> 0;
+  const le = (n, w) => Array.from({ length: w }, (_, i) => (n >>> (8 * i)) & 255);
+  const local = [
+    ...le(0x04034b50, 4),
+    ...le(20, 2),
+    ...le(0, 2),
+    ...le(0, 2),
+    ...le(0, 4),
+    ...le(crc, 4),
+    ...le(data.length, 4),
+    ...le(data.length, 4),
+    ...le(name.length, 2),
+    ...le(0, 2),
+    ...name,
+  ];
+  const cdOff = local.length + data.length;
+  const cd = [
+    ...le(0x02014b50, 4),
+    ...le(20, 2),
+    ...le(20, 2),
+    ...le(0, 2),
+    ...le(0, 2),
+    ...le(0, 4),
+    ...le(crc, 4),
+    ...le(data.length, 4),
+    ...le(data.length, 4),
+    ...le(name.length, 2),
+    ...le(0, 2),
+    ...le(0, 2),
+    ...le(0, 2),
+    ...le(0, 2),
+    ...le(0, 4),
+    ...le(0, 4),
+    ...name,
+  ];
+  const eocd = [
+    ...le(0x06054b50, 4),
+    ...le(0, 2),
+    ...le(0, 2),
+    ...le(1, 2),
+    ...le(1, 2),
+    ...le(cd.length, 4),
+    ...le(cdOff, 4),
+    ...le(0, 2),
+  ];
+  const out = new Uint8Array(cdOff + cd.length + eocd.length);
+  out.set(local, 0);
+  out.set(data, local.length);
+  out.set(cd, cdOff);
+  out.set(eocd, cdOff + cd.length);
+  return out;
+}
 let realFetch;
 function fakeFetch(input, init) {
   const u = new URL(typeof input === 'string' ? input : input.url, location.href);
@@ -2009,7 +2080,11 @@ function fakeFetch(input, init) {
     );
   }
   if (p.startsWith('/server/files/gcodes/'))
-    return Promise.resolve(new Response(gcodeFile(), { headers: { 'content-type': 'text/plain' } }));
+    return Promise.resolve(
+      /\.3mf$/i.test(p)
+        ? new Response(zip3mf(gcodeFile()), { headers: { 'content-type': 'application/zip' } })
+        : new Response(gcodeFile(), { headers: { 'content-type': 'text/plain' } }),
+    );
   if (p.startsWith('/server/files/')) return json({ error: { code: 404, message: 'not in the demo' } }, 404);
   if (p.startsWith('/webcam'))
     return Promise.resolve(

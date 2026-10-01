@@ -2,6 +2,7 @@
 // G-code files page: folders, thumbnails, metadata, search, print, add to queue, upload, rename,
 // delete and the edit button (opens small files in the config editor).
 import { ref, computed, onMounted, watch } from 'vue';
+import { isGcodeFile, UPLOAD_ACCEPT } from '../gcode3mf';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import QueueCard from '../components/QueueCard.vue';
@@ -40,7 +41,7 @@ async function load() {
   try {
     const r = await api.call('server.files.get_directory', { path: path.value, extended: true });
     dirs.value = r.dirs.filter((d) => !d.dirname.startsWith('.'));
-    files.value = r.files.filter((f) => /\.(gcode|g|gco|ufp|nc)$/i.test(f.filename));
+    files.value = r.files.filter((f) => isGcodeFile(f.filename));
     disk.value = r.disk_usage;
     if (path.value === 'gcodes') state.cache.files = { dirs: dirs.value, files: files.value, disk: disk.value };
   } catch (e) {
@@ -236,7 +237,7 @@ function onDrop(e) {
         <button class="btn acc" style="height: 40px" :disabled="!!up" @click="fileInput.click()">
           <Icon name="upload" :size="16" :stroke="2.4" />{{ up ? Math.round(up.p * 100) + '%' : t('Upload') }}
         </button>
-        <input ref="fileInput" type="file" multiple accept=".gcode,.g,.gco,.ufp,.nc" hidden @change="upload" />
+        <input ref="fileInput" type="file" multiple :accept="UPLOAD_ACCEPT" hidden @change="upload" />
       </div>
       <div style="overflow: auto; flex: 1">
         <table class="tbl">

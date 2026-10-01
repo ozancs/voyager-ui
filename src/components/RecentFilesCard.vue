@@ -1,6 +1,7 @@
 <script setup>
 // The newest G-code files with thumbnail, estimated time and a print button.
 import { ref, onMounted } from 'vue';
+import { isGcodeFile } from '../gcode3mf';
 import Icon from './Icon.vue';
 import { state, fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';
 import { queueApi } from '../features';
@@ -14,7 +15,7 @@ async function load() {
   try {
     const r = await api.call('server.files.list', { root: 'gcodes' });
     const top = r
-      .filter((f) => /\.(gcode|g|gco|ufp)$/i.test(f.path))
+      .filter((f) => isGcodeFile(f.path))
       .sort((a, b) => b.modified - a.modified)
       .slice(0, 12);
     files.value = top.map((f) => ({ ...f, meta: null }));

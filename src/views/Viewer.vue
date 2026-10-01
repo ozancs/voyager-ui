@@ -2,6 +2,7 @@
 // G-code viewer (gcode-preview, three.js): loads a file from the printer and shows it in 3D or as
 // layers, can follow the running print and exclude objects.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, shallowRef } from 'vue';
+import { readGcodeText } from '../gcode3mf';
 import Icon from '../components/Icon.vue';
 import ObjectMap from '../components/ObjectMap.vue';
 import RangeSlider from '../components/RangeSlider.vue';
@@ -73,7 +74,7 @@ async function load(fn) {
   file.value = fn;
   loading.value = t('Downloading…');
   try {
-    const text = await api.getText(`/server/files/gcodes/${fn.split('/').map(encodeURIComponent).join('/')}`);
+    const text = await readGcodeText(api, fn);
     loading.value = t('Parsing…');
     await nextTick();
     await new Promise((r) => setTimeout(r, 30));

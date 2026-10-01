@@ -2,6 +2,7 @@
 // Top bar: printer name and logo, print state with progress and time left, pause / cancel / exclude,
 // search, Save Config, upload & print, notifications, customize, settings, power menu and E-STOP.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { UPLOAD_ACCEPT } from '../gcode3mf';
 import Icon from './Icon.vue';
 import Logo from './Logo.vue';
 import Modal from './Modal.vue';
@@ -318,7 +319,7 @@ function pause() {
       <Icon name="upload" :stroke="2.4" /><span v-if="uploading !== null">{{ Math.round(uploading * 100) + '%' }}</span
       ><span v-else class="hide-m">{{ t('Upload & Print') }}</span>
     </button>
-    <input ref="fileInput" type="file" accept=".gcode,.g,.gco,.ufp,.nc" hidden @change="onFile" />
+    <input ref="fileInput" type="file" :accept="UPLOAD_ACCEPT" hidden @change="onFile" />
     <div class="rel">
       <button class="btn ibtn" :aria-label="t('Notifications')" @click="showBell = !showBell">
         <Icon name="bell" :size="22" :stroke="2.4" /><span

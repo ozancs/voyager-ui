@@ -2,6 +2,7 @@
 // Moonraker job queue: queued files, start or pause the queue, remove a job or move it to the front, add files.
 defineOptions({ inheritAttrs: false });
 import { ref, computed } from 'vue';
+import { isGcodeFile } from '../gcode3mf';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import { state, toast, fmtTime, isPrinting } from '../store';
@@ -50,7 +51,7 @@ async function openPicker() {
   picking.value = true;
   try {
     const r = await api.call('server.files.list', { root: 'gcodes' });
-    pickList.value = r.filter((f) => /\.(gcode|g|gco|ufp)$/i.test(f.path)).sort((a, b) => b.modified - a.modified);
+    pickList.value = r.filter((f) => isGcodeFile(f.path)).sort((a, b) => b.modified - a.modified);
   } catch {}
 }
 const pickShown = computed(() =>

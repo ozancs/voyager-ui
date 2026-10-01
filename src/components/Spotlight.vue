@@ -1,6 +1,7 @@
 <script setup>
 // Ctrl/Cmd+K: one search box for pages, actions, macros, config files (down to the line), g-code files, commands and settings.
 import { ref, computed, watch, nextTick } from 'vue';
+import { isGcodeFile } from '../gcode3mf';
 import Icon from './Icon.vue';
 import { state, S, gcode, macroList, prettyName, toast, isPrinting, restartKlipper } from '../store';
 import { go } from '../router';
@@ -31,7 +32,7 @@ watch(
       gfLoaded = Date.now();
       api
         .call('server.files.list', { root: 'gcodes' })
-        .then((r) => (gfiles.value = r.map((f) => f.path).filter((p) => /\.(gcode|g|gco|ufp)$/i.test(p))))
+        .then((r) => (gfiles.value = r.map((f) => f.path).filter((p) => isGcodeFile(p))))
         .catch(() => {});
     }
   },
