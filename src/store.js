@@ -169,6 +169,7 @@ export const state = reactive({
   files: { path: 'gcodes', dirs: [], files: [], disk: null, loading: false },
   currentMeta: null,
   webcams: [],
+  components: [], // Moonraker components loaded (server.info), e.g. 'timelapse'
   spoolman: { server: '', spool: null },
   settings: cachedSettings(),
   settingsLoaded: false,
@@ -1005,6 +1006,7 @@ async function checkKlippy() {
   try {
     const info = await api.call('server.info');
     state.versions.moonraker = info.moonraker_version || '';
+    state.components = info.components || [];
     state.klippy = info.klippy_state;
     if (info.klippy_state === 'ready') return initKlippy();
     state.booted = true;

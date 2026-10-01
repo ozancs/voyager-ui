@@ -4,13 +4,18 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import Icon from '../components/Icon.vue';
 import WebcamView from '../components/WebcamView.vue';
+import TimelapsePanel from '../components/TimelapsePanel.vue';
+import TimelapseSettings from '../components/TimelapseSettings.vue';
 import { state } from '../store';
 import { api } from '../api/moonraker';
+import { route } from '../router';
+import { tl } from '../timelapse';
 import { t } from '../i18n';
 const cams = computed(() => state.webcams.filter((w) => w.enabled !== false));
 const opts = () => (state.settings.cardOpts ||= {});
-// '' = all cameras, otherwise a camera name. Remembered between visits.
-const sel = ref(opts().camPage ?? '');
+// '' = all cameras, 'timelapse' = the timelapse panel, otherwise a camera name. Remembered between visits.
+const TL = '\u0000timelapse'; // cannot clash with a camera name
+const sel = ref(route.arg === 'timelapse' ? TL : (opts().camPage ?? ''));
 watch(sel, (v) => {
   opts().camPage = v;
 });
@@ -18,11 +23,16 @@ function takeAnchor() {
   if (state.anchor?.startsWith('cam:')) {
     sel.value = state.anchor.slice(4);
     state.anchor = '';
-  }
+  } else if (state.anchor?.startsWith('timelapse:')) sel.value = TL; // the panel takes the anchor from there
 }
 onMounted(takeAnchor);
 watch(() => state.anchor, takeAnchor);
-const all = computed(() => cams.value.length > 1 && !cams.value.some((w) => w.name === sel.value));
+watch(
+  () => route.arg,
+  (a) => a === 'timelapse' && (sel.value = TL),
+);
+const lapse = computed(() => sel.value === TL && tl.has);
+const all = computed(() => !lapse.value && cams.value.length > 1 && !cams.value.some((w) => w.name === sel.value));
 const cam = computed(() => cams.value.find((w) => w.name === sel.value) || cams.value[0] || null);
 const wrap = ref(null);
 function full() {
@@ -36,14 +46,15 @@ function snapshot(c) {
   <div class="split" style="min-height: calc(100vh / var(--zoom, 1) - 208px)">
     <section class="card grow" ref="wrap">
       <div class="card-h">
-        <h2>{{ all ? t('All cameras') : cam?.name || t('Webcam') }}</h2>
-        <div class="acts">
+        <h2>{{ lapse ? t('Timelapse') : all ? t('All cameras') : cam?.name || t('Webcam') }}</h2>
+        <div v-if="!lapse" class="acts">
           <button v-if="!all" class="btn" :disabled="!cam" @click="snapshot(cam)">
             <Icon name="snap" :size="16" :stroke="2.4" />{{ t('Snapshot') }}</button
           ><button class="btn" @click="full"><Icon name="ext" :size="16" :stroke="2.4" />{{ t('Fullscreen') }}</button>
         </div>
       </div>
-      <div v-if="all" class="cg" :class="'n' + Math.min(cams.length, 4)">
+      <TimelapsePanel v-if="lapse" />
+      <div v-else-if="all" class="cg" :class="'n' + Math.min(cams.length, 4)">
         <div v-for="w in cams" :key="w.name" class="ct">
           <WebcamView :cam="w" />
           <div class="ctb">
@@ -82,8 +93,27 @@ function snapshot(c) {
             ><span class="mono mu" style="font-size: 11px">{{ w.service }} · {{ w.target_fps }} fps</span>
           </div>
         </button>
+        <button v-if="tl.has" class="cm" :class="{ on: lapse }" @click="sel = TL">
+          <Icon name="video" :size="18" />
+          <div class="col" style="gap: 2px">
+            <b>{{ t('Timelapse') }}</b
+            ><span class="mono mu" style="font-size: 11px">{{
+              tl.settings?.enabled
+                ? tl.frames
+                  ? t('{n} frames', { n: tl.frames })
+                  : t('recording the next print')
+                : t('off')
+            }}</span>
+          </div>
+        </button>
       </section>
-      <section v-if="cam && !all" class="card">
+      <section v-if="lapse" class="card">
+        <div class="card-h">
+          <h2>{{ t('Timelapse settings') }}</h2>
+        </div>
+        <TimelapseSettings />
+      </section>
+      <section v-if="cam && !all && !lapse" class="card">
         <div class="card-h">
           <h2>{{ t('Stream') }}</h2>
         </div>

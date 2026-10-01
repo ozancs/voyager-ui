@@ -1,6 +1,9 @@
 // Browser-side fake Moonraker for the live demo (npm run build:demo). Replaces WebSocket and fetch so the UI runs
 // without a printer. Everything is in memory: settings reset on reload, g-code is only echoed to the console card.
 import { currentHost, savePrinters } from '../printers';
+import { api } from '../api/moonraker';
+import demoMp4 from './timelapse.mp4?url';
+import demoWebm from './timelapse.webm?url'; // for a browser without H.264 (headless Chromium)
 
 let sockets = [];
 function wsAll(m) {
@@ -430,6 +433,107 @@ let queue = {
     { job_id: 'q2', filename: 'bracket_v3.gcode', time_added: 0, time_in_queue: 0 },
   ],
 };
+// ---- moonraker-timelapse: settings as the component keeps them, frames while printing, a fake render
+const TL = {
+  enabled: true,
+  mode: 'layermacro',
+  camera: '',
+  snapshoturl: 'http://localhost:8080/?action=snapshot',
+  stream_delay_compensation: 0.05,
+  gcode_verbose: false,
+  parkhead: false,
+  parkpos: 'back_left',
+  park_custom_pos_x: 0,
+  park_custom_pos_y: 0,
+  park_custom_pos_dz: 0,
+  park_travel_speed: 100,
+  park_retract_speed: 15,
+  park_extrude_speed: 15,
+  park_retract_distance: 1,
+  park_extrude_distance: 1,
+  park_time: 0.1,
+  fw_retract: false,
+  hyperlapse_cycle: 30,
+  autorender: true,
+  constant_rate_factor: 23,
+  output_framerate: 30,
+  pixelformat: 'yuv420p',
+  time_format_code: '%Y%m%d_%H%M',
+  extraoutputparams: '',
+  variable_fps: false,
+  targetlength: 10,
+  variable_fps_min: 5,
+  variable_fps_max: 60,
+  rotation: 0,
+  flip_x: false,
+  flip_y: false,
+  duplicatelastframe: 0,
+  previewimage: true,
+  saveframes: false,
+};
+let TL_N = 84; // frames taken for the running print (one per layer so far)
+const TL_FILES = [
+  ['bracket_v3', '20260930_1412', 1.9e6],
+  ['calicat_PLA', '20260929_2210', 1.2e6],
+  ['fan_duct', '20260928_0935', 2.4e6],
+  ['Cube_ASA_3', '20260927_1801', 0.6e6],
+  ['spool_holder_v2', '20260925_1120', 3.1e6],
+].flatMap(([n, d, size], i) => {
+  const name = `timelapse_${n}_${d}.mp4`;
+  const modified = Date.now() / 1000 - 86400 * (i + 1);
+  return [
+    { path: name, modified, size },
+    { path: name + '.jpg', modified, size: 48000 },
+  ];
+});
+function tlFrame() {
+  if (!TL.enabled) return;
+  TL_N++;
+  wsAll({
+    jsonrpc: '2.0',
+    method: 'notify_timelapse_event',
+    params: [
+      {
+        action: 'newframe',
+        frame: String(TL_N),
+        framefile: 'frame' + String(TL_N).padStart(6, '0') + '.jpg',
+        status: 'success',
+      },
+    ],
+  });
+}
+function tlRender() {
+  const ev = (o) => wsAll({ jsonrpc: '2.0', method: 'notify_timelapse_event', params: [{ action: 'render', ...o }] });
+  const name = `timelapse_bracket_v3_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}_${String(new Date().getHours()).padStart(2, '0')}${String(new Date().getMinutes()).padStart(2, '0')}.mp4`;
+  ev({ status: 'started', framecount: TL_N, settings: { ...TL } });
+  let k = 0;
+  const t = setInterval(() => {
+    k++;
+    if (k < 8)
+      return ev({
+        status: 'running',
+        progress: Math.round((k / 8) * 100),
+        msg: `frame ${Math.round((TL_N * k) / 8)}/${TL_N}`,
+      });
+    clearInterval(t);
+    const modified = Date.now() / 1000;
+    TL_FILES.unshift({ path: name, modified, size: 1.4e6 }, { path: name + '.jpg', modified, size: 48000 });
+    TL_N = 0;
+    ev({
+      status: 'success',
+      filename: name,
+      previewimage: name + '.jpg',
+      printfile: 'bracket_v3.gcode',
+      msg: `Rendered ${name}`,
+    });
+  }, 700);
+}
+// what a timelapse frame or a clip preview looks like in the demo: the bed cam with the layer number
+function tlSvg(n, label = 'frame') {
+  const h = 8 + Math.min(130, n * 0.9);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#15181c"/><polygon points="80,300 560,300 500,210 140,210" fill="#2c3138"/><rect x="270" y="${258 - h}" width="100" height="${h}" fill="#f5b23a"/><polygon points="370,258 410,238 410,${238 - h} 370,${258 - h}" fill="#c88c28"/><polygon points="270,${258 - h} 370,${258 - h} 410,${238 - h} 310,${238 - h}" fill="#ffcd6e"/><rect x="60" y="${182 - h}" width="520" height="12" fill="#464c54"/><text x="16" y="28" fill="#8b919b" font-family="monospace" font-size="16">${label} ${n}</text></svg>`;
+}
+const svgUrl = (svg) => 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 function emitLines(lines, gap = 40) {
   lines.forEach((l, i) =>
     setTimeout(() => wsAll({ jsonrpc: '2.0', method: 'notify_gcode_response', params: [l] }), i * gap),
@@ -1147,6 +1251,7 @@ function handle(m) {
       return {
         klippy_state: 'ready',
         moonraker_version: 'v0.9.3-41',
+        components: ['klippy_connection', 'file_manager', 'history', 'update_manager', 'webcam', 'timelapse'],
         warnings: ['file_manager: Error adding inotify watch to root config'],
         failed_components: [],
       };
@@ -1338,6 +1443,33 @@ function handle(m) {
         }, 300);
       }, 100);
       return 'ok';
+    case 'server.files.delete_file': {
+      const n = (p.path || '').replace(/^timelapse\//, '');
+      const i = TL_FILES.findIndex((f) => f.path === n);
+      if (i >= 0) TL_FILES.splice(i, 1);
+      return { item: { path: p.path, root: 'timelapse' }, action: 'delete_file' };
+    }
+    case 'machine.timelapse.get_settings':
+      return { ...TL };
+    case 'machine.timelapse.post_settings':
+      Object.assign(TL, p);
+      return { ...TL };
+    case 'machine.timelapse.lastframeinfo':
+      return { framecount: TL_N, lastframefile: TL_N ? 'frame' + String(TL_N).padStart(6, '0') + '.jpg' : '' };
+    case 'machine.timelapse.render':
+      tlRender();
+      return 'ok';
+    case 'machine.timelapse.saveframes':
+      setTimeout(
+        () =>
+          wsAll({
+            jsonrpc: '2.0',
+            method: 'notify_timelapse_event',
+            params: [{ action: 'saveframes', status: 'success', filename: 'timelapse_bracket_v3_frames.zip' }],
+          }),
+        1500,
+      );
+      return 'ok';
     case 'server.files.metadata':
       // fan_duct is sliced for PETG and needs more than the active ABS spool has left: the pre-print check asks
       return /fan_duct/.test(p.filename || '')
@@ -1393,6 +1525,8 @@ function handle(m) {
     case 'server.spoolman.proxy':
       return /^\/v1\/spool\?/.test(p.path || '') ? { response: SPOOLS } : { response: SPOOLS[0] };
     case 'server.files.list':
+      if (p.root === 'timelapse') return TL_FILES;
+      if (p.root === 'timelapse_frames') return [];
       return p.root === 'config'
         ? Object.keys(cfgText)
             .concat(['printer-20260923_121809.cfg'])
@@ -1621,7 +1755,10 @@ function tick() {
     vs.progress = Math.min(0.999, vs.progress + 1 / 7400);
     st.display_status.progress = vs.progress;
     vs.file_position = Math.floor(vs.progress * (GLEN ||= gcodeFile().length)); // lets the G-code viewer follow the print
-    if (tk % 35 === 0 && ps.info.current_layer < ps.info.total_layer) ps.info.current_layer++;
+    if (tk % 35 === 0 && ps.info.current_layer < ps.info.total_layer) {
+      ps.info.current_layer++;
+      tlFrame();
+    }
   }
   const eb = st['mcu EBBCan'].last_stats;
   if (tk % 3 === 0) eb.bytes_retransmit += Math.round(Math.random() * 40);
@@ -2097,6 +2234,16 @@ function fakeFetch(input, init) {
 }
 export function installDemo() {
   realFetch = window.fetch.bind(window);
+  // <video> and <img> do not go through fetch: timelapse clips and frames get their own addresses
+  const fileUrl = api.fileUrl.bind(api);
+  api.fileUrl = (root, path) => {
+    if (root === 'timelapse' && /\.mp4$/i.test(path))
+      return document.createElement('video').canPlayType('video/mp4; codecs="avc1.42E01E"') ? demoMp4 : demoWebm;
+    if (root === 'timelapse' && /\.jpg$/i.test(path))
+      return svgUrl(tlSvg(TL_FILES.findIndex((f) => f.path === path) * 37 + 150, 'clip'));
+    if (root === 'timelapse_frames') return svgUrl(tlSvg(+(path.match(/\d+/)?.[0] || 0)));
+    return fileUrl(root, path);
+  };
   setInterval(tick, 1000);
   window.WebSocket = FakeSocket;
   window.fetch = fakeFetch;

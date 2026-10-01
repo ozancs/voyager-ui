@@ -28,6 +28,8 @@ import QueueCard from '../components/QueueCard.vue';
 import MacrosCard from '../components/MacrosCard.vue';
 import DevicesCard from '../components/DevicesCard.vue';
 import RecentFilesCard from '../components/RecentFilesCard.vue';
+import TimelapseCard from '../components/TimelapseCard.vue';
+import { tl } from '../timelapse';
 import RecentJobsCard from '../components/RecentJobsCard.vue';
 import SpoolCard from '../components/SpoolCard.vue';
 import RetractionCard from '../components/RetractionCard.vue';
@@ -80,6 +82,7 @@ const MODULES = {
   health: { c: HealthCard, n: 'Health', min: [3, 3], def: [4, 4] },
   power: { c: PowerCard, n: 'Power devices', min: [3, 3], def: [4, 4], need: () => state.power.length > 0 },
   mmu: { c: MmuCard, n: 'MMU (Happy Hare, Box Turtle)', min: [4, 5], def: [12, 7], need: () => hasMmu.value },
+  timelapse: { c: TimelapseCard, n: 'Timelapse', min: [3, 3], def: [4, 4], need: () => tl.has },
 };
 const isCustom = (i) => i.startsWith('c_');
 // a multi material unit shows up on the dashboard by itself the first time it is found
