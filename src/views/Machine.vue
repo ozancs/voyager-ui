@@ -120,10 +120,16 @@ async function doUpdate(name) {
   busy.value = name;
   state.update = { app: name, lines: [], complete: false };
   try {
-    await api.call(
-      name === 'system' ? 'machine.update.system' : 'machine.update.upgrade',
-      name === 'system' ? {} : { name },
-    );
+    if (name === 'system') await api.call('machine.update.system', {});
+    else
+      try {
+        await api.call('machine.update.upgrade', { name });
+      } catch (e) {
+        // Moonraker older than 0.8 (stock QIDI and similar) has no upgrade method: use the older per-type ones
+        if (e.code !== -32601 && !/method not found/i.test(e.message)) throw e;
+        if (name === 'klipper' || name === 'moonraker') await api.call('machine.update.' + name, {});
+        else await api.call('machine.update.client', { name });
+      }
   } catch (e) {
     if (state.update) {
       state.update.lines.push('!! ' + e.message);

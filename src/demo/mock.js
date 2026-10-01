@@ -275,10 +275,10 @@ const status = {
   'temperature_fan XY_Driver_Fan': { temperature: 38, target: 40, speed: 0 },
   'temperature_fan PSU_Fan': { temperature: 42, target: 40, speed: 0.3 },
   fan: { speed: 0.6 },
-  'heater_fan hotend_fan': { speed: 1 },
+  'heater_fan hotend_fan': { speed: 1, rpm: 7140 },
   'fan_generic chamber_fan': { speed: 1 },
   'fan_generic Intake_Fan': { speed: 0 },
-  'fan_generic Aux_Fan': { speed: 0.35 },
+  'fan_generic Aux_Fan': { speed: 0.35, rpm: 2380 },
   'neopixel hotend_rgb': {
     color_data: [
       [0.5, 0, 0.5, 0],

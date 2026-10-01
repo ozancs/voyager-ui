@@ -10,6 +10,9 @@ const props = defineProps({
   min: Number,
   max: Number,
   decimals: { type: Number, default: 0 },
+  // fields that only change a view setting keep what was typed when focus leaves; fields that send a command to
+  // the printer apply on Enter only, and Esc, Tab or a click elsewhere drop the typed value
+  applyOnBlur: Boolean,
 });
 const emit = defineEmits(['update:modelValue', 'commit']);
 const local = ref(props.modelValue);
@@ -50,6 +53,26 @@ function commit() {
   emit('update:modelValue', clamp(v));
   emit('commit', clamp(v));
 }
+function revert() {
+  editing.value = false;
+  typed = false;
+  local.value = props.modelValue;
+}
+function onBlur() {
+  if (!editing.value) return;
+  if (props.applyOnBlur) commit();
+  else revert();
+}
+function onKey(e) {
+  if (e.key === 'Enter') {
+    commit();
+    e.target.blur();
+  } else if (e.key === 'Escape') {
+    e.stopPropagation(); // the Esc closes the field edit, not the dialog around it
+    revert();
+    e.target.blur();
+  }
+}
 </script>
 <template>
   <label class="nf">
@@ -66,8 +89,8 @@ function commit() {
           local = $event.target.value;
           typed = true;
         "
-        @keydown.enter="$event.target.blur()"
-        @blur="commit"
+        @keydown="onKey"
+        @blur="onBlur"
         :aria-label="label"
       />
       <span v-if="unit" class="u">{{ unit }}</span>

@@ -1,6 +1,7 @@
 <script setup>
 // Speed and flow override (M220 / M221) and the printer's velocity and acceleration limits
-// (SET_VELOCITY_LIMIT). Sliders show the value while dragging and send it when released.
+// (SET_VELOCITY_LIMIT). Sliders show the value while dragging and send it when released; typed values are
+// sent on Enter, and Esc or leaving the field puts the current value back.
 import { computed, reactive } from 'vue';
 import Rng from './Rng.vue';
 import Icon from './Icon.vue';
@@ -95,7 +96,12 @@ function reset() {
               class="mono"
               type="number"
               :value="lv.speed ?? speed"
-              @change="setSpeed($event.target.value === '' ? '' : +$event.target.value)"
+              @keydown.enter="
+                setSpeed($event.target.value === '' ? '' : +$event.target.value);
+                $event.target.blur();
+              "
+              @keydown.esc.stop="$event.target.blur()"
+              @blur="$event.target.value = speed"
               :aria-label="t('Speed factor')"
             />%</label
           >
@@ -124,7 +130,12 @@ function reset() {
               class="mono"
               type="number"
               :value="lv.flow ?? flow"
-              @change="setFlow($event.target.value === '' ? '' : +$event.target.value)"
+              @keydown.enter="
+                setFlow($event.target.value === '' ? '' : +$event.target.value);
+                $event.target.blur();
+              "
+              @keydown.esc.stop="$event.target.blur()"
+              @blur="$event.target.value = flow"
               :aria-label="t('Flow')"
             />%</label
           >

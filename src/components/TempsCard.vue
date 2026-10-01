@@ -13,7 +13,7 @@ const colorOf = (i, name) => sensorColor(state.settings.sensorColors, name, i);
 const showPresets = ref(false);
 const presetBtn = ref(null);
 const edit = ref({});
-const typed = {}; // only a value the user typed is sent: focusing and leaving the field sends nothing
+const typed = {}; // only a typed value is sent, and only on Enter: Esc, Tab or a click elsewhere drop it
 function commitTarget(s, e) {
   const v = e.target.value;
   edit.value[s.name] = undefined;
@@ -100,8 +100,12 @@ const presets = allPresets;
                   edit[s.name] = $event.target.value;
                   typed[s.name] = true;
                 "
-                @keydown.enter="$event.target.blur()"
-                @blur="commitTarget(s, $event)"
+                @keydown.enter="
+                  commitTarget(s, $event);
+                  $event.target.blur();
+                "
+                @keydown.esc.stop="$event.target.blur()"
+                @blur="edit[s.name] = undefined"
                 :aria-label="t('{name} target', { name: s.label })"
               />
             </td>

@@ -189,6 +189,7 @@ function doSave() {
           <template v-if="!hv.colorAuto">
             <NumField
               v-model="hv.colorLim"
+              apply-on-blur
               :label="t('Colour range ±')"
               unit="mm"
               :step="0.01"
@@ -235,6 +236,7 @@ function doSave() {
           <template v-if="!hv.zAuto">
             <NumField
               v-model="hv.zMax"
+              apply-on-blur
               :label="t('Z axis max ±')"
               unit="mm"
               :step="0.05"

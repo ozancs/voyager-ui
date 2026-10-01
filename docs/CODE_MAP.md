@@ -373,7 +373,8 @@ The arrows (and the arrow keys) go through the other images of the same folder.
 
 **[src/components/LimitsCard.vue](../src/components/LimitsCard.vue)**  
 Speed and flow override (M220 / M221) and the printer's velocity and acceleration limits  
-(SET_VELOCITY_LIMIT). Sliders show the value while dragging and send it when released.
+(SET_VELOCITY_LIMIT). Sliders show the value while dragging and send it when released; typed values are  
+sent on Enter, and Esc or leaving the field puts the current value back.
 
 **[src/components/LiveZCard.vue](../src/components/LiveZCard.vue)**  
 Small card for the first layer: live X / Y / Z, the Z offset and baby-step buttons. Meant for the print layout,  

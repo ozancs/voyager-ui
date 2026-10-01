@@ -225,6 +225,7 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
 }
 .card {
   overflow: auto;
+  container-type: inline-size;
 }
 .body {
   --h: 44px;
@@ -364,5 +365,15 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   background: var(--s3);
   color: var(--tx);
   box-shadow: inset 3px 0 0 var(--ac);
+}
+/* narrow card: the per-axis rows already do everything the D-pad does, so drop the D-pad instead of wrapping
+   it to a second line (which made the card scroll inside the page). 580px: above it the D-pad still fits once
+   v-fit shrinks the card to 75%. Last in the file so it wins over .grp */
+@container (max-width: 580px) {
+  .dpad,
+  .zcol,
+  .steps {
+    display: none;
+  }
 }
 </style>
