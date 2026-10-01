@@ -1712,4 +1712,6 @@ export default {
   "Endless spool": "エンドレススプール",
   "When a gate runs out, continue from the next gate in its group.": "ゲートが空になったら、同じグループの次のゲートから続けます。",
   "Groups are set in mmu_vars.cfg (endless_spool_groups).": "グループは mmu_vars.cfg で設定します（endless_spool_groups）。",
+  "after the print": "印刷後",
+  "pending": "保留中",
 }

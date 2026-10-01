@@ -1712,4 +1712,6 @@ export default {
   "Endless spool": "Endless spool",
   "When a gate runs out, continue from the next gate in its group.": "Quando um gate acaba, continuar do próximo gate do grupo.",
   "Groups are set in mmu_vars.cfg (endless_spool_groups).": "Os grupos são definidos em mmu_vars.cfg (endless_spool_groups).",
+  "after the print": "após a impressão",
+  "pending": "pendente",
 }

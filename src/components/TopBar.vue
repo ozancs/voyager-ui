@@ -41,6 +41,8 @@ const fileInput = ref(null);
 const uploading = ref(null);
 const showBell = ref(false);
 const showPower = ref(false);
+const showMore = ref(false); // narrow screens: search, upload, save config, customize, settings, power
+const showJob = ref(false); // phones: the print pill opens pause, cancel, exclude and the queue
 const confirm = ref(null);
 const askCancel = ref(false);
 const thumb = computed(() => {
@@ -217,7 +219,7 @@ function pause() {
         <Icon name="gear" :size="15" /><span class="grow">{{ t('Manage printers') }}</span>
       </button>
     </Popover>
-    <div class="pill" :class="{ act: active }">
+    <div class="pill" :class="{ act: active, tap: active }" @click="active && (showJob = !showJob)">
       <div class="pth">
         <img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
           v-else
@@ -232,6 +234,14 @@ function pause() {
             label
           }}</b>
           <span v-if="active" class="mono st2">{{ (progress * 100).toFixed(1) }}%</span>
+          <Icon
+            v-if="active"
+            name="chev"
+            :size="14"
+            :stroke="2.6"
+            class="jchev"
+            :style="{ transform: showJob ? 'rotate(-90deg)' : 'rotate(90deg)' }"
+          />
         </div>
         <span class="mono fn">{{
           state.klippy !== 'ready' && state.klippyMessage
@@ -254,21 +264,21 @@ function pause() {
           v-if="printState === 'paused'"
           class="btn pbtn"
           :aria-label="t('Resume')"
-          @click="pauseResume('RESUME')"
+          @click.stop="pauseResume('RESUME')"
         >
           <Icon name="play" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Resume') }}</span>
         </button>
-        <button v-else class="btn pbtn" :aria-label="t('Pause')" @click="pauseResume('PAUSE')">
+        <button v-else class="btn pbtn" :aria-label="t('Pause')" @click.stop="pauseResume('PAUSE')">
           <Icon name="pause" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Pause') }}</span>
         </button>
-        <button class="btn pbtn" :aria-label="t('Cancel print')" @click="askCancel = true">
+        <button class="btn pbtn" :aria-label="t('Cancel print')" @click.stop="askCancel = true">
           <Icon name="sq" :size="16" :stroke="2.4" />
         </button>
         <button
           class="btn pbtn exo"
           :aria-label="t('Exclude object')"
           :disabled="!eo.objects?.length"
-          @click="emit('exclude')"
+          @click.stop="emit('exclude')"
         >
           <Icon name="excl" :size="16" :stroke="2.4" /><span
             v-if="eo.objects?.length"
@@ -282,7 +292,7 @@ function pause() {
         v-if="state.queue.jobs?.length"
         class="btn pbtn qb"
         :title="t('{n} jobs queued', { n: state.queue.jobs.length })"
-        @click="go('files')"
+        @click.stop="go('files')"
       >
         <Icon name="queue" :size="16" /><span class="mono">{{ state.queue.jobs.length }}</span>
       </button>
@@ -297,6 +307,75 @@ function pause() {
           <Icon name="refresh" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Reprint') }}</span>
         </button>
       </template>
+    </div>
+    <div v-if="showJob && active" class="dd card job" v-away="() => (showJob = false)">
+      <div class="col" style="gap: 6px; padding: 2px 4px">
+        <b class="fnm">{{ S('print_stats').filename }}</b>
+        <div class="bar state" :style="{ height: '8px', '--pst': stateColor }">
+          <div :style="{ width: progress * 100 + '%' }"></div>
+        </div>
+        <div class="row mono meta" style="justify-content: space-between">
+          <span>{{ (progress * 100).toFixed(1) }}%</span
+          ><span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span
+          ><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span
+          ><span>{{ t('ETA {time}', { time: eta }) }}</span>
+        </div>
+      </div>
+      <div style="height: 1px; background: var(--bd); margin: 4px 0"></div>
+      <button
+        v-if="printState === 'paused'"
+        class="btn clear mi"
+        @click="
+          showJob = false;
+          pauseResume('RESUME');
+        "
+      >
+        <Icon name="play" :size="18" />{{ t('Resume') }}
+      </button>
+      <button
+        v-else
+        class="btn clear mi"
+        @click="
+          showJob = false;
+          pauseResume('PAUSE');
+        "
+      >
+        <Icon name="pause" :size="18" />{{ t('Pause') }}
+      </button>
+      <button
+        class="btn clear mi"
+        :disabled="!eo.objects?.length"
+        @click="
+          showJob = false;
+          emit('exclude');
+        "
+      >
+        <Icon name="excl" :size="18" />{{ t('Exclude object')
+        }}<span v-if="eo.objects?.length" class="mono mu" style="margin-left: auto"
+          >{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span
+        >
+      </button>
+      <button
+        v-if="state.queue.jobs?.length"
+        class="btn clear mi"
+        @click="
+          showJob = false;
+          go('files');
+        "
+      >
+        <Icon name="queue" :size="18" />{{ t('Job queue')
+        }}<span class="mono mu" style="margin-left: auto">{{ state.queue.jobs.length }}</span>
+      </button>
+      <button
+        class="btn clear mi"
+        style="color: var(--dg)"
+        @click="
+          showJob = false;
+          askCancel = true;
+        "
+      >
+        <Icon name="sq" :size="18" />{{ t('Cancel print') }}
+      </button>
     </div>
     <button class="btn lg srch hide-s" :aria-label="t('Search (Ctrl+K)')" @click="state.spotlight = true">
       <Icon name="search" :size="18" :stroke="2.4" /><kbd class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
@@ -369,8 +448,86 @@ function pause() {
     <button class="btn ibtn hide-s" :aria-label="t('Interface settings')" @click="state.settingsOpen = 'general'">
       <Icon name="gear" :size="22" :stroke="2.4" />
     </button>
+    <div class="rel more">
+      <button class="btn ibtn" :aria-label="t('More')" @click="showMore = !showMore">
+        <span class="dots" aria-hidden="true">···</span>
+      </button>
+      <div v-if="showMore" class="dd card" style="width: 260px" v-away="() => (showMore = false)">
+        <button
+          class="btn clear mi"
+          @click="
+            showMore = false;
+            state.spotlight = true;
+          "
+        >
+          <Icon name="search" :size="18" />{{ t('Search') }}
+        </button>
+        <button
+          class="btn clear mi"
+          :disabled="uploading !== null"
+          @click="
+            showMore = false;
+            fileInput.click();
+          "
+        >
+          <Icon name="upload" :size="18" />{{ t('Upload & Print') }}
+        </button>
+        <button
+          class="btn clear mi"
+          :disabled="!savePending || active"
+          @click="
+            showMore = false;
+            gcode('SAVE_CONFIG');
+          "
+        >
+          <Icon name="save" :size="18" />{{ t('Save Config')
+          }}<span v-if="savePending" class="mono mu" style="margin-left: auto">{{
+            active ? t('after the print') : t('pending')
+          }}</span>
+        </button>
+        <button
+          v-if="!state.editDash"
+          class="btn clear mi"
+          @click="
+            showMore = false;
+            customize();
+          "
+        >
+          <Icon name="layout" :size="18" />{{ t('Customize dashboard') }}
+        </button>
+        <button
+          class="btn clear mi"
+          @click="
+            showMore = false;
+            state.settingsOpen = 'general';
+          "
+        >
+          <Icon name="gear" :size="18" />{{ t('Interface settings') }}
+        </button>
+        <template v-if="state.power.length">
+          <div style="height: 1px; background: var(--bd); margin: 4px 0"></div>
+          <span class="sec-lbl" style="padding: 2px 4px">{{ t('Power devices') }}</span>
+          <PowerList compact />
+        </template>
+        <div class="pwr-s">
+          <div style="height: 1px; background: var(--bd); margin: 4px 0"></div>
+          <button
+            v-for="p in POWER"
+            :key="p.k"
+            class="btn clear mi"
+            :style="{ color: p.danger ? 'var(--dg)' : 'var(--tx)' }"
+            @click="
+              showMore = false;
+              doPower(p);
+            "
+          >
+            <Icon :name="p.icon" :size="18" />{{ t(p.label) }}
+          </button>
+        </div>
+      </div>
+    </div>
     <LockButton />
-    <div class="rel">
+    <div class="rel pwr">
       <button class="btn ibtn" :aria-label="t('Power')" @click="showPower = !showPower">
         <Icon name="power" :size="22" :stroke="2.4" />
       </button>
@@ -643,6 +800,48 @@ function pause() {
     display: inline-flex;
   }
 }
+/* the ⋯ menu holds what hide-s takes off the bar on narrow screens */
+.more {
+  display: none;
+}
+.pwr-s {
+  display: none;
+}
+.dots {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1;
+  margin-top: -4px;
+}
+.jchev {
+  display: none;
+  flex-shrink: 0;
+  color: var(--mu);
+}
+.mi {
+  justify-content: flex-start;
+  gap: 10px;
+  height: 40px;
+  color: var(--tx);
+  font-weight: 600;
+}
+.dd.job {
+  left: 50px;
+  right: auto;
+  width: min(360px, calc(100vw - 20px));
+}
+.fnm {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 1100px) {
+  .more {
+    display: block;
+  }
+}
 @media (max-width: 1100px) {
   .brand {
     width: auto;
@@ -688,8 +887,19 @@ function pause() {
 @media (max-width: 480px) {
   .pth,
   .brand,
-  .st2 {
+  .st2,
+  .pill.act .pbtn,
+  .pwr {
     display: none;
+  }
+  .pwr-s {
+    display: block;
+  }
+  .jchev {
+    display: inline-block;
+  }
+  .pill.tap {
+    cursor: pointer;
   }
   .pill {
     padding: 0 6px;

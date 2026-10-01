@@ -1712,4 +1712,6 @@ export default {
   "Endless spool": "Endless spool",
   "When a gate runs out, continue from the next gate in its group.": "某个闸门用完时，从同组的下一个闸门继续。",
   "Groups are set in mmu_vars.cfg (endless_spool_groups).": "分组在 mmu_vars.cfg 中设置（endless_spool_groups）。",
+  "after the print": "打印后",
+  "pending": "待处理",
 }

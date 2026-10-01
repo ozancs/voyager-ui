@@ -1712,4 +1712,6 @@ export default {
   "Endless spool": "Endless spool",
   "When a gate runs out, continue from the next gate in its group.": "Коли гейт закінчується, продовжувати з наступного гейта його групи.",
   "Groups are set in mmu_vars.cfg (endless_spool_groups).": "Групи задаються в mmu_vars.cfg (endless_spool_groups).",
+  "after the print": "після друку",
+  "pending": "очікує",
 }

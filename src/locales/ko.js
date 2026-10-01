@@ -1712,4 +1712,6 @@ export default {
   "Endless spool": "엔드리스 스풀",
   "When a gate runs out, continue from the next gate in its group.": "게이트가 비면 같은 그룹의 다음 게이트에서 이어갑니다.",
   "Groups are set in mmu_vars.cfg (endless_spool_groups).": "그룹은 mmu_vars.cfg에서 설정합니다 (endless_spool_groups).",
+  "after the print": "출력 후",
+  "pending": "대기 중",
 }
