@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.26.1
+
+- Phone: while printing, the status pill in the top bar opens a menu with the file, progress, Pause, Exclude object, Job queue and Cancel. A ··· button on narrow screens holds Search, Upload & Print, Save Config, Customize dashboard, Interface settings and the power actions, which did not fit on the bar before
+
 ## 0.26.0
 
 - Timelapse (moonraker-timelapse): a Timelapse entry on the Webcam page with the frames of the running print, how long the clip will be, Render now, the finished clips as a gallery with a player (speed, loop, frame stepping, save a still) and all the settings, including which camera records. A small Timelapse card for the dashboard
