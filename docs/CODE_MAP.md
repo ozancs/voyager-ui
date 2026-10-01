@@ -69,6 +69,11 @@ All printers overview: reads the state of every saved printer over plain HTTP (n
 seconds while the page is open. Each printer is asked with its own login token (the same one the UI keeps per  
 address), never with another printer's. The printer this page is connected to comes from the live state.
 
+**[src/gcode3mf.js](../src/gcode3mf.js)**  
+Printable file names, and reading the G-code out of a .gcode.3mf (OrcaSlicer and Bambu Studio can send the  
+sliced plate as a zip: Metadata/plate_1.gcode plus a thumbnail and an md5). Klipper runs the file through  
+Moonraker as is; the viewer and the object map need the text inside, so the zip is opened in the browser.
+
 **[src/gcodeHelp.js](../src/gcodeHelp.js)**  
 What a console command does, for the tooltip on command lines in the console. Standard G-codes that  
 Klipper supports come from the list below (translated); Klipper's own commands and macros use the help text  
@@ -191,6 +196,12 @@ paths so nothing else in their database is touched. The other UI picks the value
 **[src/tablet.js](../src/tablet.js)**  
 Tablet mode, for a tablet or touch screen that stays next to the printer: larger touch targets, no hover  
 tooltips, full screen and the screen kept on (Wake Lock) while the page is visible. Kept per browser.
+
+**[src/timelapse.js](../src/timelapse.js)**  
+moonraker-timelapse: settings, the frames of the running print, rendering and the finished clips.  
+The component takes one snapshot per layer (or every N seconds in hyperlapse mode) from one camera and  
+renders them with ffmpeg when the print ends. Clips land in the "timelapse" file root, frames of the  
+current print in "timelapse_frames". It talks over machine.timelapse.* and sends notify_timelapse_event.
 
 **[src/undo.js](../src/undo.js)**  
 Undo for deletes: the item disappears from the list at once, the real delete runs 10 seconds later. The toast in  
@@ -412,6 +423,16 @@ Multi material units, found automatically:
   AFC / Box Turtle                 -> printer objects "AFC" and "AFC_stepper <lane>" / "AFC_lane <lane>"  
 Gates show colour, material and which tool uses them. Anything that moves filament needs a second click.
 
+**[src/components/MmuPath.vue](../src/components/MmuPath.vue)**  
+Happy Hare filament path: gate → bowden → extruder entry → toolhead sensor → nozzle, with the filament drawn in  
+the gate's colour up to where Happy Hare says it is (filament_pos 0..10). Sensors show as dots: lit when they  
+see filament. While a load or unload runs the bowden part fills with the progress.
+
+**[src/components/MmuToolMap.vue](../src/components/MmuToolMap.vue)**  
+Happy Hare tool-to-gate map: which gate each T command loads from, as the slicer sees it. Edited in place and  
+sent as one MMU_TTG_MAP MAP=... command; Reset puts T0=gate 0, T1=gate 1 and so on back. Endless spool: when a  
+gate runs out, Happy Hare continues from the next gate in the same group.
+
 **[src/components/Modal.vue](../src/components/Modal.vue)**  
 Dialog frame: title, close button, content and a footer row for buttons. Escape closes only the dialog on top.
 
@@ -509,6 +530,21 @@ range, sensors picked with the eye button, dashed lines for targets.
 **[src/components/TempsCard.vue](../src/components/TempsCard.vue)**  
 Temperature table: current, target and power for heaters and sensors. Targets can be typed in,  
 presets and cooldown are in the header.
+
+**[src/components/TimelapseCard.vue](../src/components/TimelapseCard.vue)**  
+Dashboard card: is the timelapse recording, how many frames so far, the newest frame, and the last clips.
+
+**[src/components/TimelapsePanel.vue](../src/components/TimelapsePanel.vue)**  
+Timelapse: what the running print has captured so far (frame count, the newest frames as a film strip, how long  
+the clip will be), a Render button, and the finished clips as a gallery that opens in the player.
+
+**[src/components/TimelapsePlayer.vue](../src/components/TimelapsePlayer.vue)**  
+Player for a finished timelapse clip: speed, loop, frame stepping (, and . keys), save a still of the current  
+frame, download or delete the clip, and arrows to move to the previous or next clip.
+
+**[src/components/TimelapseSettings.vue](../src/components/TimelapseSettings.vue)**  
+moonraker-timelapse settings. Each change is sent at once (machine.timelapse.post_settings) and kept by the  
+component in its own database, so Mainsail and Fluidd see the same values.
 
 **[src/components/Toggle.vue](../src/components/Toggle.vue)**  
 On/off switch bound with v-model.
