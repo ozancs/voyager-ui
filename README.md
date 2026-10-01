@@ -21,6 +21,7 @@ Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KI
 - **All your printers in one place.** Switch between them, or see all of them on one page with progress and camera.
 - **Calibrations in one page.** Input shaper, PID, probe, bed leveling, Shake&Tune and more, with the results shown as plain numbers.
 - **Guided calibrations.** PID, leveling, bed screws, probe accuracy, Z offset, bed mesh and input shaper, each on its own, with a picture of what the printer is doing.
+- **Timelapse.** With moonraker-timelapse: the frames of the running print, the clips in a gallery with a player, and the settings, on the Webcam page.
 - **Errors in plain words.** Common Klipper errors come with the usual cause and what to check.
 - **A config editor that knows Klipper.** It checks your files before you save and keeps a history of every version, with what changed and a way back.
 - **Health page.** Board connection errors, driver faults, heaters compared with their own earlier behaviour, maintenance reminders.

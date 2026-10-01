@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.26.0
+
+- Timelapse (moonraker-timelapse): a Timelapse entry on the Webcam page with the frames of the running print, how long the clip will be, Render now, the finished clips as a gallery with a player (speed, loop, frame stepping, save a still) and all the settings, including which camera records. A small Timelapse card for the dashboard
+- Happy Hare: the filament path with the sensors, where the filament is and the bowden progress; a tool-to-gate map editor and the endless spool switch (Tool map button on the MMU card) (#8)
+- `.gcode.3mf` files (OrcaSlicer "send as 3mf") show up as printable and open in the G-code viewer (#3)
+- Update on a Moonraker older than 0.8 (stock QIDI) no longer fails with "Method not found" (#1)
+- Fan tiles: the RPM sits above the percentage so the fan icon keeps its size (#2)
+- Toolhead card: when it is narrow, the D-pad hides instead of making the card scroll (#4)
+- Fields that send a value to the printer (targets, speed, flow, limits, PA, retraction) apply on Enter only; Esc, Tab or a click elsewhere drop what was typed (#6)
+- New installs use port 1977 (the year Voyager 1 launched); an existing install keeps its port (#5)
+- Guided calibrations: the message in the corner stays when Open is clicked; Measure again on the Health page says what it did; the demo stops counting layers when the print stops
+
 ## 0.25.6
 
 - Guided calibrations: while one runs, the message in the corner stays until it ends, with the elapsed time, a progress bar and an Open button back to it. After E-STOP or a Klipper shutdown the dialog says a Firmware Restart is needed
