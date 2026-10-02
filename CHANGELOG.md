@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.26.2
+
+- Macros card: Buttons or List view, drag the macros into your own order, and an optional name shown instead of the macro name (Customize, gear on the card) (#9)
+- Macro group cards: Buttons or List view per card, buttons dragged into order in the editor (#9)
+- New Print controls card with speed factor, flow and a 100% button. While it is on the dashboard, Machine Limits leaves speed and flow out (#9)
+- Temperature presets can run G-code after the temperatures, synced with Mainsail's preset G-code (#9)
+- A plain .3mf, or a .gcode.3mf on a printer whose firmware cannot read it, is no longer started
+- Timelapse: clip previews show up, the park wait is in seconds, and settings and clips are read again after switching printers
+- Phone: the print pill menu opens only on a phone and closes when the print ends
+
 ## 0.26.1
 
 - Phone: while printing, the status pill in the top bar opens a menu with the file, progress, Pause, Exclude object, Job queue and Cancel. A ··· button on narrow screens holds Search, Upload & Print, Save Config, Customize dashboard, Interface settings and the power actions, which did not fit on the bar before
