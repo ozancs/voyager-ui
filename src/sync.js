@@ -56,7 +56,7 @@ function findHeater(name) {
 function toMainsailPresets(presets) {
   return presets.map((p) => ({
     name: p.name,
-    gcode: '',
+    gcode: p.gcode || '',
     values: Object.fromEntries(
       Object.entries(p.temps || {}).map(([h, v]) => [
         h,
@@ -147,6 +147,7 @@ function presetsFromMainsail(list) {
     .map((p, i) => ({
       id: 'ms' + i + '_' + Date.now(),
       name: p.name,
+      gcode: typeof p.gcode === 'string' ? p.gcode : '',
       temps: Object.fromEntries(
         Object.entries(p.values || {}).map(([h, v]) => [
           findHeater(h) || h,

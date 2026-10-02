@@ -1712,5 +1712,16 @@
 "When a gate runs out, continue from the next gate in its group.",
 "Groups are set in mmu_vars.cfg (endless_spool_groups).",
 "after the print",
-"pending"
+"pending",
+"Print controls",
+"G-code after the temperatures (optional)",
+"e.g. HEAT_SOAK or M106 S128, one command per line",
+"Drag to reorder, or use the arrow keys",
+"Buttons",
+"List",
+"Drag to change the order. A name typed here is shown instead of the macro name; leave it empty to keep the macro name.",
+"Name shown for {name}",
+"Show on the card",
+"Hide from the card",
+"Print controls (speed, flow)"
 ]

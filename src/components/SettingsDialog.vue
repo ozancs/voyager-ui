@@ -608,6 +608,16 @@ function reset() {
                   ><span class="lbl">{{ prettyName(h) }}</span
                   ><input v-model.number="p.temps[h]" type="number" class="input mono" style="width: 84px"
                 /></label>
+                <label class="col pg" style="gap: 4px"
+                  ><span class="lbl">{{ t('G-code after the temperatures (optional)') }}</span
+                  ><textarea
+                    v-model="p.gcode"
+                    class="input mono"
+                    rows="2"
+                    :placeholder="t('e.g. HEAT_SOAK or M106 S128, one command per line')"
+                    :aria-label="t('G-code after the temperatures (optional)')"
+                  ></textarea>
+                </label>
                 <button
                   class="btn clear ibtn sm"
                   :aria-label="t('Remove preset')"
@@ -1261,6 +1271,16 @@ function reset() {
   flex-wrap: wrap;
   padding: 10px 0;
   border-bottom: 1px solid var(--bd);
+}
+.pr .pg {
+  flex-basis: 100%;
+  order: 10; /* under the temperatures, the remove button stays on the first row */
+}
+.pr .pg textarea {
+  height: auto;
+  padding: 8px 12px;
+  resize: vertical;
+  font-size: 12.5px;
 }
 .swc {
   width: 34px;

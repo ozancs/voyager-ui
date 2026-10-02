@@ -842,6 +842,9 @@ export async function applyPreset(p) {
     if (!state.objects.includes(name)) continue;
     await setHeater(name, t);
   }
+  // extra G-code after the temperatures (a macro, a fan, a light), one command per line like Mainsail's presets
+  const g = String(p.gcode || '').trim();
+  if (g) await gcode(g);
 }
 
 export function setFan(id, pct) {

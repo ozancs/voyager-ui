@@ -383,9 +383,8 @@ Shows an image from a Moonraker root (e.g. the Shake&Tune graphs in config/Shake
 The arrows (and the arrow keys) go through the other images of the same folder.
 
 **[src/components/LimitsCard.vue](../src/components/LimitsCard.vue)**  
-Speed and flow override (M220 / M221) and the printer's velocity and acceleration limits  
-(SET_VELOCITY_LIMIT). Sliders show the value while dragging and send it when released; typed values are  
-sent on Enter, and Esc or leaving the field puts the current value back.
+The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor / flow below them when  
+the Print controls card is not on the dashboard (the dashboard says which cards it shows).
 
 **[src/components/LiveZCard.vue](../src/components/LiveZCard.vue)**  
 Small card for the first layer: live X / Y / Z, the Z offset and baby-step buttons. Meant for the print layout,  
@@ -410,8 +409,9 @@ Dialogs Klipper asks for: macro prompts (action:prompt_*), manual probe (PROBE_C
 Z_ENDSTOP_CALIBRATE, manual bed mesh...), BED_SCREWS_ADJUST and SCREWS_TILT_CALCULATE results.
 
 **[src/components/MacrosCard.vue](../src/components/MacrosCard.vue)**  
-All printer macros as buttons. The grid follows the card size: wide card -> many columns, tall card -> a column.  
-"fit" mode shrinks buttons so everything is visible, "scroll" mode keeps a minimum size and scrolls.
+All printer macros as buttons or as a compact list. The button grid follows the card size: wide card -> many  
+columns, tall card -> a column. "fit" mode shrinks buttons so everything is visible, "scroll" mode keeps a minimum  
+size and scrolls. Order, names and hidden macros come from the card options (Customize -> gear).
 
 **[src/components/MiniMeshCard.vue](../src/components/MiniMeshCard.vue)**  
 Small bed mesh preview for the dashboard: the probed heights as coloured cells, with range and  
@@ -471,6 +471,10 @@ to print anyway or cancel. "Don't check again" turns the check off (Settings > G
 Print Status card: thumbnail, state, layer, Z, live speed and flow, filament, times and the finish time  
 estimate (click it to see how it was worked out), pause / cancel / exclude, or reprint when idle.
 
+**[src/components/PrintControlsCard.vue](../src/components/PrintControlsCard.vue)**  
+Print controls: speed factor and flow, the two values that change during a print, with a quick way back to 100%.  
+While this card is on the dashboard the Machine Limits card leaves them out.
+
 **[src/components/PrintersDialog.vue](../src/components/PrintersDialog.vue)**  
 The printer list: printers this copy of the UI can switch between, each with a nickname and an address.  
 Kept in this browser (printers.js). Saving and picking a printer reloads the page on that printer.
@@ -507,6 +511,16 @@ Interface settings as a dialog (like Mainsail's), categories on the left. Opened
 **[src/components/SideNav.vue](../src/components/SideNav.vue)**  
 Side menu: the pages, a badge with the number of health issues, and the footer (connection state,  
 slow requests, "new version" hint that opens the update manager). Can be pinned, hidden or auto-hide.
+
+**[src/components/SortList.vue](../src/components/SortList.vue)**  
+A list whose rows can be dragged into a new order by their handle (mouse, touch and pen through pointer events,  
+so it also works on a phone where HTML drag and drop does not). The keyboard can move the focused handle with  
+the arrow keys. v-model is the array; each row is the default slot with { item, index }.
+
+**[src/components/SpeedFlow.vue](../src/components/SpeedFlow.vue)**  
+Speed factor (M220) and flow (M221): slider, -/+ and a typed value. The slider shows the value while dragging and  
+sends it when released; a typed value is sent on Enter, Esc or leaving the field puts the current value back.  
+Used by the Print controls card and, when that card is not on the dashboard, by the Machine Limits card.
 
 **[src/components/SpoolCard.vue](../src/components/SpoolCard.vue)**  
 Active Spoolman spool: filament name, colour, remaining weight. Only shown when Moonraker has  

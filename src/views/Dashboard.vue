@@ -3,7 +3,7 @@
 // MODULES lists every card type with its size limits. Customize mode: drag, resize (also from the bottom-left
 // corner), hide, colour and add cards, a separate layout while printing, undo and saved backups. On narrow
 // screens the cards stack in one column with their own order (mobileOrder).
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, provide } from 'vue';
 import { GridLayout, GridItem } from 'grid-layout-plus';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
@@ -29,6 +29,7 @@ import MacrosCard from '../components/MacrosCard.vue';
 import DevicesCard from '../components/DevicesCard.vue';
 import RecentFilesCard from '../components/RecentFilesCard.vue';
 import TimelapseCard from '../components/TimelapseCard.vue';
+import PrintControlsCard from '../components/PrintControlsCard.vue';
 import { tl } from '../timelapse';
 import RecentJobsCard from '../components/RecentJobsCard.vue';
 import SpoolCard from '../components/SpoolCard.vue';
@@ -51,6 +52,8 @@ import IconPicker from '../components/IconPicker.vue';
 import LiveZCard from '../components/LiveZCard.vue';
 import FavoritesCard from '../components/FavoritesCard.vue';
 import { pushDown } from '../calc';
+import { orderMacros } from '../macros';
+import SortList from '../components/SortList.vue';
 
 const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7] },
@@ -62,6 +65,7 @@ const MODULES = {
   livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 3], def: [3, 4] },
   extruder: { c: ExtruderCard, n: 'Extruder', min: [3, 5], def: [6, 7] },
   limits: { c: LimitsCard, n: 'Machine Limits', min: [3, 5], def: [6, 7] },
+  printctl: { c: PrintControlsCard, n: 'Print controls (speed, flow)', min: [3, 3], def: [4, 4] },
   print: { c: PrintCard, n: 'Print Status', min: [5, 3], def: [12, 3] },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
@@ -223,6 +227,11 @@ function clean(l) {
   return out;
 }
 const layout = ref(clean(srcLayout()));
+// which cards are on the dashboard now (Machine Limits leaves speed and flow to the Print controls card)
+provide(
+  'dashCards',
+  computed(() => layout.value.map((x) => x.i)),
+);
 watch(
   () => hasMmu.value && state.settingsLoaded,
   (on) => {
@@ -456,12 +465,25 @@ const mo = computed(() => {
   return o.macros || (o.macros = { scroll: false, showHidden: false, hidden: [] });
 });
 const allMacros = computed(() =>
-  state.objects
-    .filter((o) => o.startsWith('gcode_macro '))
-    .map((o) => o.slice(12))
-    .filter((m) => mo.value.showHidden || !m.startsWith('_'))
-    .sort(),
+  orderMacros(
+    state.objects
+      .filter((o) => o.startsWith('gcode_macro '))
+      .map((o) => o.slice(12))
+      .filter((m) => mo.value.showHidden || !m.startsWith('_')),
+    mo.value.order,
+  ),
 );
+// dragging a row sets the order of every macro listed; macros hidden by "show hidden" keep their old place
+function setOrder(list) {
+  const rest = (mo.value.order || []).filter((m) => !list.includes(m));
+  mo.value.order = [...list, ...rest];
+}
+function setLabel(m, v) {
+  const l = { ...(mo.value.labels || {}) };
+  if (v.trim()) l[m] = v.trim();
+  else delete l[m];
+  mo.value.labels = l;
+}
 function toggleMacro(m) {
   const h = mo.value.hidden || (mo.value.hidden = []);
   const i = h.indexOf(m);
@@ -471,11 +493,18 @@ function toggleMacro(m) {
 // ---- custom card editor ----
 const editing = ref(null); // { id, data }
 const iconFor = ref(null);
+// rows in the editor need a stable key to be dragged; it is not saved
+let bk = 0;
+const keyed = (b) => ({ ...b, _k: ++bk });
 function editCard(id) {
-  editing.value = { id, data: JSON.parse(JSON.stringify(state.settings.customCards[id])) };
+  const d = JSON.parse(JSON.stringify(state.settings.customCards[id]));
+  if (d.buttons) d.buttons = d.buttons.map(keyed);
+  editing.value = { id, data: d };
 }
 function saveCard() {
-  state.settings.customCards = { ...state.settings.customCards, [editing.value.id]: editing.value.data };
+  const d = editing.value.data;
+  if (d.buttons) d.buttons = d.buttons.map(({ _k, ...b }) => b);
+  state.settings.customCards = { ...state.settings.customCards, [editing.value.id]: d };
   editing.value = null;
 }
 </script>
@@ -728,6 +757,13 @@ function saveCard() {
 
   <Modal v-if="optsFor === 'macros'" :title="t('Macros card')" width="620px" @close="optsFor = null">
     <div class="row" style="justify-content: space-between">
+      <b>{{ t('View') }}</b>
+      <div class="seg" style="width: 220px">
+        <button :class="{ on: mo.view !== 'list' }" @click="mo.view = 'buttons'">{{ t('Buttons') }}</button>
+        <button :class="{ on: mo.view === 'list' }" @click="mo.view = 'list'">{{ t('List') }}</button>
+      </div>
+    </div>
+    <div v-if="mo.view !== 'list'" class="row" style="justify-content: space-between">
       <div class="col" style="gap: 2px">
         <b>{{ t('Scroll instead of shrinking') }}</b
         ><span class="mu" style="font-size: 12.5px">{{
@@ -740,17 +776,33 @@ function saveCard() {
       <b>{{ t('Show hidden macros (starting with _)') }}</b
       ><Toggle v-model="mo.showHidden" :label="t('Show hidden macros')" />
     </div>
-    <span class="lbl">{{ t('Click a macro to hide or show it on the card') }}</span>
-    <div class="row" style="flex-wrap: wrap; gap: 6px; max-height: 40vh; overflow: auto">
-      <button
-        v-for="m in allMacros"
-        :key="m"
-        class="mchip code"
-        :class="{ off: (mo.hidden || []).includes(m) }"
-        @click="toggleMacro(m)"
-      >
-        {{ m }}
-      </button>
+    <span class="lbl">{{
+      t(
+        'Drag to change the order. A name typed here is shown instead of the macro name; leave it empty to keep the macro name.',
+      )
+    }}</span>
+    <div style="max-height: 46vh; overflow: auto">
+      <SortList :model-value="allMacros" @update:model-value="setOrder">
+        <template #default="{ item: m }">
+          <span class="code mname" :class="{ off: (mo.hidden || []).includes(m) }">{{ m }}</span>
+          <input
+            class="input mlabel"
+            :value="mo.labels?.[m] || ''"
+            :placeholder="m.replace(/_/g, ' ')"
+            :aria-label="t('Name shown for {name}', { name: m })"
+            @change="setLabel(m, $event.target.value)"
+            @keydown.enter="$event.target.blur()"
+          />
+          <button
+            class="btn clear ibtn sm"
+            :aria-label="(mo.hidden || []).includes(m) ? t('Show on the card') : t('Hide from the card')"
+            :data-tip="(mo.hidden || []).includes(m) ? t('Show on the card') : t('Hide from the card')"
+            @click="toggleMacro(m)"
+          >
+            <Icon :name="(mo.hidden || []).includes(m) ? 'eyeoff' : 'eye'" :size="16" />
+          </button>
+        </template>
+      </SortList>
     </div>
     <template #foot
       ><button class="btn lg acc" @click="optsFor = null">{{ t('Done') }}</button></template
@@ -796,21 +848,39 @@ function saveCard() {
       </div>
     </template>
     <template v-else>
-      <div v-for="(b, k) in editing.data.buttons" :key="k" class="row">
-        <button class="btn ibtn" style="width: 40px; height: 40px" :aria-label="t('Change icon')" @click="iconFor = b">
-          <Icon :name="b.icon || 'star'" :size="20" :style="{ color: b.color || 'var(--ac)' }" />
-        </button>
-        <input v-model="b.name" class="input" style="width: 130px" :aria-label="t('Button name')" />
-        <CmdInput v-model="b.gcode" input-class="input" :placeholder="t('command')" :aria-label="t('Command')" />
-        <Toggle v-model="b.highlight" :label="t('Highlight')" />
-        <button class="btn clear ibtn sm" :aria-label="t('Remove button')" @click="editing.data.buttons.splice(k, 1)">
-          <Icon name="trash" :size="16" />
-        </button>
+      <div class="row" style="justify-content: space-between">
+        <b>{{ t('View') }}</b>
+        <div class="seg" style="width: 220px">
+          <button :class="{ on: editing.data.view !== 'list' }" @click="editing.data.view = 'buttons'">
+            {{ t('Buttons') }}
+          </button>
+          <button :class="{ on: editing.data.view === 'list' }" @click="editing.data.view = 'list'">
+            {{ t('List') }}
+          </button>
+        </div>
       </div>
+      <SortList v-model="editing.data.buttons" :item-key="(b) => b._k">
+        <template #default="{ item: b, index: k }">
+          <button
+            class="btn ibtn"
+            style="width: 40px; height: 40px; flex: none"
+            :aria-label="t('Change icon')"
+            @click="iconFor = b"
+          >
+            <Icon :name="b.icon || 'star'" :size="20" :style="{ color: b.color || 'var(--ac)' }" />
+          </button>
+          <input v-model="b.name" class="input" style="width: 130px" :aria-label="t('Button name')" />
+          <CmdInput v-model="b.gcode" input-class="input" :placeholder="t('command')" :aria-label="t('Command')" />
+          <Toggle v-model="b.highlight" :label="t('Highlight')" />
+          <button class="btn clear ibtn sm" :aria-label="t('Remove button')" @click="editing.data.buttons.splice(k, 1)">
+            <Icon name="trash" :size="16" />
+          </button>
+        </template>
+      </SortList>
       <button
         class="btn"
         style="align-self: flex-start"
-        @click="editing.data.buttons.push({ name: 'New', icon: 'star', gcode: '', highlight: false })"
+        @click="editing.data.buttons.push(keyed({ name: 'New', icon: 'star', gcode: '', highlight: false }))"
       >
         <Icon name="plus" :size="16" />{{ t('Add button') }}
       </button>
@@ -883,19 +953,22 @@ function saveCard() {
   color: var(--mu);
   font-size: 13px;
 }
-.mchip {
-  height: 28px;
-  padding: 0 10px;
-  border-radius: 14px;
-  border: none;
-  background: var(--s2);
-  color: var(--tx);
-  font-size: 12px;
+.mname {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.mchip.off {
-  background: var(--s2);
+.mname.off {
   color: var(--mu2);
   text-decoration: line-through;
+}
+.mlabel {
+  width: 180px;
+  height: 32px;
+  font-size: 13px;
 }
 .al {
   gap: 8px;

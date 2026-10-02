@@ -36,3 +36,16 @@ export function mainParam(params) {
   const pref = ['TEMP', 'TARGET', 'TEMPERATURE', 'T', 'S', 'VALUE', 'SPEED', 'AMOUNT', 'LENGTH', 'DISTANCE'];
   return params.find((p) => pref.includes(p.name)) || (params.length === 1 ? params[0] : null);
 }
+
+// Macros in the order the user set on the Macros card: the ones in `order` first, in that order, then the rest
+// alphabetically (a macro added to the config later shows up at the end).
+export function orderMacros(list, order) {
+  const pos = new Map((order || []).map((m, i) => [m, i]));
+  return [...list].sort((a, b) => {
+    const pa = pos.has(a) ? pos.get(a) : Infinity,
+      pb = pos.has(b) ? pos.get(b) : Infinity;
+    return pa !== pb ? pa - pb : a.localeCompare(b);
+  });
+}
+// the name shown for a macro: the user's own label, or the macro name with spaces for underscores
+export const macroLabel = (m, labels) => (labels?.[m] || '').trim() || m.replace(/_/g, ' ');

@@ -1,12 +1,13 @@
 <script setup>
-// All printer macros as buttons. The grid follows the card size: wide card -> many columns, tall card -> a column.
-// "fit" mode shrinks buttons so everything is visible, "scroll" mode keeps a minimum size and scrolls.
+// All printer macros as buttons or as a compact list. The button grid follows the card size: wide card -> many
+// columns, tall card -> a column. "fit" mode shrinks buttons so everything is visible, "scroll" mode keeps a minimum
+// size and scrolls. Order, names and hidden macros come from the card options (Customize -> gear).
 defineOptions({ inheritAttrs: false });
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import { state, S, gcode, macroList, isPrinting, dangerIn, toast } from '../store';
 const locked = (m) => isPrinting.value && !!dangerIn(m);
-import { macroParams } from '../macros';
+import { macroParams, orderMacros, macroLabel } from '../macros';
 import { t } from '../i18n';
 
 const opts = computed(() => state.settings.cardOpts?.macros || {});
@@ -18,12 +19,19 @@ const all = computed(() => {
         .sort()
     : macroList.value;
   const hid = opts.value.hidden || [];
-  return list.filter((m) => !hid.includes(m));
+  return orderMacros(
+    list.filter((m) => !hid.includes(m)),
+    opts.value.order,
+  );
 });
+const listView = computed(() => opts.value.view === 'list');
+const label = (m) => macroLabel(m, opts.value.labels);
+const own = (m) => !!(opts.value.labels?.[m] || '').trim(); // a name the user typed keeps its own capitals
 const q = ref('');
-const shown = computed(() =>
-  q.value ? all.value.filter((m) => m.toLowerCase().includes(q.value.toLowerCase())) : all.value,
-);
+const shown = computed(() => {
+  const s = q.value.toLowerCase();
+  return s ? all.value.filter((m) => m.toLowerCase().includes(s) || label(m).toLowerCase().includes(s)) : all.value;
+});
 
 // ---- layout ----
 const box = ref(null);
@@ -88,7 +96,6 @@ function runPop() {
   pop.value = null;
 }
 const hasParams = (m) => macroParams(m).length > 0;
-const pretty = (m) => m.replace(/_/g, ' ');
 </script>
 
 <template>
@@ -104,8 +111,29 @@ const pretty = (m) => m.replace(/_/g, ' ');
         /></label>
       </div>
     </div>
-    <div ref="box" class="box" :class="{ scroll: grid.scroll }">
+    <div ref="box" class="box" :class="{ scroll: grid.scroll || listView }">
+      <div v-if="listView" class="ls" :class="{ two: size.w > 520 }">
+        <div v-for="m in shown" :key="m" class="li" :class="{ hidm: m.startsWith('_') }">
+          <button
+            class="lr"
+            :class="{ locked: locked(m), raw: own(m) }"
+            :data-tip="(locked(m) ? t('Locked while printing') + ': ' : '') + (S('gcode_macro ' + m).description || m)"
+            @click="click(m, $event)"
+          >
+            <Icon name="play" :size="12" :stroke="2.6" class="lp" /><span>{{ label(m) }}</span>
+          </button>
+          <button
+            v-if="hasParams(m)"
+            class="pm"
+            :aria-label="t('Parameters for {name}', { name: m })"
+            @click="openParams(m)"
+          >
+            <Icon name="chev" :size="12" />
+          </button>
+        </div>
+      </div>
       <div
+        v-else
         class="g"
         :style="{
           gridTemplateColumns: `repeat(${grid.cols}, minmax(0, 1fr))`,
@@ -116,11 +144,11 @@ const pretty = (m) => m.replace(/_/g, ' ');
         <div v-for="m in shown" :key="m" class="mb" :class="{ hidm: m.startsWith('_') }">
           <button
             class="run"
-            :class="{ locked: locked(m) }"
+            :class="{ locked: locked(m), raw: own(m) }"
             :data-tip="(locked(m) ? t('Locked while printing') + ': ' : '') + (S('gcode_macro ' + m).description || m)"
             @click="click(m, $event)"
           >
-            {{ pretty(m) }}
+            {{ label(m) }}
           </button>
           <button
             v-if="hasParams(m)"
@@ -204,6 +232,67 @@ const pretty = (m) => m.replace(/_/g, ' ');
 }
 .run::first-letter {
   text-transform: uppercase;
+}
+.run.raw,
+.lr.raw {
+  text-transform: none;
+}
+/* list view: one slim row per macro, two columns on a wide card */
+.ls {
+  display: grid;
+  gap: 4px 10px;
+  align-content: start;
+}
+.ls.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.li {
+  display: flex;
+  min-width: 0;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--s2);
+  overflow: hidden;
+}
+.li:hover {
+  background: var(--s3);
+}
+.lr {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  color: var(--tx);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 0 10px;
+  text-align: left;
+  text-transform: lowercase;
+}
+.lr span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lr:not(.raw) span::first-letter {
+  text-transform: uppercase;
+}
+.lr.locked {
+  opacity: 0.4;
+}
+.lp {
+  flex: none;
+  color: var(--mu);
+}
+.li:hover .lp {
+  color: var(--ac);
+}
+.hidm .lr {
+  color: var(--mu);
 }
 .pm {
   width: 26px;

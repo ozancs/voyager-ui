@@ -39,7 +39,7 @@ async function run(g, k) {
     <div class="card-h">
       <h2>{{ c.name }}</h2>
     </div>
-    <div class="mg">
+    <div class="mg" :class="{ ml: c.view === 'list' }">
       <button
         v-for="(b, k) in c.buttons || []"
         :key="k"
@@ -102,6 +102,23 @@ async function run(g, k) {
 }
 .cb:not(.hot) .bi b {
   color: var(--tx);
+}
+.mg.ml {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mg.ml .mb {
+  flex-direction: row;
+  justify-content: flex-start;
+  flex: none;
+  height: 36px;
+  padding: 0 10px;
+  gap: 10px;
+}
+.mg.ml .mb :deep(svg) {
+  width: 18px;
+  height: 18px;
 }
 .mg {
   flex: 1;
