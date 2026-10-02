@@ -1725,4 +1725,6 @@ export default {
   "Show on the card": "在卡片上显示",
   "Hide from the card": "从卡片隐藏",
   "Print controls (speed, flow)": "打印控制（速度、流量）",
+  "{name} is not sliced G-code, so it was not started.": "{name} 不是切片后的 G-code，因此没有开始打印。",
+  "This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.": "这台打印机无法读取 .gcode.3mf 文件。请从切片软件发送普通 G-code。",
 }

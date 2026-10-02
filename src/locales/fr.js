@@ -1725,4 +1725,6 @@ export default {
   "Show on the card": "Afficher sur la carte",
   "Hide from the card": "Masquer de la carte",
   "Print controls (speed, flow)": "Contrôles d'impression (vitesse, débit)",
+  "{name} is not sliced G-code, so it was not started.": "{name} n'est pas du G-code tranché, il n'a donc pas été lancé.",
+  "This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.": "Cette imprimante ne lit pas les fichiers .gcode.3mf. Envoyez du G-code simple depuis le trancheur.",
 }

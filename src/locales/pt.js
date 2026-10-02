@@ -1725,4 +1725,6 @@ export default {
   "Show on the card": "Mostrar no cartão",
   "Hide from the card": "Ocultar do cartão",
   "Print controls (speed, flow)": "Controles de impressão (velocidade, fluxo)",
+  "{name} is not sliced G-code, so it was not started.": "{name} não é G-code fatiado, então não foi iniciado.",
+  "This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.": "Esta impressora não lê arquivos .gcode.3mf. Envie G-code comum pelo fatiador.",
 }

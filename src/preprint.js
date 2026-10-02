@@ -6,6 +6,7 @@ import { state, S, toast, askConfirm } from './store';
 import { api } from './api/moonraker';
 import { t } from './i18n';
 import { checkPrint } from './preprintCheck';
+import { is3mf, isGcodeFile } from './gcode3mf';
 
 function context(meta) {
   const sensors = (state.objects || [])
@@ -22,7 +23,26 @@ function context(meta) {
   };
 }
 
+// a .gcode.3mf is a zip: only firmware that unpacks it (QIDI and similar) can print it. Stock Moonraker does not
+// read metadata from it, so no metadata means Klipper would get the zip bytes as G-code: refuse instead.
+async function zipPrintable(filename) {
+  if (!isGcodeFile(filename)) {
+    // a model .3mf picked in Upload & Print: it is uploaded, but there is nothing to print in it
+    toast(t('{name} is not sliced G-code, so it was not started.', { name: filename.split('/').pop() }), 'warn');
+    return false;
+  }
+  if (!is3mf(filename)) return true;
+  try {
+    const m = await api.call('server.files.metadata', { filename });
+    if (m && (m.estimated_time != null || m.slicer || m.layer_height != null)) return true;
+  } catch {}
+  toast(t('This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.'), 'warn', {
+    ms: 9000,
+  });
+  return false;
+}
 async function start(filename) {
+  if (!(await zipPrintable(filename))) return false;
   try {
     await api.call('printer.print.start', { filename });
     toast(t('Print started'));

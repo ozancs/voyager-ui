@@ -491,7 +491,7 @@ const TL_FILES = [
   const modified = Date.now() / 1000 - 86400 * (i + 1);
   return [
     { path: name, modified, size },
-    { path: name + '.jpg', modified, size: 48000 },
+    { path: name.replace('.mp4', '.jpg'), modified, size: 48000 },
   ];
 });
 function tlFrame() {
@@ -525,12 +525,15 @@ function tlRender() {
       });
     clearInterval(t);
     const modified = Date.now() / 1000;
-    TL_FILES.unshift({ path: name, modified, size: 1.4e6 }, { path: name + '.jpg', modified, size: 48000 });
+    TL_FILES.unshift(
+      { path: name, modified, size: 1.4e6 },
+      { path: name.replace('.mp4', '.jpg'), modified, size: 48000 },
+    );
     TL_N = 0;
     ev({
       status: 'success',
       filename: name,
-      previewimage: name + '.jpg',
+      previewimage: name.replace('.mp4', '.jpg'),
       printfile: 'bracket_v3.gcode',
       msg: `Rendered ${name}`,
     });

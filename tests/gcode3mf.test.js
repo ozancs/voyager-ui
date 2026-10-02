@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 describe('3mf', () => {
   it('names', () => {
     expect(isGcodeFile('a.gcode.3mf')).toBe(true);
-    expect(isGcodeFile('a.3mf')).toBe(true);
+    expect(isGcodeFile('a.3mf')).toBe(false);
     expect(isGcodeFile('a.png')).toBe(false);
   });
   it('reads deflated plate gcode', async () => {

@@ -1725,4 +1725,6 @@ export default {
   "Show on the card": "카드에 표시",
   "Hide from the card": "카드에서 숨기기",
   "Print controls (speed, flow)": "출력 제어 (속도, 유량)",
+  "{name} is not sliced G-code, so it was not started.": "{name}은(는) 슬라이스된 G-code가 아니어서 시작하지 않았습니다.",
+  "This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.": "이 프린터는 .gcode.3mf 파일을 읽지 못합니다. 슬라이서에서 일반 G-code를 보내세요.",
 }

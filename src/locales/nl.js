@@ -1725,4 +1725,6 @@ export default {
   "Show on the card": "Op de kaart tonen",
   "Hide from the card": "Van de kaart verbergen",
   "Print controls (speed, flow)": "Printbediening (snelheid, flow)",
+  "{name} is not sliced G-code, so it was not started.": "{name} is geen geslicete G-code en is dus niet gestart.",
+  "This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.": "Deze printer leest geen .gcode.3mf-bestanden. Stuur gewone G-code vanuit de slicer.",
 }

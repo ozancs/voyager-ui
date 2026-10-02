@@ -1723,5 +1723,7 @@
 "Name shown for {name}",
 "Show on the card",
 "Hide from the card",
-"Print controls (speed, flow)"
+"Print controls (speed, flow)",
+"{name} is not sliced G-code, so it was not started.",
+"This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead."
 ]

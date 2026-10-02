@@ -2,10 +2,11 @@
 // sliced plate as a zip: Metadata/plate_1.gcode plus a thumbnail and an md5). Klipper runs the file through
 // Moonraker as is; the viewer and the object map need the text inside, so the zip is opened in the browser.
 
-export const GCODE_RE = /\.(gcode|g|gco|ufp|nc|gcode\.3mf|3mf)$/i;
+// a plain .3mf is a model project, not sliced: only .gcode.3mf counts as printable
+export const GCODE_RE = /\.(gcode|g|gco|ufp|nc|gcode\.3mf)$/i;
 export const isGcodeFile = (name) => GCODE_RE.test(name || '');
-export const is3mf = (name) => /\.3mf$/i.test(name || '');
-export const UPLOAD_ACCEPT = '.gcode,.g,.gco,.ufp,.nc,.3mf';
+export const is3mf = (name) => /\.gcode\.3mf$/i.test(name || '');
+export const UPLOAD_ACCEPT = '.gcode,.g,.gco,.ufp,.nc,.3mf'; // the picker cannot filter on a double extension
 
 const u16 = (b, i) => b[i] | (b[i + 1] << 8);
 const u32 = (b, i) => (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24)) >>> 0;

@@ -1725,4 +1725,6 @@ export default {
   "Show on the card": "Показати на картці",
   "Hide from the card": "Сховати з картки",
   "Print controls (speed, flow)": "Керування друком (швидкість, потік)",
+  "{name} is not sliced G-code, so it was not started.": "{name} не є нарізаним G-code, тому друк не запущено.",
+  "This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.": "Цей принтер не читає файли .gcode.3mf. Надішліть звичайний G-code зі слайсера.",
 }

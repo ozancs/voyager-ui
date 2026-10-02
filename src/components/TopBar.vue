@@ -43,6 +43,11 @@ const showBell = ref(false);
 const showPower = ref(false);
 const showMore = ref(false); // narrow screens: search, upload, save config, customize, settings, power
 const showJob = ref(false); // phones: the print pill opens pause, cancel, exclude and the queue
+// only on a phone: on wider screens the pill shows those buttons itself
+const phone = () => window.matchMedia('(max-width: 480px)').matches;
+function toggleJob() {
+  if (active.value && phone()) showJob.value = !showJob.value;
+}
 const confirm = ref(null);
 const askCancel = ref(false);
 const thumb = computed(() => {
@@ -77,6 +82,10 @@ const label = computed(() => {
 });
 const savePending = computed(() => S('configfile').save_config_pending);
 const active = computed(() => ['printing', 'paused'].includes(printState.value));
+watch(
+  () => active.value,
+  (a) => !a && (showJob.value = false),
+);
 const here = location.host;
 const hostName = currentPrinter()?.host || here;
 // printer switcher next to the name
@@ -219,7 +228,7 @@ function pause() {
         <Icon name="gear" :size="15" /><span class="grow">{{ t('Manage printers') }}</span>
       </button>
     </Popover>
-    <div class="pill" :class="{ act: active, tap: active }" @click="active && (showJob = !showJob)">
+    <div class="pill" :class="{ act: active, tap: active }" @click="toggleJob">
       <div class="pth">
         <img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
           v-else

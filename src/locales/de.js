@@ -1725,4 +1725,6 @@ export default {
   "Show on the card": "Auf der Karte zeigen",
   "Hide from the card": "Auf der Karte ausblenden",
   "Print controls (speed, flow)": "Druck-Steuerung (Geschwindigkeit, Fluss)",
+  "{name} is not sliced G-code, so it was not started.": "{name} ist kein geslicter G-Code und wurde nicht gestartet.",
+  "This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.": "Dieser Drucker liest keine .gcode.3mf-Dateien. Schicke stattdessen normalen G-Code aus dem Slicer.",
 }

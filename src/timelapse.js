@@ -95,7 +95,8 @@ export async function loadFiles() {
         name: f.path,
         size: f.size,
         modified: f.modified,
-        preview: imgs.has(f.path + '.jpg') ? f.path + '.jpg' : '',
+        // moonraker-timelapse names the preview after the clip without .mp4 (timelapse_x_date.jpg)
+        preview: [f.path.replace(/\.mp4$/i, '.jpg'), f.path + '.jpg'].find((x) => imgs.has(x)) || '',
         ...clipInfo(f.path.split('/').pop()),
       }))
       .sort((a, b) => b.modified - a.modified);
@@ -170,19 +171,36 @@ export function initTimelapse() {
   wired = true;
   api.on('notify_timelapse_event', ([p]) => onEvent(p));
   // the component shows up in server.info once Moonraker has it loaded
+  let seen = '';
   watch(
     () => state.components,
     (c) => {
+      // a new list comes with every (re)connection and with each Klipper-not-ready poll: read everything again
+      // only when the printer or its component list changed (switching printers keeps the list the same)
+      const key = api.httpBase + '|' + (c || []).join(',');
+      if (key === seen) return;
+      seen = key;
       const has = (c || []).includes('timelapse');
-      if (has && !tl.has) {
+      if (has) {
         loadSettings().then(() => {
           loadFrames();
           loadFiles();
         });
-      } else if (!has) tl.has = false;
+      } else {
+        tl.has = false;
+        tl.settings = null;
+        tl.files = [];
+        tl.frames = 0;
+        tl.lastFrame = '';
+      }
     },
     { immediate: true },
   );
   // a print that ends with autorender off still has its frames: refresh the count when the state changes
   watch(printState, () => tl.has && loadFrames());
+  // back after a dropped connection: frames and clips may have changed meanwhile
+  watch(
+    () => state.connected,
+    (c) => c && tl.has && (loadFrames(), loadFiles()),
+  );
 }

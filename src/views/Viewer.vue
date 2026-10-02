@@ -2,7 +2,7 @@
 // G-code viewer (gcode-preview, three.js): loads a file from the printer and shows it in 3D or as
 // layers, can follow the running print and exclude objects.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, shallowRef } from 'vue';
-import { readGcodeText } from '../gcode3mf';
+import { readGcodeText, is3mf } from '../gcode3mf';
 import Icon from '../components/Icon.vue';
 import ObjectMap from '../components/ObjectMap.vue';
 import RangeSlider from '../components/RangeSlider.vue';
@@ -58,9 +58,10 @@ async function sizeOf(fn) {
 }
 async function load(fn) {
   if (!fn) return;
+  // a .gcode.3mf is compressed: the G-code inside is several times the file size
   const size = await sizeOf(fn);
   if (
-    size > BIG &&
+    size * (is3mf(fn) ? 6 : 1) > BIG &&
     !(await askConfirm({
       title: t('Large file'),
       text: t('{file} is {size}. Loading it can make this tab slow, or crash it on a phone or tablet.', {

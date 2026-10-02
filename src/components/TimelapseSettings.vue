@@ -232,8 +232,10 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         <div class="two">
           <NumField
             :label="t('Wait at park')"
-            unit="ms"
+            unit="s"
             :model-value="s.park_time"
+            :decimals="1"
+            :step="0.1"
             :min="0"
             @commit="set('park_time', $event)"
           />

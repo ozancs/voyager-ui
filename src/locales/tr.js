@@ -1726,4 +1726,6 @@ export default {
   "Show on the card": "Kartta göster",
   "Hide from the card": "Karttan gizle",
   "Print controls (speed, flow)": "Baskı kontrolleri (hız, akış)",
+  "{name} is not sliced G-code, so it was not started.": "{name} dilimlenmiş G-code değil, bu yüzden başlatılmadı.",
+  "This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.": "Bu yazıcı .gcode.3mf dosyalarını okumuyor. Dilimleyiciden düz G-code gönderin.",
 }
