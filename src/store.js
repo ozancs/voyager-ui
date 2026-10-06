@@ -144,6 +144,24 @@ export const LAYOUT_KEYS = [
   'cardColors',
   'mobileOrder',
 ];
+// Moonraker lists cameras from moonraker.conf first, then the saved ones in database (uid) order, and moves a
+// camera to the end when it is renamed, so the same two cameras could come back in a different order and
+// "the first camera" (the default of every card) changed between reloads. Sorted by name they always line up.
+export function sortCams(list) {
+  return [...(list || [])].sort((a, b) =>
+    String(a.name).localeCompare(String(b.name), undefined, { numeric: true, sensitivity: 'base' }),
+  );
+}
+// Moonraker's own order is still what moonraker-timelapse and moonraker-telegram-bot / notifier mean by "the first
+// camera", so it is kept next to the sorted list.
+export function setCams(list) {
+  if (!list) return;
+  state.webcamOrder = list.map((c) => c.name);
+  state.webcams = sortCams(list);
+}
+export const firstCam = computed(
+  () => state.webcams.find((c) => c.name === state.webcamOrder[0]) || state.webcams[0] || null,
+);
 export function layoutSnapshot() {
   const o = {};
   for (const k of LAYOUT_KEYS) o[k] = JSON.parse(JSON.stringify(state.settings[k] ?? null));
@@ -169,6 +187,7 @@ export const state = reactive({
   files: { path: 'gcodes', dirs: [], files: [], disk: null, loading: false },
   currentMeta: null,
   webcams: [],
+  webcamOrder: [], // camera names in Moonraker's order (state.webcams is sorted by name)
   components: [], // Moonraker components loaded (server.info), e.g. 'timelapse'
   spoolman: { server: '', spool: null },
   settings: cachedSettings(),
@@ -1170,7 +1189,7 @@ async function onOpen() {
   api
     .call('server.webcams.list')
     .then((r) => {
-      state.webcams = r.webcams || [];
+      setCams(r.webcams || []);
     })
     .catch(() => {});
   loadPower();
@@ -1338,7 +1357,7 @@ export function start() {
     else if (d?.device) state.power.push(d);
   });
   api.on('notify_webcams_changed', ([p]) => {
-    state.webcams = p?.webcams || state.webcams;
+    if (p?.webcams) setCams(p.webcams);
   });
   api.on('notify_update_response', ([r]) => {
     if (!state.update) state.update = { app: r.application, lines: [], complete: false };

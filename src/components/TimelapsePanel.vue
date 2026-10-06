@@ -17,7 +17,7 @@ import {
   saveFrames,
   deleteClip,
 } from '../timelapse';
-import { state, printState, fmtBytes, fmtTime, askConfirm, toast } from '../store';
+import { state, printState, fmtBytes, fmtTime, askConfirm, toast, firstCam } from '../store';
 import { t } from '../i18n';
 
 const printing = computed(() => ['printing', 'paused'].includes(printState.value));
@@ -39,7 +39,7 @@ const strip = computed(() => {
 });
 const camName = computed(() => {
   const c = tl.settings?.camera;
-  return c ? c : state.webcams[0]?.name || t('first camera');
+  return c ? c : firstCam.value?.name || t('first camera');
 });
 const lengthNow = computed(() => clipLength());
 const lengthEnd = computed(() => (framesAtEnd.value > tl.frames ? clipLength(framesAtEnd.value) : 0));

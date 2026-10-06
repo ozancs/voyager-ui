@@ -43,14 +43,36 @@ const mode = computed(() => {
   return 'unsupported'; // webrtc-janus, jmuxer-stream
 });
 const isVideo = computed(() => ['webrtc-cs', 'webrtc-go2rtc', 'webrtc-whep', 'hls', 'video'].includes(mode.value));
+// Same order as Mainsail: flips first in the list, rotate last. CSS applies the list right to left, so the picture
+// is rotated and then flipped. With rotate first (the old order) a 90°/270° camera with a flip came out upside
+// down compared to Mainsail and crowsnest. A 90°/270° picture is also scaled down so it still fits the box.
+const aspect = ref(0); // measured width / height of the picture, 0 until the first frame
+function camAspect() {
+  if (aspect.value) return aspect.value;
+  const [w, h] = String(props.cam?.aspect_ratio || '')
+    .split(':')
+    .map(Number);
+  return w > 0 && h > 0 ? w / h : 1;
+}
 const transform = computed(() => {
   const c = props.cam || {};
+  const rot = Number(c.rotation) || 0;
   const tf = [];
-  if (c.rotation) tf.push(`rotate(${c.rotation}deg)`);
   if (c.flip_horizontal) tf.push('scaleX(-1)');
   if (c.flip_vertical) tf.push('scaleY(-1)');
+  if (rot) {
+    tf.push(`rotate(${rot}deg)`);
+    const a = camAspect();
+    // a landscape picture turned on its side would stick out above and below the box
+    if (rot % 180 && a > 1) tf.push(`scale(${1 / a})`);
+  }
   return tf.join(' ');
 });
+function measure(el) {
+  const w = el?.naturalWidth || el?.videoWidth;
+  const h = el?.naturalHeight || el?.videoHeight;
+  if (w && h) aspect.value = w / h;
+}
 const streamUrl = computed(() => api.url(props.cam?.stream_url || '/webcam/?action=stream'));
 function snapUrl() {
   const u = api.url(props.cam?.snapshot_url || '/webcam/?action=snapshot');
@@ -58,6 +80,7 @@ function snapUrl() {
 }
 function gotFrame() {
   frames++;
+  if (!aspect.value) measure(imgEl.value || video.value);
   if (status.value !== 'live') {
     status.value = 'live';
     clearTimeout(watchdog);
@@ -84,18 +107,29 @@ function fail(msg) {
   status.value = 'error';
   errMsg.value = msg || '';
 }
+// Each request belongs to one start(): a frame still on its way from the camera shown before is dropped, so it
+// cannot land in this view after switching cameras. A request that never answers frees the slot after 5 s
+// instead of blocking every later poll (the view used to stay on "Connecting" for good).
 function poll() {
   if (busy) return;
+  const g = gen;
   busy = true;
   const img = new Image();
+  const done = () => {
+    clearTimeout(to);
+    if (g === gen) busy = false;
+  };
+  const to = setTimeout(() => {
+    img.src = '';
+    done();
+  }, 5000);
   img.onload = () => {
+    done();
+    if (g !== gen) return;
     src.value = img.src;
     gotFrame();
-    busy = false;
   };
-  img.onerror = () => {
-    busy = false;
-  };
+  img.onerror = done;
   img.src = snapUrl();
 }
 const post = (url, body, type = 'application/json') =>
@@ -113,44 +147,47 @@ async function startCameraStreamer(g) {
     )
   ).json();
   if (g !== gen) return;
-  pc = new RTCPeerConnection({ iceServers: offer.iceServers || [] });
-  pc.addTransceiver('video', { direction: 'recvonly' });
-  pc.ontrack = (e) => {
-    if (video.value) video.value.srcObject = e.streams[0];
+  const p = (pc = new RTCPeerConnection({ iceServers: offer.iceServers || [] }));
+  p.addTransceiver('video', { direction: 'recvonly' });
+  p.ontrack = (e) => {
+    if (g === gen && video.value) video.value.srcObject = e.streams[0];
   };
-  pc.onicecandidate = (e) => {
-    if (e.candidate)
+  p.onicecandidate = (e) => {
+    if (e.candidate && g === gen)
       post(url, JSON.stringify({ id: offer.id, type: 'remote_candidate', candidates: [e.candidate] })).catch(() => {});
   };
-  await pc.setRemoteDescription(offer);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
+  await p.setRemoteDescription(offer);
+  const answer = await p.createAnswer();
+  if (g !== gen) return;
+  await p.setLocalDescription(answer);
   await post(url, JSON.stringify({ type: answer.type, id: offer.id, sdp: answer.sdp }));
 }
 // go2rtc and MediaMTX: we make the offer and POST the SDP, the answer comes back as SDP
 async function startSdpPost(url, g) {
-  pc = new RTCPeerConnection({ iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }] });
-  pc.addTransceiver('video', { direction: 'recvonly' });
-  pc.addTransceiver('audio', { direction: 'recvonly' });
-  pc.ontrack = (e) => {
-    if (video.value && e.track.kind === 'video') video.value.srcObject = e.streams[0];
+  // the connection is held in a local: `pc` may already belong to the next camera when an await returns
+  const p = (pc = new RTCPeerConnection({ iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }] }));
+  p.addTransceiver('video', { direction: 'recvonly' });
+  p.addTransceiver('audio', { direction: 'recvonly' });
+  p.ontrack = (e) => {
+    if (g === gen && video.value && e.track.kind === 'video') video.value.srcObject = e.streams[0];
   };
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
+  const offer = await p.createOffer();
+  await p.setLocalDescription(offer);
   // wait briefly for ICE gathering so the offer carries candidates (no trickle over plain HTTP)
   await new Promise((r) => {
-    if (pc.iceGatheringState === 'complete') return r();
+    if (p.iceGatheringState === 'complete') return r();
     const to = setTimeout(r, 1500);
-    pc.onicegatheringstatechange = () => {
-      if (pc.iceGatheringState === 'complete') {
+    p.onicegatheringstatechange = () => {
+      if (p.iceGatheringState === 'complete') {
         clearTimeout(to);
         r();
       }
     };
   });
   if (g !== gen) return;
-  const sdp = await (await post(url, pc.localDescription.sdp, 'application/sdp')).text();
-  await pc.setRemoteDescription({ type: 'answer', sdp });
+  const sdp = await (await post(url, p.localDescription.sdp, 'application/sdp')).text();
+  if (g !== gen) return;
+  await p.setRemoteDescription({ type: 'answer', sdp });
 }
 function go2rtcUrl() {
   const u = new URL(streamUrl.value, location.href);
@@ -181,7 +218,7 @@ async function startHls() {
 
 async function start(fresh) {
   stop();
-  const g = ++gen;
+  const g = gen;
   if (fresh === true) viaStream.value = false;
   if (mode.value === 'snapshot' && !props.cam?.snapshot_url && props.cam?.stream_url) viaStream.value = true;
   if (!props.cam) return;
@@ -225,6 +262,8 @@ async function start(fresh) {
   }
 }
 function stop() {
+  gen++; // anything still running for the previous camera now sees a stale generation
+  busy = false;
   clearInterval(timer);
   clearInterval(fpsTimer);
   clearTimeout(watchdog);
@@ -250,13 +289,15 @@ onMounted(() => {
   document.addEventListener('visibilitychange', onVis);
 });
 onBeforeUnmount(() => {
-  gen++;
   stop();
   document.removeEventListener('visibilitychange', onVis);
 });
 watch(
   () => props.cam,
-  () => start(true),
+  (n, o) => {
+    if (n?.name !== o?.name || n?.stream_url !== o?.stream_url || n?.snapshot_url !== o?.snapshot_url) aspect.value = 0;
+    start(true);
+  },
 );
 defineExpose({ retry: start });
 </script>
@@ -270,7 +311,7 @@ defineExpose({ retry: start });
       :style="{ transform }"
       :alt="t('Webcam')"
       @load="gotFrame"
-      @error="kind === 'mjpeg' && fail()"
+      @error="kind === 'mjpeg' && $event.target.src && fail()"
     />
     <video
       v-else-if="isVideo"

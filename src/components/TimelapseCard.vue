@@ -4,7 +4,7 @@ import { computed } from 'vue';
 import Icon from './Icon.vue';
 import Toggle from './Toggle.vue';
 import { tl, frameUrl, previewUrl, clipLength, saveSettings } from '../timelapse';
-import { printState, fmtTime, state } from '../store';
+import { printState, fmtTime, state, firstCam } from '../store';
 import { go } from '../router';
 import { t } from '../i18n';
 const printing = computed(() => ['printing', 'paused'].includes(printState.value));
@@ -51,7 +51,7 @@ function openClip(f) {
             t('Rendering… {n}%', { n: Math.round(tl.render.progress || 0) })
           }}</template>
           <template v-else-if="printing">{{
-            t('Recording {name}', { name: tl.settings?.camera || state.webcams[0]?.name || t('first camera') })
+            t('Recording {name}', { name: tl.settings?.camera || firstCam?.name || t('first camera') })
           }}</template>
           <template v-else>{{ t('Ready for the next print') }}</template>
         </span>

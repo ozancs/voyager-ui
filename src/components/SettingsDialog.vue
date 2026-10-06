@@ -19,6 +19,7 @@ import {
   OLD_APPS,
   APP_NAME,
   uiZoomFor,
+  setCams,
 } from '../store';
 import { api } from '../api/moonraker';
 import { playSound, speak, desktopPermission, askDesktop } from '../features';
@@ -194,14 +195,22 @@ function editCam(c) {
   cam.value = { ...c, _old: c.name };
 }
 async function saveCam() {
-  const c = { ...cam.value };
-  const old = c._old;
-  delete c._old;
+  // `source` is read-only on Moonraker's side. An edited camera keeps its `uid`, which is how Moonraker finds it,
+  // so Moonraker renames it in place. Deleting the old name first (as before) removed the camera, and the post
+  // then failed with "Webcam with UID … not found", so a renamed camera vanished.
+  const { _old: old, source, ...c } = cam.value;
   if (!c.name.trim()) return;
+  if (!old) delete c.uid;
   try {
-    if (old && old !== c.name) await api.call('server.webcams.delete_item', { name: old }).catch(() => {});
     await api.call('server.webcams.post_item', c);
-    state.webcams = (await api.call('server.webcams.list')).webcams || state.webcams;
+    // a Moonraker without camera uids saved the new name as a new camera: remove the old one
+    if (old && old !== c.name && !c.uid) await api.call('server.webcams.delete_item', { name: old }).catch(() => {});
+    if (old && old !== c.name) {
+      // cards that showed this camera follow the new name
+      const cams = state.settings.cardOpts?.cams;
+      if (cams) for (const k in cams) if (cams[k] === old) cams[k] = c.name;
+    }
+    setCams((await api.call('server.webcams.list')).webcams);
     cam.value = null;
   } catch (e) {
     toast(e.message, 'error');
@@ -222,7 +231,7 @@ async function removeCam() {
           const { uid, source, ...cfg } = saved;
           try {
             await api.call('server.webcams.post_item', cfg);
-            state.webcams = [...state.webcams, saved];
+            setCams((await api.call('server.webcams.list')).webcams);
           } catch (e) {
             toast(e.message, 'error');
           }

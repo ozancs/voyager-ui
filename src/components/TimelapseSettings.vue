@@ -6,7 +6,7 @@ import Icon from './Icon.vue';
 import Toggle from './Toggle.vue';
 import NumField from './NumField.vue';
 import { tl, saveSettings } from '../timelapse';
-import { state } from '../store';
+import { state, firstCam } from '../store';
 import { t } from '../i18n';
 const s = computed(() => tl.settings || {});
 const set = (k, v) => saveSettings({ [k]: v });
@@ -45,7 +45,9 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         @change="set('camera', $event.target.value)"
         :aria-label="t('Camera')"
       >
-        <option value="">{{ cams[0] ? t('{name} (first camera)', { name: cams[0].name }) : t('First camera') }}</option>
+        <option value="">
+          {{ firstCam ? t('{name} (first camera)', { name: firstCam.name }) : t('First camera') }}
+        </option>
         <option v-for="c in cams" :key="c.name" :value="c.name">{{ c.name }}</option>
       </select>
       <span v-if="cams.length > 1" class="mu hint">{{

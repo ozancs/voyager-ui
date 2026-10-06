@@ -5,7 +5,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
-import { state, toast, backupBeforeWrite, printerName } from '../store';
+import { state, toast, backupBeforeWrite, printerName, firstCam } from '../store';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
 
@@ -140,7 +140,7 @@ async function writeConf(change) {
 }
 async function save() {
   const fm = form.value;
-  const cam = state.webcams[0]?.snapshot_url || '/webcam/?action=snapshot';
+  const cam = firstCam.value?.snapshot_url || '/webcam/?action=snapshot';
   const snap = /^https?:/.test(cam)
     ? cam
     : `http://127.0.0.1${location.port ? ':' + location.port : ''}${cam.startsWith('/') ? '' : '/'}${cam}`;
