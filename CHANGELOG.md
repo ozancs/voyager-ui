@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.26.3
+
+- Webcams: a camera turned 90° or 270° with a flip shows the same way as in Mainsail; switching cameras no longer lets a late frame from the previous one show up, and a camera stuck on "Connecting" recovers; renaming a camera no longer deletes it; cameras are listed by name. Found and first fixed by Alain
+- Macro group cards: Square, Wide or List buttons; a button without a name shows its macro name (#9)
+- Buttons that run a macro with parameters show the parameters in the editor, and can ask for them when clicked (#9)
+- Timelapse player: loop shows when it is on and is remembered, the downloaded part shows under the position bar with a Buffering note, and full screen (F) (#7)
+- Timelapse page: no camera stays highlighted, rotate and mirror have their own Transform group, saved frame zips can be downloaded and deleted, settings keep a typed value when you click away (#7)
+- Fixes: drag to reorder could keep going after the button was released, Try again did not reload an MJPEG camera, top bar menus did not close when their button was tapped again
+
 ## 0.26.2
 
 - Macros card: Buttons or List view, drag the macros into your own order, and an optional name shown instead of the macro name (Customize, gear on the card) (#9)
