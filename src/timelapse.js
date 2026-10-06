@@ -16,6 +16,7 @@ export const tl = reactive({
   lastAt: 0, // when it arrived
   render: null, // { status: 'started'|'running'|'success'|'error', progress, msg, filename }
   files: [], // finished clips: { name, size, modified, preview, printfile, date }
+  zips: [], // frames saved with "Save frames": { name, size, modified }
   loading: false,
 });
 
@@ -100,8 +101,13 @@ export async function loadFiles() {
         ...clipInfo(f.path.split('/').pop()),
       }))
       .sort((a, b) => b.modified - a.modified);
+    tl.zips = all
+      .filter((f) => /\.zip$/i.test(f.path))
+      .map((f) => ({ name: f.path, size: f.size, modified: f.modified }))
+      .sort((a, b) => b.modified - a.modified);
   } catch {
     tl.files = [];
+    tl.zips = [];
   }
   tl.loading = false;
 }
@@ -119,6 +125,11 @@ export async function saveFrames() {
   } catch (e) {
     toast(t('Timelapse: {err}', { err: e.message }), 'error');
   }
+}
+export const fileUrl = (name) => api.fileUrl('timelapse', name);
+export async function deleteZip(z) {
+  await api.call('server.files.delete_file', { path: 'timelapse/' + z.name });
+  tl.zips = tl.zips.filter((x) => x !== z);
 }
 export async function deleteClip(f) {
   await api.call('server.files.delete_file', { path: 'timelapse/' + f.name });
@@ -190,6 +201,7 @@ export function initTimelapse() {
         tl.has = false;
         tl.settings = null;
         tl.files = [];
+        tl.zips = [];
         tl.frames = 0;
         tl.lastFrame = '';
       }

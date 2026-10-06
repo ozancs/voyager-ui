@@ -283,6 +283,10 @@ one). Click a camera in the grid to open it on its own.
 
 ## Components and dashboard cards
 
+**[src/components/ButtonParams.vue](../src/components/ButtonParams.vue)**  
+Parameter fields for a button whose command is a macro with parameters (MY_MACRO VALUE=50): each field edits that  
+value in the command, and "Ask when clicked" opens the fields before the macro runs instead of using them as is.
+
 **[src/components/CalibPath.vue](../src/components/CalibPath.vue)**  
 Guided calibrations, at the top of the Calibrations page: one tile per calibration the printer has (heaters,  
 leveling, probe, Z offset, mesh, input shaper; calibPath.js decides which). Each is separate: a tile opens  
@@ -407,6 +411,10 @@ A printer icon picked in Settings > Appearance replaces it (only where `own` is 
 **[src/components/MachineDialogs.vue](../src/components/MachineDialogs.vue)**  
 Dialogs Klipper asks for: macro prompts (action:prompt_*), manual probe (PROBE_CALIBRATE,  
 Z_ENDSTOP_CALIBRATE, manual bed mesh...), BED_SCREWS_ADJUST and SCREWS_TILT_CALCULATE results.
+
+**[src/components/MacroParamsDialog.vue](../src/components/MacroParamsDialog.vue)**  
+Asks for a macro's parameters before it runs (a button set to "ask when clicked"). Fields start with the values  
+saved on the button, or empty so the macro's own default applies.
 
 **[src/components/MacrosCard.vue](../src/components/MacrosCard.vue)**  
 All printer macros as buttons or as a compact list. The button grid follows the card size: wide card -> many  

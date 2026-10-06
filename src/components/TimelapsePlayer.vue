@@ -10,8 +10,37 @@ import { t } from '../i18n';
 const props = defineProps({ clip: Object, clips: Array });
 const emit = defineEmits(['close', 'pick', 'delete']);
 const v = ref(null);
-const speed = ref(1);
-const loop = ref(true);
+const vw = ref(null);
+// speed and loop are kept for the next clip and the next visit (this browser only)
+const KEY = 'voyager-ui-tl-player';
+let saved = {};
+try {
+  saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+} catch {}
+const speed = ref([0.25, 0.5, 1, 2, 4].includes(saved.speed) ? saved.speed : 1);
+const loop = ref(saved.loop !== false);
+watch([speed, loop], () => {
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ speed: speed.value, loop: loop.value }));
+  } catch {}
+});
+// what the browser has downloaded so far (shown under the position bar) and whether playback waits for data
+const buffered = ref([]);
+const waiting = ref(false);
+function onBuffer() {
+  const el = v.value;
+  if (!el || !el.duration) return;
+  const out = [];
+  for (let i = 0; i < el.buffered.length; i++)
+    out.push([(el.buffered.start(i) / el.duration) * 100, (el.buffered.end(i) / el.duration) * 100]);
+  buffered.value = out;
+}
+function full() {
+  const el = vw.value;
+  if (document.fullscreenElement) return document.exitFullscreen?.();
+  if (el?.requestFullscreen) el.requestFullscreen().catch(() => v.value?.webkitEnterFullscreen?.());
+  else v.value?.webkitEnterFullscreen?.(); // iPhone Safari: only the video itself can go full screen
+}
 const playing = ref(false);
 const cur = ref(0);
 const dur = ref(0);
@@ -77,6 +106,7 @@ const fmt = (s) => {
 };
 function key(e) {
   if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'f') return full();
   if (e.key === ' ' || e.key === 'k') {
     e.preventDefault();
     toggle();
@@ -92,6 +122,8 @@ watch(
   () => {
     cur.value = 0;
     fps.value = 0;
+    buffered.value = [];
+    waiting.value = false;
   },
 );
 onMounted(() => window.addEventListener('keydown', key));
@@ -100,7 +132,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', key));
 <template>
   <Modal :title="clip.printfile" width="min(960px, 96vw)" @close="emit('close')">
     <div class="pl">
-      <div class="vw">
+      <div ref="vw" class="vw">
         <video
           ref="v"
           :key="clip.name"
@@ -109,11 +141,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', key));
           autoplay
           playsinline
           @loadedmetadata="onMeta"
-          @timeupdate="cur = $event.target.currentTime"
+          @timeupdate="
+            cur = $event.target.currentTime;
+            onBuffer();
+          "
+          @progress="onBuffer"
+          @waiting="waiting = true"
+          @playing="waiting = false"
+          @canplay="waiting = false"
           @play="playing = true"
           @pause="playing = false"
           @click="toggle"
         ></video>
+        <span v-if="waiting" class="buf"><i></i>{{ t('Buffering…') }}</span>
         <button v-if="prev" class="nav l" :aria-label="t('Older clip')" @click="emit('pick', prev)">
           <Icon name="left" :size="20" :stroke="2.6" />
         </button>
@@ -131,6 +171,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', key));
         @input="seek"
         :aria-label="t('Position')"
       />
+      <div class="bufbar" :title="t('Downloaded')">
+        <i v-for="(r, i) in buffered" :key="i" :style="{ left: r[0] + '%', width: r[1] - r[0] + '%' }"></i>
+      </div>
       <div class="ctl">
         <button class="btn clear ibtn sm" :aria-label="playing ? t('Pause') : t('Play')" @click="toggle">
           <Icon :name="playing ? 'pause' : 'play'" :size="18" :stroke="2.4" />
@@ -157,12 +200,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', key));
         </div>
         <button
           class="btn clear ibtn sm"
-          :class="{ acc: loop }"
+          :class="{ tg: loop }"
+          :aria-pressed="loop"
           :aria-label="t('Loop')"
-          :data-tip="t('Loop')"
+          :data-tip="loop ? t('Loop is on') : t('Loop is off')"
           @click="loop = !loop"
         >
           <Icon name="repeat" :size="16" :stroke="2.4" />
+        </button>
+        <button class="btn clear ibtn sm" :aria-label="t('Full screen')" :data-tip="t('Full screen (F)')" @click="full">
+          <Icon name="ext" :size="16" :stroke="2.4" />
         </button>
         <span class="grow"></span>
         <button class="btn sm" :data-tip="t('Save the frame on screen as PNG')" @click="still">
@@ -178,7 +225,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', key));
       <div class="mu" style="font-size: 12px">
         {{ clip.name }} · {{ clipDate(clip.date) }} · {{ fmtBytes(clip.size)
         }}<template v-if="fps"> · {{ fps }} fps</template>
-        <span style="float: right">{{ t('Space play/pause · , . frame · ← → second · Shift+← → other clip') }}</span>
+        <span style="float: right">{{
+          t('Space play/pause · , . frame · ← → second · Shift+← → other clip · F full screen')
+        }}</span>
       </div>
     </div>
   </Modal>
@@ -188,6 +237,56 @@ onBeforeUnmount(() => window.removeEventListener('keydown', key));
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.vw:fullscreen {
+  border-radius: 0;
+  aspect-ratio: auto;
+}
+.buf {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 13px;
+  pointer-events: none;
+}
+.buf i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.bufbar {
+  position: relative;
+  height: 3px;
+  margin-top: -6px;
+  border-radius: 2px;
+  background: var(--s3);
+  overflow: hidden;
+}
+.bufbar i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--mu2);
+}
+.tg {
+  background: var(--s3) !important;
+  color: var(--ac) !important;
 }
 .vw {
   position: relative;

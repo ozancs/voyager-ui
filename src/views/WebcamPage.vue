@@ -84,7 +84,7 @@ function snapshot(c) {
           v-for="w in cams"
           :key="w.name"
           class="cm"
-          :class="{ on: !all && w.name === cam?.name }"
+          :class="{ on: !all && !lapse && w.name === cam?.name }"
           @click="sel = w.name"
         >
           <Icon name="camera" :size="18" />

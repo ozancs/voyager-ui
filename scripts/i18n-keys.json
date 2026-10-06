@@ -1725,5 +1725,22 @@
 "Hide from the card",
 "Print controls (speed, flow)",
 "{name} is not sliced G-code, so it was not started.",
-"This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead."
+"This printer does not read .gcode.3mf files. Send plain G-code from the slicer instead.",
+"Ask when clicked",
+"Clear frames?",
+"The {n} frames taken so far are deleted. Use this for a print you do not want a clip of.",
+"Clear frames",
+"Saved frames",
+"Buffering…",
+"Downloaded",
+"Loop is on",
+"Loop is off",
+"Full screen",
+"Full screen (F)",
+"Space play/pause · , . frame · ← → second · Shift+← → other clip · F full screen",
+"Transform",
+"Square",
+"Wide",
+"Macro name",
+"moonraker-timelapse keeps these frames until the next print starts, then deletes them by itself."
 ]

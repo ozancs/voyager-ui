@@ -4,12 +4,27 @@
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import WebcamCard from './WebcamCard.vue';
+import MacroParamsDialog from './MacroParamsDialog.vue';
 import { state, gcode } from '../store';
+import { macroParams, parseCmd } from '../macros';
 import { t } from '../i18n';
 const props = defineProps({ id: String });
 const emit = defineEmits(['edit']);
 const c = computed(() => state.settings.customCards?.[props.id] || { type: 'btn', name: '?', icon: 'star', gcode: '' });
 const busy = ref(null);
+// the name on a button: what the user typed, or the macro / command it runs
+const label = (b) => (b.name || '').trim() || (b.gcode || '').trim().split(/\s/)[0].replace(/_/g, ' ') || '?';
+// a button set to "ask when clicked" opens the parameters of its macro first
+const ask = ref(null); // { word, params, values, cmd, k }
+function press(b, k) {
+  if (state.editDash || !b.gcode) return;
+  if (b.ask) {
+    const c = parseCmd(b.gcode);
+    const params = c.word ? macroParams(c.word) : [];
+    if (params.length) return (ask.value = { word: c.word, params, values: c.args, cmd: b.gcode, k });
+  }
+  run(b.gcode, k);
+}
 async function run(g, k) {
   if (state.editDash || !g) return;
   busy.value = k;
@@ -24,13 +39,13 @@ async function run(g, k) {
     v-if="c.type === 'btn'"
     class="card cb"
     :class="{ hot: c.highlight, busy: busy === 'x' }"
-    @click="run(c.gcode, 'x')"
+    @click="press(c, 'x')"
     :data-tip="state.editDash ? '' : c.gcode"
   >
     <div class="card-h ch"></div>
     <div class="bi">
       <Icon :name="c.icon" :size="40" :stroke="2.2" :style="c.color && !c.highlight ? { color: c.color } : null" /><b>{{
-        c.name
+        label(c)
       }}</b>
     </div>
   </section>
@@ -39,27 +54,43 @@ async function run(g, k) {
     <div class="card-h">
       <h2>{{ c.name }}</h2>
     </div>
-    <div class="mg" :class="{ ml: c.view === 'list' }">
+    <div class="mg" :class="{ ml: c.view === 'list', mw: c.view === 'wide' }">
       <button
         v-for="(b, k) in c.buttons || []"
         :key="k"
         class="mb"
         :class="{ hot: b.highlight, busy: busy === k }"
         :data-tip="b.gcode"
-        @click="run(b.gcode, k)"
+        @click="press(b, k)"
       >
         <Icon
           :name="b.icon || 'star'"
           :size="24"
           :stroke="2.4"
           :style="b.color && !b.highlight ? { color: b.color } : null"
-        /><span>{{ b.name }}</span>
+        /><span>{{ label(b) }}</span
+        ><Icon v-if="b.ask" name="chev" :size="12" class="ak" />
       </button>
       <div v-if="!(c.buttons || []).length" class="mu" style="font-size: 13px">
         {{ t('No buttons yet. Edit this card to add some.') }}
       </div>
     </div>
   </section>
+  <MacroParamsDialog
+    v-if="ask"
+    :word="ask.word"
+    :params="ask.params"
+    :values="ask.values"
+    :cmd="ask.cmd"
+    @close="ask = null"
+    @run="
+      (cmd) => {
+        const k = ask.k;
+        ask = null;
+        run(cmd, k);
+      }
+    "
+  />
 </template>
 <style scoped>
 .cb {
@@ -102,6 +133,36 @@ async function run(g, k) {
 }
 .cb:not(.hot) .bi b {
   color: var(--tx);
+}
+/* wide: a rectangle per button, icon on the left, like Mainsail's macro buttons */
+.mg.mw {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-auto-rows: 44px;
+}
+.mg.mw .mb {
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: 0 12px;
+  gap: 10px;
+}
+.mg.mw .mb :deep(svg) {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.mb span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.mg:not(.mw):not(.ml) .mb .ak {
+  display: none;
+}
+.mb .ak {
+  opacity: 0.6;
+  width: 12px !important;
+  height: 12px !important;
 }
 .mg.ml {
   display: flex;

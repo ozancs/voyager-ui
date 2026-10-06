@@ -16,6 +16,8 @@ import {
   render,
   saveFrames,
   deleteClip,
+  deleteZip,
+  fileUrl,
 } from '../timelapse';
 import { state, printState, fmtBytes, fmtTime, askConfirm, toast, firstCam } from '../store';
 import { t } from '../i18n';
@@ -49,6 +51,14 @@ async function del(f) {
   try {
     await deleteClip(f);
     if (open.value === f) open.value = null;
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+async function delZip(z) {
+  if (!(await askConfirm({ title: t('Delete'), text: z.name, ok: t('Delete') }))) return;
+  try {
+    await deleteZip(z);
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -134,6 +144,9 @@ onMounted(() => {
           ><span class="mu">{{ t('rendering') }}</span>
         </div>
       </div>
+      <span v-if="tl.frames && !printing" class="mu" style="font-size: 12px">{{
+        t('moonraker-timelapse keeps these frames until the next print starts, then deletes them by itself.')
+      }}</span>
       <div v-if="strip.length" class="strip">
         <img
           v-for="s in strip"
@@ -187,6 +200,26 @@ onMounted(() => {
         </span>
       </button>
     </div>
+    <template v-if="tl.zips.length">
+      <div class="ghd">
+        <b
+          >{{ t('Saved frames') }} <span class="mu mono" style="font-weight: 500">{{ tl.zips.length }}</span></b
+        >
+      </div>
+      <div class="zl">
+        <div v-for="z in tl.zips" :key="z.name" class="zr">
+          <Icon name="package" :size="16" class="mu" />
+          <span class="grow nm">{{ z.name }}</span>
+          <span class="mu mono" style="font-size: 11px">{{ fmtBytes(z.size) }}</span>
+          <a class="btn clear ibtn sm" :href="fileUrl(z.name)" :download="z.name" :aria-label="t('Download')"
+            ><Icon name="download" :size="15"
+          /></a>
+          <button class="btn clear ibtn sm" :aria-label="t('Delete')" @click="delZip(z)">
+            <Icon name="trash" :size="15" />
+          </button>
+        </div>
+      </div>
+    </template>
     <TimelapsePlayer v-if="open" :clip="open" :clips="files" @close="open = null" @pick="open = $event" @delete="del" />
   </div>
 </template>
@@ -315,5 +348,25 @@ onMounted(() => {
 }
 .mu {
   color: var(--mu);
+}
+.zl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.zr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--s2);
+  font-size: 12.5px;
+}
+.zr .nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 </style>

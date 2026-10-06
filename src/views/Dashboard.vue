@@ -54,6 +54,7 @@ import FavoritesCard from '../components/FavoritesCard.vue';
 import { pushDown } from '../calc';
 import { orderMacros } from '../macros';
 import SortList from '../components/SortList.vue';
+import ButtonParams from '../components/ButtonParams.vue';
 
 const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7] },
@@ -305,7 +306,7 @@ function addCustom(type, cam) {
   const id = 'c_' + Date.now().toString(36);
   const data =
     type === 'btn'
-      ? { type, name: 'Button', icon: 'star', gcode: '', highlight: false }
+      ? { type, name: '', icon: 'star', gcode: '', highlight: false }
       : type === 'cam'
         ? { type, name: cam || 'Webcam' }
         : { type, name: 'Macros', buttons: [] };
@@ -846,13 +847,17 @@ function saveCard() {
         />
         <Toggle v-model="editing.data.highlight" :label="t('Highlight')" />
       </div>
+      <ButtonParams :b="editing.data" />
     </template>
     <template v-else>
       <div class="row" style="justify-content: space-between">
         <b>{{ t('View') }}</b>
-        <div class="seg" style="width: 220px">
-          <button :class="{ on: editing.data.view !== 'list' }" @click="editing.data.view = 'buttons'">
-            {{ t('Buttons') }}
+        <div class="seg" style="width: 300px">
+          <button :class="{ on: !['wide', 'list'].includes(editing.data.view) }" @click="editing.data.view = 'buttons'">
+            {{ t('Square') }}
+          </button>
+          <button :class="{ on: editing.data.view === 'wide' }" @click="editing.data.view = 'wide'">
+            {{ t('Wide') }}
           </button>
           <button :class="{ on: editing.data.view === 'list' }" @click="editing.data.view = 'list'">
             {{ t('List') }}
@@ -861,26 +866,41 @@ function saveCard() {
       </div>
       <SortList v-model="editing.data.buttons" :item-key="(b) => b._k">
         <template #default="{ item: b, index: k }">
-          <button
-            class="btn ibtn"
-            style="width: 40px; height: 40px; flex: none"
-            :aria-label="t('Change icon')"
-            @click="iconFor = b"
-          >
-            <Icon :name="b.icon || 'star'" :size="20" :style="{ color: b.color || 'var(--ac)' }" />
-          </button>
-          <input v-model="b.name" class="input" style="width: 130px" :aria-label="t('Button name')" />
-          <CmdInput v-model="b.gcode" input-class="input" :placeholder="t('command')" :aria-label="t('Command')" />
-          <Toggle v-model="b.highlight" :label="t('Highlight')" />
-          <button class="btn clear ibtn sm" :aria-label="t('Remove button')" @click="editing.data.buttons.splice(k, 1)">
-            <Icon name="trash" :size="16" />
-          </button>
+          <div class="be">
+            <div class="row" style="gap: 8px">
+              <button
+                class="btn ibtn"
+                style="width: 40px; height: 40px; flex: none"
+                :aria-label="t('Change icon')"
+                @click="iconFor = b"
+              >
+                <Icon :name="b.icon || 'star'" :size="20" :style="{ color: b.color || 'var(--ac)' }" />
+              </button>
+              <input
+                v-model="b.name"
+                class="input"
+                style="width: 130px"
+                :placeholder="t('Macro name')"
+                :aria-label="t('Button name')"
+              />
+              <CmdInput v-model="b.gcode" input-class="input" :placeholder="t('command')" :aria-label="t('Command')" />
+              <Toggle v-model="b.highlight" :label="t('Highlight')" />
+              <button
+                class="btn clear ibtn sm"
+                :aria-label="t('Remove button')"
+                @click="editing.data.buttons.splice(k, 1)"
+              >
+                <Icon name="trash" :size="16" />
+              </button>
+            </div>
+            <ButtonParams :b="b" />
+          </div>
         </template>
       </SortList>
       <button
         class="btn"
         style="align-self: flex-start"
-        @click="editing.data.buttons.push(keyed({ name: 'New', icon: 'star', gcode: '', highlight: false }))"
+        @click="editing.data.buttons.push(keyed({ name: '', icon: 'star', gcode: '', highlight: false }))"
       >
         <Icon name="plus" :size="16" />{{ t('Add button') }}
       </button>
@@ -952,6 +972,12 @@ function saveCard() {
 .mu {
   color: var(--mu);
   font-size: 13px;
+}
+.be {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 .mname {
   flex: 1;

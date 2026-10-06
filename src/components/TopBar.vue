@@ -228,7 +228,7 @@ function pause() {
         <Icon name="gear" :size="15" /><span class="grow">{{ t('Manage printers') }}</span>
       </button>
     </Popover>
-    <div class="pill" :class="{ act: active, tap: active }" @click="toggleJob">
+    <div class="pill" data-away="job" :class="{ act: active, tap: active }" @click="toggleJob">
       <div class="pth">
         <img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
           v-else
@@ -317,7 +317,7 @@ function pause() {
         </button>
       </template>
     </div>
-    <div v-if="showJob && active" class="dd card job" v-away="() => (showJob = false)">
+    <div v-if="showJob && active" class="dd card job" v-away:job="() => (showJob = false)">
       <div class="col" style="gap: 6px; padding: 2px 4px">
         <b class="fnm">{{ S('print_stats').filename }}</b>
         <div class="bar state" :style="{ height: '8px', '--pst': stateColor }">
@@ -409,7 +409,7 @@ function pause() {
     </button>
     <input ref="fileInput" type="file" :accept="UPLOAD_ACCEPT" hidden @change="onFile" />
     <div class="rel">
-      <button class="btn ibtn" :aria-label="t('Notifications')" @click="showBell = !showBell">
+      <button class="btn ibtn" data-away="bell" :aria-label="t('Notifications')" @click="showBell = !showBell">
         <Icon name="bell" :size="22" :stroke="2.4" /><span
           v-if="state.notifications.length"
           class="badge"
@@ -423,7 +423,7 @@ function pause() {
           >{{ state.notifications.length }}</span
         >
       </button>
-      <div v-if="showBell" class="dd card" v-away="() => (showBell = false)" @mouseleave="showBell = false">
+      <div v-if="showBell" class="dd card" v-away:bell="() => (showBell = false)" @mouseleave="showBell = false">
         <div class="card-h">
           <h2>{{ t('Notifications') }}</h2>
           <button class="btn" :disabled="!state.notifications.length" @click="dismissAll">
@@ -458,10 +458,10 @@ function pause() {
       <Icon name="gear" :size="22" :stroke="2.4" />
     </button>
     <div class="rel more">
-      <button class="btn ibtn" :aria-label="t('More')" @click="showMore = !showMore">
+      <button class="btn ibtn" data-away="more" :aria-label="t('More')" @click="showMore = !showMore">
         <span class="dots" aria-hidden="true">···</span>
       </button>
-      <div v-if="showMore" class="dd card" style="width: 260px" v-away="() => (showMore = false)">
+      <div v-if="showMore" class="dd card" style="width: 260px" v-away:more="() => (showMore = false)">
         <button
           class="btn clear mi"
           @click="
@@ -537,14 +537,14 @@ function pause() {
     </div>
     <LockButton />
     <div class="rel pwr">
-      <button class="btn ibtn" :aria-label="t('Power')" @click="showPower = !showPower">
+      <button class="btn ibtn" data-away="power" :aria-label="t('Power')" @click="showPower = !showPower">
         <Icon name="power" :size="22" :stroke="2.4" />
       </button>
       <div
         v-if="showPower"
         class="dd card"
         style="width: 280px"
-        v-away="() => (showPower = false)"
+        v-away:power="() => (showPower = false)"
         @mouseleave="showPower = false"
       >
         <template v-if="state.power.length"

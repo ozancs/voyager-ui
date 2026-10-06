@@ -2,7 +2,7 @@
 // A list whose rows can be dragged into a new order by their handle (mouse, touch and pen through pointer events,
 // so it also works on a phone where HTML drag and drop does not). The keyboard can move the focused handle with
 // the arrow keys. v-model is the array; each row is the default slot with { item, index }.
-import { ref } from 'vue';
+import { ref, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import { t } from '../i18n';
 const props = defineProps({ modelValue: Array, itemKey: { type: Function, default: (x) => x } });
@@ -24,9 +24,15 @@ function down(i, e) {
   dragging.value = i;
   pid = e.pointerId;
   e.target.setPointerCapture?.(pid);
+  // the row moves in the page while it is dragged, which can drop the capture: end the drag wherever the button
+  // is released
+  window.addEventListener('pointermove', over);
+  window.addEventListener('pointerup', up);
+  window.addEventListener('pointercancel', up);
 }
 function over(e) {
   if (dragging.value < 0 || e.pointerId !== pid) return;
+  if (e.pointerType === 'mouse' && e.buttons === 0) return up(); // released somewhere the event did not reach
   const rows = [...box.value.children];
   // the row whose middle the pointer passed is where the dragged one goes
   let to = dragging.value;
@@ -43,7 +49,11 @@ function over(e) {
 function up() {
   dragging.value = -1;
   pid = null;
+  window.removeEventListener('pointermove', over);
+  window.removeEventListener('pointerup', up);
+  window.removeEventListener('pointercancel', up);
 }
+onBeforeUnmount(up);
 function key(i, e) {
   const d = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
   if (!d) return;
@@ -54,7 +64,7 @@ function key(i, e) {
 }
 </script>
 <template>
-  <div ref="box" class="sl" @pointermove="over" @pointerup="up" @pointercancel="up">
+  <div ref="box" class="sl">
     <div v-for="(item, i) in modelValue" :key="itemKey(item)" class="sr" :class="{ drag: dragging === i }">
       <button
         type="button"

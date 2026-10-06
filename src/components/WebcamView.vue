@@ -115,7 +115,10 @@ function poll() {
   const g = gen;
   busy = true;
   const img = new Image();
+  let ended = false; // the timeout's img.src = '' fires onerror too: free the slot once
   const done = () => {
+    if (ended) return;
+    ended = true;
     clearTimeout(to);
     if (g === gen) busy = false;
   };
@@ -200,13 +203,14 @@ function whepUrl() {
   if (!u.pathname.endsWith('/whep')) u.pathname = u.pathname.replace(/\/?$/, '/') + 'whep';
   return u.toString();
 }
-async function startHls() {
+async function startHls(g) {
   const v = video.value;
   if (v.canPlayType('application/vnd.apple.mpegurl')) {
     v.src = streamUrl.value;
     return;
   }
   const { default: Hls } = await import('hls.js');
+  if (g !== gen) return; // the view switched cameras or closed while the player was loading
   if (!Hls.isSupported()) throw new Error('HLS not supported by this browser');
   hls = new Hls({ lowLatencyMode: true });
   hls.on(Hls.Events.ERROR, (_, d) => {
@@ -237,6 +241,9 @@ async function start(fresh) {
   }, 1000);
   try {
     if (kind.value === 'mjpeg') {
+      // stop() just emptied src: set the stream on the next tick, or Vue sees the same URL and a retry reloads nothing
+      await nextTick();
+      if (g !== gen) return;
       src.value = streamUrl.value;
       // browsers do not reliably fire "load" for MJPEG streams, so look at the decoded size instead
       timer = setInterval(() => {
@@ -252,7 +259,7 @@ async function start(fresh) {
     } else {
       await nextTick();
       if (mode.value === 'video') video.value.src = streamUrl.value;
-      else if (mode.value === 'hls') await startHls();
+      else if (mode.value === 'hls') await startHls(g);
       else if (mode.value === 'webrtc-cs') await startCameraStreamer(g);
       else if (mode.value === 'webrtc-go2rtc') await startSdpPost(go2rtcUrl(), g);
       else if (mode.value === 'webrtc-whep') await startSdpPost(whepUrl(), g);

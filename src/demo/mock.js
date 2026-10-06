@@ -494,6 +494,11 @@ const TL_FILES = [
     { path: name.replace('.mp4', '.jpg'), modified, size: 48000 },
   ];
 });
+TL_FILES.push({
+  path: 'timelapse_fan_duct_20260928_0935_frames.zip',
+  modified: Date.now() / 1000 - 86400 * 3,
+  size: 8.4e6,
+});
 function tlFrame() {
   if (!TL.enabled) return;
   TL_N++;
@@ -1457,6 +1462,10 @@ function handle(m) {
       }, 100);
       return 'ok';
     case 'server.files.delete_file': {
+      if (/^timelapse_frames\//.test(p.path || '')) {
+        TL_N = 0;
+        return { item: { path: p.path, root: 'timelapse_frames' }, action: 'delete_file' };
+      }
       const n = (p.path || '').replace(/^timelapse\//, '');
       const i = TL_FILES.findIndex((f) => f.path === n);
       if (i >= 0) TL_FILES.splice(i, 1);
@@ -1475,6 +1484,7 @@ function handle(m) {
     case 'machine.timelapse.saveframes':
       setTimeout(
         () =>
+          TL_FILES.unshift({ path: 'timelapse_bracket_v3_frames.zip', modified: Date.now() / 1000, size: 6.1e6 }) &&
           wsAll({
             jsonrpc: '2.0',
             method: 'notify_timelapse_event',
@@ -1539,7 +1549,12 @@ function handle(m) {
       return /^\/v1\/spool\?/.test(p.path || '') ? { response: SPOOLS } : { response: SPOOLS[0] };
     case 'server.files.list':
       if (p.root === 'timelapse') return TL_FILES;
-      if (p.root === 'timelapse_frames') return [];
+      if (p.root === 'timelapse_frames')
+        return Array.from({ length: TL_N }, (_, i) => ({
+          path: 'frame' + String(i + 1).padStart(6, '0') + '.jpg',
+          modified: Date.now() / 1000,
+          size: 60000,
+        }));
       return p.root === 'config'
         ? Object.keys(cfgText)
             .concat(['printer-20260923_121809.cfg'])

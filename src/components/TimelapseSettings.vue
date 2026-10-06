@@ -66,6 +66,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         </button>
       </div>
       <NumField
+        apply-on-blur
         v-if="s.mode === 'hyperlapse'"
         :label="t('Seconds between frames')"
         unit="s"
@@ -95,6 +96,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
       /></label>
       <template v-if="s.variable_fps">
         <NumField
+          apply-on-blur
           :label="t('Target length')"
           unit="s"
           :model-value="s.targetlength"
@@ -104,6 +106,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         />
         <div class="two">
           <NumField
+            apply-on-blur
             :label="t('Min fps')"
             :model-value="s.variable_fps_min"
             :min="1"
@@ -111,6 +114,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
             @commit="set('variable_fps_min', $event)"
           />
           <NumField
+            apply-on-blur
             :label="t('Max fps')"
             :model-value="s.variable_fps_max"
             :min="1"
@@ -120,6 +124,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         </div>
       </template>
       <NumField
+        apply-on-blur
         v-else
         :label="t('Frames per second')"
         unit="fps"
@@ -129,6 +134,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         @commit="set('output_framerate', $event)"
       />
       <NumField
+        apply-on-blur
         :label="t('Hold the last frame')"
         :unit="t('frames')"
         :model-value="s.duplicatelastframe"
@@ -151,37 +157,28 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
           style="accent-color: var(--ac)"
         />
       </div>
-      <div class="row" style="gap: 8px; align-items: center; flex-wrap: wrap">
-        <span style="font-size: 12.5px">{{ t('Rotate') }}</span>
-        <div class="seg" style="flex: 1">
-          <button
-            v-for="r in [0, 90, 180, 270]"
-            :key="r"
-            :class="{ on: (s.rotation || 0) === r }"
-            @click="set('rotation', r)"
-          >
-            {{ r }}°
-          </button>
-        </div>
+    </div>
+
+    <div class="grp">
+      <span class="lbl">{{ t('Transform') }}</span>
+      <div class="seg">
         <button
-          class="btn clear ibtn sm"
-          :class="{ on: s.flip_x }"
-          :data-tip="t('Mirror left-right')"
-          :aria-label="t('Mirror left-right')"
-          @click="set('flip_x', !s.flip_x)"
+          v-for="r in [0, 90, 180, 270]"
+          :key="r"
+          :class="{ on: (s.rotation || 0) === r }"
+          @click="set('rotation', r)"
         >
-          <Icon name="flip" :size="16" :stroke="2.4" />
-        </button>
-        <button
-          class="btn clear ibtn sm"
-          :class="{ on: s.flip_y }"
-          :data-tip="t('Mirror top-bottom')"
-          :aria-label="t('Mirror top-bottom')"
-          @click="set('flip_y', !s.flip_y)"
-        >
-          <Icon name="flip" :size="16" :stroke="2.4" style="transform: rotate(90deg)" />
+          {{ r }}°
         </button>
       </div>
+      <label class="rw"
+        ><span>{{ t('Mirror left-right') }}</span
+        ><Toggle :model-value="!!s.flip_x" :label="t('Mirror left-right')" @update:model-value="set('flip_x', $event)"
+      /></label>
+      <label class="rw"
+        ><span>{{ t('Mirror top-bottom') }}</span
+        ><Toggle :model-value="!!s.flip_y" :label="t('Mirror top-bottom')" @update:model-value="set('flip_y', $event)"
+      /></label>
     </div>
 
     <button class="sec" @click="park = !park">
@@ -209,6 +206,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         </select>
         <div v-if="s.parkpos === 'custom'" class="two">
           <NumField
+            apply-on-blur
             label="X"
             unit="mm"
             :model-value="s.park_custom_pos_x"
@@ -216,6 +214,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
             @commit="set('park_custom_pos_x', $event)"
           />
           <NumField
+            apply-on-blur
             label="Y"
             unit="mm"
             :model-value="s.park_custom_pos_y"
@@ -224,6 +223,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
           />
         </div>
         <NumField
+          apply-on-blur
           :label="t('Lift Z')"
           unit="mm"
           :model-value="s.park_custom_pos_dz"
@@ -233,6 +233,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         />
         <div class="two">
           <NumField
+            apply-on-blur
             :label="t('Wait at park')"
             unit="s"
             :model-value="s.park_time"
@@ -242,6 +243,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
             @commit="set('park_time', $event)"
           />
           <NumField
+            apply-on-blur
             :label="t('Travel speed')"
             unit="mm/s"
             :model-value="s.park_travel_speed"
@@ -259,6 +261,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
         <template v-if="!s.fw_retract">
           <div class="two">
             <NumField
+              apply-on-blur
               :label="t('Retract')"
               unit="mm"
               :model-value="s.park_retract_distance"
@@ -267,6 +270,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
               @commit="set('park_retract_distance', $event)"
             />
             <NumField
+              apply-on-blur
               :label="t('Retract speed')"
               unit="mm/s"
               :model-value="s.park_retract_speed"
@@ -276,6 +280,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
           </div>
           <div class="two">
             <NumField
+              apply-on-blur
               :label="t('Unretract')"
               unit="mm"
               :model-value="s.park_extrude_distance"
@@ -284,6 +289,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
               @commit="set('park_extrude_distance', $event)"
             />
             <NumField
+              apply-on-blur
               :label="t('Unretract speed')"
               unit="mm/s"
               :model-value="s.park_extrude_speed"
@@ -300,6 +306,7 @@ const quality = computed(() => Math.round(((51 - (s.value.constant_rate_factor ?
     </button>
     <div v-if="more" class="grp ind">
       <NumField
+        apply-on-blur
         :label="t('Stream delay')"
         unit="s"
         :model-value="s.stream_delay_compensation"
