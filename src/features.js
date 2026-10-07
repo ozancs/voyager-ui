@@ -546,7 +546,8 @@ export const healthIssues = computed(() => {
 });
 
 // ---------------------------------------------------------------- maintenance
-export const printStats = reactive({ totalHours: null, hoursPerDay: null });
+// totalMeters: filament through the extruder, for tasks counted in metres (nozzle, extruder gears)
+export const printStats = reactive({ totalHours: null, hoursPerDay: null, totalMeters: null, metersPerDay: null });
 export const MAINT_DEFAULTS = () => [
   { id: 'm1', name: 'Clean the bed / build plate', hours: 50 },
   { id: 'm2', name: 'Clean extruder gears and filament path', hours: 150 },
@@ -559,12 +560,15 @@ export async function loadPrintStats() {
   try {
     const t = await api.call('server.history.totals');
     printStats.totalHours = (t.job_totals?.total_print_time || 0) / 3600;
+    printStats.totalMeters = (t.job_totals?.total_filament_used || 0) / 1000;
   } catch {}
   try {
     const since = Date.now() / 1000 - 30 * 86400;
     const r = await api.call('server.history.list', { since, limit: 500, order: 'desc' });
     const sec = (r.jobs || []).reduce((a, j) => a + (j.print_duration || 0), 0);
     printStats.hoursPerDay = sec / 3600 / 30;
+    const mm = (r.jobs || []).reduce((a, j) => a + (j.filament_used || 0), 0);
+    printStats.metersPerDay = mm / 1000 / 30;
   } catch {}
   // learn how far real print times drift from the slicer estimate
   try {
@@ -585,14 +589,18 @@ export async function loadPrintStats() {
     }));
   }
 }
+// a task counts print hours (default) or metres of filament (unit 'm'); `hours` is the interval in that unit
+export const maintTotal = (t) => (t.unit === 'm' ? printStats.totalMeters : printStats.totalHours);
 export function maintUsed(t) {
-  return printStats.totalHours == null ? 0 : Math.max(0, printStats.totalHours - (t.doneAt ?? printStats.totalHours));
+  const total = maintTotal(t);
+  return total == null ? 0 : Math.max(0, total - (t.doneAt ?? total));
 }
 export function maintDueDays(t) {
   const left = t.hours - maintUsed(t);
   if (left <= 0) return 0;
-  if (!printStats.hoursPerDay) return null;
-  return left / printStats.hoursPerDay;
+  const rate = t.unit === 'm' ? printStats.metersPerDay : printStats.hoursPerDay;
+  if (!rate) return null;
+  return left / rate;
 }
 export const dueMaintenance = computed(() => (state.settings.maintenance || []).filter((t) => maintUsed(t) >= t.hours));
 

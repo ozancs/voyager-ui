@@ -276,7 +276,20 @@ const status = {
     mesh_matrix: Array.from({ length: 33 }, (_, y) =>
       Array.from({ length: 33 }, (_, x) => 0.05 * Math.sin(x / 8) - 0.03 * Math.cos(y / 12)),
     ),
-    profiles: { default: {}, abs_110: {} },
+    profiles: {
+      default: {
+        points: Array.from({ length: 9 }, (_, y) =>
+          Array.from({ length: 9 }, (_, x) => 0.05 * Math.sin(x / 2) - 0.03 * Math.cos(y / 3)),
+        ),
+        mesh_params: { min_x: 20, max_x: 380, min_y: 20, max_y: 340, x_count: 9, y_count: 9 },
+      },
+      abs_110: {
+        points: Array.from({ length: 9 }, (_, y) =>
+          Array.from({ length: 9 }, (_, x) => 0.06 * Math.sin(x / 2 + 0.3) - 0.02 * Math.cos(y / 3) + 0.02),
+        ),
+        mesh_params: { min_x: 20, max_x: 380, min_y: 20, max_y: 340, x_count: 9, y_count: 9 },
+      },
+    },
   },
   extruder: {
     temperature: 249.8,

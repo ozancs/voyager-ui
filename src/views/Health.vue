@@ -19,6 +19,7 @@ import {
   printStats,
   loadPrintStats,
   maintUsed,
+  maintTotal,
   maintDueDays,
   MAINT_DEFAULTS,
 } from '../features';
@@ -168,12 +169,12 @@ const drivers = computed(() =>
 const tasks = computed(() => state.settings.maintenance || []);
 const editT = ref(null);
 function done(tk) {
-  tk.doneAt = printStats.totalHours;
+  tk.doneAt = maintTotal(tk);
   tk.doneDate = Date.now();
   toast(t('“{name}” marked done, counter reset', { name: t(tk.name) }));
 }
 function addTask() {
-  editT.value = { id: 'm' + Date.now(), name: '', hours: 100, isNew: true };
+  editT.value = { id: 'm' + Date.now(), name: '', hours: 100, unit: 'h', isNew: true };
 }
 function saveTask() {
   const t = editT.value;
@@ -181,12 +182,13 @@ function saveTask() {
   if (!t.name) return;
   if (t.isNew) {
     delete t.isNew;
-    state.settings.maintenance = [...tasks.value, { ...t, doneAt: printStats.totalHours ?? 0, doneDate: Date.now() }];
-  } else
-    Object.assign(
-      tasks.value.find((x) => x.id === t.id),
-      { name: t.name, hours: t.hours },
-    );
+    state.settings.maintenance = [...tasks.value, { ...t, doneAt: maintTotal(t) ?? 0, doneDate: Date.now() }];
+  } else {
+    const cur = tasks.value.find((x) => x.id === t.id);
+    // a task that changes unit starts counting from now in the new unit
+    if ((cur.unit || 'h') !== (t.unit || 'h')) cur.doneAt = maintTotal(t) ?? 0;
+    Object.assign(cur, { name: t.name, hours: t.hours, unit: t.unit || 'h' });
+  }
 }
 function delTask(t) {
   state.settings.maintenance = tasks.value.filter((x) => x.id !== t.id);
@@ -463,7 +465,9 @@ function measureAgain(h) {
             <div class="col" style="gap: 2px">
               <b class="mono" style="font-size: 17px"
                 >{{ maintUsed(tk).toFixed(0)
-                }}<span class="mu" style="font-size: 12px; font-weight: 500"> / {{ tk.hours }} h</span></b
+                }}<span class="mu" style="font-size: 12px; font-weight: 500">
+                  / {{ tk.hours }} {{ tk.unit === 'm' ? 'm' : 'h' }}</span
+                ></b
               ><span class="sm" :style="{ color: maintUsed(tk) >= tk.hours ? 'var(--heat)' : 'var(--mu)' }">{{
                 dueTxt(tk)
               }}</span>
@@ -480,7 +484,7 @@ function measureAgain(h) {
       <p class="mu sm" style="margin: 0">
         {{
           t(
-            "Counters use print time from Moonraker's history. The due date is estimated from how much you printed in the last 30 days.",
+            "Counters use print time and filament from Moonraker's history. The due date is estimated from how much you printed in the last 30 days.",
           )
         }}
       </p>
@@ -492,10 +496,19 @@ function measureAgain(h) {
       ><span class="lbl">{{ t('Task') }}</span
       ><input v-model="editT.name" class="input" :placeholder="t('e.g. Check belt tension')"
     /></label>
-    <label class="col" style="gap: 4px"
-      ><span class="lbl">{{ t('Every (print hours)') }}</span
-      ><input v-model.number="editT.hours" type="number" min="1" class="input mono" style="width: 140px"
-    /></label>
+    <div class="row" style="gap: 10px; align-items: flex-end">
+      <label class="col" style="gap: 4px"
+        ><span class="lbl">{{ t('Every') }}</span
+        ><input v-model.number="editT.hours" type="number" min="1" class="input mono" style="width: 140px"
+      /></label>
+      <div class="seg" style="width: 260px">
+        <button :class="{ on: (editT.unit || 'h') === 'h' }" @click="editT.unit = 'h'">{{ t('print hours') }}</button>
+        <button :class="{ on: editT.unit === 'm' }" @click="editT.unit = 'm'">{{ t('metres of filament') }}</button>
+      </div>
+    </div>
+    <span v-if="editT.unit === 'm'" class="mu sm">{{
+      t('Counts the filament the extruder pushed, from the print history. Good for nozzle and extruder gear wear.')
+    }}</span>
     <template #foot>
       <button v-if="!editT.isNew" class="btn lg dg" style="margin-right: auto" @click="delTask(editT)">
         {{ t('Delete') }}

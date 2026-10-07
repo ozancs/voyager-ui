@@ -1,7 +1,7 @@
 <script setup>
 // Bed mesh page: 3D (Surface3D) or 2D view of the probed or interpolated mesh, statistics, profiles
 // (load, save, remove), calibrate, colour palette and range settings.
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import { defineAsyncComponent } from 'vue';
@@ -28,10 +28,24 @@ const hv = computed(() => state.settings.heightmap);
 const mode3d = ref(true);
 const saveName = ref('');
 const showSave = ref(false);
+// compare: the shown mesh minus a saved profile's probed points (same grid only)
+const compare = ref('');
+const compareErr = ref('');
 const matrix = computed(() => {
   const m = useProbed.value ? bm.value.probed_matrix : bm.value.mesh_matrix;
-  return m && m.length && m[0].length ? m : null;
+  if (!(m && m.length && m[0].length)) return null;
+  if (!compare.value) return m;
+  const other = bm.value.profiles?.[compare.value]?.points;
+  const base = bm.value.probed_matrix;
+  if (!other?.length || !base?.length || other.length !== base.length || other[0].length !== base[0].length) {
+    compareErr.value = t('{name} has a different grid, it cannot be compared point by point', { name: compare.value });
+    return m;
+  }
+  compareErr.value = '';
+  return base.map((row, y) => row.map((z, x) => z - other[y][x]));
 });
+// while comparing the probed points are what both sides have
+watch(compare, (v) => v && (useProbed.value = true));
 const stats = computed(() => {
   if (!matrix.value) return null;
   const all = matrix.value.flat();
@@ -75,8 +89,24 @@ async function removeProfile(p) {
   <div class="split" style="min-height: calc(100vh / var(--zoom, 1) - 208px)">
     <section class="card grow">
       <div class="card-h">
-        <h2>{{ t('Heightmap') }} · {{ bm.profile_name || t('no mesh loaded') }}</h2>
+        <h2>
+          {{ t('Heightmap') }} · {{ bm.profile_name || t('no mesh loaded')
+          }}<template v-if="compare && !compareErr"> − {{ compare }}</template>
+        </h2>
         <div class="acts">
+          <select
+            v-if="profiles.length"
+            class="input"
+            style="height: 34px"
+            :value="compare"
+            :aria-label="t('Compare with')"
+            @change="compare = $event.target.value"
+          >
+            <option value="">{{ t('Compare with…') }}</option>
+            <option v-for="p in profiles" :key="p" :value="p" :disabled="p === bm.profile_name && !compare">
+              {{ p }}
+            </option>
+          </select>
           <div class="seg" style="width: 130px">
             <button :class="{ on: mode3d }" @click="mode3d = true">3D</button
             ><button :class="{ on: !mode3d }" @click="mode3d = false">2D</button>
@@ -124,6 +154,16 @@ async function removeProfile(p) {
       </div>
       <div class="mono mu" style="font-size: 12px" v-if="matrix && !mode3d">
         {{ t('front of bed is at the bottom') }}
+      </div>
+      <div v-if="compareErr" class="mu" style="font-size: 12.5px; color: var(--wn)">{{ compareErr }}</div>
+      <div v-else-if="compare && stats" class="mu" style="font-size: 12.5px">
+        {{
+          t('Difference to {name}: the bed moved up to {up} mm up and {down} mm down since that profile was saved.', {
+            name: compare,
+            up: Math.max(0, stats.mx).toFixed(3),
+            down: Math.max(0, -stats.mn).toFixed(3),
+          })
+        }}
       </div>
     </section>
     <div class="side-col">
