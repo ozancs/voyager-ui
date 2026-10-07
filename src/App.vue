@@ -7,6 +7,7 @@ import LoadingPanel from './components/LoadingPanel.vue';
 import TopBar from './components/TopBar.vue';
 import FavoritesBar from './components/FavoritesBar.vue';
 import SideNav from './components/SideNav.vue';
+import BottomNav from './components/BottomNav.vue';
 import ExcludeModal from './components/ExcludeModal.vue';
 import Icon from './components/Icon.vue';
 import UpdateModal from './components/UpdateModal.vue';
@@ -231,6 +232,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
         </footer>
       </main>
     </div>
+    <BottomNav @menu="toggleNav" />
     <MachineDialogs />
     <Spotlight />
     <FirstRun />

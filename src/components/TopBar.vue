@@ -888,6 +888,9 @@ function pause() {
 }
 /* phones: the pill keeps state, progress and the pause / cancel buttons, the rest goes */
 @media (max-width: 720px) {
+  .menu {
+    display: none; /* the bottom bar has More */
+  }
   .pb,
   .fn,
   .qb,
