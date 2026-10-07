@@ -174,9 +174,43 @@ const closeColor = () => (colorFor.value = null);
 onMounted(() => document.addEventListener('click', closeColor));
 onBeforeUnmount(() => document.removeEventListener('click', closeColor));
 const minOf = (i) =>
-  isCustom(i)
-    ? { btn: [1, 2], cam: [3, 4] }[state.settings.customCards?.[i]?.type] || [2, 3]
-    : MODULES[i]?.min || [2, 2];
+  isCollapsed(i)
+    ? [2, COLLAPSED_H]
+    : isCustom(i)
+      ? { btn: [1, 2], cam: [3, 4], tabs: [3, 4] }[state.settings.customCards?.[i]?.type] || [2, 3]
+      : MODULES[i]?.min || [2, 2];
+// ---- collapsed cards: only the header shows, the card takes COLLAPSED_H rows and the cards below move up.
+// The full height is kept so expanding puts it back; the saved layout always holds the full height.
+const COLLAPSED_H = 2;
+const fullH = {};
+const isCollapsed = (i) => !!state.settings.collapsed?.[i];
+// cards without a header (nothing would be left to see) and single buttons do not collapse
+const canCollapse = (i) => !['print', 'favorites'].includes(i) && state.settings.customCards?.[i]?.type !== 'btn';
+function applyCollapsed(l) {
+  return l.map((x) => {
+    if (!isCollapsed(x.i)) return x;
+    if (x.h !== COLLAPSED_H) fullH[x.i] = x.h;
+    return { ...x, h: COLLAPSED_H };
+  });
+}
+function toggleCollapse(i) {
+  const c = { ...(state.settings.collapsed || {}) };
+  const it = layout.value.find((x) => x.i === i);
+  if (c[i]) {
+    delete c[i];
+    state.settings.collapsed = c;
+    if (it) it.h = Math.max(fullH[i] || it.h, minOf(i)[1]);
+  } else {
+    c[i] = true;
+    state.settings.collapsed = c;
+    if (it) {
+      fullH[i] = it.h;
+      it.h = COLLAPSED_H;
+    }
+  }
+  layout.value = [...layout.value];
+  persist(true);
+}
 const nameOf = (i) => (isCustom(i) ? state.settings.customCards?.[i]?.name || 'Custom' : MODULES[i]?.n);
 
 const width = ref(window.innerWidth);
@@ -227,11 +261,14 @@ function clean(l) {
   for (const d of DEFAULT_LAYOUT()) if (!seen.has(d.i) && !hidden.includes(d.i)) out.push({ ...d, y: 999 });
   return out;
 }
-const layout = ref(clean(srcLayout()));
+const layout = ref(applyCollapsed(clean(srcLayout())));
 // which cards are on the dashboard now (Machine Limits leaves speed and flow to the Print controls card)
+provide('dashModules', MODULES); // the tabs card shows other cards by id
 provide(
   'dashCards',
-  computed(() => layout.value.map((x) => x.i)),
+  computed(() =>
+    layout.value.flatMap((x) => [x.i, ...((state.settings.customCards?.[x.i]?.tabs || []).map((tb) => tb.card) || [])]),
+  ),
 );
 watch(
   () => hasMmu.value && state.settingsLoaded,
@@ -251,7 +288,7 @@ watch(
   ([on]) => on && hookAutoScroll(),
 );
 function reload() {
-  layout.value = clean(srcLayout());
+  layout.value = applyCollapsed(clean(srcLayout()));
 }
 watch(mode, reload);
 watch(
@@ -278,7 +315,13 @@ function moveCol(i, d) {
 // grid-layout-plus also emits layout-updated on mount and on resize; only a Customize session writes settings
 function persist(force = false) {
   if (!state.editDash && !force) return;
-  state.settings[LK()] = layout.value.map(({ i, x, y, w, h }) => ({ i, x, y, w, h }));
+  state.settings[LK()] = layout.value.map(({ i, x, y, w, h }) => ({
+    i,
+    x,
+    y,
+    w,
+    h: isCollapsed(i) ? fullH[i] || h : h,
+  }));
 }
 const bottom = () => Math.max(0, ...layout.value.map((x) => x.y + x.h));
 function removeCard(i) {
@@ -309,14 +352,16 @@ function addCustom(type, cam) {
       ? { type, name: '', icon: 'star', gcode: '', highlight: false }
       : type === 'cam'
         ? { type, name: cam || 'Webcam' }
-        : { type, name: 'Macros', buttons: [] };
+        : type === 'tabs'
+          ? { type, name: 'Tabs', tabs: [], active: 0 }
+          : { type, name: 'Macros', buttons: [] };
   state.settings.customCards = { ...(state.settings.customCards || {}), [id]: data };
   if (cam) {
     // the camera this card shows, the same setting the card's own camera picker changes
     const o = (state.settings.cardOpts ||= {});
     o.cams = { ...(o.cams || {}), [id]: cam };
   }
-  const [w, h] = { btn: [2, 3], cam: [6, 8] }[type] || [4, 4];
+  const [w, h] = { btn: [2, 3], cam: [6, 8], tabs: [6, 7] }[type] || [4, 4];
   layout.value = [...layout.value, { i: id, x: 0, y: bottom(), w, h }];
   persist();
   addOpen.value = false;
@@ -505,8 +550,35 @@ function editCard(id) {
 function saveCard() {
   const d = editing.value.data;
   if (d.buttons) d.buttons = d.buttons.map(({ _k, ...b }) => b);
+  if (d.tabs) {
+    d.tabs = d.tabs.filter((tb) => tb.card);
+    if (d.active >= d.tabs.length) d.active = 0;
+    // a card shown in a tab leaves the grid (it would be there twice otherwise); its settings stay
+    for (const tb of d.tabs) if (layout.value.some((x) => x.i === tb.card)) detachCard(tb.card);
+  }
   state.settings.customCards = { ...state.settings.customCards, [editing.value.id]: d };
   editing.value = null;
+}
+// cards a tab can show: every module and custom card, except tabs cards themselves
+const tabChoices = computed(() => [
+  ...Object.keys(MODULES)
+    .filter((k) => !MODULES[k].need || MODULES[k].need() || layout.value.some((x) => x.i === k))
+    .map((k) => ({ id: k, name: t(MODULES[k].n) })),
+  ...Object.entries(state.settings.customCards || {})
+    .filter(([id, c]) => c.type !== 'tabs' && id !== editing.value?.id)
+    .map(([id, c]) => ({ id, name: c.name || t('Custom') })),
+]);
+function addTab() {
+  const used = new Set(editing.value.data.tabs.map((tb) => tb.card));
+  const first = tabChoices.value.find((o) => !used.has(o.id));
+  editing.value.data.tabs.push({ id: 't' + Date.now().toString(36), card: first?.id || '', label: '', icon: '' });
+}
+// take a card off the grid without deleting it (a default card is marked hidden so clean() does not bring it back)
+function detachCard(i) {
+  if (MODULES[i] && DEFAULT_LAYOUT().some((d) => d.i === i))
+    state.settings[HK()] = [...new Set([...(state.settings[HK()] || []), i])];
+  layout.value = layout.value.filter((x) => x.i !== i);
+  persist();
 }
 </script>
 
@@ -569,6 +641,9 @@ function saveCard() {
             </button>
             <button class="btn clear di" @click="addCustom('macros')">
               <Icon name="dash" :size="16" />{{ t('Macro group') }}
+            </button>
+            <button class="btn clear di" @click="addCustom('tabs')">
+              <Icon name="layers" :size="16" />{{ t('Tabs (several cards in one)') }}
             </button>
             <button
               v-for="w in state.webcams.filter((w) => w.enabled !== false)"
@@ -648,11 +723,25 @@ function saveCard() {
         <div
           v-fit
           class="cell"
-          :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i }"
+          :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i, collapsed: isCollapsed(it.i) }"
           :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null"
         >
           <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
           <component v-else :is="MODULES[it.i].c" class="fill" />
+          <button
+            v-if="!state.editDash && canCollapse(it.i)"
+            class="clp"
+            :aria-label="isCollapsed(it.i) ? t('Expand') : t('Collapse')"
+            :aria-expanded="!isCollapsed(it.i)"
+            @click="toggleCollapse(it.i)"
+          >
+            <Icon
+              name="chev"
+              :size="14"
+              :stroke="2.6"
+              :style="{ transform: isCollapsed(it.i) ? '' : 'rotate(90deg)' }"
+            />
+          </button>
           <template v-if="state.editDash"
             ><span class="rz bl" @pointerdown.stop.prevent="rzStart(it, 'bl', $event)"></span
             ><span class="rz br" @pointerdown.stop.prevent="rzStart(it, 'br', $event)"></span
@@ -750,8 +839,33 @@ function saveCard() {
         </div>
       </template>
       <template v-else v-for="it in column" :key="it.i">
-        <CustomCard v-if="isCustom(it.i)" :id="it.i" :style="{ minHeight: it.h * 40 + 'px' }" @edit="editCard" />
-        <component v-else :is="MODULES[it.i].c" :style="{ minHeight: it.h * 40 + 'px' }" />
+        <div class="cell mcell" :class="{ collapsed: isCollapsed(it.i) }">
+          <CustomCard
+            v-if="isCustom(it.i)"
+            :id="it.i"
+            :style="isCollapsed(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
+            @edit="editCard"
+          />
+          <component
+            v-else
+            :is="MODULES[it.i].c"
+            :style="isCollapsed(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
+          />
+          <button
+            v-if="canCollapse(it.i)"
+            class="clp"
+            :aria-label="isCollapsed(it.i) ? t('Expand') : t('Collapse')"
+            :aria-expanded="!isCollapsed(it.i)"
+            @click="toggleCollapse(it.i)"
+          >
+            <Icon
+              name="chev"
+              :size="14"
+              :stroke="2.6"
+              :style="{ transform: isCollapsed(it.i) ? '' : 'rotate(90deg)' }"
+            />
+          </button>
+        </div>
       </template>
     </div>
   </div>
@@ -826,7 +940,9 @@ function saveCard() {
 
   <Modal
     v-if="editing"
-    :title="editing.data.type === 'btn' ? t('Command button') : t('Macro group')"
+    :title="
+      editing.data.type === 'btn' ? t('Command button') : editing.data.type === 'tabs' ? t('Tabs') : t('Macro group')
+    "
     width="620px"
     @close="editing = null"
   >
@@ -848,6 +964,48 @@ function saveCard() {
         <Toggle v-model="editing.data.highlight" :label="t('Highlight')" />
       </div>
       <ButtonParams :b="editing.data" />
+    </template>
+    <template v-else-if="editing.data.type === 'tabs'">
+      <span class="lbl">{{
+        t('Each tab shows one card. A card put in here leaves the dashboard grid; Add card brings it back.')
+      }}</span>
+      <SortList v-model="editing.data.tabs" :item-key="(tb) => tb.id">
+        <template #default="{ item: tb, index: k }">
+          <button
+            class="btn ibtn"
+            style="width: 40px; height: 40px; flex: none"
+            :aria-label="t('Change icon')"
+            @click="iconFor = tb"
+          >
+            <Icon :name="tb.icon || 'layers'" :size="20" />
+          </button>
+          <select v-model="tb.card" class="input" style="flex: 1; min-width: 0" :aria-label="t('Card')">
+            <option v-for="o in tabChoices" :key="o.id" :value="o.id">{{ o.name }}</option>
+          </select>
+          <input
+            v-model="tb.label"
+            class="input"
+            style="width: 130px"
+            :placeholder="tabChoices.find((o) => o.id === tb.card)?.name || t('Tab name')"
+            :aria-label="t('Tab name')"
+          />
+          <button
+            class="btn clear ibtn sm"
+            :class="{ on: editing.data.active === k }"
+            :aria-label="t('Open this tab first')"
+            :data-tip="t('Open this tab first')"
+            @click="editing.data.active = k"
+          >
+            <Icon name="star" :size="16" />
+          </button>
+          <button class="btn clear ibtn sm" :aria-label="t('Remove tab')" @click="editing.data.tabs.splice(k, 1)">
+            <Icon name="trash" :size="16" />
+          </button>
+        </template>
+      </SortList>
+      <button class="btn" style="align-self: flex-start" @click="addTab">
+        <Icon name="plus" :size="16" />{{ t('Add tab') }}
+      </button>
     </template>
     <template v-else>
       <div class="row" style="justify-content: space-between">
@@ -1041,6 +1199,42 @@ function saveCard() {
   z-index: 5;
   display: flex;
   gap: 4px;
+}
+/* collapse chevron in the top right corner of every card; the header leaves room for it */
+.cell > .card > .card-h,
+.cell > .fill > .card-h {
+  padding-right: 22px;
+}
+.clp {
+  position: absolute;
+  top: 14px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mu2);
+  z-index: 4;
+}
+.clp:hover {
+  color: var(--tx);
+  background: var(--s2);
+}
+.cell.collapsed > .card > *:not(.card-h),
+.cell.collapsed > .fill > *:not(.card-h) {
+  display: none !important;
+}
+.cell.collapsed > .card,
+.cell.collapsed > .fill {
+  justify-content: center;
+  overflow: hidden;
+}
+.mcell {
+  height: auto;
 }
 .tools .btn {
   background: var(--s1);

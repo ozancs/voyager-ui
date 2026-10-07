@@ -143,6 +143,7 @@ export const LAYOUT_KEYS = [
   'autoLayout',
   'cardColors',
   'mobileOrder',
+  'collapsed',
 ];
 // Moonraker lists cameras from moonraker.conf first, then the saved ones in database (uid) order, and moves a
 // camera to the end when it is renamed, so the same two cameras could come back in a different order and

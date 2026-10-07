@@ -20,6 +20,12 @@ function measure(card) {
 function fit(cell) {
   const card = cell.querySelector(':scope > .card, :scope > * > .card, :scope > .card, .card');
   if (!card) return;
+  if (cell.classList.contains('collapsed')) {
+    // only the header shows: nothing to fit, and a zoomed header would slide away from the chevron
+    card.style.zoom = '';
+    card.classList.remove('fitted');
+    return;
+  }
   const cur = parseFloat(card.style.zoom) || 1;
   // measure at zoom 1 so the result does not drift
   card.style.zoom = '';
@@ -44,6 +50,8 @@ export const vfit = {
     el.__ro.observe(el);
     el.__mo = new MutationObserver(run);
     el.__mo.observe(el, { childList: true, subtree: true, characterData: true });
+    el.__co = new MutationObserver(run); // the cell's own class: collapsed on / off
+    el.__co.observe(el, { attributes: true, attributeFilter: ['class'] });
     run();
   },
   updated(el) {
@@ -52,6 +60,7 @@ export const vfit = {
   unmounted(el) {
     el.__ro?.disconnect();
     el.__mo?.disconnect();
+    el.__co?.disconnect();
     cancelAnimationFrame(el.__t);
   },
 };
