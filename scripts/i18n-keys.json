@@ -1886,5 +1886,8 @@
 "Macro with inputs",
 "Text",
 "Number",
-"{key} is required, crowsnest does not start without it"
+"{key} is required, crowsnest does not start without it",
+"Print actions",
+"Move the print up into the top bar",
+"Move the print down into its own bar"
 ]

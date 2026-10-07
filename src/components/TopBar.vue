@@ -1,6 +1,7 @@
 <script setup>
-// Top bar: printer name and logo, print state with progress and time left, pause / cancel / exclude,
-// search, Save Config, upload & print, notifications, customize, settings, power menu and E-STOP.
+// Top bar: printer name and logo, the printer state with the loaded file (while a print runs the job moves to the
+// PrintBar band underneath), search, Save Config, upload & print, notifications, customize, settings, power menu
+// and E-STOP.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { UPLOAD_ACCEPT } from '../gcode3mf';
 import Icon from './Icon.vue';
@@ -11,15 +12,16 @@ import { printerList, currentPrinter, selectPrinter } from '../printers';
 import PowerList from './PowerList.vue';
 import { powerAsk, flipPower } from '../power';
 import LockButton from './LockButton.vue';
+import JobMenu from './JobMenu.vue';
 const pAsk = computed(() => powerAsk.value);
 const closeAsk = () => (powerAsk.value = null);
 import {
   state,
   S,
   printState,
+  isPrinting,
   progress,
   printTimes,
-  layerInfo,
   fmtTime,
   gcode,
   toast,
@@ -27,9 +29,7 @@ import {
   dismiss,
   dismissAll,
   prettyName,
-  cancelPrint,
   restartKlipper,
-  pauseResume,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -42,20 +42,7 @@ const uploading = ref(null);
 const showBell = ref(false);
 const showPower = ref(false);
 const showMore = ref(false); // narrow screens: search, upload, save config, customize, settings, power
-const showJob = ref(false); // phones: the print pill opens pause, cancel, exclude and the queue
-const hasCmd = (c) => Object.keys(state.commands || {}).some((k) => k.toUpperCase() === c);
-const pauseNext = computed(
-  () =>
-    !!(S('gcode_macro SET_PRINT_STATS_INFO').pause_next_layer || S('gcode_macro SET_PAUSE_NEXT_LAYER').pause_next_layer)
-      ?.enable,
-);
-// only on a phone: on wider screens the pill shows those buttons itself
-const phone = () => window.matchMedia('(max-width: 480px)').matches;
-function toggleJob() {
-  if (active.value && phone()) showJob.value = !showJob.value;
-}
 const confirm = ref(null);
-const askCancel = ref(false);
 const thumb = computed(() => {
   const m = state.currentMeta;
   if (!m?.thumbnails?.length) return null;
@@ -64,34 +51,19 @@ const thumb = computed(() => {
   const dir = fn.split('/').slice(0, -1).join('/');
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path);
 });
-const eo = computed(() => S('exclude_object'));
-const eta = computed(() =>
-  printTimes.value.eta
-    ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-    : '--',
-);
 async function reprint() {
   const f = S('print_stats').filename;
   if (f && (await askReprint(f))) startPrint(f);
 }
 
-const stateColor = computed(
-  () =>
-    ({ printing: 'var(--ac)', paused: 'var(--wn)', error: 'var(--dg)', complete: 'var(--bl)', cancelled: 'var(--mu)' })[
-      printState.value
-    ] || 'var(--mu)',
-);
+const stateColor = computed(() => (printState.value === 'paused' ? 'var(--wn)' : 'var(--ac)'));
 const label = computed(() => {
   if (!state.connected) return t('Disconnected');
   if (state.klippy !== 'ready') return t('Klipper {state}', { state: state.klippy });
   return t(printState.value.charAt(0).toUpperCase() + printState.value.slice(1));
 });
 const savePending = computed(() => S('configfile').save_config_pending);
-const active = computed(() => ['printing', 'paused'].includes(printState.value));
-watch(
-  () => active.value,
-  (a) => !a && (showJob.value = false),
-);
+const active = isPrinting; // the job itself is in the PrintBar band while it runs
 const here = location.host;
 const hostName = currentPrinter()?.host || here;
 // printer switcher next to the name
@@ -171,9 +143,6 @@ function runConfirmed() {
   confirm.value = null;
   Promise.resolve(p.run()).catch((e) => toast(e.message, 'error'));
 }
-function pause() {
-  pauseResume(printState.value === 'paused' ? 'RESUME' : 'PAUSE');
-}
 </script>
 
 <template>
@@ -236,7 +205,43 @@ function pause() {
         <Icon name="gear" :size="15" /><span class="grow">{{ t('Manage printers') }}</span>
       </button>
     </Popover>
-    <div class="pill" data-away="job" :class="{ act: active, tap: active }" @click="toggleJob">
+    <!-- a running print: in its own band under the top bar by default; "moved up" it is this compact pill -->
+    <template v-if="active && state.settings.printBar === 'top'">
+      <div class="grow"></div>
+      <div class="pill job" :style="{ '--pst': stateColor }">
+        <div class="pth">
+          <img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
+            v-else
+            name="cube"
+            :size="20"
+            :stroke="1.8"
+          />
+        </div>
+        <div class="col jc">
+          <div class="row" style="gap: 8px; min-width: 0">
+            <b class="st">{{ label }}</b>
+            <span class="mono st2">{{ (progress * 100).toFixed(1) }}%</span>
+            <span class="mono fn jf">{{ (S('print_stats').filename || '').split('/').pop() }}</span>
+          </div>
+          <div class="bar state" style="height: 4px">
+            <div :style="{ width: progress * 100 + '%' }"></div>
+          </div>
+        </div>
+        <span class="mono meta jl">{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span>
+        <button
+          class="btn ibtn jb"
+          :aria-label="t('Move the print down into its own bar')"
+          :data-tip="t('Move the print down into its own bar')"
+          @click="state.settings.printBar = 'band'"
+        >
+          <Icon name="down" :size="16" :stroke="2.4" />
+        </button>
+        <JobMenu @exclude="emit('exclude')" />
+      </div>
+      <div class="grow"></div>
+    </template>
+    <div v-else-if="active" class="grow"></div>
+    <div v-else class="pill">
       <div class="pth">
         <img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
           v-else
@@ -246,162 +251,31 @@ function pause() {
         />
       </div>
       <div class="col" style="gap: 1px; min-width: 0; flex-shrink: 1">
-        <div class="row" style="gap: 8px; min-width: 0">
-          <b class="st" :class="{ bad: !state.connected || state.klippy !== 'ready' || printState === 'error' }">{{
-            label
-          }}</b>
-          <span v-if="active" class="mono st2">{{ (progress * 100).toFixed(1) }}%</span>
-          <Icon
-            v-if="active"
-            name="chev"
-            :size="14"
-            :stroke="2.6"
-            class="jchev"
-            :style="{ transform: showJob ? 'rotate(-90deg)' : 'rotate(90deg)' }"
-          />
-        </div>
+        <b class="st" :class="{ bad: !state.connected || state.klippy !== 'ready' || printState === 'error' }">{{
+          label
+        }}</b>
         <span class="mono fn">{{
           state.klippy !== 'ready' && state.klippyMessage
             ? state.klippyMessage.split('\n')[0]
             : S('print_stats').filename || t('No file loaded')
         }}</span>
       </div>
-      <template v-if="active">
-        <div class="pb">
-          <div class="bar state" :style="{ height: '8px', '--pst': stateColor }">
-            <div :style="{ width: progress * 100 + '%' }"></div>
-          </div>
-          <div class="row mono meta">
-            <span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span
-            ><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span
-            ><span class="hide-m">{{ t('ETA {time}', { time: eta }) }}</span>
-          </div>
-        </div>
-        <button
-          v-if="printState === 'paused'"
-          class="btn pbtn"
-          :aria-label="t('Resume')"
-          @click.stop="pauseResume('RESUME')"
-        >
-          <Icon name="play" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Resume') }}</span>
-        </button>
-        <button v-else class="btn pbtn" :aria-label="t('Pause')" @click.stop="pauseResume('PAUSE')">
-          <Icon name="pause" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Pause') }}</span>
-        </button>
-        <button class="btn pbtn" :aria-label="t('Cancel print')" @click.stop="askCancel = true">
-          <Icon name="sq" :size="16" :stroke="2.4" />
-        </button>
-        <button
-          class="btn pbtn exo"
-          :aria-label="t('Exclude object')"
-          :disabled="!eo.objects?.length"
-          @click.stop="emit('exclude')"
-        >
-          <Icon name="excl" :size="16" :stroke="2.4" /><span
-            v-if="eo.objects?.length"
-            class="mono"
-            style="font-size: 11px"
-            >{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span
-          >
-        </button>
-      </template>
+      <div class="grow"></div>
       <button
         v-if="state.queue.jobs?.length"
         class="btn pbtn qb"
         :title="t('{n} jobs queued', { n: state.queue.jobs.length })"
-        @click.stop="go('files')"
+        @click="go('files')"
       >
         <Icon name="queue" :size="16" /><span class="mono">{{ state.queue.jobs.length }}</span>
       </button>
-      <template v-if="!active">
-        <div class="grow"></div>
-        <button
-          v-if="S('print_stats').filename && state.klippy === 'ready'"
-          class="btn pbtn"
-          :aria-label="t('Print this file again')"
-          @click="reprint"
-        >
-          <Icon name="refresh" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Reprint') }}</span>
-        </button>
-      </template>
-    </div>
-    <div v-if="showJob && active" class="dd card job" v-away:job="() => (showJob = false)">
-      <div class="col" style="gap: 6px; padding: 2px 4px">
-        <b class="fnm">{{ S('print_stats').filename }}</b>
-        <div class="bar state" :style="{ height: '8px', '--pst': stateColor }">
-          <div :style="{ width: progress * 100 + '%' }"></div>
-        </div>
-        <div class="row mono meta" style="justify-content: space-between">
-          <span>{{ (progress * 100).toFixed(1) }}%</span
-          ><span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span
-          ><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span
-          ><span>{{ t('ETA {time}', { time: eta }) }}</span>
-        </div>
-      </div>
-      <div style="height: 1px; background: var(--bd); margin: 4px 0"></div>
       <button
-        v-if="printState === 'paused'"
-        class="btn clear mi"
-        @click="
-          showJob = false;
-          pauseResume('RESUME');
-        "
+        v-if="S('print_stats').filename && state.klippy === 'ready'"
+        class="btn pbtn"
+        :aria-label="t('Print this file again')"
+        @click="reprint"
       >
-        <Icon name="play" :size="18" />{{ t('Resume') }}
-      </button>
-      <button
-        v-else
-        class="btn clear mi"
-        @click="
-          showJob = false;
-          pauseResume('PAUSE');
-        "
-      >
-        <Icon name="pause" :size="18" />{{ t('Pause') }}
-      </button>
-      <button
-        class="btn clear mi"
-        :disabled="!eo.objects?.length"
-        @click="
-          showJob = false;
-          emit('exclude');
-        "
-      >
-        <Icon name="excl" :size="18" />{{ t('Exclude object')
-        }}<span v-if="eo.objects?.length" class="mono mu" style="margin-left: auto"
-          >{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span
-        >
-      </button>
-      <button
-        v-if="hasCmd('SET_PAUSE_NEXT_LAYER')"
-        class="btn clear mi"
-        @click="
-          showJob = false;
-          gcode(pauseNext ? 'SET_PAUSE_NEXT_LAYER ENABLE=0' : 'SET_PAUSE_NEXT_LAYER ENABLE=1');
-        "
-      >
-        <Icon name="layers" :size="18" />{{ pauseNext ? t('Cancel pause at next layer') : t('Pause at next layer') }}
-      </button>
-      <button
-        v-if="state.queue.jobs?.length"
-        class="btn clear mi"
-        @click="
-          showJob = false;
-          go('files');
-        "
-      >
-        <Icon name="queue" :size="18" />{{ t('Job queue')
-        }}<span class="mono mu" style="margin-left: auto">{{ state.queue.jobs.length }}</span>
-      </button>
-      <button
-        class="btn clear mi"
-        style="color: var(--dg)"
-        @click="
-          showJob = false;
-          askCancel = true;
-        "
-      >
-        <Icon name="sq" :size="18" />{{ t('Cancel print') }}
+        <Icon name="refresh" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Reprint') }}</span>
       </button>
     </div>
     <button class="btn lg srch hide-s" :aria-label="t('Search (Ctrl+K)')" @click="state.spotlight = true">
@@ -585,21 +459,6 @@ function pause() {
       <Icon name="stop" :size="22" :stroke="2.6" /><span class="hide-s">{{ t('E-STOP') }}</span>
     </button>
   </header>
-  <Modal v-if="askCancel" :title="t('Cancel print?')" @close="askCancel = false">
-    <p class="mu" style="margin: 0">{{ t('The current print will be cancelled.') }}</p>
-    <template #foot
-      ><button class="btn lg" @click="askCancel = false">{{ t('Keep printing') }}</button
-      ><button
-        class="btn lg dgf"
-        @click="
-          askCancel = false;
-          cancelPrint();
-        "
-      >
-        {{ t('Cancel print') }}
-      </button></template
-    >
-  </Modal>
   <Modal v-if="pAsk" :title="t('Turn off {name}?', { name: prettyName(pAsk.device) })" @close="closeAsk">
     <p class="mu" style="margin: 0">
       {{
@@ -731,29 +590,51 @@ function pause() {
   font-size: 14px;
   white-space: nowrap;
 }
-.st2 {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--mu);
-}
 .st.bad {
   color: var(--dg);
 }
-.pb {
-  flex: 1;
-  min-width: 120px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.pbtn {
+  height: 40px;
+  flex-shrink: 0;
 }
-.meta {
-  gap: 14px;
-  font-size: 11px;
+/* compact print pill: no stretch, sits between the name and the buttons with air on both sides */
+.pill.job {
+  flex: 0 1 auto;
+  max-width: 460px;
+  gap: 10px;
+  background: color-mix(in srgb, var(--pst, var(--ac)) 8%, var(--s1));
+}
+.pill.job .jc {
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 2px 0;
+}
+.pill.job .jf {
+  max-width: 180px;
+  font-size: 12px;
+}
+.pill.job .st {
+  font-size: 13px;
+}
+.st2 {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--mu);
+}
+.pill.job .meta {
+  font-size: 11.5px;
   color: var(--mu);
   white-space: nowrap;
-  overflow: hidden;
 }
-.pbtn {
+.pill.job .bar.state {
+  background: color-mix(in srgb, var(--pst) 18%, var(--s2));
+}
+.pill.job .bar.state > div {
+  background: var(--pst);
+}
+.jb {
+  width: 40px;
   height: 40px;
   flex-shrink: 0;
 }
@@ -841,28 +722,12 @@ function pause() {
   line-height: 1;
   margin-top: -4px;
 }
-.jchev {
-  display: none;
-  flex-shrink: 0;
-  color: var(--mu);
-}
 .mi {
   justify-content: flex-start;
   gap: 10px;
   height: 40px;
   color: var(--tx);
   font-weight: 600;
-}
-.dd.job {
-  left: 50px;
-  right: auto;
-  width: min(360px, calc(100vw - 20px));
-}
-.fnm {
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 @media (max-width: 1100px) {
   .more {
@@ -890,15 +755,14 @@ function pause() {
     max-width: 180px;
   }
 }
-/* phones: the pill keeps state, progress and the pause / cancel buttons, the rest goes */
+/* phones: the pill keeps the state, the file name goes */
 @media (max-width: 720px) {
   .menu {
     display: none; /* the bottom bar has More */
   }
-  .pb,
   .fn,
   .qb,
-  .pbtn.exo {
+  .jl {
     display: none;
   }
   .pill {
@@ -916,20 +780,12 @@ function pause() {
 }
 @media (max-width: 480px) {
   .pth,
-  .brand,
-  .st2,
-  .pill.act .pbtn,
+  .tb:has(.pill) .brand,
   .pwr {
-    display: none;
+    display: none; /* the name makes room for the state; while printing the band has the job and the name stays */
   }
   .pwr-s {
     display: block;
-  }
-  .jchev {
-    display: inline-block;
-  }
-  .pill.tap {
-    cursor: pointer;
   }
   .pill {
     padding: 0 6px;
@@ -944,6 +800,22 @@ function pause() {
   }
   .tb {
     gap: 6px;
+  }
+  /* the compact print pill on a phone: state and the two buttons only; the printer switcher gives up its spot */
+  .pill.job {
+    gap: 4px;
+    padding: 0 4px;
+  }
+  .pill.job .jc {
+    min-width: 56px !important;
+  }
+  .pill.job .st2,
+  .tb:has(.pill.job) .pmb {
+    display: none;
+  }
+  .jb,
+  .pill.job :deep(.jm) {
+    width: 32px;
   }
 }
 .pmb {

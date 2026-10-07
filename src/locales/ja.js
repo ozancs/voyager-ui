@@ -1888,4 +1888,7 @@ export default {
   "Text": "テキスト",
   "Number": "数値",
   "{key} is required, crowsnest does not start without it": "{key} は必須です。ないと crowsnest が起動しません",
+  "Print actions": "印刷の操作",
+  "Move the print up into the top bar": "印刷を上のバーへ移動",
+  "Move the print down into its own bar": "印刷を下の専用バーへ移動",
 }

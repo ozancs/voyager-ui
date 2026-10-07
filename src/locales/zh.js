@@ -1888,4 +1888,7 @@ export default {
   "Text": "文本",
   "Number": "数字",
   "{key} is required, crowsnest does not start without it": "{key} 为必填项,缺少它 crowsnest 无法启动",
+  "Print actions": "打印操作",
+  "Move the print up into the top bar": "把打印移到顶部栏",
+  "Move the print down into its own bar": "把打印移到下方独立栏",
 }

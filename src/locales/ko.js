@@ -1888,4 +1888,7 @@ export default {
   "Text": "텍스트",
   "Number": "숫자",
   "{key} is required, crowsnest does not start without it": "{key}은(는) 필수입니다. 없으면 crowsnest가 시작되지 않습니다",
+  "Print actions": "출력 작업",
+  "Move the print up into the top bar": "출력을 상단 바로 올리기",
+  "Move the print down into its own bar": "출력을 아래 전용 바로 내리기",
 }

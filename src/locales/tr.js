@@ -1889,4 +1889,7 @@ export default {
   "Text": "Metin",
   "Number": "Sayı",
   "{key} is required, crowsnest does not start without it": "{key} zorunlu, crowsnest onsuz başlamaz",
+  "Print actions": "Baskı işlemleri",
+  "Move the print up into the top bar": "Baskıyı üst çubuğa taşı",
+  "Move the print down into its own bar": "Baskıyı aşağı, kendi çubuğuna taşı",
 }

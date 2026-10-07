@@ -1888,4 +1888,7 @@ export default {
   "Text": "Text",
   "Number": "Zahl",
   "{key} is required, crowsnest does not start without it": "{key} ist Pflicht, ohne startet crowsnest nicht",
+  "Print actions": "Druckaktionen",
+  "Move the print up into the top bar": "Druck nach oben in die Kopfleiste",
+  "Move the print down into its own bar": "Druck nach unten in seine eigene Leiste",
 }

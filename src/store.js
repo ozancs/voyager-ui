@@ -76,6 +76,7 @@ export const DEFAULT_SETTINGS = () => ({
   theme: 'dark', // dark | light | auto
   searchContent: true, // Ctrl+K also searches inside .py .sh .txt files in the config folder
   heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false }, // colour range and 3D z axis, auto = from the mesh
+  printBar: 'band', // where the running print shows: band (its own bar under the top bar) | top (compact pill in the top bar)
   favBar: 'always', // favorites bar under the top bar: always | dashboard | off (a Favorites card can go on the dashboard)
   compactCards: true, // dashboard cards with less padding, a thinner title bar and a tighter grid
   uiScale: 100, // percent, or 'auto' = looks the same as on a 1920 px wide screen

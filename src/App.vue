@@ -6,6 +6,7 @@ import { ref, computed, defineAsyncComponent, h, watch } from 'vue';
 import LoadingPanel from './components/LoadingPanel.vue';
 import TopBar from './components/TopBar.vue';
 import FavoritesBar from './components/FavoritesBar.vue';
+import PrintBar from './components/PrintBar.vue';
 import SideNav from './components/SideNav.vue';
 import BottomNav from './components/BottomNav.vue';
 import ExcludeModal from './components/ExcludeModal.vue';
@@ -36,7 +37,7 @@ import { nextTick } from 'vue';
 initFeatures();
 initTimelapse();
 initZOffset();
-import { state, gcode, VERSION, activeTasks, APP_NAME, closeToast, restartKlipper } from './store';
+import { state, gcode, VERSION, activeTasks, APP_NAME, closeToast, restartKlipper, isPrinting } from './store';
 import { route, go } from './router';
 import { api } from './api/moonraker';
 import { t } from './i18n';
@@ -153,6 +154,7 @@ const showFavBar = computed(() => {
   const m = state.settings.favBar || 'always';
   return m === 'always' || (m === 'dashboard' && route.name === 'dashboard');
 });
+const printActive = isPrinting;
 const notReady = computed(() => state.connected && state.klippy !== 'ready');
 const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessage) : null));
 </script>
@@ -162,6 +164,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     <TopBar @exclude="state.showExclude = true" @menu="toggleNav" />
     <SettingsDialog v-if="state.settingsOpen" />
     <PrintersDialog v-if="state.printersOpen" @close="state.printersOpen = false" />
+    <PrintBar v-if="printActive && state.settings.printBar !== 'top'" @exclude="state.showExclude = true" />
     <FavoritesBar v-if="showFavBar" />
     <div class="body">
       <SideNav

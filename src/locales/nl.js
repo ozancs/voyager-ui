@@ -1888,4 +1888,7 @@ export default {
   "Text": "Tekst",
   "Number": "Getal",
   "{key} is required, crowsnest does not start without it": "{key} is verplicht, zonder start crowsnest niet",
+  "Print actions": "Printacties",
+  "Move the print up into the top bar": "Print omhoog naar de bovenbalk",
+  "Move the print down into its own bar": "Print omlaag naar zijn eigen balk",
 }

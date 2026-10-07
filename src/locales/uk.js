@@ -1888,4 +1888,7 @@ export default {
   "Text": "Текст",
   "Number": "Число",
   "{key} is required, crowsnest does not start without it": "{key} обов'язковий, без нього crowsnest не запуститься",
+  "Print actions": "Дії з друком",
+  "Move the print up into the top bar": "Підняти друк у верхню панель",
+  "Move the print down into its own bar": "Опустити друк в окрему панель",
 }

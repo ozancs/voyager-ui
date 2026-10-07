@@ -1888,4 +1888,7 @@ export default {
   "Text": "Testo",
   "Number": "Numero",
   "{key} is required, crowsnest does not start without it": "{key} è obbligatorio, senza crowsnest non parte",
+  "Print actions": "Azioni di stampa",
+  "Move the print up into the top bar": "Sposta la stampa su nella barra superiore",
+  "Move the print down into its own bar": "Sposta la stampa giù nella sua barra",
 }
