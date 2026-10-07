@@ -55,7 +55,7 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
 </template>
 <style scoped>
 .cp {
-  height: calc(100vh / var(--zoom, 1) - 196px);
+  height: calc(var(--main-h, 100vh) - 105px);
   min-height: 420px;
   flex: 0 0 auto;
 }
@@ -90,5 +90,24 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
 }
 .mu {
   color: var(--mu);
+}
+/* stacked (narrow window / phone): the console keeps most of the window, the command list scrolls in its own
+   card below it instead of pushing the console out of its card */
+@media (max-width: 1100px) {
+  .cp {
+    height: auto;
+    min-height: 0;
+  }
+  .cp > .card.grow {
+    flex: none;
+    height: calc(var(--main-h, 100vh) - 105px);
+    min-height: 360px;
+  }
+  .cp > .side-col {
+    max-height: 60vh;
+  }
+  .cp > .side-col > .col {
+    flex-shrink: 1;
+  }
 }
 </style>

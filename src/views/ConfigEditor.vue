@@ -886,7 +886,7 @@ function openSearch() {
 .ce {
   display: flex;
   gap: 16px;
-  height: calc(100vh / var(--zoom, 1) - 208px);
+  height: calc(var(--main-h, 100vh) - 105px);
   min-height: 480px;
 }
 .tree,

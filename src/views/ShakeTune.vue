@@ -405,7 +405,7 @@ const shortName = (n) => n.replace(/\.png$/i, '');
 
 <style scoped>
 .st {
-  min-height: calc(100vh / var(--zoom, 1) - 208px);
+  min-height: calc(var(--main-h, 100vh) - 105px);
 }
 .res {
   min-width: 0;

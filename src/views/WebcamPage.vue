@@ -44,7 +44,7 @@ function snapshot(c) {
 }
 </script>
 <template>
-  <div class="split" style="min-height: calc(100vh / var(--zoom, 1) - 208px)">
+  <div class="split" style="min-height: calc(var(--main-h, 100vh) - 105px)">
     <section class="card grow" ref="wrap">
       <div class="card-h">
         <h2>{{ lapse ? t('Timelapse') : all ? t('All cameras') : cam?.name || t('Webcam') }}</h2>

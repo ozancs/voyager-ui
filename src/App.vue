@@ -2,7 +2,7 @@
 // Root component: top bar, side menu, favorites bar and the page the router points at. Pages are loaded
 // on demand (LOADERS) and kept alive, so switching back is instant. Also hosts the app-wide overlays: toasts,
 // Ctrl+K search, settings, update log, macro prompts, first-run setup and the login screen.
-import { ref, computed, defineAsyncComponent, h, watch } from 'vue';
+import { ref, computed, defineAsyncComponent, h, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import LoadingPanel from './components/LoadingPanel.vue';
 import TopBar from './components/TopBar.vue';
 import FavoritesBar from './components/FavoritesBar.vue';
@@ -33,7 +33,6 @@ import { initZOffset } from './zoffset';
 import './lock';
 import FloatingCam from './components/FloatingCam.vue';
 import './tablet';
-import { nextTick } from 'vue';
 initFeatures();
 initTimelapse();
 initZOffset();
@@ -156,11 +155,31 @@ const showFavBar = computed(() => {
 });
 const printActive = isPrinting;
 const notReady = computed(() => state.connected && state.klippy !== 'ready');
+// --main-h: the height of the page area under the bars (top bar, print bar, favorites bar, phone bottom bar).
+// Pages that fill the window (console, config editor, webcam, viewer) size themselves with it instead of a
+// fixed guess that was wrong as soon as a bar came or went.
+const shell = ref(null);
+let ro;
+function measureChrome() {
+  const el = shell.value;
+  if (!el) return;
+  const main = el.querySelector('.main');
+  if (main) el.style.setProperty('--main-h', main.clientHeight + 'px');
+}
+onMounted(() => {
+  measureChrome();
+  ro = new ResizeObserver(measureChrome);
+  ro.observe(shell.value);
+  const main = shell.value.querySelector('.main');
+  if (main) ro.observe(main);
+});
+onBeforeUnmount(() => ro?.disconnect());
+watch([printActive, showFavBar, () => state.settings.printBar], () => nextTick(measureChrome));
 const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessage) : null));
 </script>
 
 <template>
-  <div class="shell" :class="{ booting: state.connected && !state.booted }">
+  <div class="shell" ref="shell" :class="{ booting: state.connected && !state.booted }">
     <TopBar @exclude="state.showExclude = true" @menu="toggleNav" />
     <SettingsDialog v-if="state.settingsOpen" />
     <PrintersDialog v-if="state.printersOpen" @close="state.printersOpen = false" />
