@@ -492,12 +492,12 @@ function reset() {
                 </div>
                 <div class="seg v">
                   <button
-                    v-for="r in [300, 600, 1200]"
+                    v-for="r in [300, 600, 1200, 3600, 21600, 86400]"
                     :key="r"
                     :class="{ on: (state.settings.tempRange || 600) === r }"
                     @click="state.settings.tempRange = r"
                   >
-                    {{ r / 60 }} {{ t('min') }}
+                    {{ r >= 3600 ? r / 3600 + ' ' + t('h') : r / 60 + ' ' + t('min') }}
                   </button>
                 </div>
               </div>

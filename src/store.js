@@ -8,6 +8,7 @@ import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue';
 import { api } from './api/moonraker';
 import { setLang, t } from './i18n';
 import { currentHost, currentPrinter, perPrinterKey } from './printers';
+import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { sortSensors } from './sensorStyle';
 
 export const VERSION = '0.26.3';
@@ -1111,6 +1112,7 @@ async function loadTempHistory() {
       // n counts every sample ever added, so the graph can thin out points at fixed positions
       hist[name] = { t, target: (d.targets || []).slice(-HIST_MAX), n: t.length };
     }
+    backfillLong(r);
     state.histTick++;
   } catch {}
 }
@@ -1375,10 +1377,16 @@ export function start() {
   api.on('notify_update_refreshed', ([u]) => applyUpd(u));
   api.connect(host);
 
-  // sample temperatures every second (same as moonraker's store)
+  // sample temperatures every second (same as moonraker's store); the long history (a day, 15 s steps, kept in
+  // this browser) takes one of them every 15 s
+  loadLong(perPrinterKey('voyager-ui-temphist'));
+  window.addEventListener('pagehide', () => saveLong(true));
   setInterval(() => {
     if (state.klippy !== 'ready') return;
     const names = tempSensors.value;
+    const readings = {};
+    for (const n of names) if (state.status[n]) readings[n] = state.status[n];
+    sampleLong(readings);
     for (const n of names) {
       const s = state.status[n];
       if (!s || s.temperature == null) continue;
