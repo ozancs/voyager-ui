@@ -85,6 +85,7 @@ export const DEFAULT_SETTINGS = () => ({
   layoutPrint: null,
   mobileOrder: null, // card order of the one-column phone dashboard, set in Customize on a phone
   hiddenCardsPrint: [],
+  collapsed: {}, // card id -> true while folded to its header
   // alerts for print events: sounds, a system notification while the tab is in the background, spoken text
   sound: {
     enabled: false,
@@ -174,7 +175,7 @@ export function pushLayoutBackup(snap, label) {
   state.settings.layoutBackups = b.slice(0, 5);
 }
 export function restoreLayout(snap) {
-  for (const k of LAYOUT_KEYS) state.settings[k] = JSON.parse(JSON.stringify(snap[k] ?? DEFAULT_SETTINGS()[k]));
+  for (const k of LAYOUT_KEYS) state.settings[k] = JSON.parse(JSON.stringify(snap[k] ?? DEFAULT_SETTINGS()[k] ?? null));
 }
 
 export const state = reactive({

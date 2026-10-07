@@ -1887,4 +1887,5 @@ export default {
   "Macro with inputs": "带输入的宏",
   "Text": "文本",
   "Number": "数字",
+  "{key} is required, crowsnest does not start without it": "{key} 为必填项,缺少它 crowsnest 无法启动",
 }

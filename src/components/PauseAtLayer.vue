@@ -10,8 +10,18 @@ import { t } from '../i18n';
 defineProps({ compact: Boolean });
 const has = (c) => Object.keys(state.commands || {}).some((k) => k.toUpperCase() === c);
 const avail = computed(() => has('SET_PAUSE_AT_LAYER') || has('SET_PAUSE_NEXT_LAYER'));
-const atLayer = computed(() => S('gcode_macro SET_PAUSE_AT_LAYER').pause_at_layer || {});
-const nextLayer = computed(() => S('gcode_macro SET_PAUSE_NEXT_LAYER').pause_next_layer || {});
+// mainsail.cfg / fluidd.cfg keep both variables on SET_PRINT_STATS_INFO (the layer-change hook); older or
+// home-made copies keep them on the SET_PAUSE_* macros themselves
+const atLayer = computed(
+  () =>
+    S('gcode_macro SET_PRINT_STATS_INFO').pause_at_layer || S('gcode_macro SET_PAUSE_AT_LAYER').pause_at_layer || {},
+);
+const nextLayer = computed(
+  () =>
+    S('gcode_macro SET_PRINT_STATS_INFO').pause_next_layer ||
+    S('gcode_macro SET_PAUSE_NEXT_LAYER').pause_next_layer ||
+    {},
+);
 const pending = computed(() =>
   nextLayer.value.enable ? t('next layer') : atLayer.value.enable ? t('layer {n}', { n: atLayer.value.layer }) : '',
 );

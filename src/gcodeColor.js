@@ -27,7 +27,7 @@ export function colorByFeature(text) {
   const lines = text.split('\n');
   for (let k = 0; k < lines.length; k++) {
     const line = lines[k];
-    const m = /^;\s*TYPE:\s*(.+?)\s*$/i.exec(line);
+    const m = /^;\s*(?:TYPE|FEATURE):\s*(.+?)\s*$/i.exec(line); // PrusaSlicer/Cura ;TYPE:, Orca/Bambu ; FEATURE:
     if (m) {
       const key = m[1].toLowerCase();
       const i = FEATURES.findIndex(([, , re]) => re.test(key));

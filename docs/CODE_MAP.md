@@ -49,6 +49,15 @@ definition in load order, or the last file with the section; files Klipper does 
 changes the line with setOption (the SAVE_CONFIG block wins when the option is  
 there), saves a backup of each file first and uploads it. Klipper needs a restart to use the new values.
 
+**[src/controls.js](../src/controls.js)**  
+Helpers of the Controls card: reading a value out of a printer object and testing a switch condition.
+
+**[src/crowsnest.js](../src/crowsnest.js)**  
+crowsnest.conf as a form: the [cam N] sections with the options people change (mode, port, device, resolution,  
+fps, flags). Only the lines of the keys shown are touched; everything else in the file, comments included, stays  
+as written. Values in the file: "key: value" or "key = value".  
+crowsnest refuses to start when one of these is missing from a [cam] section
+
 **[src/explain.js](../src/explain.js)**  
 "What does this error mean": common Klipper errors in plain words, with what usually causes them and what to  
 check. Used under the Klipper error banner and behind the ? on error lines in the console. The texts are  
@@ -73,6 +82,11 @@ address), never with another printer's. The printer this page is connected to co
 Printable file names, and reading the G-code out of a .gcode.3mf (OrcaSlicer and Bambu Studio can send the  
 sliced plate as a zip: Metadata/plate_1.gcode plus a thumbnail and an md5). Klipper runs the file through  
 Moonraker as is; the viewer and the object map need the text inside, so the zip is opened in the browser.
+
+**[src/gcodeColor.js](../src/gcodeColor.js)**  
+Colouring the G-code viewer by feature type or by speed. gcode-preview colours by tool (T0, T1 …), so the file  
+is rewritten before parsing: a T line is put in wherever the feature or the speed bucket changes, and the real  
+tool changes are dropped for these two modes. The viewer then gets one colour per index.
 
 **[src/gcodeHelp.js](../src/gcodeHelp.js)**  
 What a console command does, for the tooltip on command lines in the console. Standard G-codes that  
@@ -197,6 +211,13 @@ paths so nothing else in their database is touched. The other UI picks the value
 Tablet mode, for a tablet or touch screen that stays next to the printer: larger touch targets, no hover  
 tooltips, full screen and the screen kept on (Wake Lock) while the page is visible. Kept per browser.
 
+**[src/temphist.js](../src/temphist.js)**  
+Long temperature history for the graph: one sample per sensor every STEP seconds, up to a day, kept in this  
+browser (localStorage, per printer) so it survives a reload. The store's 1-second buffers (hist) only hold the  
+last 20 minutes, Moonraker's own store too; this is what the 1h / 6h / 24h ranges and zooming out draw from.  
+Samples carry their time (seconds since the epoch), so a gap (UI closed, printer off) shows as a gap and not as  
+a line across it.
+
 **[src/timelapse.js](../src/timelapse.js)**  
 moonraker-timelapse: settings, the frames of the running print, rendering and the finished clips.  
 The component takes one snapshot per layer (or every N seconds in hyperlapse mode) from one camera and  
@@ -208,6 +229,11 @@ Undo for deletes: the item disappears from the list at once, the real delete run
 the corner shows the time left and an Undo button. Things that cannot be brought back (files, history jobs) are  
 only hidden until then (hideKeys + isHidden); things that can (a saved printer, a webcam) are removed at once and  
 put back by `undo`. Closing the page within the 10 seconds leaves the files as they were.
+
+**[src/zoffset.js](../src/zoffset.js)**  
+Baby steps during a print change the Z offset only until Klipper restarts. When a print that was baby-stepped  
+ends, a message offers to write the offset into the config (Z_OFFSET_APPLY_PROBE / _ENDSTOP, then SAVE_CONFIG),  
+so a first layer that was dialed in by hand is not lost.
 
 
 ## Moonraker client
@@ -283,6 +309,10 @@ one). Click a camera in the grid to open it on its own.
 
 ## Components and dashboard cards
 
+**[src/components/BottomNav.vue](../src/components/BottomNav.vue)**  
+Phone: a bar at the bottom with the pages used most and a "More" button that opens the full menu. Replaces  
+reaching for the hamburger in the top left with one thumb.
+
 **[src/components/ButtonParams.vue](../src/components/ButtonParams.vue)**  
 Parameter fields for a button whose command is a macro with parameters (MY_MACRO VALUE=50): each field edits that  
 value in the command, and "Ask when clicked" opens the fields before the macro runs instead of using them as is.
@@ -308,6 +338,20 @@ open the full console page.
 Console output and the G-code input. Shows state.console (filled by the store from Moonraker's  
 gcode responses), keeps scrolled to the bottom unless the user scrolls up, remembers sent commands (arrow  
 up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.
+
+**[src/components/ControlEditor.vue](../src/components/ControlEditor.vue)**  
+Editor for one control of the Controls card (used inside the card editor in Dashboard.vue). The control object  
+is edited in place. State source: a printer object and one of its fields, picked from what Klipper reports now.
+
+**[src/components/ControlsCard.vue](../src/components/ControlsCard.vue)**  
+Controls card: sliders, switches, multi-position selectors and small forms that run macros with parameters.  
+Each control reads its state from a printer object (state.objects / S()), so a switch shows the real position  
+and a slider the value Klipper reports. Commands go through gcode(), so the print guard still applies.
+
+**[src/components/CrowsnestCard.vue](../src/components/CrowsnestCard.vue)**  
+Camera settings from crowsnest.conf as a form: one block per [cam N] with mode, port, device, resolution, fps and  
+extra flags. Save writes the file (a backup is made first) and restarts crowsnest. Only these lines change;  
+the rest of the file stays as it is. Shown when the config folder has a crowsnest.conf.
 
 **[src/components/CustomCard.vue](../src/components/CustomCard.vue)**  
 A card the user made in Customize: a single command button, a group of macro buttons or an extra  
@@ -401,6 +445,11 @@ so a slow printer does not look like a broken page.
 **[src/components/LockButton.vue](../src/components/LockButton.vue)**  
 Lock button in the top bar (lock.js). Locking can set a PIN; unlocking asks for it.
 
+**[src/components/LogViewer.vue](../src/components/LogViewer.vue)**  
+Reads the tail of a printer log (klippy.log, moonraker.log, crowsnest.log) in the browser: the last part of the  
+file is fetched with a Range request, errors and warnings are highlighted, a filter narrows the lines, and  
+"Follow" reloads every few seconds. The whole file is still a download away.
+
 **[src/components/LoginScreen.vue](../src/components/LoginScreen.vue)**  
 Shown only when Moonraker refuses this browser (force_logins, or not a trusted client).
 
@@ -459,6 +508,11 @@ objects are greyed out, the current one is highlighted; clicking one emits 'pick
 **[src/components/ObjectsCard.vue](../src/components/ObjectsCard.vue)**  
 Dashboard card with the object map and the button that opens the exclude object dialog.
 
+**[src/components/PauseAtLayer.vue](../src/components/PauseAtLayer.vue)**  
+Pause at a layer (colour change, insert a magnet): uses the SET_PAUSE_AT_LAYER / SET_PAUSE_NEXT_LAYER macros  
+of the Mainsail / Fluidd client macros, which run PAUSE from the slicer's layer change G-code. Shown only when  
+the printer has them. The pending layer is read back from the macro's variables.
+
 **[src/components/Popover.vue](../src/components/Popover.vue)**  
 Pop-up panel for buttons inside dashboard cards (sensor picker, presets). It is moved to <body> so the card's  
 scroll area, the page's scroll area and the side menu cannot cut it off or cover it, and it is placed under  
@@ -516,6 +570,12 @@ the graph (sensorStyle.js).
 **[src/components/SettingsDialog.vue](../src/components/SettingsDialog.vue)**  
 Interface settings as a dialog (like Mainsail's), categories on the left. Opened from the gear in the top bar.
 
+**[src/components/ShaperGraphs.vue](../src/components/ShaperGraphs.vue)**  
+Input shaper graphs through gcode_shell_command: when the config has a macro that runs RUN_SHELL_COMMAND with a  
+command calling calibrate_shaper.py or graph_shaper.py (the usual "generate shaper graphs" macros), a button runs  
+it here and the PNGs it writes into the config folder show up below. Nothing is installed by this UI: without  
+such a macro it says what is needed.
+
 **[src/components/SideNav.vue](../src/components/SideNav.vue)**  
 Side menu: the pages, a badge with the number of health issues, and the footer (connection state,  
 slow requests, "new version" hint that opens the update manager). Can be pinned, hidden or auto-hide.
@@ -545,9 +605,16 @@ points, fixed or automatic Z range.
 Host and MCU information: CPU and memory load, temperatures, versions, network traffic. Polls  
 machine.proc_stats every 5 seconds while it is on screen.
 
+**[src/components/TabsCard.vue](../src/components/TabsCard.vue)**  
+A card with tabs: each tab shows one of the dashboard cards (a module or a custom card). Which cards exist  
+comes from the dashboard (provide 'dashModules'); the active tab is remembered per card in this browser.
+
 **[src/components/TempChartCard.vue](../src/components/TempChartCard.vue)**  
-Temperature graph drawn as SVG from the history buffers in the store (hist). 5, 10 or 20 minute  
-range, sensors picked with the eye button, dashed lines for targets.
+Temperature graph drawn as SVG. Ranges from 5 minutes to 24 hours: the short ones come from the store's 1-second  
+buffers (hist), the long ones from the long history kept in this browser (temphist.js, one sample per 15 s).  
+Mouse wheel or pinch zooms the time axis around the pointer, drag pans into the past, "Live" (or a double  
+click) comes back to now. Hovering shows the values at that time in the legend. Sensors picked with the eye  
+button, dashed lines for targets.
 
 **[src/components/TempsCard.vue](../src/components/TempsCard.vue)**  
 Temperature table: current, target and power for heaters and sensors. Targets can be typed in,  
@@ -585,6 +652,11 @@ search, Save Config, upload & print, notifications, customize, settings, power m
 **[src/components/UpdateModal.vue](../src/components/UpdateModal.vue)**  
 Log of a running update (Moonraker's update manager). Shows the output lines as they come in  
 and a close button when the update is done.
+
+**[src/components/UsersCard.vue](../src/components/UsersCard.vue)**  
+Moonraker users and the API key (the [authorization] section). Lists the accounts, adds one, removes one, changes  
+the password of the account this browser is logged in with, shows and renews the API key. Shown when Moonraker  
+answers access.users.list, which it does for a logged-in user or a trusted client.
 
 **[src/components/WebcamCard.vue](../src/components/WebcamCard.vue)**  
 Webcam card. With more than one camera the header has a picker; the choice is kept per card (the built-in card  

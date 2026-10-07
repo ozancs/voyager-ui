@@ -1888,4 +1888,5 @@ export default {
   "Macro with inputs": "Girdili macro",
   "Text": "Metin",
   "Number": "Sayı",
+  "{key} is required, crowsnest does not start without it": "{key} zorunlu, crowsnest onsuz başlamaz",
 }

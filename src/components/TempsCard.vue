@@ -5,7 +5,7 @@ import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import SensorPicker from './SensorPicker.vue';
 import Popover from './Popover.vue';
-import { state, sensors, setHeater, applyPreset, gcode, allPresets } from '../store';
+import { state, sensors, setHeater, applyPreset, gcode, allPresets, isPrinting } from '../store';
 import { go } from '../router';
 import { t } from '../i18n';
 import { sensorColor, heatColor } from '../sensorStyle';

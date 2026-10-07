@@ -66,7 +66,7 @@ useApiEvent('notify_filelist_changed', ([p]) => {
     tm = setTimeout(load, 800);
   }
 });
-const url = (f) => api.fileUrl('config', f.path) + '?m=' + Math.round(f.modified);
+const url = (f) => api.fileUrl('config', f.path, 'm=' + Math.round(f.modified));
 const viewer = ref(null);
 const fmt = (ts) =>
   new Date(ts * 1000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });

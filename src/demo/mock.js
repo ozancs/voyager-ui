@@ -57,6 +57,7 @@ const objects = ['mmu'].concat([
   'gcode_macro PARK',
   'gcode_macro SET_PAUSE_NEXT_LAYER',
   'gcode_macro SET_PAUSE_AT_LAYER',
+  'gcode_macro SET_PRINT_STATS_INFO',
   'gcode_macro LOAD_PLA',
   'gcode_macro LOAD_ABS',
   'gcode_macro M600',
@@ -358,8 +359,12 @@ const status = {
   'gcode_macro HEAT_SOAK': {},
   'gcode_macro GENERATE_SHAPER_GRAPHS': {},
   'gcode_macro PARK': {},
-  'gcode_macro SET_PAUSE_NEXT_LAYER': { pause_next_layer: { enable: false, call: 'PAUSE' } },
-  'gcode_macro SET_PAUSE_AT_LAYER': { pause_at_layer: { enable: false, layer: 0, call: 'PAUSE' } },
+  'gcode_macro SET_PAUSE_NEXT_LAYER': {},
+  'gcode_macro SET_PAUSE_AT_LAYER': {},
+  'gcode_macro SET_PRINT_STATS_INFO': {
+    pause_next_layer: { enable: false, call: 'PAUSE' },
+    pause_at_layer: { enable: false, layer: 0, call: 'PAUSE' },
+  },
   'gcode_macro LOAD_PLA': {},
   'gcode_macro LOAD_ABS': {},
   'gcode_macro M600': {},
@@ -2171,12 +2176,12 @@ gcodeScript = function (sc) {
     return 'ok';
   }
   if ((m = S.match(/^SET_PAUSE_NEXT_LAYER\b.*?ENABLE=(\d)/))) {
-    pushStatus({ 'gcode_macro SET_PAUSE_NEXT_LAYER': { pause_next_layer: { enable: m[1] === '1', call: 'PAUSE' } } });
+    pushStatus({ 'gcode_macro SET_PRINT_STATS_INFO': { pause_next_layer: { enable: m[1] === '1', call: 'PAUSE' } } });
     return 'ok';
   }
   if ((m = S.match(/^SET_PAUSE_AT_LAYER\b.*?ENABLE=(\d)(?:.*?LAYER=(\d+))?/))) {
     pushStatus({
-      'gcode_macro SET_PAUSE_AT_LAYER': {
+      'gcode_macro SET_PRINT_STATS_INFO': {
         pause_at_layer: { enable: m[1] === '1', layer: +(m[2] || 0), call: 'PAUSE' },
       },
     });

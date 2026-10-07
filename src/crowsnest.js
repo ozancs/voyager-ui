@@ -1,6 +1,8 @@
 // crowsnest.conf as a form: the [cam N] sections with the options people change (mode, port, device, resolution,
 // fps, flags). Only the lines of the keys shown are touched; everything else in the file, comments included, stays
 // as written. Values in the file: "key: value" or "key = value".
+// crowsnest refuses to start when one of these is missing from a [cam] section
+export const REQUIRED_KEYS = ['mode', 'port', 'device', 'resolution', 'max_fps'];
 export const CAM_KEYS = [
   'mode',
   'port',
@@ -30,7 +32,7 @@ export function parseCrowsnest(text) {
     if (!cur) continue;
     const kv = /^([A-Za-z_][\w]*)\s*[:=]\s*(.*?)(?:\s+[#;].*)?$/.exec(l);
     if (kv && !/^\s*[#;]/.test(l)) {
-      cur.opts[kv[1].toLowerCase()] = kv[2];
+      cur.opts[kv[1].toLowerCase()] = kv[2].trim();
       cur.lines[kv[1].toLowerCase()] = i;
     }
   }
@@ -49,7 +51,8 @@ export function writeCrowsnest(text, cams) {
     for (const k of CAM_KEYS) {
       const v = String(cam.opts[k] ?? '').trim();
       const has = k in p.lines;
-      if (has && v === '') edits.push({ at: p.lines[k], del: true });
+      if (has && v === '' && p.opts[k] !== '')
+        edits.push({ at: p.lines[k], del: true }); // an empty line stays
       else if (has && v !== p.opts[k])
         edits.push({
           at: p.lines[k],

@@ -75,7 +75,7 @@ const counts = computed(() => {
 <template>
   <Modal :title="file" width="min(1100px, 96vw)" @close="emit('close')">
     <div class="lv">
-      <div class="bar">
+      <div class="lvbar">
         <input v-model="q" class="input" :placeholder="t('Filter lines…')" style="flex: 1; min-width: 160px" />
         <button class="btn" :class="{ on: onlyProblems }" @click="onlyProblems = !onlyProblems">
           <Icon name="warn" :size="15" />{{ t('Problems only') }}
@@ -114,7 +114,7 @@ const counts = computed(() => {
   flex-direction: column;
   gap: 10px;
 }
-.bar {
+.lvbar {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;

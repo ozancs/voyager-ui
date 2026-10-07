@@ -122,13 +122,14 @@ function section(name, body) {
   return `[notifier ${name}]\n${body}`;
 }
 // the section runs from its header to the next line that starts a section; a [ inside a value
-// ({event_args[1].filename}) is not a header, which a plain [^\[]* cut on
+// ({event_args[1].filename}) is not a header, which a plain [^\[]* cut on. Only a [ in the first column
+// starts a section: an indented line is the continuation of a multi-line value.
 function stripSection(text, name) {
   const lines = text.split('\n');
   const out = [];
   let skip = false;
   for (const l of lines) {
-    if (/^\s*\[/.test(l)) skip = l.trim().toLowerCase() === `[notifier ${name}]`.toLowerCase();
+    if (/^\[/.test(l)) skip = l.trim().toLowerCase() === `[notifier ${name}]`.toLowerCase();
     if (!skip) out.push(l);
   }
   return out.join('\n').replace(/\n{3,}/g, '\n\n');

@@ -21,13 +21,19 @@ const sliderVal = (ct) => {
   const sc = num(ct.scale, 1) || 1;
   return typeof raw === 'number' ? Math.round(raw * sc * 1000) / 1000 : num(ct.min, 0);
 };
-const toggleOn = (ct) => isOn(readState(ct.obj, ct.field), ct.when);
+// a switch without a state source remembers what it sent last, so its off command stays reachable
+const local = ref({});
+const toggleOn = (ct) => (ct.obj ? isOn(readState(ct.obj, ct.field), ct.when) : !!local.value[ct.id]);
 const multiVal = (ct) => {
   const raw = readState(ct.obj, ct.field);
   return raw === undefined || raw === null
     ? null
     : String(typeof raw === 'number' ? Math.round(raw * 1000) / 1000 : raw);
 };
+function flip(ct, on) {
+  if (!ct.obj) local.value = { ...local.value, [ct.id]: on };
+  run(on ? ct.on : ct.off, ct.id);
+}
 const busy = ref(null);
 async function run(cmd, key) {
   if (state.editDash || !cmd) return;
@@ -97,11 +103,7 @@ function runForm(ct) {
         <!-- switch -->
         <div v-else-if="ct.kind === 'toggle'" class="row" style="justify-content: space-between; gap: 8px">
           <span class="nl"><Icon v-if="ct.icon" :name="ct.icon" :size="15" />{{ ct.label }}</span>
-          <Toggle
-            :model-value="toggleOn(ct)"
-            :label="ct.label"
-            @update:model-value="run($event ? ct.on : ct.off, ct.id)"
-          />
+          <Toggle :model-value="toggleOn(ct)" :label="ct.label" @update:model-value="flip(ct, $event)" />
         </div>
         <!-- several positions -->
         <template v-else-if="ct.kind === 'multi'">
@@ -127,7 +129,7 @@ function runForm(ct) {
             </button>
           </div>
           <div class="fields">
-            <label v-for="f in ct.fields || []" :key="f.param" class="fld">
+            <label v-for="(f, k) in ct.fields || []" :key="k" class="fld">
               <span class="code">{{ f.param }}</span>
               <Toggle
                 v-if="f.type === 'toggle'"

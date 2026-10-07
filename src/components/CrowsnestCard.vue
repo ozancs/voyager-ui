@@ -6,7 +6,7 @@ import { ref, onMounted, computed } from 'vue';
 import Icon from './Icon.vue';
 import { api } from '../api/moonraker';
 import { toast, backupBeforeWrite, isPrinting } from '../store';
-import { parseCrowsnest, writeCrowsnest, CAM_KEYS, MODES } from '../crowsnest';
+import { parseCrowsnest, writeCrowsnest, CAM_KEYS, REQUIRED_KEYS, MODES } from '../crowsnest';
 import { t } from '../i18n';
 const text = ref(null);
 const cams = ref([]);
@@ -37,6 +37,9 @@ const dirty = computed(() => {
 });
 async function save() {
   for (const c of cams.value) {
+    for (const k of REQUIRED_KEYS)
+      if (!String(c.opts[k] ?? '').trim())
+        return toast(t('{key} is required, crowsnest does not start without it', { key: k }), 'warn');
     if (c.opts.port && !/^\d{2,5}$/.test(c.opts.port.trim())) return toast(t('Port must be a number'), 'warn');
     if (c.opts.resolution && !/^\d+x\d+$/i.test(c.opts.resolution.trim()))
       return toast(t('Resolution looks like 1280x720'), 'warn');
@@ -76,7 +79,6 @@ const RES = ['640x480', '800x600', '1280x720', '1920x1080', '2560x1440'];
           <label class="f"
             ><span>{{ t('Mode') }}</span
             ><select v-model="c.opts.mode" class="input">
-              <option value="">{{ t('(default)') }}</option>
               <option v-for="m in MODES" :key="m" :value="m">{{ m }}</option>
             </select></label
           >

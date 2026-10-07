@@ -44,7 +44,11 @@ const showPower = ref(false);
 const showMore = ref(false); // narrow screens: search, upload, save config, customize, settings, power
 const showJob = ref(false); // phones: the print pill opens pause, cancel, exclude and the queue
 const hasCmd = (c) => Object.keys(state.commands || {}).some((k) => k.toUpperCase() === c);
-const pauseNext = computed(() => !!S('gcode_macro SET_PAUSE_NEXT_LAYER').pause_next_layer?.enable);
+const pauseNext = computed(
+  () =>
+    !!(S('gcode_macro SET_PRINT_STATS_INFO').pause_next_layer || S('gcode_macro SET_PAUSE_NEXT_LAYER').pause_next_layer)
+      ?.enable,
+);
 // only on a phone: on wider screens the pill shows those buttons itself
 const phone = () => window.matchMedia('(max-width: 480px)').matches;
 function toggleJob() {

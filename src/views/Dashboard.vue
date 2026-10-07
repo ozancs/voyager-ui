@@ -175,7 +175,7 @@ const closeColor = () => (colorFor.value = null);
 onMounted(() => document.addEventListener('click', closeColor));
 onBeforeUnmount(() => document.removeEventListener('click', closeColor));
 const minOf = (i) =>
-  isCollapsed(i)
+  folded(i)
     ? [2, COLLAPSED_H]
     : isCustom(i)
       ? { btn: [1, 2], cam: [3, 4], tabs: [3, 4], ctl: [3, 3] }[state.settings.customCards?.[i]?.type] || [2, 3]
@@ -185,11 +185,13 @@ const minOf = (i) =>
 const COLLAPSED_H = 2;
 const fullH = {};
 const isCollapsed = (i) => !!state.settings.collapsed?.[i];
+// in Customize every card shows at its full size, so it can be resized; the fold comes back on Done / Cancel
+const folded = (i) => isCollapsed(i) && !state.editDash;
 // cards without a header (nothing would be left to see) and single buttons do not collapse
 const canCollapse = (i) => !['print', 'favorites'].includes(i) && state.settings.customCards?.[i]?.type !== 'btn';
 function applyCollapsed(l) {
   return l.map((x) => {
-    if (!isCollapsed(x.i)) return x;
+    if (!folded(x.i)) return x;
     if (x.h !== COLLAPSED_H) fullH[x.i] = x.h;
     return { ...x, h: COLLAPSED_H };
   });
@@ -210,7 +212,7 @@ function toggleCollapse(i) {
     }
   }
   layout.value = [...layout.value];
-  persist(true);
+  if (mode.value !== 'print' || state.settings.layoutPrint) persist(true); // never forks a print layout
 }
 const nameOf = (i) => (isCustom(i) ? state.settings.customCards?.[i]?.name || 'Custom' : MODULES[i]?.n);
 
@@ -278,7 +280,7 @@ watch(
     state.settings.mmuSeen = true;
     if (!layout.value.some((x) => x.i === 'mmu')) {
       layout.value = [{ i: 'mmu', x: 0, y: 0, w: 12, h: 7 }, ...layout.value.map((x) => ({ ...x, y: x.y + 7 }))];
-      persist(true);
+      if (mode.value !== 'print' || state.settings.layoutPrint) persist(true);
     }
   },
   { immediate: true },
@@ -321,7 +323,7 @@ function persist(force = false) {
     x,
     y,
     w,
-    h: isCollapsed(i) ? fullH[i] || h : h,
+    h: folded(i) ? fullH[i] || h : h,
   }));
 }
 const bottom = () => Math.max(0, ...layout.value.map((x) => x.y + x.h));
@@ -331,8 +333,10 @@ function removeCard(i) {
   layout.value = layout.value.filter((x) => x.i !== i);
   if (isCustom(i)) {
     const cc = { ...state.settings.customCards };
+    const tabs = (cc[i]?.tabs || []).map((tb) => tb.card);
     delete cc[i];
     state.settings.customCards = cc;
+    for (const c of tabs) attachCard(c); // the cards shown in its tabs are not lost with it
   }
   persist();
 }
@@ -444,6 +448,7 @@ const askReset = ref(false);
 function startEdit() {
   entry = layoutSnapshot();
   state.editDash = true;
+  reload(); // folded cards open up for editing
 }
 watch(
   () => state.dashEditReq,
@@ -460,12 +465,13 @@ function done() {
   if (entry && JSON.stringify(entry) !== JSON.stringify(layoutSnapshot())) pushLayoutBackup(entry, 'Before last edit');
   entry = null;
   state.editDash = false;
+  reload(); // folds the collapsed cards again
 }
 function cancel() {
   if (entry) restoreLayout(entry);
   entry = null;
-  reload();
   state.editDash = false;
+  reload();
 }
 function undoSession() {
   if (entry) {
@@ -556,11 +562,34 @@ function saveCard() {
   if (d.tabs) {
     d.tabs = d.tabs.filter((tb) => tb.card);
     if (d.active >= d.tabs.length) d.active = 0;
-    // a card shown in a tab leaves the grid (it would be there twice otherwise); its settings stay
-    for (const tb of d.tabs) if (layout.value.some((x) => x.i === tb.card)) detachCard(tb.card);
-  }
-  state.settings.customCards = { ...state.settings.customCards, [editing.value.id]: d };
+    // a card shown in a tab leaves the grid (it would be there twice otherwise); its settings stay. A card taken
+    // out of the tabs comes back onto the grid, so nothing can get lost in between.
+    const now = new Set(d.tabs.map((tb) => tb.card));
+    const before = (state.settings.customCards?.[editing.value.id]?.tabs || []).map((tb) => tb.card);
+    for (const c of now) detachCard(c);
+    state.settings.customCards = { ...state.settings.customCards, [editing.value.id]: d };
+    for (const c of before) if (!now.has(c)) attachCard(c);
+  } else state.settings.customCards = { ...state.settings.customCards, [editing.value.id]: d };
   editing.value = null;
+}
+// is the card shown inside some tabs card (other than `except`)?
+const inTabs = (i, except) =>
+  Object.entries(state.settings.customCards || {}).some(
+    ([id, c]) => id !== except && c.type === 'tabs' && (c.tabs || []).some((tb) => tb.card === i),
+  );
+// put a card back on the grid (both layouts when there are two) below everything else
+function attachCard(i) {
+  if (inTabs(i) || !(MODULES[i] || state.settings.customCards?.[i])) return;
+  const d = DEFAULT_LAYOUT().find((x) => x.i === i);
+  const [w, h] = d ? [d.w, d.h] : [Math.max(minOf(i)[0], 3), Math.max(minOf(i)[1], 4)];
+  for (const k of ['hiddenCards', 'hiddenCardsPrint'])
+    if (state.settings[k]?.includes(i)) state.settings[k] = state.settings[k].filter((x) => x !== i);
+  for (const k of ['layout', 'layoutPrint']) {
+    const l = state.settings[k];
+    if (Array.isArray(l) && !l.some((x) => x.i === i))
+      state.settings[k] = [...l, { i, x: 0, y: Math.max(0, ...l.map((x) => x.y + x.h)), w, h }];
+  }
+  if (!layout.value.some((x) => x.i === i)) layout.value = [...layout.value, { i, x: 0, y: bottom(), w, h }];
 }
 // cards a tab can show: every module and custom card, except tabs cards themselves
 const tabChoices = computed(() => [
@@ -597,12 +626,15 @@ function addTab() {
   const first = tabChoices.value.find((o) => !used.has(o.id));
   editing.value.data.tabs.push({ id: 't' + Date.now().toString(36), card: first?.id || '', label: '', icon: '' });
 }
-// take a card off the grid without deleting it (a default card is marked hidden so clean() does not bring it back)
+// take a card off the grid without deleting it (a default card is marked hidden so clean() does not bring it back).
+// Both layouts, when there are two: a card in a tab should not stay on the print dashboard's grid as well.
 function detachCard(i) {
   if (MODULES[i] && DEFAULT_LAYOUT().some((d) => d.i === i))
-    state.settings[HK()] = [...new Set([...(state.settings[HK()] || []), i])];
+    for (const k of ['hiddenCards', 'hiddenCardsPrint'])
+      state.settings[k] = [...new Set([...(state.settings[k] || []), i])];
+  for (const k of ['layout', 'layoutPrint'])
+    if (Array.isArray(state.settings[k])) state.settings[k] = state.settings[k].filter((x) => x.i !== i);
   layout.value = layout.value.filter((x) => x.i !== i);
-  persist();
 }
 </script>
 
@@ -733,7 +765,7 @@ function detachCard(i) {
       :is-resizable="false"
       vertical-compact
       use-css-transforms
-      @layout-updated="persist"
+      @layout-updated="() => persist()"
     >
       <GridItem
         v-for="it in layout"
@@ -750,7 +782,7 @@ function detachCard(i) {
         <div
           v-fit
           class="cell"
-          :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i, collapsed: isCollapsed(it.i) }"
+          :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i, collapsed: folded(it.i) }"
           :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null"
         >
           <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
@@ -866,7 +898,7 @@ function detachCard(i) {
         </div>
       </template>
       <template v-else v-for="it in column" :key="it.i">
-        <div class="cell mcell" :class="{ collapsed: isCollapsed(it.i) }">
+        <div class="cell mcell" :class="{ collapsed: folded(it.i) }">
           <CustomCard
             v-if="isCustom(it.i)"
             :id="it.i"
@@ -1249,9 +1281,14 @@ function detachCard(i) {
   gap: 4px;
 }
 /* collapse chevron in the top right corner of every card; the header leaves room for it */
-.cell > .card > .card-h,
-.cell > .fill > .card-h {
-  padding-right: 22px;
+.cell > :deep(.card > .card-h),
+.cell > :deep(.fill > .card-h) {
+  padding-right: 22px !important; /* the look rules below set the header padding with more specificity */
+}
+/* the panel look pulls the header out to the card edge, so the chevron sits inside the header area */
+[data-look='panel'] .cell > :deep(.card > .card-h),
+[data-look='panel'] .cell > :deep(.fill > .card-h) {
+  padding-right: 40px !important;
 }
 .clp {
   position: absolute;
@@ -1272,12 +1309,12 @@ function detachCard(i) {
   color: var(--tx);
   background: var(--s2);
 }
-.cell.collapsed > .card > *:not(.card-h),
-.cell.collapsed > .fill > *:not(.card-h) {
+.cell.collapsed > :deep(.card > *:not(.card-h)),
+.cell.collapsed > :deep(.fill > *:not(.card-h)) {
   display: none !important;
 }
-.cell.collapsed > .card,
-.cell.collapsed > .fill {
+.cell.collapsed > :deep(.card),
+.cell.collapsed > :deep(.fill) {
   justify-content: center;
   overflow: hidden;
 }

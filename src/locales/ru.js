@@ -1887,4 +1887,5 @@ export default {
   "Macro with inputs": "Макрос с вводом",
   "Text": "Текст",
   "Number": "Число",
+  "{key} is required, crowsnest does not start without it": "{key} обязателен, без него crowsnest не запустится",
 }

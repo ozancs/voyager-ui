@@ -127,17 +127,21 @@ export function pushSoon() {
 }
 export async function push() {
   if (!state.settings.sync || (!sync.mainsail && !sync.fluidd)) return;
+  if (api.lockedMsg?.()) return; // tried again on the next change, nothing is marked as pushed
   const rows = shared();
   const sig = JSON.stringify(rows);
   if (sig === lastPushed) return;
   lastPushed = sig;
   sync.busy = true;
   try {
+    let failed = false;
     for (const [mk, fk, v] of rows) {
-      if (sync.mainsail && mk) await put('mainsail', mk, v).catch(() => {});
-      if (sync.fluidd && fk) await put('fluidd', fk, v).catch(() => {});
+      if (sync.mainsail && mk) await put('mainsail', mk, v).catch(() => (failed = true));
+      if (sync.fluidd && fk) await put('fluidd', fk, v).catch(() => (failed = true));
     }
-    sync.last = Date.now();
+    if (failed)
+      lastPushed = ''; // retry with the next change
+    else sync.last = Date.now();
   } finally {
     sync.busy = false;
   }

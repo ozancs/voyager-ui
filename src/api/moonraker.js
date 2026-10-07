@@ -48,14 +48,15 @@ export class Moonraker {
     return `${location.protocol}//${port && /^71\d\d$/.test(port) ? h : this.host}`;
   }
 
-  // /server/files/<root>/<path> with every path segment encoded (names with #, %, ? or spaces)
-  fileUrl(root, path) {
+  // /server/files/<root>/<path> with every path segment encoded (names with #, %, ? or spaces). `query` goes
+  // before the login token, so a cache buster never ends up inside the token.
+  fileUrl(root, path, query = '') {
     const enc = String(path || '')
       .split('/')
       .filter(Boolean)
       .map(encodeURIComponent)
       .join('/');
-    return this.url(`/server/files/${root}/${enc}`);
+    return this.url(`/server/files/${root}/${enc}${query ? '?' + query : ''}`);
   }
 
   url(path) {
@@ -180,6 +181,8 @@ export class Moonraker {
     if (this.ws && this.ws.readyState <= WebSocket.OPEN) {
       this.ws.onclose = null;
       this.ws.close();
+      for (const [, p] of this.pending) p.reject(new Error('reconnecting')); // nothing answers on the old socket
+      this.pending.clear();
     }
     const ws = new WebSocket(`${proto}://${target}/websocket${q}`);
     this.ws = ws;

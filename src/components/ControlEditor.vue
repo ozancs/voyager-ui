@@ -75,11 +75,11 @@ const FT = [
           v-model="ct.field"
           class="input code"
           style="width: 150px"
-          list="ce-fields"
+          :list="'ce-fields-' + ct.id"
           :placeholder="t('field')"
           :aria-label="t('Field')"
         />
-        <datalist id="ce-fields"><option v-for="f in fields" :key="f" :value="f"></option></datalist>
+        <datalist :id="'ce-fields-' + ct.id"><option v-for="f in fields" :key="f" :value="f"></option></datalist>
         <span class="mono mu" style="font-size: 12px; align-self: center">= {{ preview }}</span>
       </div>
     </div>

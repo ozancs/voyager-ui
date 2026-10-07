@@ -1887,4 +1887,5 @@ export default {
   "Macro with inputs": "입력이 있는 매크로",
   "Text": "텍스트",
   "Number": "숫자",
+  "{key} is required, crowsnest does not start without it": "{key}은(는) 필수입니다. 없으면 crowsnest가 시작되지 않습니다",
 }
