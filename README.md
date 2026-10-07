@@ -16,9 +16,10 @@ Tested on: a CoreXY with a Raspberry Pi 4, Klipper + Moonraker installed with KI
 
 ## What it does
 
-- **Your own dashboard.** Drag, resize, hide and colour the cards. It can switch to a second layout while printing.
+- **Your own dashboard.** Drag, resize, hide, fold and colour the cards; put several in one tabs card; build your own sliders, switches and macro forms. It can switch to a second layout while printing.
 - **Checks the file before printing.** Wrong material or not enough filament on the spool (with Spoolman), wrong nozzle size, too hot or too tall: it asks before the print starts.
 - **All your printers in one place.** Switch between them, or see all of them on one page with progress and camera.
+- **G-code viewer.** Layers coloured by feature type or speed, click an object to exclude it, pause at a layer.
 - **Calibrations in one page.** Input shaper, PID, probe, bed leveling, Shake&Tune and more, with the results shown as plain numbers.
 - **Guided calibrations.** PID, leveling, bed screws, probe accuracy, Z offset, bed mesh and input shaper, each on its own, with a picture of what the printer is doing.
 - **Timelapse.** With moonraker-timelapse: the frames of the running print, the clips in a gallery with a player, and the settings, on the Webcam page.

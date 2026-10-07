@@ -11,7 +11,7 @@ import { currentHost, currentPrinter, perPrinterKey } from './printers';
 import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { sortSensors } from './sensorStyle';
 
-export const VERSION = '0.26.3';
+export const VERSION = '0.27.0';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';

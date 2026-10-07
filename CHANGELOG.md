@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.27.0
+
+- The running print has its own bar under the top bar: file, state, progress, layer / time left / ETA, pause, cancel, exclude, pause at next layer and the queue. The arrow on its right moves it up into the top bar as a compact pill with a ··· menu for the actions; the choice is remembered. The top bar itself is quieter while printing
+- Dashboard: cards fold to their header with the chevron in the corner; the cards below move up (#9)
+- Tabs card: several cards in one, each on its own tab, with the tab names and icons of your choice (#9)
+- Controls card: sliders, switches and position rows that read their state from a printer object and send a command when moved, plus macros with input fields (#9)
+- Macro buttons with parameters ask for them in a small form (#9)
+- G-code viewer: colour by feature type (walls, infill, support, ...) or by speed, with a legend; click an object to exclude it
+- Pause at a layer: pick a layer or the next one (SET_PAUSE_AT_LAYER / SET_PAUSE_NEXT_LAYER from the Mainsail or Fluidd client macros); the phone menu has Pause at next layer
+- A Z offset changed with baby stepping during a print is offered for saving when the print ends
+- Input shaper graphs: the PNGs written into the config folder by a gcode_shell_command show up on the Calibrations page, with the macro that makes them as a button
+- Temperature graph: 1h, 6h and 24h ranges with a day of history kept in the browser; zoom with the wheel or a pinch, drag to go back in time, hover for the values at that moment
+- Heightmap: compare the current mesh with a saved profile; removing a profile asks first
+- Maintenance reminders can count metres of filament instead of print hours
+- Machine page: a log viewer for klippy, moonraker and crowsnest logs (last part of the file, filter, problems only, follow); Moonraker users and the API key
+- Webcam page: crowsnest camera settings (mode, device, resolution, fps, flags) edited as a form, saved with a backup and a crowsnest restart
+- Phone: a bottom bar with Dashboard, Webcam, Console, Files and More instead of the hamburger menu
+- Uploading a file that already exists asks: replace, keep both or cancel
+- Safety: FORCE_MOVE, STEPPER_BUZZ, MANUAL_STEPPER and BED_SCREWS_ADJUST ask during a print; Cooldown is off while printing; reprinting from history asks; a failed backup stops a config write instead of writing anyway; removing the current printer from the fleet no longer breaks the page; pin outputs with a scale no longer get the raw value; the lock also stops the Mainsail/Fluidd sync from writing
+- Fixes: an upload with an expired login is retried after the token refresh; reconnecting closes the old socket; notifier removal keeps the rest of moonraker.conf intact; Customize's Cancel, Undo and Reset work again; a card taken out of a tabs card comes back to the grid
+
 ## 0.26.3
 
 - Webcams: a camera turned 90° or 270° with a flip shows the same way as in Mainsail; switching cameras no longer lets a late frame from the previous one show up, and a camera stuck on "Connecting" recovers; renaming a camera no longer deletes it; cameras are listed by name. Found and first fixed by Alain
