@@ -21,3 +21,15 @@ describe('macro command editing', () => {
     expect(withArgs('my_macro value=1', { VALUE: '9' })).toBe('my_macro value=9');
   });
 });
+const { isOn } = await import('../src/controls.js');
+describe('switch state test', () => {
+  it('compares', () => {
+    expect(isOn(0.5)).toBe(true);
+    expect(isOn(0)).toBe(false);
+    expect(isOn(true, '= on')).toBe(true);
+    expect(isOn('standby', '= standby')).toBe(true);
+    expect(isOn(42, '>= 50')).toBe(false);
+    expect(isOn(1, '!= 0')).toBe(true);
+    expect(isOn(undefined)).toBe(false);
+  });
+});

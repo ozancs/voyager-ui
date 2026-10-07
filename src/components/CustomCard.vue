@@ -6,6 +6,7 @@ import Icon from './Icon.vue';
 import WebcamCard from './WebcamCard.vue';
 import MacroParamsDialog from './MacroParamsDialog.vue';
 import TabsCard from './TabsCard.vue';
+import ControlsCard from './ControlsCard.vue';
 import { state, gcode } from '../store';
 import { macroParams, parseCmd } from '../macros';
 import { t } from '../i18n';
@@ -52,6 +53,7 @@ async function run(g, k) {
   </section>
   <WebcamCard v-else-if="c.type === 'cam'" :id="id" />
   <TabsCard v-else-if="c.type === 'tabs'" :id="id" />
+  <ControlsCard v-else-if="c.type === 'ctl'" :id="id" />
   <section v-else class="card">
     <div class="card-h">
       <h2>{{ c.name }}</h2>

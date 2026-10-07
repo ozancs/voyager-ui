@@ -55,6 +55,7 @@ import { pushDown } from '../calc';
 import { orderMacros } from '../macros';
 import SortList from '../components/SortList.vue';
 import ButtonParams from '../components/ButtonParams.vue';
+import ControlEditor from '../components/ControlEditor.vue';
 
 const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7] },
@@ -177,7 +178,7 @@ const minOf = (i) =>
   isCollapsed(i)
     ? [2, COLLAPSED_H]
     : isCustom(i)
-      ? { btn: [1, 2], cam: [3, 4], tabs: [3, 4] }[state.settings.customCards?.[i]?.type] || [2, 3]
+      ? { btn: [1, 2], cam: [3, 4], tabs: [3, 4], ctl: [3, 3] }[state.settings.customCards?.[i]?.type] || [2, 3]
       : MODULES[i]?.min || [2, 2];
 // ---- collapsed cards: only the header shows, the card takes COLLAPSED_H rows and the cards below move up.
 // The full height is kept so expanding puts it back; the saved layout always holds the full height.
@@ -354,14 +355,16 @@ function addCustom(type, cam) {
         ? { type, name: cam || 'Webcam' }
         : type === 'tabs'
           ? { type, name: 'Tabs', tabs: [], active: 0 }
-          : { type, name: 'Macros', buttons: [] };
+          : type === 'ctl'
+            ? { type, name: 'Controls', controls: [] }
+            : { type, name: 'Macros', buttons: [] };
   state.settings.customCards = { ...(state.settings.customCards || {}), [id]: data };
   if (cam) {
     // the camera this card shows, the same setting the card's own camera picker changes
     const o = (state.settings.cardOpts ||= {});
     o.cams = { ...(o.cams || {}), [id]: cam };
   }
-  const [w, h] = { btn: [2, 3], cam: [6, 8], tabs: [6, 7] }[type] || [4, 4];
+  const [w, h] = { btn: [2, 3], cam: [6, 8], tabs: [6, 7], ctl: [4, 6] }[type] || [4, 4];
   layout.value = [...layout.value, { i: id, x: 0, y: bottom(), w, h }];
   persist();
   addOpen.value = false;
@@ -568,6 +571,27 @@ const tabChoices = computed(() => [
     .filter(([id, c]) => c.type !== 'tabs' && id !== editing.value?.id)
     .map(([id, c]) => ({ id, name: c.name || t('Custom') })),
 ]);
+function addControl() {
+  editing.value.data.controls.push({
+    id: 'k' + Date.now().toString(36),
+    kind: 'toggle',
+    label: '',
+    icon: '',
+    obj: '',
+    field: '',
+    when: '> 0',
+    on: '',
+    off: '',
+    cmd: '',
+    min: 0,
+    max: 100,
+    step: 1,
+    scale: 1,
+    options: [],
+    word: '',
+    fields: [],
+  });
+}
 function addTab() {
   const used = new Set(editing.value.data.tabs.map((tb) => tb.card));
   const first = tabChoices.value.find((o) => !used.has(o.id));
@@ -641,6 +665,9 @@ function detachCard(i) {
             </button>
             <button class="btn clear di" @click="addCustom('macros')">
               <Icon name="dash" :size="16" />{{ t('Macro group') }}
+            </button>
+            <button class="btn clear di" @click="addCustom('ctl')">
+              <Icon name="sliders" :size="16" />{{ t('Controls (sliders, switches, macro inputs)') }}
             </button>
             <button class="btn clear di" @click="addCustom('tabs')">
               <Icon name="layers" :size="16" />{{ t('Tabs (several cards in one)') }}
@@ -941,9 +968,15 @@ function detachCard(i) {
   <Modal
     v-if="editing"
     :title="
-      editing.data.type === 'btn' ? t('Command button') : editing.data.type === 'tabs' ? t('Tabs') : t('Macro group')
+      editing.data.type === 'btn'
+        ? t('Command button')
+        : editing.data.type === 'tabs'
+          ? t('Tabs')
+          : editing.data.type === 'ctl'
+            ? t('Controls')
+            : t('Macro group')
     "
-    width="620px"
+    :width="editing.data.type === 'ctl' ? '760px' : '620px'"
     @close="editing = null"
   >
     <label class="col"
@@ -964,6 +997,21 @@ function detachCard(i) {
         <Toggle v-model="editing.data.highlight" :label="t('Highlight')" />
       </div>
       <ButtonParams :b="editing.data" />
+    </template>
+    <template v-else-if="editing.data.type === 'ctl'">
+      <span class="lbl">{{
+        t(
+          'A slider, a switch or a row of positions reads its state from a printer object and sends a command when moved. A macro with inputs runs one macro with the values typed in.',
+        )
+      }}</span>
+      <SortList v-model="editing.data.controls" :item-key="(ct) => ct.id">
+        <template #default="{ item: ct, index: k }">
+          <ControlEditor :ct="ct" @icon="iconFor = $event" @remove="editing.data.controls.splice(k, 1)" />
+        </template>
+      </SortList>
+      <button class="btn" style="align-self: flex-start" @click="addControl">
+        <Icon name="plus" :size="16" />{{ t('Add control') }}
+      </button>
     </template>
     <template v-else-if="editing.data.type === 'tabs'">
       <span class="lbl">{{
