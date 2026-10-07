@@ -6,6 +6,7 @@ import Icon from '../components/Icon.vue';
 import WebcamView from '../components/WebcamView.vue';
 import TimelapsePanel from '../components/TimelapsePanel.vue';
 import TimelapseSettings from '../components/TimelapseSettings.vue';
+import CrowsnestCard from '../components/CrowsnestCard.vue';
 import { state } from '../store';
 import { api } from '../api/moonraker';
 import { route } from '../router';
@@ -132,6 +133,7 @@ function snapshot(c) {
           >
         </div>
       </section>
+      <CrowsnestCard v-if="!lapse" />
     </div>
   </div>
 </template>

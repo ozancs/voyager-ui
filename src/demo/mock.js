@@ -468,6 +468,11 @@ let queue = {
     { job_id: 'q2', filename: 'bracket_v3.gcode', time_added: 0, time_in_queue: 0 },
   ],
 };
+const DEMO_USERS = [
+  { username: 'ozan', source: 'moonraker', created_on: Date.now() / 1000 - 40 * 86400 },
+  { username: 'tablet', source: 'moonraker', created_on: Date.now() / 1000 - 12 * 86400 },
+];
+let DEMO_KEY = 'a1b2c3d4e5f60718293a4b5c6d7e8f90';
 // ---- moonraker-timelapse: settings as the component keeps them, frames while printing, a fake render
 const TL = {
   enabled: true,
@@ -1513,6 +1518,26 @@ function handle(m) {
       if (i >= 0) TL_FILES.splice(i, 1);
       return { item: { path: p.path, root: 'timelapse' }, action: 'delete_file' };
     }
+    case 'server.files.copy':
+    case 'server.files.move':
+    case 'server.files.post_directory':
+      return { item: { path: p.dest || p.path, root: 'config' }, action: 'create_file' };
+    case 'access.users.list':
+      return { users: DEMO_USERS };
+    case 'access.post_user':
+      DEMO_USERS.push({ username: p.username, source: 'moonraker', created_on: Date.now() / 1000 });
+      return { username: p.username, token: 'demo', refresh_token: 'demo', action: 'user_created' };
+    case 'access.delete_user': {
+      const i = DEMO_USERS.findIndex((u) => u.username === p.username);
+      if (i >= 0) DEMO_USERS.splice(i, 1);
+      return { username: p.username, action: 'user_deleted' };
+    }
+    case 'access.user.password':
+      return { username: 'ozan', action: 'user_password_reset' };
+    case 'access.get_api_key':
+      return DEMO_KEY;
+    case 'access.post_api_key':
+      return (DEMO_KEY = Array.from({ length: 32 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join(''));
     case 'machine.timelapse.get_settings':
       return { ...TL };
     case 'machine.timelapse.post_settings':
@@ -1763,6 +1788,30 @@ function handle(m) {
       throw { code: -32601, message: 'Method not found' };
   }
 }
+cfgText['crowsnest.conf'] = `[crowsnest]
+log_path: ~/printer_data/logs/crowsnest.log
+log_level: verbose
+delete_log: false
+no_proxy: false
+
+[cam 1]
+mode: ustreamer                         # ustreamer - Provides mjpg and snapshots. (All devices)
+enable_rtsp: false                      # If camera-streamer is used, this enables also usage of an RTSP server
+rtsp_port: 8554                         # Set different ports for each device!
+port: 8080                              # HTTP/MJPG Stream/Snapshot Port
+device: /dev/video0                     # See Log for available ...
+resolution: 1280x720                    # widthxheight format
+max_fps: 15                             # If Hardware Supports this it will be forced, otherwise ignored/coerced.
+#custom_flags:                          # You can run the Stream Services with custom flags.
+#v4l2ctl:                               # Add v4l2-ctl parameters to setup your camera, see Log what your cam is capable of.
+
+[cam 2]
+mode: ustreamer
+port: 8081
+device: /dev/v4l/by-id/usb-046d_Logitech_Webcam_C920-video-index0
+resolution: 1920x1080
+max_fps: 10
+`;
 cfgText['macros.cfg'] =
   cfgText['macros.cfg'] ||
   `[gcode_macro PRINT_START]
@@ -2286,6 +2335,41 @@ function zip3mf(text) {
   out.set(eocd, cdOff + cd.length);
   return out;
 }
+// a log for the viewer: a few thousand plausible lines, with the odd warning and one shutdown
+function demoLog(name) {
+  const out = [];
+  const t0 = Date.now() - 3600e3;
+  const ts = (i) => new Date(t0 + i * 900).toISOString().replace('T', ' ').slice(0, 19);
+  for (let i = 0; i < 3000; i++) {
+    if (name === 'klippy.log') {
+      if (i % 250 === 0)
+        out.push(
+          `Stats ${i}: gcodein=0  mcu: mcu_awake=0.012 mcu_task_avg=0.000018 bytes_retransmit=${i % 1000 === 0 ? 9 : 0} freq=180000000 EBBCan: temp=46.2 heater_bed: target=110 temp=109.9 pwm=0.612`,
+        );
+      else if (i === 1700) out.push("Transition to shutdown state: Lost communication with MCU 'EBBCan'");
+      else if (i === 1701) out.push('Reactor garbage collection: (3.2, 0.1, 0.0)');
+      else if (i === 1900) out.push('Firmware restart');
+      else if (i % 37 === 0)
+        out.push(`Received ${i}: G1 X${(100 + (i % 200)).toFixed(3)} Y${(120 + (i % 150)).toFixed(3)} E0.0421`);
+      else
+        out.push(
+          `Stats ${i}: sd_pos=${i * 1024} heater_bed: target=110 temp=${(109.7 + Math.sin(i / 50) * 0.3).toFixed(1)} pwm=0.6`,
+        );
+    } else if (name === 'moonraker.log') {
+      if (i % 400 === 0)
+        out.push(`${ts(i)} [websockets:_handle_close()] - Websocket Closed: ID: ${281000 + i} Close Code: 1001`);
+      else if (i === 1200) out.push(`${ts(i)} [klippy_connection:_check_ready()] - Klippy Host not ready: timeout`);
+      else
+        out.push(
+          `${ts(i)} [file_manager:_handle_metadata_request()] - Metadata request: ${['bracket_v3.gcode', 'fan_duct.gcode', 'calicat_PLA.gcode.3mf'][i % 3]}`,
+        );
+    } else
+      out.push(
+        `${ts(i)} crowsnest: ${i % 300 === 0 ? 'WARN: Camera cam1 lost frames' : 'Camera cam1 running at 15 fps'}`,
+      );
+  }
+  return out.join('\n') + '\n';
+}
 let realFetch;
 function fakeFetch(input, init) {
   const u = new URL(typeof input === 'string' ? input : input.url, location.href);
@@ -2309,6 +2393,26 @@ function fakeFetch(input, init) {
   if (p.startsWith('/server/files/upload')) {
     emitLines(['// demo: uploads are not stored']);
     return json({ result: {} });
+  }
+  if (p.startsWith('/server/files/logs/')) {
+    const name = decodeURIComponent(p.slice(19));
+    const body = demoLog(name);
+    const range = /bytes=-(\d+)/.exec((init && init.headers && (init.headers.Range || init.headers.range)) || '');
+    if (range && +range[1] < body.length) {
+      const part = body.slice(-+range[1]);
+      return Promise.resolve(
+        new Response(part, {
+          status: 206,
+          headers: {
+            'content-type': 'text/plain',
+            'Content-Range': `bytes ${body.length - part.length}-${body.length - 1}/${body.length}`,
+          },
+        }),
+      );
+    }
+    return Promise.resolve(
+      new Response(body, { headers: { 'content-type': 'text/plain', 'Content-Length': String(body.length) } }),
+    );
   }
   if (p.startsWith('/server/files/config/')) {
     const n = decodeURIComponent(p.slice(21));

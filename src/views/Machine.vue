@@ -4,6 +4,8 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
+import LogViewer from '../components/LogViewer.vue';
+import UsersCard from '../components/UsersCard.vue';
 import SystemLoads from '../components/SystemLoads.vue';
 import FileBrowser from '../components/FileBrowser.vue';
 import { state, S, gcode, toast, fmtBytes, useApiEvent, applyUpd, restartKlipper } from '../store';
@@ -155,6 +157,7 @@ async function doUpdateAll() {
   loadUpd();
 }
 const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log'];
+const viewLog = ref(null);
 </script>
 <template>
   <div class="mg">
@@ -227,6 +230,7 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log'];
         </div>
         <div v-for="l in logs" :key="l" class="row" style="height: 40px">
           <Icon name="file" :size="16" style="color: var(--mu)" /><span class="mono grow">{{ l }}</span
+          ><button class="btn" @click="viewLog = l"><Icon name="eye" :size="15" />{{ t('View') }}</button
           ><a
             class="btn ibtn sm clear"
             :href="api.url('/server/files/logs/' + l)"
@@ -236,8 +240,10 @@ const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log'];
           /></a>
         </div>
       </section>
+      <UsersCard />
     </div>
   </div>
+  <LogViewer v-if="viewLog" :file="viewLog" @close="viewLog = null" />
   <Modal
     v-if="confirm"
     :title="confirm === '__all' ? t('Update everything?') : t('Update {name}?', { name: confirm })"
