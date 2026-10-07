@@ -10,7 +10,7 @@ import NumField from '../components/NumField.vue';
 import Rng from '../components/Rng.vue';
 import Toggle from '../components/Toggle.vue';
 import { PALETTES, paletteColor, cssGradient } from '../meshPalette';
-import { state, S, gcode, isPrinting } from '../store';
+import { state, S, gcode, isPrinting, askConfirm } from '../store';
 import { t } from '../i18n';
 const bm = computed(() => S('bed_mesh'));
 const useProbed = ref(true);
@@ -59,6 +59,16 @@ function doSave() {
   gcode(`BED_MESH_PROFILE SAVE="${name}"`);
   showSave.value = false;
   saveName.value = '';
+}
+async function removeProfile(p) {
+  if (
+    await askConfirm({
+      title: t('Remove mesh profile?'),
+      text: t('{name} is removed from the config on the next SAVE_CONFIG.', { name: p }),
+      ok: t('Remove'),
+    })
+  )
+    gcode(`BED_MESH_PROFILE REMOVE="${p}"`);
 }
 </script>
 <template>
@@ -159,14 +169,10 @@ function doSave() {
         <div v-for="p in profiles" :key="p" class="pr">
           <b class="grow">{{ p }}</b>
           <span v-if="p === bm.profile_name" class="chip" style="color: var(--tx)"><i></i>{{ t('Active') }}</span>
-          <button v-else class="btn" :disabled="isPrinting" @click="gcode(`BED_MESH_PROFILE LOAD=${p}`)">
+          <button v-else class="btn" :disabled="isPrinting" @click="gcode(`BED_MESH_PROFILE LOAD=&quot;${p}&quot;`)">
             {{ t('Load') }}
           </button>
-          <button
-            class="btn clear ibtn sm"
-            :aria-label="t('Remove')"
-            @click="gcode(`BED_MESH_PROFILE REMOVE=&quot;${p}&quot;`)"
-          >
+          <button class="btn clear ibtn sm" :aria-label="t('Remove')" @click="removeProfile(p)">
             <Icon name="trash" :size="16" />
           </button>
         </div>

@@ -4,7 +4,7 @@
 // the printer name, and from Ctrl+K. Saved printers can be renamed, get a new address or be removed here too.
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import Icon from '../components/Icon.vue';
-import { state, S, fmtTime, printerName } from '../store';
+import { state, S, fmtTime, printerName, toast } from '../store';
 import { selectPrinter, printerList, savePrinters, HOST_RE } from '../printers';
 import Modal from '../components/Modal.vue';
 import { fleetList, pollPrinter, timeLeft, testPrinter, looksIncomplete } from '../fleet';
@@ -136,11 +136,16 @@ function doDelete() {
   const before = printerList.value.slice();
   savePrinters(before.filter((p) => p.id !== c.p.id));
   delete data[c.p.id];
-  // removed at once (only this browser's list changes), Undo puts it back where it was
+  // removed at once (only this browser's list changes), Undo puts it back where it was. Removing the printer on
+  // screen reloads the page, so there is nothing to undo there: it says so instead
+  if (c.p.cur) {
+    toast(t('{name} removed', { name: c.p.name || c.p.host }));
+    setTimeout(() => selectPrinter(''), 300); // back to this page's own address
+    return;
+  }
   undoable(t('{name} removed', { name: c.p.name || c.p.host }), {
     undo: () => savePrinters(before.map((p) => printerList.value.find((x) => x.id === p.id) || p)),
   });
-  if (c.p.cur) selectPrinter(''); // the printer on screen was removed: back to this page's own address
 }
 function open(c) {
   if (c.p.cur) go('dashboard');

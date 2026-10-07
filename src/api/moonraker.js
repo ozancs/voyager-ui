@@ -176,10 +176,16 @@ export class Moonraker {
     if (q === null) return; // waiting for the user to log in, login() connects again
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     const target = host || location.host;
+    // only one socket at a time: a retry and a login can both get here
+    if (this.ws && this.ws.readyState <= WebSocket.OPEN) {
+      this.ws.onclose = null;
+      this.ws.close();
+    }
     const ws = new WebSocket(`${proto}://${target}/websocket${q}`);
     this.ws = ws;
     ws.onopen = () => this.emit('open');
     ws.onclose = () => {
+      if (this.ws !== ws) return; // replaced by a newer socket
       for (const [, p] of this.pending) p.reject(new Error('disconnected'));
       this.pending.clear();
       this.emit('close');
@@ -210,7 +216,7 @@ export class Moonraker {
   // refused here, whichever button sent them. E-STOP, reading and the UI's own settings still work.
   lockedMsg = null;
   static WRITES =
-    /^printer\.(gcode\.script|print\.|restart|firmware_restart)|^machine\.(reboot|shutdown|services\.|device_power\.post|update\.(full|upgrade|client|klipper|moonraker|system|recover|rollback))|^server\.(files\.(delete|move|copy|post_directory)|history\.delete|job_queue\.(post|delete|start|pause|jump)|webcams\.(post|delete)|spoolman\.post|announcements\.dismiss|restart)/;
+    /^printer\.(gcode\.script|print\.|restart|firmware_restart)|^machine\.(reboot|shutdown|services\.|device_power\.post|update\.(full|upgrade|client|klipper|moonraker|system|recover|rollback))|^machine\.timelapse\.(post_settings|render|saveframes)|^server\.(files\.(delete|move|copy|post_directory|zip)|history\.delete|job_queue\.(post|delete|start|pause|jump)|webcams\.(post|delete)|spoolman\.post|announcements\.dismiss|restart)/;
 
   call(method, params) {
     const done = this.onTask ? this.onTask(method) : null;
@@ -279,9 +285,18 @@ export class Moonraker {
   }
 
   // Upload a File/Blob. root: 'gcodes' | 'config'. Returns moonraker response.
-  upload(file, { root = 'gcodes', path = '', name, print = false, onProgress } = {}) {
+  async upload(file, opts = {}) {
     const lock = this.lockedMsg?.();
-    if (lock) return Promise.reject(new Error(lock));
+    if (lock) throw new Error(lock);
+    try {
+      return await this.uploadOnce(file, opts);
+    } catch (e) {
+      // the token ran out while the page sat idle: refresh it and send once more, like fetch() does
+      if (e.status === 401 && this.auth.refresh && (await this.refreshToken())) return this.uploadOnce(file, opts);
+      throw e;
+    }
+  }
+  uploadOnce(file, { root = 'gcodes', path = '', name, print = false, onProgress } = {}) {
     return new Promise((resolve, reject) => {
       const fd = new FormData();
       fd.append('root', root);
@@ -295,7 +310,7 @@ export class Moonraker {
       xhr.onload = () =>
         xhr.status < 300
           ? resolve(JSON.parse(xhr.responseText || '{}'))
-          : reject(new Error(xhr.responseText || xhr.statusText));
+          : reject(Object.assign(new Error(xhr.responseText || xhr.statusText), { status: xhr.status }));
       xhr.onerror = () => reject(new Error('upload failed'));
       xhr.send(fd);
     });

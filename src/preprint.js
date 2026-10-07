@@ -89,3 +89,27 @@ export function askReprint(filename) {
     ok: t('Print'),
   });
 }
+
+// Uploading over a file that is already there: ask first, or give the new one a numbered name. Returns the name
+// to upload under, or null when the user cancelled. `dir` is the folder inside gcodes ('' for the root).
+export async function uploadName(name, dir = '') {
+  let list;
+  try {
+    list = (await api.call('server.files.get_directory', { path: 'gcodes' + (dir ? '/' + dir : '') })).files || [];
+  } catch {
+    return name; // no listing: upload as before
+  }
+  const names = new Set(list.map((f) => f.filename));
+  if (!names.has(name)) return name;
+  const m = /^(.*?)(\.[^.]+(?:\.3mf)?)$/.exec(name) || [null, name, ''];
+  let k = 2,
+    alt = `${m[1]} (${k})${m[2]}`;
+  while (names.has(alt)) alt = `${m[1]} (${++k})${m[2]}`;
+  const choice = await askConfirm({
+    title: t('File exists'),
+    text: t('{name} is already on the printer. Replace it, or keep both as {alt}?', { name, alt }),
+    ok: t('Replace'),
+    alt: t('Keep both'),
+  });
+  return choice === 'alt' ? alt : choice ? name : null;
+}

@@ -25,7 +25,7 @@ function pin(d, v) {
   const sc = cfg(d.id).scale || 1;
   later(d.id, () => gcode(`SET_PIN PIN=${shortName(d.id)} VALUE=${((v / 100) * sc).toFixed(3)}`));
 }
-const pinVal = (d) => Math.round(((S(d.id).value || 0) / (cfg(d.id).scale || 1)) * 100);
+const pinVal = (d) => Math.round((S(d.id).value || 0) * 100); // Klipper reports 0..1 whatever the scale
 const ledOn = (id) => (S(id).color_data?.[0] || []).some((x) => x > 0.001);
 function led(id, on) {
   gcode(`SET_LED LED=${shortName(id)} RED=${on ? 1 : 0} GREEN=${on ? 1 : 0} BLUE=${on ? 1 : 0} SYNC=0 TRANSMIT=1`);

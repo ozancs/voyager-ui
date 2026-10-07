@@ -121,8 +121,17 @@ const saving = ref(false);
 function section(name, body) {
   return `[notifier ${name}]\n${body}`;
 }
+// the section runs from its header to the next line that starts a section; a [ inside a value
+// ({event_args[1].filename}) is not a header, which a plain [^\[]* cut on
 function stripSection(text, name) {
-  return text.replace(new RegExp(`\\n?\\[notifier ${name}\\][^\\[]*`, 'g'), '\n').replace(/\n{3,}/g, '\n\n');
+  const lines = text.split('\n');
+  const out = [];
+  let skip = false;
+  for (const l of lines) {
+    if (/^\s*\[/.test(l)) skip = l.trim().toLowerCase() === `[notifier ${name}]`.toLowerCase();
+    if (!skip) out.push(l);
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n');
 }
 async function writeConf(change) {
   const raw = await api.getText('/server/files/config/moonraker.conf');

@@ -11,7 +11,7 @@ import { state, fmtTime, fmtBytes, fmtDate, toast, isPrinting, gcode, useApiEven
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
-import { startPrint } from '../preprint';
+import { startPrint, uploadName } from '../preprint';
 import { undoable, isHidden, stillSame } from '../undo';
 const path = ref('gcodes');
 const cached = state.cache.files;
@@ -157,10 +157,14 @@ async function upload(e) {
   const fs = [...e.target.files];
   e.target.value = '';
   for (const f of fs) {
-    up.value = { name: f.name, p: 0 };
+    const dir = path.value === 'gcodes' ? '' : path.value.slice(7);
+    const name = await uploadName(f.name, dir);
+    if (!name) continue;
+    up.value = { name, p: 0 };
     try {
       await api.upload(f, {
-        path: path.value === 'gcodes' ? '' : path.value.slice(7),
+        name,
+        path: dir,
         onProgress: (p) => (up.value.p = p),
       });
     } catch (err) {

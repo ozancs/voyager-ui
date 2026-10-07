@@ -521,7 +521,7 @@ export const excludeObjects = computed(() => S('exclude_object'));
 // Klipper would run them between the lines of the print: the toolhead dives to probe or home and hits the part.
 // gcode() asks first (GuardDialog.vue); macros count when their gcode calls one of these (checked 3 levels deep).
 const DANGER =
-  /^(G28|BED_MESH_CALIBRATE|QUAD_GANTRY_LEVEL|Z_TILT_ADJUST|SCREWS_TILT_CALCULATE|BED_TILT_CALIBRATE|DELTA_CALIBRATE|PROBE|PROBE_CALIBRATE|PROBE_ACCURACY|Z_ENDSTOP_CALIBRATE|MANUAL_PROBE|PROBE_EDDY_CURRENT_CALIBRATE|LDC_CALIBRATE_DRIVE_CURRENT|TEMPERATURE_PROBE_CALIBRATE|SHAPER_CALIBRATE|TEST_RESONANCES|AXES_SHAPER_CALIBRATION|COMPARE_BELTS_RESPONSES|CREATE_VIBRATIONS_PROFILE|AXES_MAP_CALIBRATION|EXCITATE_AXIS_AT_FREQ|PID_CALIBRATE|MPC_CALIBRATE|CALIBRATE_Z|BEACON_\w*CALIBRATE|CARTOGRAPHER_\w*CALIBRATE|OZNLAB_(TAP|MESH|MESH_SETUP|THERMAL_CAL|HOME_TEST|MAX_FLOW|RETRACT_TEST|TEMP_SCAN|TEST|SETUP))$/;
+  /^(G28|BED_MESH_CALIBRATE|QUAD_GANTRY_LEVEL|Z_TILT_ADJUST|SCREWS_TILT_CALCULATE|BED_TILT_CALIBRATE|DELTA_CALIBRATE|PROBE|PROBE_CALIBRATE|PROBE_ACCURACY|Z_ENDSTOP_CALIBRATE|MANUAL_PROBE|PROBE_EDDY_CURRENT_CALIBRATE|LDC_CALIBRATE_DRIVE_CURRENT|TEMPERATURE_PROBE_CALIBRATE|SHAPER_CALIBRATE|TEST_RESONANCES|AXES_SHAPER_CALIBRATION|COMPARE_BELTS_RESPONSES|CREATE_VIBRATIONS_PROFILE|AXES_MAP_CALIBRATION|EXCITATE_AXIS_AT_FREQ|PID_CALIBRATE|MPC_CALIBRATE|CALIBRATE_Z|BEACON_\w*CALIBRATE|CARTOGRAPHER_\w*CALIBRATE|FORCE_MOVE|STEPPER_BUZZ|MANUAL_STEPPER|BED_SCREWS_ADJUST|OZNLAB_(TAP|MESH|MESH_SETUP|THERMAL_CAL|HOME_TEST|MAX_FLOW|RETRACT_TEST|TEMP_SCAN|TEST|SETUP))$/;
 // Commands that end the print (restart), drop the motors or swap the Z compensation under the running print.
 const KILL = /^(SAVE_CONFIG|RESTART|FIRMWARE_RESTART)$/;
 const MOTORS = /^(M84|M18|SET_STEPPER_ENABLE|SET_KINEMATIC_POSITION)$/;
@@ -602,12 +602,13 @@ export function askGuard(script, cmd) {
 let lastSent = { s: '', at: 0 };
 const REPEATABLE = /\b(G0|G1|TESTZ|SET_GCODE_OFFSET)\b/i;
 // a plain yes/no question in the same dialog (GuardDialog.vue): { title, text, ok } -> true / false
-export function askConfirm({ title, text, ok }) {
+// alt: an optional third button; the promise then resolves to 'alt'
+export function askConfirm({ title, text, ok, alt }) {
   state.guard?.resolve(false);
   return new Promise((resolve) => {
     const g = {
       id: Math.random(),
-      custom: { title, text, ok },
+      custom: { title, text, ok, alt },
       resolve: (v) => {
         if (state.guard?.id === g.id) state.guard = null;
         resolve(v);
@@ -824,7 +825,8 @@ export async function backupBeforeWrite(root, path) {
       dest: `config/backups/${base}-klipperui-${ts}.${ext}`,
     });
   } catch (e) {
-    console.warn('backup copy', e);
+    // no backup, no write: the copy is what lets a bad save be undone
+    throw new Error(t('Backup of {file} failed ({err}), nothing was written', { file: path, err: e.message }));
   }
 }
 

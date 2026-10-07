@@ -34,7 +34,7 @@ import {
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
-import { startPrint, askReprint } from '../preprint';
+import { startPrint, askReprint, uploadName } from '../preprint';
 
 const emit = defineEmits(['exclude', 'menu']);
 const fileInput = ref(null);
@@ -99,13 +99,15 @@ async function onFile(e) {
   const f = e.target.files[0];
   e.target.value = '';
   if (!f) return;
+  const name = await uploadName(f.name);
+  if (!name) return;
   uploading.value = 0;
   try {
     // uploaded first, then started through the pre-print check
-    await api.upload(f, { onProgress: (p) => (uploading.value = p) });
-    toast(t('{name} uploaded', { name: f.name }));
+    await api.upload(f, { name, onProgress: (p) => (uploading.value = p) });
+    toast(t('{name} uploaded', { name }));
     uploading.value = null;
-    await startPrint(f.name);
+    await startPrint(name);
   } catch (err) {
     toast(t('Upload failed: {msg}', { msg: err.message }), 'error');
   }

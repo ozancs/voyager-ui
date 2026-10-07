@@ -33,6 +33,9 @@ async function get(namespace, key) {
   }
 }
 async function put(namespace, key, value) {
+  // the lock leaves this UI's own settings alone but not Mainsail's and Fluidd's database
+  const lock = api.lockedMsg?.();
+  if (lock) throw new Error(lock);
   await api.call('server.database.post_item', { namespace, key, value });
 }
 

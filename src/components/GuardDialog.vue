@@ -19,6 +19,7 @@ const TEXT = {
     <p style="margin: 0">{{ state.guard.custom.text }}</p>
     <template #foot>
       <button class="btn lg" autofocus @click="answer(false)">{{ t('Cancel') }}</button>
+      <button v-if="state.guard.custom.alt" class="btn lg" @click="answer('alt')">{{ state.guard.custom.alt }}</button>
       <button class="btn lg acc" @click="answer(true)">{{ state.guard.custom.ok }}</button>
     </template>
   </Modal>

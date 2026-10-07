@@ -64,7 +64,12 @@ const presets = allPresets;
             </button>
           </Popover>
         </div>
-        <button class="btn out" @click="gcode('TURN_OFF_HEATERS')">
+        <button
+          class="btn out"
+          :disabled="isPrinting"
+          :data-tip="isPrinting ? t('Not while printing') : null"
+          @click="gcode('TURN_OFF_HEATERS')"
+        >
           <Icon name="fan" :size="16" :stroke="2.4" />{{ t('Cooldown') }}
         </button>
       </div>
