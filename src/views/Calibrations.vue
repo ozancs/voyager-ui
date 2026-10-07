@@ -6,6 +6,7 @@
 import { ref, computed, watchEffect } from 'vue';
 import Icon from '../components/Icon.vue';
 import ShakeTune from './ShakeTune.vue';
+import ShaperGraphs from '../components/ShaperGraphs.vue';
 import CalibPath from '../components/CalibPath.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
 import { availableGroups, buildCommand, missingParams, invalidParams, parseResult } from '../calibrations';
@@ -194,6 +195,7 @@ function applyShaper(r) {
           <pre class="log">{{ runLines.slice(-14).join('\n') || (run.running ? t('Waiting for output…') : '') }}</pre>
         </section>
 
+        <ShaperGraphs v-if="tab.key === 'shaper'" />
         <section v-if="savePending" class="card">
           <p class="sm" style="margin: 0">{{ t('Klipper has new values waiting for SAVE_CONFIG.') }}</p>
           <button class="btn lg" :disabled="isPrinting" @click="gcode('SAVE_CONFIG')">

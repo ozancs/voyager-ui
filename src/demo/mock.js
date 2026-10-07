@@ -53,6 +53,7 @@ const objects = ['mmu'].concat([
   'gcode_macro BED_MESH_AUTO',
   'gcode_macro CLEAN_NOZZLE',
   'gcode_macro HEAT_SOAK',
+  'gcode_macro GENERATE_SHAPER_GRAPHS',
   'gcode_macro PARK',
   'gcode_macro LOAD_PLA',
   'gcode_macro LOAD_ABS',
@@ -182,6 +183,14 @@ const status = {
       },
       'gcode_macro HEAT_SOAK': {
         gcode: '{% set m = params.MINUTES|default(10) %}{% set b = params.BED|default(110) %}',
+      },
+      'gcode_shell_command generate_shaper_graphs': {
+        command: 'bash /home/pi/printer_data/config/scripts/generate_shaper_graphs.sh',
+        timeout: 120,
+      },
+      'gcode_macro GENERATE_SHAPER_GRAPHS': {
+        description: 'Draw the input shaper graphs from the last SHAPER_CALIBRATE',
+        gcode: 'RUN_SHELL_COMMAND CMD=generate_shaper_graphs',
       },
       'gcode_macro PRINT_START': {
         gcode:
@@ -332,6 +341,7 @@ const status = {
   'gcode_macro BED_MESH_AUTO': {},
   'gcode_macro CLEAN_NOZZLE': {},
   'gcode_macro HEAT_SOAK': {},
+  'gcode_macro GENERATE_SHAPER_GRAPHS': {},
   'gcode_macro PARK': {},
   'gcode_macro LOAD_PLA': {},
   'gcode_macro LOAD_ABS': {},
@@ -561,6 +571,19 @@ function pushStatus(o) {
 }
 let gcodeScript = function (sc) {
   const S = sc.trim().toUpperCase();
+  if (S === 'GENERATE_SHAPER_GRAPHS' || /^RUN_SHELL_COMMAND CMD=GENERATE_SHAPER_GRAPHS/.test(S)) {
+    emitLines(['// Running Command {generate_shaper_graphs}...', '// Command {generate_shaper_graphs} finished'], 1500);
+    setTimeout(() => {
+      for (const a of ['x', 'y'])
+        stFiles.unshift({ path: `shaper_calibrate_${a}.png`, modified: Date.now() / 1000, size: 1000 });
+      wsAll({
+        jsonrpc: '2.0',
+        method: 'notify_filelist_changed',
+        params: [{ action: 'create_file', item: { root: 'config', path: 'shaper_calibrate_x.png' } }],
+      });
+    }, 3200);
+    return 'ok';
+  }
   if (S === 'PROBE_MENU')
     emitLines([
       '// action:prompt_begin Eddy probe',
@@ -2321,7 +2344,9 @@ export function installDemo() {
     },
     set(v) {
       if (typeof v === 'string' && /\/server\/files\/config\/.*\.png/.test(v))
-        v = 'data:image/svg+xml;utf8,' + encodeURIComponent(graphSvg(decodeURIComponent(v.split('/').pop())));
+        v =
+          'data:image/svg+xml;utf8,' +
+          encodeURIComponent(graphSvg(decodeURIComponent(v.split('/').pop().split('?')[0])));
       if (typeof v === 'string' && /\/webcam/.test(v))
         v = 'data:image/svg+xml;utf8,' + encodeURIComponent(camSvg(++frame, +(v.match(/\/webcam(\d)/)?.[1] || 1)));
       desc.set.call(this, v);
