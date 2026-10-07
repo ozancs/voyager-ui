@@ -98,7 +98,7 @@ function pick(fn) {
   top: 48px;
   width: 260px;
   max-width: calc(100vw - 20px);
-  z-index: 50;
+  z-index: 120; /* above the floating webcam (95) */
   gap: 4px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }

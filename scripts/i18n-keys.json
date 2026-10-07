@@ -1889,5 +1889,6 @@
 "{key} is required, crowsnest does not start without it",
 "Print actions",
 "Move the print up into the top bar",
-"Move the print down into its own bar"
+"Move the print down into its own bar",
+"Up one folder"
 ]

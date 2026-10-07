@@ -5,6 +5,7 @@
 // Gates show colour, material and which tool uses them. Anything that moves filament needs a second click.
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import GateFilament from './GateFilament.vue';
 import MmuPath from './MmuPath.vue';
 import MmuToolMap from './MmuToolMap.vue';
@@ -159,6 +160,7 @@ const hasPath = computed(() => kind.value === 'hh' && m.value.filament_pos != nu
           >sync</span
         >
       </div>
+      <CardCollapse />
     </div>
     <div v-if="!kind" class="empty">{{ t('No MMU found (Happy Hare or AFC).') }}</div>
     <template v-else>

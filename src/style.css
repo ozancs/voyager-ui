@@ -210,6 +210,17 @@ a.btn {
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+/* phone: when the title and the buttons do not fit on one row, the buttons move to a row of their own (right
+   aligned) instead of squeezing the title into two lines */
+@media (max-width: 720px) {
+  .card:not(.md) > .card-h:has(> .acts) {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .card:not(.md) > .card-h > .acts {
+    margin-left: auto;
+  }
+}
 .lbl {
   font-size: 12.5px;
   font-weight: 500;

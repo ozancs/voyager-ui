@@ -2,6 +2,7 @@
 // Small dashboard card with the health issues found by features.js (MCU errors, throttling, driver
 // flags, due maintenance). Details are on the Health page.
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import { healthIssues, dueMaintenance } from '../features';
 import { go } from '../router';
 import { t } from '../i18n';
@@ -13,6 +14,7 @@ const LV = { warn: 'var(--wn)', error: 'var(--dg)', info: 'var(--bl)' };
     <div class="card-h">
       <h2>{{ t('Health') }}</h2>
       <button class="btn clear" @click="go('health')">{{ t('Details') }}</button>
+      <CardCollapse />
     </div>
     <div v-if="!healthIssues.length" class="row ok">
       <Icon name="heart" :size="22" /><span>{{ t('Everything looks healthy') }}</span>

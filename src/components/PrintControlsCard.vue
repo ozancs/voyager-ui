@@ -1,6 +1,7 @@
 <script setup>
 // Print controls: speed factor and flow, the two values that change during a print, with a quick way back to 100%.
 // While this card is on the dashboard the Machine Limits card leaves them out.
+import CardCollapse from './CardCollapse.vue';
 import SpeedFlow from './SpeedFlow.vue';
 import { t } from '../i18n';
 </script>
@@ -8,6 +9,7 @@ import { t } from '../i18n';
   <section class="card spread">
     <div class="card-h">
       <h2>{{ t('Print controls') }}</h2>
+      <CardCollapse />
     </div>
     <SpeedFlow resets />
   </section>

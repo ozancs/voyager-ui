@@ -455,7 +455,7 @@ function runConfirmed() {
         </button>
       </div>
     </div>
-    <button class="btn lg dgf estop" @click="estop">
+    <button class="btn lg dgf estop" :aria-label="t('E-STOP')" @click="estop">
       <Icon name="stop" :size="22" :stroke="2.6" /><span class="hide-s">{{ t('E-STOP') }}</span>
     </button>
   </header>
@@ -684,9 +684,22 @@ function runConfirmed() {
   max-width: calc(100vw - 20px);
   max-height: 420px;
   overflow: auto;
-  z-index: 50;
+  z-index: 120; /* above the floating webcam (95) */
   gap: 4px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+/* phone: the menus hang from the top bar across the screen, not from their button (the bell sits in the middle
+   of the bar, so a 380px menu anchored to it went off the left edge) */
+@media (max-width: 720px) {
+  .dd {
+    position: fixed;
+    top: 62px;
+    left: 10px;
+    right: 10px;
+    width: auto !important;
+    max-width: none;
+    max-height: calc(100vh - 150px);
+  }
 }
 .nt {
   display: flex;
@@ -732,6 +745,9 @@ function runConfirmed() {
 @media (max-width: 1100px) {
   .more {
     display: block;
+  }
+  .pill.job .jl {
+    display: none; /* the state and the percentage keep their room */
   }
 }
 @media (max-width: 1100px) {

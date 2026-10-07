@@ -3,6 +3,7 @@
 // presets and cooldown are in the header.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import SensorPicker from './SensorPicker.vue';
 import Popover from './Popover.vue';
 import { state, sensors, setHeater, applyPreset, gcode, allPresets, isPrinting } from '../store';
@@ -73,6 +74,7 @@ const presets = allPresets;
           <Icon name="fan" :size="16" :stroke="2.4" />{{ t('Cooldown') }}
         </button>
       </div>
+      <CardCollapse />
     </div>
     <div data-fit style="overflow: auto; min-height: 0">
       <table class="tt">

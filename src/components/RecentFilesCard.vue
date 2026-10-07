@@ -3,6 +3,7 @@
 import { ref, onMounted } from 'vue';
 import { isGcodeFile } from '../gcode3mf';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import { state, fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';
 import { queueApi } from '../features';
 import { api } from '../api/moonraker';
@@ -48,6 +49,7 @@ const print = (f) => startPrint(f.path);
     <div class="card-h">
       <h2>{{ t('Recent files') }}</h2>
       <button class="btn clear" @click="go('files')">{{ t('All files') }}</button>
+      <CardCollapse />
     </div>
     <div class="list">
       <div v-for="f in files" :key="f.path" class="fr">

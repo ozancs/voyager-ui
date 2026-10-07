@@ -4,6 +4,7 @@
 // and a slider the value Klipper reports. Commands go through gcode(), so the print guard still applies.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import Toggle from './Toggle.vue';
 import Rng from './Rng.vue';
 import { state, gcode, toast } from '../store';
@@ -79,6 +80,7 @@ function runForm(ct) {
   <section class="card cc">
     <div class="card-h">
       <h2>{{ c.name || t('Controls') }}</h2>
+      <CardCollapse />
     </div>
     <div v-if="!controls.length" class="mu" style="font-size: 13px">
       {{ t('No controls yet. Edit this card to add some.') }}

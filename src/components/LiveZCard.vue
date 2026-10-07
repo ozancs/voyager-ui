@@ -3,6 +3,7 @@
 // where the full Toolhead card takes too much room.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode } from '../store';
 import { t } from '../i18n';
 const gm = computed(() => S('gcode_move'));
@@ -52,6 +53,7 @@ const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
           {{ t('Save') }}
         </button>
       </div>
+      <CardCollapse />
     </div>
     <div class="pos mono">
       <span v-for="(a, i) in ['X', 'Y', 'Z']" :key="a"

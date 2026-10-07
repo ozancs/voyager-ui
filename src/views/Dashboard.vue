@@ -24,6 +24,7 @@ import ObjectsCard from '../components/ObjectsCard.vue';
 import MiniMeshCard from '../components/MiniMeshCard.vue';
 import SystemLoads from '../components/SystemLoads.vue';
 import CustomCard from '../components/CustomCard.vue';
+import CellScope from '../components/CellScope.vue';
 import QueueCard from '../components/QueueCard.vue';
 import MacrosCard from '../components/MacrosCard.vue';
 import DevicesCard from '../components/DevicesCard.vue';
@@ -186,9 +187,10 @@ const COLLAPSED_H = 2;
 const fullH = {};
 const isCollapsed = (i) => !!state.settings.collapsed?.[i];
 // in Customize every card shows at its full size, so it can be resized; the fold comes back on Done / Cancel
-const folded = (i) => isCollapsed(i) && !state.editDash;
+const folded = (i) => isCollapsed(i) && canCollapse(i) && !state.editDash;
 // cards without a header (nothing would be left to see) and single buttons do not collapse
-const canCollapse = (i) => !['print', 'favorites'].includes(i) && state.settings.customCards?.[i]?.type !== 'btn';
+const canCollapse = (i) =>
+  !['print', 'favorites', 'system'].includes(i) && state.settings.customCards?.[i]?.type !== 'btn';
 function applyCollapsed(l) {
   return l.map((x) => {
     if (!folded(x.i)) return x;
@@ -785,22 +787,10 @@ function detachCard(i) {
           :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i, collapsed: folded(it.i) }"
           :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null"
         >
-          <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
-          <component v-else :is="MODULES[it.i].c" class="fill" />
-          <button
-            v-if="!state.editDash && canCollapse(it.i)"
-            class="clp"
-            :aria-label="isCollapsed(it.i) ? t('Expand') : t('Collapse')"
-            :aria-expanded="!isCollapsed(it.i)"
-            @click="toggleCollapse(it.i)"
-          >
-            <Icon
-              name="chev"
-              :size="14"
-              :stroke="2.6"
-              :style="{ transform: isCollapsed(it.i) ? '' : 'rotate(90deg)' }"
-            />
-          </button>
+          <CellScope :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
+            <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
+            <component v-else :is="MODULES[it.i].c" class="fill" />
+          </CellScope>
           <template v-if="state.editDash"
             ><span class="rz bl" @pointerdown.stop.prevent="rzStart(it, 'bl', $event)"></span
             ><span class="rz br" @pointerdown.stop.prevent="rzStart(it, 'br', $event)"></span
@@ -899,31 +889,19 @@ function detachCard(i) {
       </template>
       <template v-else v-for="it in column" :key="it.i">
         <div class="cell mcell" :class="{ collapsed: folded(it.i) }">
-          <CustomCard
-            v-if="isCustom(it.i)"
-            :id="it.i"
-            :style="isCollapsed(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
-            @edit="editCard"
-          />
-          <component
-            v-else
-            :is="MODULES[it.i].c"
-            :style="isCollapsed(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
-          />
-          <button
-            v-if="canCollapse(it.i)"
-            class="clp"
-            :aria-label="isCollapsed(it.i) ? t('Expand') : t('Collapse')"
-            :aria-expanded="!isCollapsed(it.i)"
-            @click="toggleCollapse(it.i)"
-          >
-            <Icon
-              name="chev"
-              :size="14"
-              :stroke="2.6"
-              :style="{ transform: isCollapsed(it.i) ? '' : 'rotate(90deg)' }"
+          <CellScope :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
+            <CustomCard
+              v-if="isCustom(it.i)"
+              :id="it.i"
+              :style="folded(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
+              @edit="editCard"
             />
-          </button>
+            <component
+              v-else
+              :is="MODULES[it.i].c"
+              :style="folded(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
+            />
+          </CellScope>
         </div>
       </template>
     </div>
@@ -1270,6 +1248,40 @@ function detachCard(i) {
 .cell {
   position: relative;
   height: 100%;
+  container: cell / inline-size; /* narrow cards adapt their header below */
+}
+/* a narrow card: header buttons that have an icon show only the icon, so the title and the fold chevron keep
+   their row instead of the buttons stacking into a column */
+@container cell (max-width: 360px) {
+  .cell :deep(.card-h .acts .btn:has(> svg)) {
+    font-size: 0 !important; /* beats the compact look's header button size */
+    gap: 0 !important;
+    min-width: 30px;
+    padding: 0 7px !important;
+    justify-content: center;
+  }
+  .cell :deep(.card-h h2) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .cell :deep(.card-h .acts) {
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow: hidden; /* text-only buttons that still do not fit are cut, the chevron stays */
+  }
+}
+/* the header buttons give way before the fold chevron does: they wrap (or get cut in a narrow card), the
+   chevron never leaves the card */
+.cell :deep(.card-h > .acts) {
+  min-width: 0;
+  flex-shrink: 1;
+}
+/* folded: only the title and the chevron, the header buttons go too */
+.cell.collapsed > :deep(.card > .card-h > .acts),
+.cell.collapsed > :deep(.fill > .card-h > .acts) {
+  display: none;
 }
 
 .tools {
@@ -1279,35 +1291,6 @@ function detachCard(i) {
   z-index: 5;
   display: flex;
   gap: 4px;
-}
-/* collapse chevron in the top right corner of every card; the header leaves room for it */
-.cell > :deep(.card > .card-h),
-.cell > :deep(.fill > .card-h) {
-  padding-right: 22px !important; /* the look rules below set the header padding with more specificity */
-}
-/* the panel look pulls the header out to the card edge, so the chevron sits inside the header area */
-[data-look='panel'] .cell > :deep(.card > .card-h),
-[data-look='panel'] .cell > :deep(.fill > .card-h) {
-  padding-right: 40px !important;
-}
-.clp {
-  position: absolute;
-  top: 14px;
-  right: 10px;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--mu2);
-  z-index: 4;
-}
-.clp:hover {
-  color: var(--tx);
-  background: var(--s2);
 }
 .cell.collapsed > :deep(.card > *:not(.card-h)),
 .cell.collapsed > :deep(.fill > *:not(.card-h)) {

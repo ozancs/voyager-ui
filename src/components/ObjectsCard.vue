@@ -1,6 +1,7 @@
 <script setup>
 // Dashboard card with the object map and the button that opens the exclude object dialog.
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import ObjectMap from './ObjectMap.vue';
 import { state, S } from '../store';
 import { t } from '../i18n';
@@ -12,6 +13,7 @@ import { t } from '../i18n';
       <button class="btn out" :disabled="!S('exclude_object').objects?.length" @click="state.showExclude = true">
         <Icon name="excl" :size="16" />{{ t('Exclude…') }}
       </button>
+      <CardCollapse />
     </div>
     <ObjectMap style="flex: 1; min-height: 0" @pick="state.showExclude = true" />
   </section>

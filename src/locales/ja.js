@@ -1891,4 +1891,5 @@ export default {
   "Print actions": "印刷の操作",
   "Move the print up into the top bar": "印刷を上のバーへ移動",
   "Move the print down into its own bar": "印刷を下の専用バーへ移動",
+  "Up one folder": "1つ上のフォルダ",
 }

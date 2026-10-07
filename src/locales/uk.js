@@ -1891,4 +1891,5 @@ export default {
   "Print actions": "Дії з друком",
   "Move the print up into the top bar": "Підняти друк у верхню панель",
   "Move the print down into its own bar": "Опустити друк в окрему панель",
+  "Up one folder": "На теку вище",
 }

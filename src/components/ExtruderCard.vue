@@ -3,6 +3,7 @@
 // temperature check (Klipper refuses to extrude below min_extrude_temp).
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import NumField from './NumField.vue';
 import { state, S, gcode, isPrinting } from '../store';
 import { t } from '../i18n';
@@ -35,6 +36,7 @@ function move(dir) {
       <span class="chip" :style="{ color: e.can_extrude ? 'var(--mu)' : 'var(--wn)' }"
         ><i></i>{{ e.temperature?.toFixed(1) }}° / {{ e.target?.toFixed(0) }}°</span
       >
+      <CardCollapse />
     </div>
     <div class="g2">
       <div class="col" style="gap: 6px">

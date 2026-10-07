@@ -3,6 +3,7 @@
 // and every extra webcam card added under Customize > Add card can each show a different camera).
 import { computed } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import WebcamView from './WebcamView.vue';
 import { state } from '../store';
 import { api } from '../api/moonraker';
@@ -77,6 +78,7 @@ function snapshot() {
           <Icon name="ext" :size="17" :stroke="2.4" />
         </button>
       </div>
+      <CardCollapse />
     </div>
     <div v-if="floating" class="away">
       <Icon name="layers" :size="22" />

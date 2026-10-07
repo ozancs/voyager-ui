@@ -2,6 +2,7 @@
 // The last prints from Moonraker's history with their result and duration.
 import { ref, onMounted } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import { fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -32,6 +33,7 @@ const reprint = async (j) => (await askReprint(j.filename)) && startPrint(j.file
     <div class="card-h">
       <h2>{{ t('Recent prints') }}</h2>
       <button class="btn clear" @click="go('history')">{{ t('History') }}</button>
+      <CardCollapse />
     </div>
     <div class="list">
       <div v-for="j in jobs" :key="j.job_id" class="jr">

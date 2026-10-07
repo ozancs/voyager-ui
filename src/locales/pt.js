@@ -1891,4 +1891,5 @@ export default {
   "Print actions": "Ações da impressão",
   "Move the print up into the top bar": "Subir a impressão para a barra superior",
   "Move the print down into its own bar": "Descer a impressão para a própria barra",
+  "Up one folder": "Subir uma pasta",
 }

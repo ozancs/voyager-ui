@@ -1891,4 +1891,5 @@ export default {
   "Print actions": "Actions d'impression",
   "Move the print up into the top bar": "Monter l'impression dans la barre du haut",
   "Move the print down into its own bar": "Descendre l'impression dans sa propre barre",
+  "Up one folder": "Dossier parent",
 }

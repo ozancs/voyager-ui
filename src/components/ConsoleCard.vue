@@ -2,6 +2,7 @@
 // Dashboard card with the console (ConsoleView) and its header buttons: hide temperature reports, clear,
 // open the full console page.
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import ConsoleView from './ConsoleView.vue';
 import { state } from '../store';
 import { go } from '../router';
@@ -22,6 +23,7 @@ import { t } from '../i18n';
         ><button class="btn" @click="state.console = []">{{ t('Clear') }}</button
         ><button class="btn" @click="go('console')"><Icon name="ext" :size="16" :stroke="2.4" />{{ t('Open') }}</button>
       </div>
+      <CardCollapse />
     </div>
     <ConsoleView :limit="200" />
   </section>

@@ -563,6 +563,7 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
 .fn {
   font-weight: 700;
   word-break: break-all;
+  min-width: 170px; /* the table scrolls sideways before the name is squeezed into a few letters per line */
 }
 td.mono {
   font-size: 13px;
@@ -594,5 +595,23 @@ th.s:hover {
 }
 :root.ew-lt-1300 .bc {
   grid-column: span 2;
+}
+/* phone: one column, the switches shrink to the card */
+@media (max-width: 720px) {
+  .stats,
+  :root.ew-lt-1300 .stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root.ew-lt-1300 .bc {
+    grid-column: auto;
+  }
+  .stats .seg {
+    width: 100% !important;
+    max-width: 320px;
+  }
+  .pie > .row {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 </style>

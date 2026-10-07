@@ -5,6 +5,7 @@
 defineOptions({ inheritAttrs: false });
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode, macroList, isPrinting, dangerIn, toast } from '../store';
 const locked = (m) => isPrinting.value && !!dangerIn(m);
 import { macroParams, orderMacros, macroLabel } from '../macros';
@@ -110,6 +111,7 @@ const hasParams = (m) => macroParams(m).length > 0;
             :aria-label="t('Filter macros')"
         /></label>
       </div>
+      <CardCollapse />
     </div>
     <div ref="box" class="box" :class="{ scroll: grid.scroll || listView }">
       <div v-if="listView" class="ls" :class="{ two: size.w > 520 }">
@@ -314,6 +316,7 @@ const hasParams = (m) => macroParams(m).length > 0;
 .sr {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 6px;
   height: 30px;
   padding: 0 10px;
@@ -323,6 +326,8 @@ const hasParams = (m) => macroParams(m).length > 0;
 }
 .sr input {
   width: 110px;
+  min-width: 0;
+  flex: 1 1 auto;
   border: none;
   background: transparent;
   outline: none;

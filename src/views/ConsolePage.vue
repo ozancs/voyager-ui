@@ -16,7 +16,7 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
 </script>
 <template>
   <div class="split cp">
-    <section class="card grow" style="min-height: 0">
+    <section class="card grow">
       <div class="card-h">
         <h2>{{ t('Console') }}</h2>
         <div class="acts">
@@ -100,8 +100,7 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
   }
   .cp > .card.grow {
     flex: none;
-    height: calc(var(--main-h, 100vh) - 105px);
-    min-height: 360px;
+    height: max(360px, calc(var(--main-h, 100vh) - 105px)); /* landscape phone or open keyboard: still usable */
   }
   .cp > .side-col {
     max-height: 60vh;

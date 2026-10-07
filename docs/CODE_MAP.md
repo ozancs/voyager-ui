@@ -15,9 +15,9 @@ While dragging on the dashboard, keep scrolling when the pointer sits near the t
 of the page. After each scroll step the last pointer event is replayed so the dragged card follows.
 
 **[src/away.js](../src/away.js)**  
-v-away="fn": calls fn when the user clicks or taps anywhere outside the element. Pop-ups that only  
-closed on mouseleave stayed open on touch screens; this closes them everywhere. Clicks older than the  
-mount (the one that opened the pop-up) are ignored.
+v-away="fn": calls fn when the user clicks or taps anywhere outside the element, or presses Escape. Pop-ups  
+that only closed on mouseleave stayed open on touch screens; this closes them everywhere. Clicks older than  
+the mount (the one that opened the pop-up) are ignored. Escape is left to a dialog that is open on top.
 
 **[src/calc.js](../src/calc.js)**  
 Small pure helpers for the Health page and the dashboard grid, unit tested in tests/utils.test.js.
@@ -324,6 +324,14 @@ its own dialog that runs the command and draws what is going on: the hotend glow
 settling pass after pass, the probe points landing on the bed, the toolhead shaking and the shapers it found.  
 Nothing is written to the config until "Save to config". The last run of each is remembered per printer.
 
+**[src/components/CardCollapse.vue](../src/components/CardCollapse.vue)**  
+The fold chevron at the end of a card header. Shown only for a card on the dashboard (CellScope provides the  
+context); the same card elsewhere (Machine page, inside a Tabs card) gets nothing.
+
+**[src/components/CellScope.vue](../src/components/CellScope.vue)**  
+Wraps one dashboard card and tells the card's header (CardCollapse) whether the card can fold, whether it is  
+folded and how to toggle it. Renders no element of its own, so `.cell > .card` selectors keep working.
+
 **[src/components/ChipList.vue](../src/components/ChipList.vue)**  
 A list of numbers shown as chips: click the x to remove, type a value and press Enter to add.
 
@@ -430,6 +438,10 @@ searchable by name and by keyword (search "temperature" finds thermometers), and
 Shows an image from a Moonraker root (e.g. the Shake&Tune graphs in config/ShakeTune_results).  
 The arrows (and the arrow keys) go through the other images of the same folder.
 
+**[src/components/JobMenu.vue](../src/components/JobMenu.vue)**  
+The running print's actions as a ··· menu: pause / resume, exclude object, pause at next layer, job queue and  
+cancel. Used by the compact print pill in the top bar; the PrintBar band shows the same actions as buttons.
+
 **[src/components/LimitsCard.vue](../src/components/LimitsCard.vue)**  
 The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor / flow below them when  
 the Print controls card is not on the dashboard (the dashboard says which cards it shows).
@@ -528,6 +540,11 @@ that Moonraker locks during prints, asks first.
 **[src/components/PreprintDialog.vue](../src/components/PreprintDialog.vue)**  
 Pre-print check result (preprint.js): what does not fit between the file and the printer, and the choice  
 to print anyway or cancel. "Don't check again" turns the check off (Settings > General turns it back on).
+
+**[src/components/PrintBar.vue](../src/components/PrintBar.vue)**  
+Print bar: while a print runs (or is paused) the job moves out of the top bar into its own band under it, like  
+the favorites bar: thumbnail, file, state, progress with layer / time left / ETA, and pause, cancel, exclude,  
+pause at next layer and the queue. The band is tinted with the accent so it reads as "a print is on".
 
 **[src/components/PrintCard.vue](../src/components/PrintCard.vue)**  
 Print Status card: thumbnail, state, layer, Z, live speed and flow, filament, times and the finish time  
@@ -646,8 +663,9 @@ homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
 Global tooltip: any element with aria-label or data-tip shows it after hovering ~0.8s.
 
 **[src/components/TopBar.vue](../src/components/TopBar.vue)**  
-Top bar: printer name and logo, print state with progress and time left, pause / cancel / exclude,  
-search, Save Config, upload & print, notifications, customize, settings, power menu and E-STOP.
+Top bar: printer name and logo, the printer state with the loaded file (while a print runs the job moves to the  
+PrintBar band underneath), search, Save Config, upload & print, notifications, customize, settings, power menu  
+and E-STOP.
 
 **[src/components/UpdateModal.vue](../src/components/UpdateModal.vue)**  
 Log of a running update (Moonraker's update manager). Shows the output lines as they come in  

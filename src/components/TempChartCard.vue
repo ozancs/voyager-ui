@@ -6,6 +6,7 @@
 // button, dashed lines for targets.
 import SensorPicker from './SensorPicker.vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import { computed, ref, onBeforeUnmount } from 'vue';
 import { state, sensors, hist } from '../store';
 import { longHist, STEP, MAX_AGE, oldestLong } from '../temphist';
@@ -225,14 +226,15 @@ onBeforeUnmount(() => ptrs.clear());
   <section class="card">
     <div class="card-h">
       <h2>{{ t('Temperature Graph') }}</h2>
+      <div class="seg rng">
+        <!-- prettier-ignore -->
+        <button v-for="r in RANGES" :key="r" :class="{ on: !zoom && range === r }" @click="pickRange(r)">{{ rangeLabel(r) }}</button>
+      </div>
       <div class="acts">
         <button v-if="!live" class="btn sm acc" @click="goLive"><Icon name="play" :size="14" />{{ t('Live') }}</button>
-        <div class="seg rng">
-          <!-- prettier-ignore -->
-          <button v-for="r in RANGES" :key="r" :class="{ on: !zoom && range === r }" @click="pickRange(r)">{{ rangeLabel(r) }}</button>
-        </div>
         <SensorPicker lines />
       </div>
+      <CardCollapse />
     </div>
     <div class="lg">
       <span v-for="e in data" :key="e.s.name"
@@ -364,6 +366,24 @@ onBeforeUnmount(() => ptrs.clear());
 }
 .rng {
   width: 240px;
+  max-width: 100%;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+/* a narrow dashboard card: the ranges get their own row under the title */
+@container cell (max-width: 520px) {
+  .card-h {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .card-h h2 {
+    flex: 1;
+  }
+  .rng {
+    order: 10;
+    width: 100%;
+    margin-left: 0;
+  }
 }
 .rng button {
   padding: 0 4px;
@@ -396,10 +416,5 @@ onBeforeUnmount(() => ptrs.clear());
 }
 .mu {
   color: var(--mu);
-}
-@media (max-width: 720px) {
-  .rng {
-    width: 200px;
-  }
 }
 </style>

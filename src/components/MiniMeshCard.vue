@@ -3,6 +3,7 @@
 // the active profile. The full view is the Heightmap page.
 import { computed } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode, isPrinting } from '../store';
 import { paletteColor } from '../meshPalette';
 import { go } from '../router';
@@ -32,6 +33,7 @@ const col = (z) => paletteColor(state.settings.heightmap?.palette, z / st.value.
           <Icon name="ext" :size="16" />
         </button>
       </div>
+      <CardCollapse />
     </div>
     <div v-if="!m" class="empty">{{ t('No mesh loaded') }}</div>
     <template v-else>

@@ -4,6 +4,7 @@
 defineOptions({ inheritAttrs: false });
 import { ref, computed } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import Modal from './Modal.vue';
 import { state, toast } from '../store';
 import { loadSpool } from '../store';
@@ -59,6 +60,7 @@ async function pick(s) {
     <div class="card-h">
       <h2>{{ t('Spool') }}</h2>
       <button class="btn" @click="openPick"><Icon name="spool" :size="16" />{{ t('Change') }}</button>
+      <CardCollapse />
     </div>
     <div v-if="sp" class="row" style="gap: 16px">
       <div class="reel" :style="{ '--c': color }"><div></div></div>

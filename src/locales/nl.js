@@ -1891,4 +1891,5 @@ export default {
   "Print actions": "Printacties",
   "Move the print up into the top bar": "Print omhoog naar de bovenbalk",
   "Move the print down into its own bar": "Print omlaag naar zijn eigen balk",
+  "Up one folder": "Eén map omhoog",
 }

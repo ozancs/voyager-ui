@@ -42,7 +42,7 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <slot />
-        <div v-if="$slots.foot" class="row" style="justify-content: flex-end"><slot name="foot" /></div>
+        <div v-if="$slots.foot" class="row ft"><slot name="foot" /></div>
       </div>
     </div>
   </Teleport>
@@ -63,5 +63,16 @@ onBeforeUnmount(() => {
   max-height: calc(90vh / var(--zoom, 1));
   overflow: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+/* a long file name as the title breaks instead of widening the dialog past the screen */
+.md > .card-h h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* footer buttons wrap onto a second row on a phone instead of running off the side */
+.ft {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  row-gap: 8px;
 }
 </style>

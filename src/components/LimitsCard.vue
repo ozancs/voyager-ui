@@ -3,6 +3,7 @@
 // the Print controls card is not on the dashboard (the dashboard says which cards it shows).
 import { computed, inject } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import NumField from './NumField.vue';
 import SpeedFlow from './SpeedFlow.vue';
 import { S, gcode } from '../store';
@@ -27,6 +28,7 @@ function reset() {
       <button class="btn" :disabled="cfg.max_velocity == null" @click="reset">
         <Icon name="refresh" :size="16" :stroke="2.4" />{{ t('Reset') }}
       </button>
+      <CardCollapse />
     </div>
     <div class="g2">
       <NumField

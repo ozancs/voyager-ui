@@ -3,6 +3,7 @@
 import { computed, reactive } from 'vue';
 import Rng from './Rng.vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import Toggle from './Toggle.vue';
 import { state, S, devices, prettyName, shortName, setFan, gcode } from '../store';
 import { t } from '../i18n';
@@ -40,6 +41,7 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
   <section class="card">
     <div class="card-h">
       <h2>{{ t('Devices') }}</h2>
+      <CardCollapse />
     </div>
     <div class="list">
       <div v-for="d in list" :key="d.id" class="dv">

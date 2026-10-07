@@ -55,6 +55,7 @@ const cols = computed(() => {
   // fill the width first: as many tiles per row as fit, the rest wrap. (Evening out the rows left a wide
   // empty space on the right, e.g. 16 tiles on a screen with room for 13 became two rows of 8.)
   const max = Math.max(1, Math.floor((boxW.value + 4) / 128));
+  // (on a phone the columns then stretch to the full width, see the template)
   return Math.min(n, max);
 });
 const isHidden = (d) =>
@@ -275,7 +276,7 @@ function sensorExtra(id) {
     ref="box"
     class="ds"
     :class="{ editing: state.editDash, settle }"
-    :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 144px))` } : null"
+    :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, ${boxW < 560 ? '1fr' : '144px'}))` } : null"
     move-class="mv"
   >
     <div
@@ -570,6 +571,7 @@ function sensorExtra(id) {
   flex: 1;
   min-width: 0;
 }
+
 .dc {
   position: relative;
   background: var(--s1);

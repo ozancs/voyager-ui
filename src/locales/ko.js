@@ -1891,4 +1891,5 @@ export default {
   "Print actions": "출력 작업",
   "Move the print up into the top bar": "출력을 상단 바로 올리기",
   "Move the print down into its own bar": "출력을 아래 전용 바로 내리기",
+  "Up one folder": "상위 폴더",
 }

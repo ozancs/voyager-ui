@@ -192,7 +192,9 @@ function onDrop(e) {
   <div class="split">
     <section class="card grow" style="flex: 1 1 auto" @dragover.prevent @drop="onDrop">
       <div class="row" style="gap: 10px; flex-wrap: wrap">
-        <button class="btn clear" :disabled="path === 'gcodes'" @click="upDir"><Icon name="left" :size="16" /></button>
+        <button class="btn clear" :disabled="path === 'gcodes'" :aria-label="t('Up one folder')" @click="upDir">
+          <Icon name="left" :size="16" />
+        </button>
         <b class="mono">{{ path }} /</b>
         <div class="grow"></div>
         <label class="row input" style="width: 280px"

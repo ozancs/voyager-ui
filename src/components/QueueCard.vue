@@ -4,6 +4,7 @@ defineOptions({ inheritAttrs: false });
 import { ref, computed } from 'vue';
 import { isGcodeFile } from '../gcode3mf';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import Modal from './Modal.vue';
 import { state, toast, fmtTime, isPrinting } from '../store';
 import { queueApi, enableQueue, loadQueue } from '../features';
@@ -77,6 +78,7 @@ const thumb = (fn) => {
           <Icon name="plus" :size="16" />
         </button>
       </div>
+      <CardCollapse />
     </div>
     <template v-if="q.enabled === false">
       <p class="mu" style="margin: 0">

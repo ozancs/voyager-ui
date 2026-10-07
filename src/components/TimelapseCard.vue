@@ -2,6 +2,7 @@
 // Dashboard card: is the timelapse recording, how many frames so far, the newest frame, and the last clips.
 import { computed } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import Toggle from './Toggle.vue';
 import { tl, frameUrl, previewUrl, clipLength, saveSettings } from '../timelapse';
 import { printState, fmtTime, state, firstCam } from '../store';
@@ -27,6 +28,7 @@ function openClip(f) {
         />
         <button class="btn clear" @click="go('webcam', 'timelapse')">{{ t('Open') }}</button>
       </div>
+      <CardCollapse />
     </div>
     <div class="body">
       <div class="fr">

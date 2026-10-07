@@ -1,6 +1,7 @@
 <script setup>
 // Dashboard card listing Moonraker power devices ([power] sections) with on/off switches.
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import PowerList from './PowerList.vue';
 import { loadPower } from '../store';
 import { t } from '../i18n';
@@ -12,6 +13,7 @@ import { t } from '../i18n';
       <button class="btn clear ibtn sm" :aria-label="t('Refresh')" @click="loadPower">
         <Icon name="refresh" :size="16" />
       </button>
+      <CardCollapse />
     </div>
     <PowerList />
   </section>

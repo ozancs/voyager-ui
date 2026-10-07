@@ -496,12 +496,12 @@ function measureAgain(h) {
       ><span class="lbl">{{ t('Task') }}</span
       ><input v-model="editT.name" class="input" :placeholder="t('e.g. Check belt tension')"
     /></label>
-    <div class="row" style="gap: 10px; align-items: flex-end">
+    <div class="row" style="gap: 10px; align-items: flex-end; flex-wrap: wrap">
       <label class="col" style="gap: 4px"
         ><span class="lbl">{{ t('Every') }}</span
         ><input v-model.number="editT.hours" type="number" min="1" class="input mono" style="width: 140px"
       /></label>
-      <div class="seg" style="width: 260px">
+      <div class="seg" style="width: 260px; max-width: 100%">
         <button :class="{ on: (editT.unit || 'h') === 'h' }" @click="editT.unit = 'h'">{{ t('print hours') }}</button>
         <button :class="{ on: editT.unit === 'm' }" @click="editT.unit = 'm'">{{ t('metres of filament') }}</button>
       </div>

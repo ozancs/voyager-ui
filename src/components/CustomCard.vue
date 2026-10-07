@@ -3,6 +3,7 @@
 // webcam. Its settings live in state.settings.customCards[id]; the pencil opens the editor in Dashboard.vue.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import WebcamCard from './WebcamCard.vue';
 import MacroParamsDialog from './MacroParamsDialog.vue';
 import TabsCard from './TabsCard.vue';
@@ -57,6 +58,7 @@ async function run(g, k) {
   <section v-else class="card">
     <div class="card-h">
       <h2>{{ c.name }}</h2>
+      <CardCollapse />
     </div>
     <div class="mg" :class="{ ml: c.view === 'list', mw: c.view === 'wide' }">
       <button

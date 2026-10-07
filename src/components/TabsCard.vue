@@ -3,6 +3,8 @@
 // comes from the dashboard (provide 'dashModules'); the active tab is remembered per card in this browser.
 import { computed, inject, ref, watch } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
+import CellScope from './CellScope.vue';
 import CustomCard from './CustomCard.vue';
 import { state } from '../store';
 import { t } from '../i18n';
@@ -47,11 +49,15 @@ const nameOf = (card) =>
           <Icon v-if="tb.icon" :name="tb.icon" :size="15" :stroke="2.4" /><span>{{ tb.label || nameOf(tb.card) }}</span>
         </button>
       </div>
+      <CardCollapse />
     </div>
     <div v-if="!tabs.length" class="empty">{{ t('No tabs yet. Edit this card to add some.') }}</div>
     <div v-else-if="cur" class="body" :key="cur.id">
-      <CustomCard v-if="cur.card.startsWith('c_')" :id="cur.card" class="inner" />
-      <component v-else :is="modules[cur.card].c" class="inner" />
+      <!-- the cards inside fold with the tabs card, not on their own -->
+      <CellScope :can="false">
+        <CustomCard v-if="cur.card.startsWith('c_')" :id="cur.card" class="inner" />
+        <component v-else :is="modules[cur.card].c" class="inner" />
+      </CellScope>
     </div>
   </section>
 </template>

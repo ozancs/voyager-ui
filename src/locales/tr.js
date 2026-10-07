@@ -1892,4 +1892,5 @@ export default {
   "Print actions": "Baskı işlemleri",
   "Move the print up into the top bar": "Baskıyı üst çubuğa taşı",
   "Move the print down into its own bar": "Baskıyı aşağı, kendi çubuğuna taşı",
+  "Up one folder": "Bir üst klasör",
 }

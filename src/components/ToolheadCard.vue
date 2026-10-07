@@ -3,6 +3,7 @@
 // homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
+import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode, isPrinting, toast } from '../store';
 import { t } from '../i18n';
 const th = computed(() => S('toolhead'));
@@ -105,6 +106,7 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
           <Icon name="power" :size="16" :stroke="2.4" />{{ t('Motors off') }}
         </button>
       </div>
+      <CardCollapse />
     </div>
     <div class="body">
       <div class="grp pos3">
