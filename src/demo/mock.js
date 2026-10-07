@@ -2202,8 +2202,11 @@ function gcodeFile() {
   for (let z = 1; z <= 40; z++) {
     g += `;LAYER_CHANGE\n;Z:${(z * 0.2).toFixed(2)}\nG1 Z${(z * 0.2).toFixed(2)} F600\n`;
     for (let k = 0; k < 4; k++) {
-      const r = 30 + 10 * Math.sin(z / 5);
-      g += `G1 X${150 + r} Y150 F3000\nG1 X${150 + r} Y${150 + r} E1\nG1 X150 Y${150 + r} E1\nG1 X150 Y150 E1\n`;
+      const r = 30 + 10 * Math.sin(z / 5) - k * 2;
+      // slicer feature comments and speeds, so the viewer's colour modes have something to show
+      g += k === 0 ? ';TYPE:Outer wall\n' : k === 1 ? ';TYPE:Inner wall\n' : ';TYPE:Sparse infill\n';
+      const f = k === 0 ? 2400 : k === 1 ? 4800 : 9000;
+      g += `G1 X${150 + r} Y150 F${f}\nG1 X${150 + r} Y${150 + r} E1\nG1 X150 Y${150 + r} E1\nG1 X150 Y150 E1\n`;
     }
   }
   return g;

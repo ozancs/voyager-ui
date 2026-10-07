@@ -203,6 +203,7 @@ export const state = reactive({
   editDash: false,
   printerName: '',
   showExclude: false,
+  excludePick: null, // object name picked in the viewer, asked at once by ExcludeModal
   conn: { attempts: 0, since: 0, probe: '' },
   tasks: [],
   booted: false,

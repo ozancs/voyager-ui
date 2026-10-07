@@ -6,10 +6,12 @@
 import { ref, computed } from 'vue';
 import Modal from './Modal.vue';
 import ObjectMap from './ObjectMap.vue';
-import { S, gcode, cancelPrint } from '../store';
+import { state, S, gcode, cancelPrint } from '../store';
 import { t } from '../i18n';
 const emit = defineEmits(['close']);
-const pick = ref(null);
+// an object clicked in the G-code viewer arrives already picked
+const pick = ref(state.excludePick || null);
+state.excludePick = null;
 // split around {name} so the object name stays bold in any language
 const skipMsg = computed(() =>
   t("The printer will skip {name} for the rest of this print. This can't be undone.").split('{name}'),

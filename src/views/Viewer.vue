@@ -3,6 +3,7 @@
 // layers, can follow the running print and exclude objects.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, shallowRef } from 'vue';
 import { readGcodeText, is3mf } from '../gcode3mf';
+import { colorByFeature, colorBySpeed, objectAt } from '../gcodeColor';
 import Icon from '../components/Icon.vue';
 import ObjectMap from '../components/ObjectMap.vue';
 import RangeSlider from '../components/RangeSlider.vue';
@@ -22,6 +23,14 @@ const layer = ref(0);
 const follow = ref(true);
 const travel = ref(false);
 const tab = ref('3d');
+// colour: one colour with a height gradient (as before), by feature type (;TYPE: comments) or by speed
+const colorMode = ref(state.settings.viewerColor || 'single');
+const legend = ref([]);
+let rawText = ''; // the file as loaded, recoloured again when the mode changes
+watch(colorMode, (m) => {
+  state.settings.viewerColor = m;
+  if (rawText) parse(rawText);
+});
 let offsets = null;
 let lineLayer = null;
 const parsed = ref(0); // bumped when a file is parsed: offsets/lineLayer are plain variables, not reactive
@@ -75,28 +84,73 @@ async function load(fn) {
   file.value = fn;
   loading.value = t('Downloading…');
   try {
-    const text = await readGcodeText(api, fn);
-    loading.value = t('Parsing…');
-    await nextTick();
-    await new Promise((r) => setTimeout(r, 30));
-    const p = await ensurePreview();
-    p.clear?.();
-    p.processGCode(text);
-    // byte offset of each line, for following the print by file position
-    let n = 1;
-    for (let k = 0; k < text.length; k++) if (text.charCodeAt(k) === 10) n++;
-    offsets = new Uint32Array(n);
-    let i = 0;
-    for (let k = 0; k < text.length; k++) if (text.charCodeAt(k) === 10) offsets[++i] = k + 1;
-    lineLayer = p.layers.map((l) => l.lineNumber);
-    parsed.value++;
-    layers.value = p.layers.length;
-    layer.value = layers.value;
-    update();
+    rawText = await readGcodeText(api, fn);
+    await parse(rawText);
   } catch (e) {
     toast(t('Viewer: {err}', { err: e.message }), 'error');
   }
   loading.value = '';
+}
+async function parse(text) {
+  loading.value = t('Parsing…');
+  await nextTick();
+  await new Promise((r) => setTimeout(r, 30));
+  const p = await ensurePreview();
+  p.clear?.();
+  let shown = text,
+    map = null;
+  if (colorMode.value === 'feature' || colorMode.value === 'speed') {
+    const r = colorMode.value === 'feature' ? colorByFeature(text) : colorBySpeed(text);
+    shown = r.text;
+    map = r.map;
+    legend.value = r.legend.filter((l) => l.used);
+    p.extrusionColor = r.colors;
+    p.disableGradient = true;
+  } else {
+    legend.value = [];
+    p.extrusionColor = state.settings.accent || '#ff6b1a';
+    p.disableGradient = false;
+  }
+  p.processGCode(shown);
+  // byte offset of each line of the original file, for following the print by file position
+  let n = 1;
+  for (let k = 0; k < text.length; k++) if (text.charCodeAt(k) === 10) n++;
+  offsets = new Uint32Array(n);
+  let i = 0;
+  for (let k = 0; k < text.length; k++) if (text.charCodeAt(k) === 10) offsets[++i] = k + 1;
+  lineLayer = p.layers.map((l) => (map ? (map[l.lineNumber] ?? l.lineNumber) : l.lineNumber));
+  parsed.value++;
+  layers.value = p.layers.length;
+  layer.value = layers.value;
+  update();
+  loading.value = '';
+}
+// click on the model: the bed point under the pointer picks the object there (exclude_object polygons)
+let downAt = null;
+function cvDown(e) {
+  downAt = [e.clientX, e.clientY];
+}
+async function cvClick(e) {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 4) return; // a drag, not a click
+  const p = preview.value;
+  if (!p || !eo.value.objects?.length || !active.value) return;
+  const { Raycaster, Vector2, Plane, Vector3 } = await import('three');
+  const r = canvas.value.getBoundingClientRect();
+  const nd = new Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  const ray = new Raycaster();
+  ray.setFromCamera(nd, p.camera);
+  // gcode-preview draws the bed in the X/Z plane with Y up and the print's Y along -Z, centred on the bed
+  const hit = new Vector3();
+  if (!ray.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), 0), hit)) return;
+  const th = S('toolhead');
+  const max = th.axis_maximum || [300, 300, 300];
+  const x = hit.x + max[0] / 2,
+    y = -hit.z + max[1] / 2;
+  const name = objectAt(x, y, eo.value.objects);
+  if (!name) return;
+  if (eo.value.excluded_objects?.includes(name)) return toast(t('{name} is already excluded', { name }), 'info');
+  state.excludePick = name;
+  emit('exclude');
 }
 function update() {
   const p = preview.value;
@@ -148,6 +202,8 @@ onMounted(async () => {
   } catch {}
   if (curPrint.value) load(curPrint.value);
 });
+// opened before the printer answered (a direct link to the page): load the running job once it is known
+watch(curPrint, (f) => f && !file.value && !loading.value && load(f));
 onBeforeUnmount(() => {
   ro?.disconnect();
   preview.value?.dispose?.();
@@ -178,8 +234,14 @@ onBeforeUnmount(() => {
           </select>
         </div>
       </div>
-      <div v-show="tab === '3d'" ref="wrap" class="cv">
+      <div v-show="tab === '3d'" ref="wrap" class="cv" @pointerdown="cvDown" @click="cvClick">
         <canvas ref="canvas"></canvas>
+        <div v-if="legend.length" class="vlegend">
+          <span v-for="l in legend" :key="l.label"><i :style="{ background: l.color }"></i>{{ t(l.label) }}</span>
+        </div>
+        <span v-if="file && active && eo.objects?.length" class="hint mono">{{
+          t('Click an object to exclude it')
+        }}</span>
         <div v-if="loading" class="ld"><Icon name="refresh" :size="20" class="spin" />{{ loading }}</div>
         <div v-else-if="!file" class="ld">{{ t('Load the current job or pick a file') }}</div>
         <span v-if="file" class="fn mono">{{ file }}</span>
@@ -225,6 +287,14 @@ onBeforeUnmount(() => {
         <div class="row" style="justify-content: space-between">
           <span>{{ t('Show travel moves') }}</span
           ><Toggle v-model="travel" :label="t('Show travel')" />
+        </div>
+        <div class="col" style="gap: 6px">
+          <span>{{ t('Colour') }}</span>
+          <div class="seg">
+            <button :class="{ on: colorMode === 'single' }" @click="colorMode = 'single'">{{ t('Height') }}</button>
+            <button :class="{ on: colorMode === 'feature' }" @click="colorMode = 'feature'">{{ t('Feature') }}</button>
+            <button :class="{ on: colorMode === 'speed' }" @click="colorMode = 'speed'">{{ t('Speed') }}</button>
+          </div>
         </div>
       </section>
       <section class="card">
@@ -289,5 +359,31 @@ onBeforeUnmount(() => {
   left: 12px;
   font-size: 12px;
   color: var(--mu);
+}
+.hint {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 11px;
+  color: var(--mu);
+}
+.vlegend {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 11.5px;
+  color: #cfd3d8;
+  pointer-events: none;
+}
+.vlegend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: -1px;
 }
 </style>
