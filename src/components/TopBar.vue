@@ -43,6 +43,8 @@ const showBell = ref(false);
 const showPower = ref(false);
 const showMore = ref(false); // narrow screens: search, upload, save config, customize, settings, power
 const showJob = ref(false); // phones: the print pill opens pause, cancel, exclude and the queue
+const hasCmd = (c) => Object.keys(state.commands || {}).some((k) => k.toUpperCase() === c);
+const pauseNext = computed(() => !!S('gcode_macro SET_PAUSE_NEXT_LAYER').pause_next_layer?.enable);
 // only on a phone: on wider screens the pill shows those buttons itself
 const phone = () => window.matchMedia('(max-width: 480px)').matches;
 function toggleJob() {
@@ -365,6 +367,16 @@ function pause() {
         }}<span v-if="eo.objects?.length" class="mono mu" style="margin-left: auto"
           >{{ eo.objects.length - (eo.excluded_objects?.length || 0) }}/{{ eo.objects.length }}</span
         >
+      </button>
+      <button
+        v-if="hasCmd('SET_PAUSE_NEXT_LAYER')"
+        class="btn clear mi"
+        @click="
+          showJob = false;
+          gcode(pauseNext ? 'SET_PAUSE_NEXT_LAYER ENABLE=0' : 'SET_PAUSE_NEXT_LAYER ENABLE=1');
+        "
+      >
+        <Icon name="layers" :size="18" />{{ pauseNext ? t('Cancel pause at next layer') : t('Pause at next layer') }}
       </button>
       <button
         v-if="state.queue.jobs?.length"

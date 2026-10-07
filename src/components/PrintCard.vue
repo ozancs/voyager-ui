@@ -4,6 +4,7 @@
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
+import PauseAtLayer from './PauseAtLayer.vue';
 import {
   state,
   S,
@@ -168,6 +169,7 @@ async function reprint() {
           <Icon name="excl" :size="18" :stroke="2.4" />{{ t('Exclude Object')
           }}<span v-if="eo.objects?.length" class="mono cnt">{{ remaining }}/{{ eo.objects.length }}</span>
         </button>
+        <PauseAtLayer />
       </template>
       <template v-else>
         <button class="btn lg acc" @click="go('files')">

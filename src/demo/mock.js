@@ -55,6 +55,8 @@ const objects = ['mmu'].concat([
   'gcode_macro HEAT_SOAK',
   'gcode_macro GENERATE_SHAPER_GRAPHS',
   'gcode_macro PARK',
+  'gcode_macro SET_PAUSE_NEXT_LAYER',
+  'gcode_macro SET_PAUSE_AT_LAYER',
   'gcode_macro LOAD_PLA',
   'gcode_macro LOAD_ABS',
   'gcode_macro M600',
@@ -343,6 +345,8 @@ const status = {
   'gcode_macro HEAT_SOAK': {},
   'gcode_macro GENERATE_SHAPER_GRAPHS': {},
   'gcode_macro PARK': {},
+  'gcode_macro SET_PAUSE_NEXT_LAYER': { pause_next_layer: { enable: false, call: 'PAUSE' } },
+  'gcode_macro SET_PAUSE_AT_LAYER': { pause_at_layer: { enable: false, layer: 0, call: 'PAUSE' } },
   'gcode_macro LOAD_PLA': {},
   'gcode_macro LOAD_ABS': {},
   'gcode_macro M600': {},
@@ -1451,6 +1455,8 @@ function handle(m) {
         G28: 'Home',
         Z_TILT_ADJUST: 'Tilt',
         CHAMBER: 'Chamber temp',
+        SET_PAUSE_NEXT_LAYER: 'Enable a pause if the next layer is reached',
+        SET_PAUSE_AT_LAYER: 'Enable/disable a pause if a given layer number is reached',
         BED_MESH_CALIBRATE: 'Perform Mesh Bed Leveling',
         PID_CALIBRATE: 'Run PID calibration test',
         ACCELEROMETER_QUERY: 'Query accelerometer for the current values',
@@ -2100,6 +2106,26 @@ gcodeScript = function (sc) {
         params: [{ action: 'create_file', item: { root: 'config', path: 'ShakeTune_results/input_shaper/new.png' } }],
       });
     }, 4400);
+    return 'ok';
+  }
+  if ((m = S.match(/^SET_PAUSE_NEXT_LAYER\b.*?ENABLE=(\d)/))) {
+    pushStatus({ 'gcode_macro SET_PAUSE_NEXT_LAYER': { pause_next_layer: { enable: m[1] === '1', call: 'PAUSE' } } });
+    return 'ok';
+  }
+  if ((m = S.match(/^SET_PAUSE_AT_LAYER\b.*?ENABLE=(\d)(?:.*?LAYER=(\d+))?/))) {
+    pushStatus({
+      'gcode_macro SET_PAUSE_AT_LAYER': {
+        pause_at_layer: { enable: m[1] === '1', layer: +(m[2] || 0), call: 'PAUSE' },
+      },
+    });
+    return 'ok';
+  }
+  if ((m = S.match(/^SET_GCODE_OFFSET\b(.*)/))) {
+    const z = /Z=(-?[\d.]+)/.exec(m[1]),
+      adj = /Z_ADJUST=(-?[\d.]+)/.exec(m[1]);
+    const cur = status.gcode_move.homing_origin || [0, 0, 0, 0];
+    const nz = z ? +z[1] : adj ? Math.round((cur[2] + +adj[1]) * 1000) / 1000 : cur[2];
+    pushStatus({ gcode_move: { homing_origin: [cur[0], cur[1], nz, cur[3]] } });
     return 'ok';
   }
   if ((m = S.match(/^M220 S(\d+)/))) {
