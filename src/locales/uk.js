@@ -1892,4 +1892,5 @@ export default {
   "Move the print up into the top bar": "Підняти друк у верхню панель",
   "Move the print down into its own bar": "Опустити друк в окрему панель",
   "Up one folder": "На теку вище",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker ще зайнятий іншим завданням, зазвичай перевіркою оновлень. Оновлення почнеться одразу після його завершення.",
 }

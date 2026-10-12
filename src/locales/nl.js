@@ -1892,4 +1892,5 @@ export default {
   "Move the print up into the top bar": "Print omhoog naar de bovenbalk",
   "Move the print down into its own bar": "Print omlaag naar zijn eigen balk",
   "Up one folder": "Eén map omhoog",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker is nog bezig met een andere taak, meestal het zoeken naar updates. De update start zodra die klaar is.",
 }

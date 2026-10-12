@@ -1496,6 +1496,28 @@ function handle(m) {
       });
     case 'printer.info':
       return { software_version: 'v0.13.0-300', hostname: PROFILE.hostname || 'voyager-demo', state: 'ready' };
+    case 'machine.update.full': {
+      // like Moonraker: one 'full' job that walks every updater, complete only on the last line
+      const names = Object.keys(versions);
+      const lines = ['Preparing full software update...'];
+      for (const n of names) lines.push(`Updating ${n}...`, `${n}: done`);
+      lines.push('Full Update Complete');
+      let i = 0;
+      const t = setInterval(() => {
+        const last = i === lines.length - 1;
+        wsAll({
+          jsonrpc: '2.0',
+          method: 'notify_update_response',
+          params: [{ application: 'full', proc_id: 2, message: lines[i], complete: last }],
+        });
+        i++;
+        if (last) {
+          clearInterval(t);
+          names.filter((n) => n !== 'system').forEach(finishUpdate);
+        }
+      }, 350);
+      return 'ok';
+    }
     case 'machine.update.upgrade':
       setTimeout(() => {
         let n = 0;

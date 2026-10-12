@@ -1892,4 +1892,5 @@ export default {
   "Move the print up into the top bar": "Druck nach oben in die Kopfleiste",
   "Move the print down into its own bar": "Druck nach unten in seine eigene Leiste",
   "Up one folder": "Einen Ordner höher",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker ist noch mit einer anderen Aufgabe beschäftigt, meist der Updateprüfung. Das Update startet, sobald sie fertig ist.",
 }

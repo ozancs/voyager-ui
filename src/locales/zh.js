@@ -1892,4 +1892,5 @@ export default {
   "Move the print up into the top bar": "把打印移到顶部栏",
   "Move the print down into its own bar": "把打印移到下方独立栏",
   "Up one folder": "上一级文件夹",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker 仍在执行其他任务,通常是检查更新。该任务完成后更新会立即开始。",
 }

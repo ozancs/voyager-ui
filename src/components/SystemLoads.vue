@@ -209,7 +209,10 @@ const tiles = computed(() => [
 .sl {
   position: relative;
   padding: 14px;
-  justify-content: center;
+  /* 'safe': when the tiles are taller than the card, they start at the top and scroll instead of being cut off */
+  justify-content: safe center;
+  overflow: auto;
+  container: sl / inline-size;
 }
 .more {
   position: absolute;
@@ -299,5 +302,33 @@ const tiles = computed(() => [
 }
 .sld b {
   font-size: 14px;
+}
+/* narrow card: two columns of small side-by-side tiles (ring left, name right) instead of a 3 + 1 wrap */
+@container sl (max-width: 460px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding-right: 18px;
+  }
+  .tl {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    row-gap: 0;
+    align-items: center;
+    padding: 8px;
+  }
+  .tl > :first-child {
+    grid-row: 1 / 3;
+  }
+  .tl > :first-child :deep(svg) {
+    width: 40px;
+    height: 40px;
+  }
+  .nm,
+  .sub {
+    justify-self: start;
+  }
 }
 </style>

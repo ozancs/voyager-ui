@@ -445,6 +445,12 @@ onBeforeUnmount(rzEnd);
 // ---- customize session with undo / backups ----
 let entry = null;
 const addOpen = ref(false);
+// a drop-down menu is as tall as the room left under it in the window (it scrolls inside when longer)
+const vFitBelow = {
+  mounted(el) {
+    el.style.maxHeight = Math.max(180, innerHeight - el.getBoundingClientRect().top - 12) + 'px';
+  },
+};
 const restoreOpen = ref(false);
 const askReset = ref(false);
 function startEdit() {
@@ -685,7 +691,7 @@ function detachCard(i) {
           >
             <Icon name="plus" :size="16" :stroke="2.6" />{{ t('Add card') }}
           </button>
-          <div v-if="addOpen" class="dd card" v-away="() => (addOpen = false)">
+          <div v-if="addOpen" v-fit-below class="dd card" v-away="() => (addOpen = false)">
             <span class="sec-lbl">{{ t('Modules') }}</span>
             <button v-for="k in available" :key="k" class="btn clear di" @click="addModule(k)">
               {{ t(MODULES[k].n) }}
@@ -727,7 +733,7 @@ function detachCard(i) {
           >
             <Icon name="clock" :size="16" />{{ t('Restore') }}
           </button>
-          <div v-if="restoreOpen" class="dd card" style="width: 280px" v-away="() => (restoreOpen = false)">
+          <div v-if="restoreOpen" v-fit-below class="dd card" style="width: 280px" v-away="() => (restoreOpen = false)">
             <span class="sec-lbl">{{ t('Saved layouts') }}</span>
             <button
               v-for="(b, k) in state.settings.layoutBackups"
@@ -1233,6 +1239,13 @@ function detachCard(i) {
   z-index: 40;
   gap: 2px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  /* a long list (many modules, webcams) scrolls inside the menu instead of running off the bottom of the window */
+  max-height: calc(100dvh - 160px); /* vFitBelow sets the exact room below the button */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dd > * {
+  flex-shrink: 0;
 }
 .di {
   justify-content: flex-start;
@@ -1382,6 +1395,10 @@ function detachCard(i) {
 }
 .editing :deep(.card-h .acts) {
   visibility: hidden;
+}
+/* a card without a header (System loads) makes room at the top for the edit buttons instead of sitting under them */
+.editing :deep(.cell > .card:not(:has(> .card-h))) {
+  padding-top: 44px !important; /* over the compact-mode card padding */
 }
 .editing :deep(.vgl-item__resizer) {
   width: 22px;

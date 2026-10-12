@@ -1892,4 +1892,5 @@ export default {
   "Move the print up into the top bar": "Поднять печать в верхнюю панель",
   "Move the print down into its own bar": "Опустить печать в отдельную панель",
   "Up one folder": "На папку выше",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker ещё занят другой задачей, обычно проверкой обновлений. Обновление начнётся сразу после её завершения.",
 }

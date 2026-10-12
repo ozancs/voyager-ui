@@ -1893,4 +1893,5 @@ export default {
   "Move the print up into the top bar": "Baskıyı üst çubuğa taşı",
   "Move the print down into its own bar": "Baskıyı aşağı, kendi çubuğuna taşı",
   "Up one folder": "Bir üst klasör",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker hâlâ başka bir işle meşgul, genelde güncelleme denetimi. O bitince güncelleme hemen başlar.",
 }

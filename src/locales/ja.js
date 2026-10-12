@@ -1892,4 +1892,5 @@ export default {
   "Move the print up into the top bar": "印刷を上のバーへ移動",
   "Move the print down into its own bar": "印刷を下の専用バーへ移動",
   "Up one folder": "1つ上のフォルダ",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker は別の処理(多くは更新の確認)を実行中です。それが終わるとすぐに更新が始まります。",
 }

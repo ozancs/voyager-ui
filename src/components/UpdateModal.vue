@@ -1,7 +1,7 @@
 <script setup>
 // Log of a running update (Moonraker's update manager). Shows the output lines as they come in
 // and a close button when the update is done.
-import { ref, watch, nextTick, computed } from 'vue';
+import { ref, watch, nextTick, computed, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import { state } from '../store';
 import { t } from '../i18n';
@@ -13,6 +13,24 @@ watch(
     nextTick(() => {
       if (box.value) box.value.scrollTop = box.value.scrollHeight;
     }),
+);
+// Moonraker runs one update task at a time: while it is still checking for updates (its own timer, our 6-hourly
+// check or the Check button) a new update waits for that to finish and sends nothing. Say so after a few seconds.
+const waited = ref(0);
+let tick = null;
+watch(
+  () => !!state.update && !state.update.lines.length,
+  (w) => {
+    clearInterval(tick);
+    waited.value = 0;
+    if (w) tick = setInterval(() => waited.value++, 1000);
+  },
+  { immediate: true },
+);
+onBeforeUnmount(() => clearInterval(tick));
+// Moonraker names a full update 'full'; a page opened during one learns about it from these messages
+const title = computed(() =>
+  ['all', 'full'].includes(u.value?.app) ? t('Updating everything') : t('Updating {name}', { name: u.value?.app }),
 );
 const failed = computed(() => u.value?.lines.some((l) => /^!!|error|failed/i.test(l)));
 </script>
@@ -26,14 +44,23 @@ const failed = computed(() => u.value?.lines.some((l) => /^!!|error|failed/i.tes
             :name="failed ? 'warn' : 'check'"
             :size="18"
             :style="{ color: failed ? 'var(--dg)' : 'var(--ok)' }"
-          />{{ u.app === 'all' ? t('Updating everything') : t('Updating {name}', { name: u.app }) }}
+          />{{ title }}
         </h2>
         <span class="chip" :style="{ color: u.complete ? (failed ? 'var(--dg)' : 'var(--ok)') : 'var(--ac)' }"
           ><i></i>{{ u.complete ? (failed ? t('Finished with errors') : t('Complete')) : t('Running') }}</span
         >
       </div>
       <div ref="box" class="log mono">
-        <div v-if="!u.lines.length" class="mu">{{ t('Waiting for Moonraker…') }}</div>
+        <div v-if="!u.lines.length" class="mu">
+          {{ t('Waiting for Moonraker…') }}
+          <template v-if="waited >= 4"
+            ><br />{{
+              t(
+                'Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.',
+              )
+            }}</template
+          >
+        </div>
         <div v-for="(l, i) in u.lines" :key="i" :class="{ e: /^!!|error|failed/i.test(l) }">{{ l }}</div>
       </div>
       <div v-if="!u.complete" class="bar"><div class="ind"></div></div>

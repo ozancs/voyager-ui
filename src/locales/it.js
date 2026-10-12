@@ -1892,4 +1892,5 @@ export default {
   "Move the print up into the top bar": "Sposta la stampa su nella barra superiore",
   "Move the print down into its own bar": "Sposta la stampa giù nella sua barra",
   "Up one folder": "Cartella superiore",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker è ancora occupato con un'altra attività, di solito il controllo degli aggiornamenti. L'aggiornamento parte appena finisce.",
 }

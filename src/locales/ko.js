@@ -1892,4 +1892,5 @@ export default {
   "Move the print up into the top bar": "출력을 상단 바로 올리기",
   "Move the print down into its own bar": "출력을 아래 전용 바로 내리기",
   "Up one folder": "상위 폴더",
+  "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker가 아직 다른 작업(주로 업데이트 확인)을 하고 있습니다. 그 작업이 끝나면 바로 업데이트가 시작됩니다.",
 }
