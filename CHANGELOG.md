@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.28.0
+
+- Pages that fill the window (console, config editor, webcam, heightmap, viewer, Shake&Tune) take their height from the real page area, so the print bar or the phone's bottom bar no longer pushes them off screen. On a phone the console keeps a usable height and the command list scrolls in its own card below
+- Dashboard: the fold chevron sits at the end of each card header instead of floating over the header buttons. Narrow cards show icon-only header buttons and the temperature graph puts its ranges on their own row
+- Add card and Restore menus fit the window and scroll inside
+- System loads card: tiles are no longer cut off at the top of a short card; a narrow card shows them in two columns
+- Update all: when Moonraker is still busy with an update check, the dialog says the update starts once that finishes instead of only "Waiting for Moonraker"
+- Phone: card headers wrap their buttons onto a second row, the top tiles use the full width, top bar menus span the screen and close on Escape, history statistics and the maintenance task dialog fit
+- Dialogs: a long file name as the title wraps, footer buttons wrap; the compact print pill drops the time left on narrow windows
+- E-STOP and the folder-up button have an accessible name
+
 ## 0.27.0
 
 - The running print has its own bar under the top bar: file, state, progress, layer / time left / ETA, pause, cancel, exclude, pause at next layer and the queue. The arrow on its right moves it up into the top bar as a compact pill with a ··· menu for the actions; the choice is remembered. The top bar itself is quieter while printing
