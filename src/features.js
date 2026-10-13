@@ -19,6 +19,8 @@ import {
 } from './store';
 import { holdFindings, heatFinding, COLD } from './heaterHealth';
 import { t } from './i18n';
+import { cmpVer } from './firmware';
+import { startBackupWatch } from './backup';
 import { expandPaths } from './paths';
 import { counterGrowth } from './calc';
 export { counterGrowth };
@@ -315,6 +317,24 @@ function checkIdleHeat() {
     ms: 0,
     action: { label: t('Cooldown'), run: () => gcode('TURN_OFF_HEATERS') },
   });
+}
+
+// ---------------------------------------------------------------- MCU firmware behind Klipper
+// After a Klipper update, boards still running older firmware get one notification (per Klipper version);
+// Health > MCU & CAN links shows which and how to flash them.
+function checkFirmware() {
+  const host = state.versions.klipper;
+  if (!host) return;
+  const behind = state.objects
+    .filter((o) => o === 'mcu' || o.startsWith('mcu '))
+    .filter((o) => cmpVer(S(o).mcu_version, host) < 0)
+    .map((o) => (o === 'mcu' ? 'mcu' : o.slice(4)));
+  if (!behind.length) return unnotify('fw:');
+  notify(
+    'fw:' + host + ':' + behind.join(','),
+    t('{boards}: firmware older than Klipper {host}. Health shows how to flash.', { boards: behind.join(', '), host }),
+    'info',
+  );
 }
 
 // ---------------------------------------------------------------- job queue
@@ -666,6 +686,7 @@ let started = false;
 export function initFeatures() {
   if (started) return;
   started = true;
+  startBackupWatch();
   api.on('notify_gcode_response', ([line]) => {
     if (typeof line !== 'string') return;
     if (line.startsWith('// action:prompt_')) {
@@ -720,6 +741,7 @@ export function initFeatures() {
       sampleHealth();
       checkHeated();
       checkIdleHeat();
+      checkFirmware();
     }
   }, 2000);
   // global Ctrl/Cmd+K

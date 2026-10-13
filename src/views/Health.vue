@@ -6,6 +6,7 @@ import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import { state, S, prettyName, gcode, toast, THROTTLE } from '../store';
 import { api } from '../api/moonraker';
+import { cmpVer, linkOf, flashSteps } from '../firmware';
 import { t } from '../i18n';
 import {
   counterGrowth,
@@ -47,6 +48,15 @@ const throttled = computed(() => thrNames(0, 3));
 const thrPast = computed(() => thrNames(16, 19));
 
 // ---------- MCUs / CAN ----------
+const flashOpen = ref(null); // the board whose flash steps are shown
+async function copyCmd(c) {
+  try {
+    await navigator.clipboard.writeText(c);
+    toast(t('Copied'));
+  } catch {
+    toast(t('Select the command and copy it'), 'warn');
+  }
+}
 const mcus = computed(() => {
   health.tick;
   return state.objects
@@ -66,6 +76,9 @@ const mcus = computed(() => {
         name: o === 'mcu' ? t('Main MCU') : o.slice(4),
         chip: s.mcu_constants?.MCU || '',
         ver: s.mcu_version || '',
+        // firmware behind (< 0) or ahead of (> 0) Klipper on the host
+        fw: cmpVer(s.mcu_version, state.versions.klipper),
+        link: linkOf(S('configfile').settings?.[o.toLowerCase()] ?? S('configfile').settings?.[o]),
         load: isFinite(load) ? load : null,
         srtt: st.srtt,
         re: st.bytes_retransmit ?? 0,
@@ -288,6 +301,36 @@ function measureAgain(h) {
             ><span>{{ t('retries {n}', { n: m.bus.tx_retries }) }}</span>
           </div>
           <span class="mono mu sm">{{ m.ver }} · {{ t('total retransmit {n} bytes', { n: m.re }) }}</span>
+          <div v-if="m.fw != null && m.fw < 0" class="fw wn">
+            <Icon name="warn" :size="15" />
+            <span class="grow">{{
+              t('Firmware is older than Klipper on the host ({host}). Flash it when the printer is free.', {
+                host: state.versions.klipper,
+              })
+            }}</span>
+            <button class="btn sm" @click="flashOpen = flashOpen === m.id ? null : m.id">
+              {{ flashOpen === m.id ? t('Hide') : t('How to flash') }}
+            </button>
+          </div>
+          <div v-else-if="m.fw != null && m.fw > 0" class="fw">
+            <Icon name="info" :size="15" />
+            <span class="grow">{{
+              t('Firmware is newer than Klipper on the host ({host}): update Klipper in Machine > Update Manager.', {
+                host: state.versions.klipper,
+              })
+            }}</span>
+          </div>
+          <ol v-if="flashOpen === m.id" class="steps">
+            <li v-for="(st, k) in flashSteps(m.link, m.chip)" :key="k">
+              <span>{{ t(st.text, { chip: st.chip }) }}</span>
+              <div class="cmd">
+                <code class="mono">{{ st.cmd }}</code
+                ><button class="btn clear ibtn sm" :aria-label="t('Copy')" @click="copyCmd(st.cmd)">
+                  <Icon name="copy" :size="15" />
+                </button>
+              </div>
+            </li>
+          </ol>
         </div>
         <p class="mu sm" style="margin: 0">
           {{
@@ -542,6 +585,54 @@ function measureAgain(h) {
 </template>
 
 <style scoped>
+.fw {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--mu);
+}
+.fw > .grow {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.fw > .btn {
+  flex-shrink: 0;
+}
+.fw.wn {
+  color: var(--wn);
+}
+.steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.steps li > span {
+  color: var(--mu);
+}
+.cmd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 2px 4px 2px 10px;
+  min-width: 0;
+}
+.cmd code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 6px 0;
+  user-select: all;
+}
 .trend {
   color: var(--wn);
 }

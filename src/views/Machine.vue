@@ -5,6 +5,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import LogViewer from '../components/LogViewer.vue';
+import BackupCard from '../components/BackupCard.vue';
 import UsersCard from '../components/UsersCard.vue';
 import SystemLoads from '../components/SystemLoads.vue';
 import FileBrowser from '../components/FileBrowser.vue';
@@ -240,6 +241,7 @@ const viewLog = ref(null);
           /></a>
         </div>
       </section>
+      <BackupCard />
       <UsersCard />
     </div>
   </div>

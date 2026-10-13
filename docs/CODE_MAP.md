@@ -19,6 +19,13 @@ v-away="fn": calls fn when the user clicks or taps anywhere outside the element,
 that only closed on mouseleave stayed open on touch screens; this closes them everywhere. Clicks older than  
 the mount (the one that opened the pop-up) are ignored. Escape is left to a dialog that is open on top.
 
+**[src/backup.js](../src/backup.js)**  
+Config backup to GitHub with Klipper-Backup (https://klipperbackup.xyz). Voyager does not push anything itself:  
+it finds the macro from Klipper-Backup's manual page (UPDATE_GIT, which runs ~/klipper-backup/script.sh through  
+gcode_shell_command), runs it on request, remembers the last result, and can run it a little after a config file  
+changed (an edit in any UI, SAVE_CONFIG). A shell command holds Klipper's G-code queue while it runs, so it never  
+runs during a print: a backup asked for then waits until the print is over.
+
 **[src/calc.js](../src/calc.js)**  
 Small pure helpers for the Health page and the dashboard grid, unit tested in tests/utils.test.js.
 
@@ -66,6 +73,13 @@ general advice for the error as Klipper words it; they do not know the printer, 
 **[src/features.js](../src/features.js)**  
 Things that run in the background for the whole app:  
 macro prompts, error toasts, sounds, job queue, config index (for search), health sampling.
+
+**[src/firmware.js](../src/firmware.js)**  
+MCU firmware compared with Klipper on the host. After a Klipper update the boards still run the code they were  
+flashed with; when the protocol changed in between, Klipper refuses to start ("MCU Protocol error"). Spotting a  
+board that is behind before that happens, and saying how to flash it, saves the usual hunt through the docs.  
+  
+Versions look like v0.13.0-628-g373f200c(-dirty): a release tag, then the number of commits since it.
 
 **[src/fit.js](../src/fit.js)**  
 v-fit: when a dashboard card is only a little too small for its content, shrink the content (CSS zoom) instead of  
@@ -333,6 +347,10 @@ one). Click a camera in the grid to open it on its own.
 
 
 ## Components and dashboard cards
+
+**[src/components/BackupCard.vue](../src/components/BackupCard.vue)**  
+Config backup to GitHub through Klipper-Backup (backup.js): the last result, Back up now, and backing up by  
+itself after config changes. Without Klipper-Backup it says where to get it.
 
 **[src/components/BottomNav.vue](../src/components/BottomNav.vue)**  
 Phone: a bar at the bottom with the pages used most and a "More" button that opens the full menu. Replaces  

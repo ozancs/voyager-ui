@@ -160,6 +160,11 @@ const status = {
   configfile: {
     save_config_pending: true,
     settings: {
+      mcu: { serial: '/dev/serial/by-id/usb-Klipper_stm32h723xx_2A0012345151313234353533-if00' },
+      'mcu ebbcan': { canbus_uuid: '0e5f3b2a1c4d', canbus_interface: 'can0' },
+      // Klipper-Backup's macro, so the Config backup card has something to run
+      'gcode_macro update_git': { gcode: 'RUN_SHELL_COMMAND CMD=update_git_script' },
+      'gcode_shell_command update_git_script': { command: 'bash -c "bash $HOME/klipper-backup/script.sh"' },
       extruder: { max_temp: 300, min_temp: 0 },
       heater_bed: { max_temp: 120, min_temp: 0 },
       'heater_generic chamber': { max_temp: 70, min_temp: 0 },
@@ -323,7 +328,7 @@ const status = {
   'smart_filament_sensor sfs': { enabled: true, filament_detected: true, speed: 2.3 },
   system_stats: { sysload: 0.4, memavail: 3000000, cputime: 100 },
   mcu: {
-    mcu_version: 'v0.13.0-628-g373f200c',
+    mcu_version: 'v0.13.0-280-g373f200c',
     mcu_constants: { MCU: 'stm32h723xx', CLOCK_FREQ: 520000000 },
     last_stats: {
       mcu_task_avg: 0.00002,
@@ -334,7 +339,7 @@ const status = {
     },
   },
   'mcu EBBCan': {
-    mcu_version: 'v0.13.0-659-gdb88a336-dirty',
+    mcu_version: 'v0.13.0-300-gdb88a336-dirty',
     mcu_constants: { MCU: 'stm32g0b1xx', CLOCK_FREQ: 64000000 },
     last_stats: {
       mcu_task_avg: 0.00003,
@@ -2130,6 +2135,21 @@ gcodeScript = function (sc) {
         res('ok');
       }, 24000),
     );
+  }
+  if (/^UPDATE_GIT\b/.test(S)) {
+    const sha = Math.random().toString(16).slice(2, 9);
+    emitLines(
+      [
+        '// Running Command {update_git_script}...:',
+        '// [main ' + sha + '] New backup from ' + new Date().toLocaleString(),
+        '//  2 files changed, 6 insertions(+), 3 deletions(-)',
+        '// To github.com:demo/printer-config.git',
+        '//    a1b2c3d..' + sha + '  main -> main',
+        '// Command {update_git_script} finished',
+      ],
+      450,
+    );
+    return new Promise((res) => setTimeout(() => res('ok'), 6 * 450 + 100));
   }
   if (/^BED_MESH_CALIBRATE\b/.test(S)) {
     const bm = status.configfile?.config?.bed_mesh || {};
