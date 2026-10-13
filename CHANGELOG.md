@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.28.1
+
+- Printers dialog: pick an icon for each printer (Voyager, the bundled logos or your own image). The printer menu and the All printers page show them; a printer that is not open takes its icon over the next time it is opened. Suggested by Raidy
+- The printer icon now also shows in Safari's tab, and its row in Settings > Appearance no longer runs over the description
+- Power menu: Restart for the other services Moonraker manages, like KlipperScreen and crowsnest. Suggested by Raidy
+- Guided bed mesh: the planned probe points, the probe moving over the bed and the path it took, also for a rapid scan that prints no per-point results. Suggested by Raidy
+- Buttons visibly dip while pressed, on touch screens too. Suggested by Raidy
+- Login: a saved login that Moonraker no longer accepts is dropped, so a trusted browser is not stuck on the login screen; the login screen says why it is shown and how to add trusted_clients
+- Printers dialog fits a phone
+
 ## 0.28.0
 
 - Pages that fill the window (console, config editor, webcam, heightmap, viewer, Shake&Tune) take their height from the real page area, so the print bar or the phone's bottom bar no longer pushes them off screen. On a phone the console keeps a usable height and the command list scrolls in its own card below

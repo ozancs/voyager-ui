@@ -554,6 +554,10 @@ estimate (click it to see how it was worked out), pause / cancel / exclude, or r
 Print controls: speed factor and flow, the two values that change during a print, with a quick way back to 100%.  
 While this card is on the dashboard the Machine Limits card leaves them out.
 
+**[src/components/PrinterIconPicker.vue](../src/components/PrinterIconPicker.vue)**  
+The icon of one printer in the Printers dialog: a button showing it, a pop-up with the Voyager mark, the  
+bundled logos and an own image. The open printer changes right away; another printer gets it when it is opened.
+
 **[src/components/PrintersDialog.vue](../src/components/PrintersDialog.vue)**  
 The printer list: printers this copy of the UI can switch between, each with a nickname and an address.  
 Kept in this browser (printers.js). Saving and picking a printer reloads the page on that printer.
