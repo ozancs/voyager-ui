@@ -1906,4 +1906,12 @@ export default {
   "Add the last {n} console lines (IP addresses hidden)": "コンソールの最後の {n} 行を添付（IP アドレスは隠します）",
   "Open on GitHub": "GitHub で開く",
   "Print cancelled": "印刷キャンセル",
+  "Levels off around {n}°, short of the target": "目標より低い約 {n}° で頭打ちになります",
+  "Time to reach the target": "目標到達までの時間",
+  "Heaters left on": "つけっぱなしのヒーター",
+  "Warns when heaters stay on this long with no print. Skipped when Klipper’s idle_timeout turns them off sooner.": "印刷していないのにヒーターがこの時間つけたままなら警告します。Klipper の idle_timeout が先に切る場合は警告しません。",
+  "{n} min": "{n} 分",
+  "{list}: on for {n} min with no print": "{list}: 印刷なしで {n} 分つけたまま",
+  "this file took {time} last time": "このファイルは前回 {time} かかりました",
+  "Slicer: {time}. Shown: what it takes on this printer.": "スライサー: {time}。表示はこのプリンターでの所要時間です。",
 }

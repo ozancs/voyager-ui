@@ -6,7 +6,7 @@ import { isGcodeFile } from '../gcode3mf';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import Modal from './Modal.vue';
-import { state, toast, fmtTime, isPrinting } from '../store';
+import { state, toast, fmtTime, isPrinting, expectedTime } from '../store';
 import { queueApi, enableQueue, loadQueue } from '../features';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -32,7 +32,10 @@ const jobs = computed(() => {
   for (const j of q.value.jobs) metaFor(j.filename);
   return q.value.jobs;
 });
-const total = computed(() => jobs.value.reduce((a, j) => a + (meta.value[j.filename]?.estimated_time || 0), 0));
+// what the queue will take on this printer (learned from past prints, see expectedTime)
+const total = computed(() =>
+  jobs.value.reduce((a, j) => a + expectedTime(j.filename, meta.value[j.filename]?.estimated_time), 0),
+);
 const run = (p) => {
   busy.value = true;
   Promise.resolve(p)
@@ -106,7 +109,9 @@ const thumb = (fn) => {
           </div>
           <div class="col grow" style="gap: 0; min-width: 0">
             <b class="fn">{{ j.filename.split('/').pop() }}</b
-            ><span class="mono mu" style="font-size: 11.5px">{{ fmtTime(meta[j.filename]?.estimated_time) }}</span>
+            ><span class="mono mu" style="font-size: 11.5px">{{
+              fmtTime(expectedTime(j.filename, meta[j.filename]?.estimated_time))
+            }}</span>
           </div>
           <button
             v-if="i > 0"

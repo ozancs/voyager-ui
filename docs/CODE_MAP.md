@@ -93,6 +93,25 @@ What a console command does, for the tooltip on command lines in the console. St
 Klipper supports come from the list below (translated); Klipper's own commands and macros use the help text  
 Klipper reports (printer.gcode.help, in English) or the macro's description.
 
+**[src/heatEta.js](../src/heatEta.js)**  
+How long until a heater reaches its target, or whether it will at all.  
+  
+A heater warming up follows Newton's law of heating: the rate falls as it gets closer to the temperature where  
+the heat put in equals the heat lost (the asymptote). Over the last few minutes of 1-second samples the rate of  
+change is fitted against the temperature, rate = a + b·T. With b < 0 that gives the asymptote (−a/b) and the  
+time constant (−1/b); the time to the target follows from the exponential curve. A heater still at full power  
+(a hotend far from its target) gives b ≈ 0: then the recent rate is used. When the asymptote sits below the  
+target the heater levels off short of it (a chamber heated only by the bed, a weak bed heater in a cold room):  
+that is reported instead of a time.  
+  
+It also learns: halfway through each heat-up the prediction is remembered, and when the heater gets there the  
+real time is compared with it. The median of the last runs (per heater, in this browser) corrects the next  
+predictions, which covers the PID slowing down near the target and heaters that behave differently from the  
+model.
+
+**[src/heatFit.js](../src/heatFit.js)**  
+The curve fit behind heatEta.js, kept free of the store so it can be tested on its own.
+
 **[src/heaterHealth.js](../src/heaterHealth.js)**  
 Heater health: each heater is compared with its own first measurement at the same target, never with a fixed  
 number, because the power a heater needs depends on fans, enclosure and room. Two things are learned per  

@@ -1881,9 +1881,30 @@ let tk = 0,
 function tick() {
   tk++;
   const st = status;
-  // heaters with a target hover around it, the others stay where they are
+  // heaters with a target warm up toward it like real ones (a hotend at full power, then easing in; a bed and a
+  // chamber on an exponential curve, the chamber settling a little short of a high target), then hover around it.
+  // Without a target they cool down slowly.
+  const KIND = { extruder: [3.2, 0], heater_bed: [0, 170], 'heater_generic chamber': [0, 240] };
   const hover = (h, spread) => {
-    if (h.target) h.temperature = h.target - spread / 2 + Math.random() * spread;
+    const name = Object.keys(KIND).find((k) => st[k] === h);
+    const [maxRate, tau] = KIND[name] || [0, 0];
+    const T = h.temperature,
+      g = h.target;
+    if (g && T < g - spread) {
+      if (maxRate) h.temperature = T + Math.min(maxRate, (g - T) * 0.12) + (Math.random() - 0.5) * 0.15;
+      else {
+        const asym = name === 'heater_generic chamber' && g > 55 ? g - 4 : g + 25;
+        h.temperature = Math.min(asym, T + (asym - T) / tau + (Math.random() - 0.5) * 0.04);
+      }
+      h.power = 1;
+      return;
+    }
+    if (!g && T > 26) {
+      h.temperature = T - (T - 25) / 90;
+      h.power = 0;
+      return;
+    }
+    if (g) h.temperature = g - spread / 2 + Math.random() * spread;
   };
   if (pidSim) {
     // warming up, then damped swings around the target

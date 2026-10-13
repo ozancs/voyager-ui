@@ -67,7 +67,8 @@ const showWhy = ref(false);
 const why = computed(() => {
   const w = printTimes.value.why || {};
   const out = [];
-  if (w.slicerLeft != null)
+  if (w.slicerLeft != null && w.prev) out.push(t('this file took {time} last time', { time: fmtTime(w.prev) }));
+  else if (w.slicerLeft != null)
     out.push(
       w.k
         ? t('Slicer {time} × {k} (learned from {n} prints)', {

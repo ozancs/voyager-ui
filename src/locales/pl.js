@@ -1906,4 +1906,12 @@ export default {
   "Add the last {n} console lines (IP addresses hidden)": "Dołącz ostatnie {n} linii konsoli (adresy IP ukryte)",
   "Open on GitHub": "Otwórz na GitHubie",
   "Print cancelled": "Wydruk anulowany",
+  "Levels off around {n}°, short of the target": "Zatrzymuje się około {n}°, poniżej celu",
+  "Time to reach the target": "Czas do osiągnięcia celu",
+  "Heaters left on": "Pozostawione grzałki",
+  "Warns when heaters stay on this long with no print. Skipped when Klipper’s idle_timeout turns them off sooner.": "Ostrzega, gdy grzałki są włączone tak długo bez wydruku. Pomija, gdy idle_timeout Klippera wyłączy je wcześniej.",
+  "{n} min": "{n} min",
+  "{list}: on for {n} min with no print": "{list}: włączone od {n} min bez wydruku",
+  "this file took {time} last time": "ten plik ostatnio trwał {time}",
+  "Slicer: {time}. Shown: what it takes on this printer.": "Slicer: {time}. Pokazano: czas na tej drukarce.",
 }

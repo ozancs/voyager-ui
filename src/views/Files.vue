@@ -7,13 +7,29 @@ import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import QueueCard from '../components/QueueCard.vue';
 import { queueApi, downloadMany } from '../features';
-import { state, fmtTime, fmtBytes, fmtDate, toast, isPrinting, gcode, useApiEvent, setHeater } from '../store';
+import {
+  state,
+  fmtTime,
+  fmtBytes,
+  fmtDate,
+  toast,
+  isPrinting,
+  gcode,
+  useApiEvent,
+  setHeater,
+  expectedTime,
+} from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
 import { startPrint, uploadName } from '../preprint';
 import { undoable, isHidden, stillSame } from '../undo';
 const path = ref('gcodes');
+// a file's print time on this printer (path from the gcodes root, as history keeps it)
+const fileTime = (f) =>
+  f.estimated_time
+    ? expectedTime((path.value === 'gcodes' ? '' : path.value.slice(7) + '/') + f.filename, f.estimated_time)
+    : 0;
 const cached = state.cache.files;
 const dirs = ref(cached?.dirs || []),
   files = ref(cached?.files || []),
@@ -312,7 +328,16 @@ function onDrop(e) {
               </td>
               <td class="nm">{{ f.filename }}</td>
               <td class="mono mu">{{ fmtBytes(f.size) }}</td>
-              <td class="mono">{{ fmtTime(f.estimated_time) }}</td>
+              <td
+                class="mono"
+                :data-tip="
+                  f.estimated_time && Math.abs(fileTime(f) - f.estimated_time) > 60
+                    ? t('Slicer: {time}. Shown: what it takes on this printer.', { time: fmtTime(f.estimated_time) })
+                    : null
+                "
+              >
+                {{ fmtTime(fileTime(f) || f.estimated_time) }}
+              </td>
               <td class="mono mu">{{ f.filament_total ? (f.filament_total / 1000).toFixed(1) + ' m' : '--' }}</td>
               <td class="mono mu">{{ f.layer_height ?? '--' }}</td>
               <td class="mono mu">{{ fmtDate(f.modified) }}</td>

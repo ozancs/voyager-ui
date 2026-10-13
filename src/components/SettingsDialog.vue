@@ -505,6 +505,27 @@ function reset() {
 
             <!-- Control -->
             <template v-else-if="tab === 'control'">
+              <h3 class="sec"><Icon name="flame" :size="16" />{{ t('Heaters') }}</h3>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Heaters left on') }}</b
+                  ><span>{{
+                    t(
+                      'Warns when heaters stay on this long with no print. Skipped when Klipper’s idle_timeout turns them off sooner.',
+                    )
+                  }}</span>
+                </div>
+                <div class="seg v">
+                  <button
+                    v-for="m in [0, 10, 20, 30, 60]"
+                    :key="m"
+                    :class="{ on: (state.settings.idleHeatMin ?? 20) === m }"
+                    @click="state.settings.idleHeatMin = m"
+                  >
+                    {{ m ? t('{n} min', { n: m }) : t('Off') }}
+                  </button>
+                </div>
+              </div>
               <h3 class="sec"><Icon name="move" :size="16" />{{ t('Toolhead') }}</h3>
               <div class="rw">
                 <div class="k">

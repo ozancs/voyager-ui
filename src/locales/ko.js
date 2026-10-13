@@ -1906,4 +1906,12 @@ export default {
   "Add the last {n} console lines (IP addresses hidden)": "마지막 콘솔 {n}줄 추가 (IP 주소는 숨김)",
   "Open on GitHub": "GitHub에서 열기",
   "Print cancelled": "출력 취소됨",
+  "Levels off around {n}°, short of the target": "목표보다 낮은 약 {n}°에서 멈춥니다",
+  "Time to reach the target": "목표까지 남은 시간",
+  "Heaters left on": "켜 둔 히터",
+  "Warns when heaters stay on this long with no print. Skipped when Klipper’s idle_timeout turns them off sooner.": "출력 없이 히터가 이만큼 켜져 있으면 알립니다. Klipper의 idle_timeout이 더 먼저 끄면 알리지 않습니다.",
+  "{n} min": "{n}분",
+  "{list}: on for {n} min with no print": "{list}: 출력 없이 {n}분째 켜져 있음",
+  "this file took {time} last time": "이 파일은 지난번 {time} 걸렸습니다",
+  "Slicer: {time}. Shown: what it takes on this printer.": "슬라이서: {time}. 표시: 이 프린터에서 걸리는 시간.",
 }

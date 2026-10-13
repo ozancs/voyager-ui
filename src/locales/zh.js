@@ -1906,4 +1906,12 @@ export default {
   "Add the last {n} console lines (IP addresses hidden)": "附上最后 {n} 行控制台输出（隐藏 IP 地址）",
   "Open on GitHub": "在 GitHub 打开",
   "Print cancelled": "打印已取消",
+  "Levels off around {n}°, short of the target": "将停在约 {n}°，达不到目标",
+  "Time to reach the target": "到达目标的时间",
+  "Heaters left on": "未关闭的加热器",
+  "Warns when heaters stay on this long with no print. Skipped when Klipper’s idle_timeout turns them off sooner.": "没有打印时加热器开着超过这么久就提醒。若 Klipper 的 idle_timeout 会更早关闭它们则不提醒。",
+  "{n} min": "{n} 分钟",
+  "{list}: on for {n} min with no print": "{list}：没有打印，已开 {n} 分钟",
+  "this file took {time} last time": "这个文件上次用了 {time}",
+  "Slicer: {time}. Shown: what it takes on this printer.": "切片软件：{time}。显示的是在这台打印机上的用时。",
 }

@@ -2,6 +2,7 @@
 // The row of small tiles above the dashboard: heaters and sensors, fans, pins and LEDs, filament
 // sensors, Spoolman. Clicking a tile opens a popover to set a target, speed or colour. In Customize the tiles
 // can be dragged to swap places and hidden with the eye. Which tiles exist comes from stripAll in the store.
+import { heatEta, fmtEta } from '../heatEta';
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import Toggle from './Toggle.vue';
@@ -167,6 +168,7 @@ watch(
     if (!on) pUp();
   },
 );
+const isHeater = (o) => (S('heaters').available_heaters || []).includes(o); // time to target: heaters only
 const tgt = ref('');
 function setT(d, v) {
   if (v === '' || v == null || isNaN(+v)) return;
@@ -337,6 +339,15 @@ function sensorExtra(id) {
       <template v-if="d.kind === 'temp'">
         <div class="hd">
           <span class="lbl nm">{{ prettyName(d.obj) }}</span
+          ><template v-if="S(d.obj).target > 0 && isHeater(d.obj) && heatEta(d.obj)"
+            ><span
+              v-if="heatEta(d.obj).levels != null"
+              class="eta lv mono"
+              :data-tip="t('Levels off around {n}°, short of the target', { n: heatEta(d.obj).levels.toFixed(0) })"
+              >~{{ heatEta(d.obj).levels.toFixed(0) }}°</span
+            ><span v-else class="eta mono" :data-tip="t('Time to reach the target')">{{
+              fmtEta(heatEta(d.obj).secs)
+            }}</span></template
           ><span v-if="canTarget(d) && !state.editDash" class="mono tt" :class="{ on: S(d.obj).target > 0 }">{{
             S(d.obj).target > 0 ? '→ ' + S(d.obj).target.toFixed(0) + '°' : t('off')
           }}</span>
@@ -647,6 +658,17 @@ function sensorExtra(id) {
   width: 26px;
   height: 26px;
   background: var(--s1);
+}
+.eta {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mu);
+  white-space: nowrap;
+}
+.eta.lv {
+  color: var(--wn);
 }
 .tbig {
   font-size: 22px;

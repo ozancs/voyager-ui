@@ -233,7 +233,8 @@ export const state = reactive({
   whatsNew: false, // the changelog dialog (WhatsNew.vue)
   reportOpen: false, // Report a problem (ReportDialog.vue)
   dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
-  etaLearn: { k: null, n: 0 }, // how much real prints differ from the slicer estimate (median of past prints)
+  etaLearn: { k: null, n: 0, byFile: {} }, // how much real prints differ from the slicer estimate (median of past
+  // prints), and the real time of files printed before
 });
 
 // local copies so the dashboard can be drawn before moonraker answers
@@ -387,14 +388,25 @@ const tabTitle = computed(() => {
   return base;
 });
 watch(tabTitle, (v) => (document.title = v), { immediate: true });
+// What a file will take on this printer: its real time when it was printed to the end before (and not sliced
+// again), otherwise the slicer's estimate corrected by what past prints showed. 0 when nothing is known.
+export function expectedTime(filename, est) {
+  const prev = state.etaLearn.byFile?.[filename];
+  if (prev && (!est || !prev.est || Math.abs(prev.est - est) < 1)) return prev.dur;
+  return (est || 0) * (state.etaLearn.k || 1);
+}
 export const printTimes = computed(() => {
   const ps = S('print_stats');
   const dur = ps.print_duration || 0;
   const p = progress.value;
   // Smart estimate: the slicer time (corrected by what past prints showed and the speed override)
   // counts most at the start, the measured pace from file progress takes over as the print goes on.
-  const est = state.currentMeta?.estimated_time;
-  const k = state.etaLearn.k || 1;
+  // a file printed to the end before (and not sliced again since): its real time, no correction needed
+  const prev = state.etaLearn.byFile?.[ps.filename];
+  const meta = state.currentMeta?.estimated_time;
+  const same = prev && (!meta || !prev.est || Math.abs(prev.est - meta) < 1);
+  const est = same ? prev.dur : meta;
+  const k = same ? 1 : state.etaLearn.k || 1;
   const sf = S('gcode_move').speed_factor || 1;
   const fileLeft = p > 0.01 && dur > 0 ? dur / p - dur : null;
   const slicerLeft = est ? (Math.max(0, est * (1 - p)) * k) / sf : null;
@@ -409,7 +421,7 @@ export const printTimes = computed(() => {
     print: dur,
     left,
     eta: left != null ? new Date(Date.now() + left * 1000) : null,
-    why: { slicerLeft, fileLeft, k: state.etaLearn.k, n: state.etaLearn.n, w, sf },
+    why: { slicerLeft, fileLeft, k: state.etaLearn.k, n: state.etaLearn.n, w, sf, prev: same ? prev.dur : null },
   };
 });
 export const layerInfo = computed(() => {

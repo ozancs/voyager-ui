@@ -1906,4 +1906,12 @@ export default {
   "Add the last {n} console lines (IP addresses hidden)": "Добавить последние {n} строк консоли (IP-адреса скрыты)",
   "Open on GitHub": "Открыть на GitHub",
   "Print cancelled": "Печать отменена",
+  "Levels off around {n}°, short of the target": "Остановится около {n}°, ниже цели",
+  "Time to reach the target": "Время до цели",
+  "Heaters left on": "Забытые нагреватели",
+  "Warns when heaters stay on this long with no print. Skipped when Klipper’s idle_timeout turns them off sooner.": "Предупреждает, если нагреватели включены так долго без печати. Молчит, если idle_timeout Klipper выключит их раньше.",
+  "{n} min": "{n} мин",
+  "{list}: on for {n} min with no print": "{list}: включены {n} мин без печати",
+  "this file took {time} last time": "этот файл в прошлый раз занял {time}",
+  "Slicer: {time}. Shown: what it takes on this printer.": "Слайсер: {time}. Показано: время на этом принтере.",
 }

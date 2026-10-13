@@ -14,6 +14,8 @@ import {
   VERSION,
   printerName,
   prettyName,
+  notify,
+  unnotify,
 } from './store';
 import { holdFindings, heatFinding, COLD } from './heaterHealth';
 import { t } from './i18n';
@@ -267,6 +269,52 @@ function checkHeated() {
       alertEvent('heated', t('{heater} reached {temp}°', { heater: prettyName(n), temp: Math.round(s.target) }));
     }
   }
+}
+
+// ---------------------------------------------------------------- heaters left on
+// Heaters with a target while nothing prints, for longer than Settings > Control > "Heaters left on" (minutes):
+// a notification and a toast with Cool down. Klipper's idle_timeout already turns heaters off when its gcode has
+// TURN_OFF_HEATERS; when that comes first nothing is said. Changing a target starts the count again, and
+// dismissing the notification keeps quiet until the heaters are turned off.
+let idleSince = 0,
+  idleSig = '',
+  idleSaid = 0, // idleSince of the stretch already reported
+  idleToast = null;
+const idleKey = () => 'idleheat:' + idleSince;
+function checkIdleHeat() {
+  const mins = state.settings.idleHeatMin ?? 20;
+  const st = S('print_stats').state;
+  const on = (S('heaters').available_heaters || []).filter((n) => S(n).target > 0);
+  if (!mins || st === 'printing' || st === 'paused' || !on.length) {
+    if (idleSince) unnotify('idleheat');
+    if (idleToast) closeToast(idleToast);
+    idleSince = 0;
+    idleSig = '';
+    idleToast = null;
+    return;
+  }
+  const sig = on.map((n) => n + ':' + S(n).target).join(',');
+  if (sig !== idleSig) {
+    unnotify('idleheat');
+    idleSig = sig;
+    idleSince = Date.now();
+    return;
+  }
+  // idle_timeout turns them off before we would speak up: Klipper takes care of it
+  const it = S('configfile').settings?.idle_timeout;
+  const itHeaters = it ? /TURN_OFF_HEATERS|M104 S0|M140 S0/i.test(it.gcode || '') : true;
+  if (itHeaters && (it?.timeout ?? 600) / 60 < mins) return;
+  if (Date.now() - idleSince < mins * 60e3) return;
+  if (idleSaid === idleSince) return; // said once for this stretch (dismissing it keeps it quiet)
+  idleSaid = idleSince;
+  const list = on.map((n) => `${prettyName(n)} ${Math.round(S(n).target)}°`).join(', ');
+  const msg = t('{list}: on for {n} min with no print', { list, n: mins });
+  notify(idleKey(), msg, 'warn');
+  alertEvent('error', msg);
+  idleToast = toast(msg, 'warn', {
+    ms: 0,
+    action: { label: t('Cooldown'), run: () => gcode('TURN_OFF_HEATERS') },
+  });
 }
 
 // ---------------------------------------------------------------- job queue
@@ -573,13 +621,22 @@ export async function loadPrintStats() {
   // learn how far real print times drift from the slicer estimate
   try {
     const r = await api.call('server.history.list', { limit: 60, order: 'desc' });
+    // the same file printed before: its real time beats any correction of the slicer's guess
+    const byFile = {};
+    for (const j of r.jobs || [])
+      if (j.status === 'completed' && j.print_duration > 60 && !byFile[j.filename])
+        byFile[j.filename] = { dur: j.print_duration, est: j.metadata?.estimated_time || 0 };
+    state.etaLearn.byFile = byFile;
     const ratios = (r.jobs || [])
       .filter((j) => j.status === 'completed' && j.metadata?.estimated_time > 300 && j.print_duration > 60)
       .map((j) => j.print_duration / j.metadata.estimated_time)
       .filter((x) => x > 0.4 && x < 2.5)
       .sort((a, b) => a - b);
     if (ratios.length >= 3)
-      state.etaLearn = { k: Math.min(1.8, Math.max(0.6, ratios[Math.floor(ratios.length / 2)])), n: ratios.length };
+      Object.assign(state.etaLearn, {
+        k: Math.min(1.8, Math.max(0.6, ratios[Math.floor(ratios.length / 2)])),
+        n: ratios.length,
+      });
   } catch {}
   if (!state.settings.maintenance && printStats.totalHours != null) {
     state.settings.maintenance = MAINT_DEFAULTS().map((t) => ({
@@ -662,6 +719,7 @@ export function initFeatures() {
     if (state.klippy === 'ready') {
       sampleHealth();
       checkHeated();
+      checkIdleHeat();
     }
   }, 2000);
   // global Ctrl/Cmd+K

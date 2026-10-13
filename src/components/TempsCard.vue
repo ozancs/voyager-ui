@@ -1,6 +1,7 @@
 <script setup>
 // Temperature table: current, target and power for heaters and sensors. Targets can be typed in,
 // presets and cooldown are in the header.
+import { heatEta, fmtEta } from '../heatEta';
 import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
@@ -88,7 +89,19 @@ const presets = allPresets;
         </thead>
         <tbody>
           <tr v-for="(s, i) in sensors" :key="s.name">
-            <td class="nm"><i :style="{ background: colorOf(i, s.name) }"></i>{{ s.label }}</td>
+            <td class="nm">
+              <i :style="{ background: colorOf(i, s.name) }"></i>{{ s.label
+              }}<template v-if="s.isHeater && s.target > 0 && heatEta(s.name)"
+                ><small
+                  v-if="heatEta(s.name).levels != null"
+                  class="eta lv mono"
+                  :data-tip="t('Levels off around {n}°, short of the target', { n: heatEta(s.name).levels.toFixed(0) })"
+                  >~{{ heatEta(s.name).levels.toFixed(0) }}°</small
+                ><small v-else class="eta mono" :data-tip="t('Time to reach the target')">{{
+                  fmtEta(heatEta(s.name).secs)
+                }}</small></template
+              >
+            </td>
             <td class="mono v" :style="{ color: heatColor(s.temperature) }">
               {{ s.temperature != null ? s.temperature.toFixed(1) + '°' : '--' }}
             </td>
@@ -132,6 +145,15 @@ const presets = allPresets;
   </section>
 </template>
 <style scoped>
+.eta {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--mu);
+}
+.eta.lv {
+  color: var(--wn);
+}
 .tt {
   width: 100%;
   border-collapse: collapse;
