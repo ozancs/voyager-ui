@@ -1891,5 +1891,11 @@
 "Move the print up into the top bar",
 "Move the print down into its own bar",
 "Up one folder",
-"Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes."
+"Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.",
+"Icon of {name}",
+"this printer",
+"Restart {name}",
+"force_logins is on in moonraker.conf and a Moonraker user exists, so every browser signs in. Use that user, or turn force_logins off.",
+"Moonraker does not trust this device’s address. Without a Moonraker user there is nothing to sign in with: add your network to trusted_clients in moonraker.conf and restart Moonraker.",
+"Opening the printer by a .local name can connect over IPv6, which needs its own line. The IP address works too."
 ]

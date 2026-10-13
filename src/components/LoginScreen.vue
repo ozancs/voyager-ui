@@ -10,6 +10,7 @@ const user = ref(api.auth.user || '');
 const pass = ref('');
 const busy = ref(false);
 const err = ref('');
+const SNIP = '[authorization]\ntrusted_clients:\n  192.168.0.0/16\n  10.0.0.0/8\n  FE80::/10\n  ::1/128';
 async function submit() {
   if (!user.value || !pass.value) return;
   busy.value = true;
@@ -56,26 +57,56 @@ async function submit() {
       <button class="btn lg acc" type="submit" :disabled="busy || !user || !pass">
         <Icon name="lock" :size="16" />{{ busy ? t('Signing in…') : t('Sign in') }}
       </button>
-      <p class="mu hint">
+      <p v-if="state.login.forced" class="mu hint">
         {{
           t(
-            'Users are managed in Moonraker. To skip the login on your home network, add it to trusted_clients in moonraker.conf.',
+            'force_logins is on in moonraker.conf and a Moonraker user exists, so every browser signs in. Use that user, or turn force_logins off.',
           )
         }}
       </p>
+      <template v-else>
+        <p class="mu hint">
+          {{
+            t(
+              'Moonraker does not trust this device’s address. Without a Moonraker user there is nothing to sign in with: add your network to trusted_clients in moonraker.conf and restart Moonraker.',
+            )
+          }}
+        </p>
+        <pre class="snip mono">{{ SNIP }}</pre>
+        <p class="mu hint">
+          {{
+            t(
+              'Opening the printer by a .local name can connect over IPv6, which needs its own line. The IP address works too.',
+            )
+          }}
+        </p>
+      </template>
     </form>
   </div>
 </template>
 <style scoped>
+.snip {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  user-select: all;
+  white-space: pre;
+  overflow-x: auto;
+}
 .ov {
   position: fixed;
   inset: 0;
   z-index: 170;
   background: var(--bg);
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
   padding: 16px;
+  overflow: auto;
 }
 .lg {
   width: 380px;

@@ -4,6 +4,8 @@
 import { ref, computed } from 'vue';
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
+import PrinterIconPicker from './PrinterIconPicker.vue';
+import { pruneListIcons } from '../printerIcon';
 import { loadPrinters, savePrinters, currentPrinter, selectPrinter, HOST_RE, newId } from '../printers';
 import { testPrinter, looksIncomplete } from '../fleet';
 import { t } from '../i18n';
@@ -34,6 +36,7 @@ const canSave = computed(() => rows.value.every((r) => !bad(r)));
 function save(openId) {
   const list = rows.value.map((r) => ({ id: r.id, name: r.name.trim() || clean(r.host), host: clean(r.host) }));
   savePrinters(list);
+  pruneListIcons(list.map((p) => p.id));
   // the printer on screen was removed or another one was picked: go there
   if (openId !== undefined) return selectPrinter(openId);
   if (cur && !list.some((p) => p.id === cur.id)) return selectPrinter('');
@@ -50,17 +53,18 @@ function save(openId) {
       }}
     </p>
     <div class="pr on0">
-      <Icon name="printer3d" :size="18" />
+      <PrinterIconPicker id="" :name="t('This address')" />
       <b class="grow">{{ t('This address') }}</b>
       <span class="mono mu">{{ here }}</span>
       <button class="btn" :disabled="!cur" @click="save('')">{{ cur ? t('Open') : t('Current') }}</button>
     </div>
     <div v-for="(r, i) in rows" :key="r.id" class="prw">
       <div class="pr">
+        <PrinterIconPicker :id="r.id" :name="r.name || r.host" />
         <input v-model="r.name" class="input nm" :placeholder="t('Nickname')" :aria-label="t('Nickname')" />
         <input
           v-model="r.host"
-          class="input mono grow"
+          class="input mono grow hs"
           :class="{ bad: r.host && bad(r) }"
           placeholder="192.168.1.20:7125"
           spellcheck="false"
@@ -74,7 +78,7 @@ function save(openId) {
         <button class="btn" :disabled="bad(r) || cur?.id === r.id" @click="save(r.id)">
           {{ cur?.id === r.id ? t('Current') : t('Open') }}
         </button>
-        <button class="btn clear ibtn sm" :aria-label="t('Remove')" @click="remove(i)">
+        <button class="btn clear ibtn sm rm" :aria-label="t('Remove')" @click="remove(i)">
           <Icon name="trash" :size="16" />
         </button>
       </div>
@@ -106,7 +110,7 @@ function save(openId) {
   gap: 4px;
 }
 .res {
-  margin: 0 0 0 178px;
+  margin: 0 0 0 224px;
   font-size: 12px;
   color: var(--mu);
 }
@@ -135,5 +139,35 @@ function save(openId) {
 }
 .sm {
   font-size: 12.5px;
+}
+/* phone: icon, nickname and remove on one row, the address with Test and Open under it */
+@media (max-width: 600px) {
+  .prw .pr {
+    flex-wrap: wrap;
+  }
+  .prw .nm {
+    flex: 1 1 calc(100% - 96px); /* fills row 1 next to the icon and remove, so the address starts row 2 */
+    width: auto;
+    min-width: 0;
+  }
+  .prw .rm {
+    order: 1;
+  }
+  .prw .hs {
+    order: 2;
+    flex: 1 1 120px;
+    min-width: 0;
+  }
+  .prw .pr > .btn:not(.rm):not(.pic) {
+    order: 3;
+  }
+  .res {
+    margin-left: 0;
+  }
+  .on0 .mono {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 </style>

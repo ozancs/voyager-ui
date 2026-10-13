@@ -1294,6 +1294,8 @@ export function start() {
       needed: true,
       sources: info.available_sources || ['moonraker'],
       source: info.default_source || 'moonraker',
+      forced: !!info.login_required, // force_logins with at least one user
+      trusted: info.trusted, // false: this browser's address is not in trusted_clients
     };
   });
   api.on('close', async () => {

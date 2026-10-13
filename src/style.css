@@ -248,10 +248,30 @@ a.btn {
   white-space: nowrap;
   transition:
     filter 0.12s,
-    background 0.12s;
+    background 0.12s,
+    scale 0.08s;
 }
 .btn:hover:not(:disabled) {
   background: var(--s3);
+}
+/* pressed: the button dips and darkens for as long as it is held, so a tap is visibly taken (on a touch screen
+   too, main.js registers a touch listener so :active works there). `scale` composes with any transform a button
+   already has. */
+.btn:active:not(:disabled),
+.seg button:active:not(:disabled) {
+  scale: 0.94;
+  filter: brightness(0.82);
+  transition-duration: 0s;
+}
+.btn.clear:active:not(:disabled) {
+  background: var(--s3);
+  color: var(--tx);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled),
+  .seg button:active:not(:disabled) {
+    scale: none;
+  }
 }
 .btn.dgf:hover:not(:disabled) {
   background: var(--dg);

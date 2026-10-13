@@ -1170,6 +1170,7 @@ const PROFILE = {
       Object.assign(status.heater_bed, { temperature: 104.6, target: 105, power: 0.38 });
       status.toolhead.axis_maximum = [350, 350, 330, 0];
       status.toolhead.homed_axes = 'xyz';
+      Object.assign((status.configfile.config.bed_mesh ||= {}), { mesh_min: '20,20', mesh_max: '330,330' });
     },
   },
   'ender3.local': {
@@ -1188,6 +1189,11 @@ const PROFILE = {
       idle();
       status.toolhead.axis_maximum = [235, 235, 250, 0];
       status.toolhead.homed_axes = '';
+      Object.assign((status.configfile.config.bed_mesh ||= {}), {
+        probe_count: '5,5',
+        mesh_min: '20,20',
+        mesh_max: '215,215',
+      });
       status.configfile.save_config_pending = false;
       delete status.configfile.settings.resonance_tester;
       status.configfile.settings.screws_tilt_adjust = {};
@@ -1714,8 +1720,12 @@ function handle(m) {
           distribution: { name: 'Debian GNU/Linux 13 (trixie)' },
           cpu_info: { model: 'Raspberry Pi 4', processor: 'aarch64', bits: '64bit' },
           network: { wlan0: { ip_addresses: [{ family: 'ipv4', address: '192.168.1.139' }] } },
+          available_services: ['klipper', 'moonraker', 'KlipperScreen', 'crowsnest'],
         },
       };
+    case 'machine.services.restart':
+      emitLines(['// demo: ' + p.service + ' restarted']);
+      return 'ok';
     case 'server.files.roots':
       return [{ name: 'config' }, { name: 'gcodes' }, { name: 'logs' }];
     case 'machine.proc_stats':
@@ -2101,11 +2111,21 @@ gcodeScript = function (sc) {
     );
   }
   if (/^BED_MESH_CALIBRATE\b/.test(S)) {
-    const [x0, y0] = [20, 20],
-      [x1, y1] = [(status.toolhead.axis_maximum[0] || 300) - 20, (status.toolhead.axis_maximum[1] || 300) - 20];
-    const n = 7,
+    const bm = status.configfile?.config?.bed_mesh || {};
+    const nums = (v, d) =>
+      String(v ?? d)
+        .split(',')
+        .map(Number);
+    const [x0, y0] = nums(bm.mesh_min, '20,20'),
+      mx = nums(bm.mesh_max, '280,280'),
+      [x1, y1] = [
+        Math.min(mx[0], status.toolhead.axis_maximum[0] - 20),
+        Math.min(mx[1], status.toolhead.axis_maximum[1] - 20),
+      ];
+    const n = nums(bm.probe_count, '7')[0] || 7,
       out = [],
-      m = [];
+      m = [],
+      pts = [];
     for (let j = 0; j < n; j++) {
       const row = [];
       for (let i = 0; i < n; i++) {
@@ -2115,10 +2135,21 @@ gcodeScript = function (sc) {
         const z = 2.5 + 0.06 * Math.sin(ii / 1.6) - 0.04 * Math.cos(j / 2) + 0.01 * Math.random();
         row[ii] = z - 2.5;
         out.push(`// probe at ${x.toFixed(3)},${y.toFixed(3)} is z=${z.toFixed(6)}`);
+        pts.push([x, y]);
       }
       m.push(row);
     }
     out.push('// Mesh Bed Leveling Complete', '// Bed Mesh state has been saved to profile [default]');
+    // the head travels to each point a moment before its result comes in
+    pts.forEach(([x, y], i) =>
+      setTimeout(
+        () => {
+          const pos = [x, y, 5, status.toolhead.position?.[3] || 0];
+          pushStatus({ toolhead: { position: pos }, motion_report: { live_position: pos } });
+        },
+        Math.max(0, i * 180 - 120),
+      ),
+    );
     emitLines(out, 180);
     return new Promise((res) =>
       setTimeout(() => {

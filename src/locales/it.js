@@ -1893,4 +1893,10 @@ export default {
   "Move the print down into its own bar": "Sposta la stampa giù nella sua barra",
   "Up one folder": "Cartella superiore",
   "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker è ancora occupato con un'altra attività, di solito il controllo degli aggiornamenti. L'aggiornamento parte appena finisce.",
+  "Icon of {name}": "Icona di {name}",
+  "this printer": "questa stampante",
+  "Restart {name}": "Riavvia {name}",
+  "force_logins is on in moonraker.conf and a Moonraker user exists, so every browser signs in. Use that user, or turn force_logins off.": "force_logins è attivo in moonraker.conf ed esiste un utente Moonraker, quindi ogni browser deve accedere. Usa quell'utente o disattiva force_logins.",
+  "Moonraker does not trust this device’s address. Without a Moonraker user there is nothing to sign in with: add your network to trusted_clients in moonraker.conf and restart Moonraker.": "Moonraker non si fida dell'indirizzo di questo dispositivo. Senza un utente Moonraker non c'è nulla con cui accedere: aggiungi la tua rete a trusted_clients in moonraker.conf e riavvia Moonraker.",
+  "Opening the printer by a .local name can connect over IPv6, which needs its own line. The IP address works too.": "Aprire la stampante con un nome .local può collegarsi via IPv6, che richiede una riga a parte. Anche l'indirizzo IP funziona.",
 }

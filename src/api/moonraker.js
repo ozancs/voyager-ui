@@ -127,6 +127,18 @@ export class Moonraker {
     } catch {
       return '';
     } // network error: let the websocket fail and retry
+    if ((r.status === 401 || r.status === 403) && this.auth.token) {
+      // a saved login Moonraker no longer accepts (the user was deleted, the secret changed, the refresh ran out)
+      // makes even a trusted client look refused: Moonraker checks the token first. Forget it and ask again
+      // without one, so a trusted browser gets in and only a real login requirement shows the login screen.
+      this.auth = { token: '', refresh: '', user: '' };
+      this.saveAuth();
+      try {
+        r = await this.fetch('/server/info');
+      } catch {
+        return '';
+      }
+    }
     if (r.status === 401 || r.status === 403) {
       this.emit('auth-required', await this.authInfo());
       return null;

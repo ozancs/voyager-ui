@@ -2,6 +2,7 @@
 // All printers: one card per saved printer with its state, print progress, temperatures and a camera snapshot,
 // refreshed every few seconds (fleet.js). "Open" switches to that printer. Reached from the printer menu next to
 // the printer name, and from Ctrl+K. Saved printers can be renamed, get a new address or be removed here too.
+import { listIconUrl } from '../printerIcon';
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import Icon from '../components/Icon.vue';
 import { state, S, fmtTime, printerName, toast } from '../store';
@@ -174,6 +175,7 @@ function open(c) {
         </div>
         <div class="body">
           <div class="row1">
+            <img v-if="listIconUrl(c.p.id || '')" class="pic" :src="listIconUrl(c.p.id || '')" alt="" />
             <b class="nm">{{ c.name }}</b>
             <span v-if="c.p.cur" class="here">{{ t('Connected') }}</span>
             <span class="grow"></span>
@@ -255,6 +257,13 @@ function open(c) {
 </template>
 
 <style scoped>
+.pic {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
 .fl {
   display: flex;
   flex-direction: column;

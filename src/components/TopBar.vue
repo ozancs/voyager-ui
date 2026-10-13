@@ -9,6 +9,7 @@ import Logo from './Logo.vue';
 import Modal from './Modal.vue';
 import Popover from './Popover.vue';
 import { printerList, currentPrinter, selectPrinter } from '../printers';
+import { listIconUrl } from '../printerIcon';
 import PowerList from './PowerList.vue';
 import { powerAsk, flipPower } from '../power';
 import LockButton from './LockButton.vue';
@@ -112,6 +113,31 @@ const POWER = [
     run: () => api.call('machine.shutdown'),
   },
 ];
+// Other services Moonraker may restart (KlipperScreen, crowsnest, Obico...): read once when a power menu opens.
+// Klipper and Moonraker have their own entries above.
+const services = ref([]);
+let svcRead = false;
+async function readServices() {
+  if (svcRead) return;
+  svcRead = true;
+  try {
+    const si = (await api.call('machine.system_info')).system_info;
+    services.value = (si?.available_services || []).filter((n) => !/^(klipper|moonraker)$/i.test(n));
+  } catch {
+    svcRead = false;
+  }
+}
+watch([showPower, showMore], ([a, b]) => (a || b) && readServices());
+const powerItems = computed(() => [
+  ...POWER.slice(0, 3),
+  ...services.value.map((n) => ({
+    k: 'svc:' + n,
+    label: t('Restart {name}', { name: n }),
+    icon: 'refresh',
+    run: () => api.call('machine.services.restart', { service: n }),
+  })),
+  ...POWER.slice(3),
+]);
 // a long printer name slides back and forth instead of being cut off
 const nameEl = ref(null);
 const over = ref(0);
@@ -181,6 +207,7 @@ function runConfirmed() {
         ><span class="mono mu">{{ printers.length + 1 }}</span>
       </button>
       <button class="btn clear pmi" :class="{ cur: !curId }" :disabled="!curId" @click="selectPrinter('')">
+        <img v-if="listIconUrl('')" class="pmic" :src="listIconUrl('')" alt="" /><Logo v-else :size="22" />
         <span class="grow">{{ t('This address') }}</span
         ><span class="mono mu">{{ here }}</span>
       </button>
@@ -192,6 +219,7 @@ function runConfirmed() {
         :disabled="p.id === curId"
         @click="selectPrinter(p.id)"
       >
+        <img v-if="listIconUrl(p.id)" class="pmic" :src="listIconUrl(p.id)" alt="" /><Logo v-else :size="22" />
         <span class="grow">{{ p.name }}</span
         ><span class="mono mu">{{ p.host }}</span>
       </button>
@@ -413,7 +441,7 @@ function runConfirmed() {
         <div class="pwr-s">
           <div style="height: 1px; background: var(--bd); margin: 4px 0"></div>
           <button
-            v-for="p in POWER"
+            v-for="p in powerItems"
             :key="p.k"
             class="btn clear mi"
             :style="{ color: p.danger ? 'var(--dg)' : 'var(--tx)' }"
@@ -445,7 +473,7 @@ function runConfirmed() {
           <div style="height: 1px; background: var(--bd); margin: 4px 0"></div
         ></template>
         <button
-          v-for="p in POWER"
+          v-for="p in powerItems"
           :key="p.k"
           class="btn clear"
           :style="{ justifyContent: 'flex-start', height: '40px', color: p.danger ? 'var(--dg)' : 'var(--tx)' }"
@@ -845,6 +873,13 @@ function runConfirmed() {
   height: 38px;
   color: var(--tx);
   font-weight: 600;
+}
+.pmic {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 5px;
+  flex-shrink: 0;
 }
 .pmi.all {
   border-bottom: 1px solid var(--bd);

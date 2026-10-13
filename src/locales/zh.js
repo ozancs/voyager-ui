@@ -1893,4 +1893,10 @@ export default {
   "Move the print down into its own bar": "把打印移到下方独立栏",
   "Up one folder": "上一级文件夹",
   "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker 仍在执行其他任务,通常是检查更新。该任务完成后更新会立即开始。",
+  "Icon of {name}": "{name} 的图标",
+  "this printer": "此打印机",
+  "Restart {name}": "重启 {name}",
+  "force_logins is on in moonraker.conf and a Moonraker user exists, so every browser signs in. Use that user, or turn force_logins off.": "moonraker.conf 中启用了 force_logins 且存在 Moonraker 用户,因此每个浏览器都需要登录。请使用该用户,或关闭 force_logins。",
+  "Moonraker does not trust this device’s address. Without a Moonraker user there is nothing to sign in with: add your network to trusted_clients in moonraker.conf and restart Moonraker.": "Moonraker 不信任此设备的地址。没有 Moonraker 用户就无法登录:请将你的网络加入 moonraker.conf 中的 trusted_clients 并重启 Moonraker。",
+  "Opening the printer by a .local name can connect over IPv6, which needs its own line. The IP address works too.": "用 .local 名称打开打印机时可能走 IPv6,需要单独一行。用 IP 地址打开也可以。",
 }

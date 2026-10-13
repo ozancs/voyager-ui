@@ -1894,4 +1894,10 @@ export default {
   "Move the print down into its own bar": "Baskıyı aşağı, kendi çubuğuna taşı",
   "Up one folder": "Bir üst klasör",
   "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker hâlâ başka bir işle meşgul, genelde güncelleme denetimi. O bitince güncelleme hemen başlar.",
+  "Icon of {name}": "{name} simgesi",
+  "this printer": "bu yazıcı",
+  "Restart {name}": "{name} yeniden başlat",
+  "force_logins is on in moonraker.conf and a Moonraker user exists, so every browser signs in. Use that user, or turn force_logins off.": "moonraker.conf içinde force_logins açık ve bir Moonraker kullanıcısı var, bu yüzden her tarayıcı giriş yapar. O kullanıcıyı kullanın ya da force_logins'i kapatın.",
+  "Moonraker does not trust this device’s address. Without a Moonraker user there is nothing to sign in with: add your network to trusted_clients in moonraker.conf and restart Moonraker.": "Moonraker bu cihazın adresine güvenmiyor. Moonraker kullanıcısı yoksa giriş yapılacak bir hesap da yoktur: ağınızı moonraker.conf içindeki trusted_clients'a ekleyip Moonraker'ı yeniden başlatın.",
+  "Opening the printer by a .local name can connect over IPv6, which needs its own line. The IP address works too.": "Yazıcıyı .local adıyla açmak IPv6 üzerinden bağlanabilir, onun için ayrı bir satır gerekir. IP adresiyle açmak da olur.",
 }

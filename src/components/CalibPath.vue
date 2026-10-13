@@ -381,8 +381,10 @@ const lim = computed(() => {
 });
 const BW = 300,
   BH = 220;
-const bx = (x) => 10 + ((x - lim.value.x0) / lim.value.w) * BW;
-const by = (y) => 10 + BH - ((y - lim.value.y0) / lim.value.h) * BH;
+// kept on the drawn bed: a point outside the axis limits (a mesh_max past them) sits on the edge
+const clampTo = (v, a, b) => Math.min(b, Math.max(a, v));
+const bx = (x) => clampTo(10 + ((x - lim.value.x0) / lim.value.w) * BW, 10, 10 + BW);
+const by = (y) => clampTo(10 + BH - ((y - lim.value.y0) / lim.value.h) * BH, 10, 10 + BH);
 const zColor = (z, lo, hi) => {
   const f = hi > lo ? (z - lo) / (hi - lo) : 0.5;
   return `color-mix(in srgb, #ff5a4d ${Math.round(f * 100)}%, #4d9bff)`;
@@ -395,6 +397,53 @@ const meshPts = computed(() => {
     hi = Math.max(...zs);
   return p.map((q, i) => ({ ...q, i, c: zColor(q.z, lo, hi), last: i === p.length - 1 }));
 });
+// the points the mesh will probe (bed_mesh mesh_min / mesh_max / probe_count), drawn faint until each one lands
+const num = (v) =>
+  Array.isArray(v)
+    ? v.map(Number)
+    : String(v ?? '')
+        .split(',')
+        .map((x) => Number(x.trim()));
+const planPts = computed(() => {
+  if (cur.value?.kind !== 'mesh') return [];
+  const bm = S('configfile').settings?.bed_mesh || S('configfile').config?.bed_mesh || {};
+  if (bm.mesh_radius) return [];
+  const mn = num(bm.mesh_min),
+    mx = num(bm.mesh_max);
+  let pc = num(bm.probe_count ?? 3);
+  if (pc.length === 1) pc = [pc[0], pc[0]];
+  if ([mn[0], mn[1], mx[0], mx[1], pc[0], pc[1]].some((v) => !Number.isFinite(v)) || pc[0] < 2 || pc[1] < 2) return [];
+  const out = [];
+  for (let j = 0; j < pc[1]; j++)
+    for (let i = 0; i < pc[0]; i++)
+      out.push({
+        k: i + ',' + j,
+        x: mn[0] + ((mx[0] - mn[0]) * i) / (pc[0] - 1),
+        y: mn[1] + ((mx[1] - mn[1]) * j) / (pc[1] - 1),
+      });
+  return out;
+});
+// where the probe is now, and the path it took (a rapid scan shows up as a sweep)
+const headXY = computed(() => {
+  const p = S('motion_report').live_position || S('toolhead').position;
+  return p && Number.isFinite(p[0]) && Number.isFinite(p[1]) ? [p[0], p[1]] : null;
+});
+const trail = ref([]);
+watch(headXY, (h) => {
+  if (!h || !run.value?.running || !['mesh', 'screws'].includes(cur.value?.kind)) return;
+  const l = trail.value[trail.value.length - 1];
+  if (l && Math.abs(l[0] - h[0]) < 0.5 && Math.abs(l[1] - h[1]) < 0.5) return;
+  trail.value = [...trail.value.slice(-59), h];
+});
+watch(
+  () => run.value?.running,
+  (r) => {
+    if (r) trail.value = [];
+  },
+);
+const trailPath = computed(() =>
+  trail.value.map((p, i) => (i ? 'L' : 'M') + bx(p[0]).toFixed(1) + ' ' + by(p[1]).toFixed(1)).join(' '),
+);
 const meshRange = computed(() => {
   const m = S('bed_mesh').probed_matrix;
   const zs = (m || []).flat().filter((v) => typeof v === 'number');
@@ -617,6 +666,8 @@ const RUNS = _reactive({});
             </text>
           </template>
           <template v-else>
+            <circle v-for="p in planPts" :key="'g' + p.k" :cx="bx(p.x)" :cy="by(p.y)" r="4" class="plan" />
+            <path v-if="run?.running && trail.length > 1" :d="trailPath" class="trail" />
             <circle
               v-for="p in meshPts"
               :key="p.i"
@@ -626,10 +677,15 @@ const RUNS = _reactive({});
               :style="{ fill: p.c }"
               class="pt"
             />
-            <text v-if="!meshPts.length" x="160" y="125" text-anchor="middle" class="mu2">
+            <text v-if="!meshPts.length && !planPts.length" x="160" y="125" text-anchor="middle" class="mu2">
               {{ run?.running ? t('Probing…') : '' }}
             </text>
           </template>
+          <g v-if="run?.running && headXY" class="probe" :transform="`translate(${bx(headXY[0])} ${by(headXY[1])})`">
+            <circle r="14" class="ping" />
+            <circle r="9" class="ring" />
+            <circle r="2.5" class="dot" />
+          </g>
         </svg>
 
         <!-- probe accuracy: each reading as a dot, microns away from the average -->
@@ -1070,6 +1126,53 @@ const RUNS = _reactive({});
 }
 .cok {
   fill: var(--ok);
+}
+.plan {
+  fill: none;
+  stroke: var(--mu2);
+  stroke-width: 1.5;
+  opacity: 0.6;
+}
+.trail {
+  fill: none;
+  stroke: var(--ac);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.45;
+}
+.probe {
+  transition: transform 0.25s linear;
+}
+.probe .ring {
+  fill: none;
+  stroke: var(--ac);
+  stroke-width: 2.5;
+}
+.probe .dot {
+  fill: var(--ac);
+}
+.probe .ping {
+  fill: var(--ac);
+  opacity: 0;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: ping 1.1s ease-out infinite;
+}
+@keyframes ping {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .probe .ping {
+    animation: none;
+  }
 }
 .pt {
   transition: r 0.3s;

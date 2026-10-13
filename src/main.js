@@ -26,4 +26,6 @@ async function boot() {
   startTabIcon();
   createApp(App).directive('away', away).directive('fit', vfit).mount('#app');
 }
+// iOS Safari only applies :active (the pressed look of buttons) when the page listens to touches
+document.addEventListener('touchstart', () => {}, { passive: true });
 boot();

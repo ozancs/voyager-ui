@@ -1893,4 +1893,10 @@ export default {
   "Move the print down into its own bar": "출력을 아래 전용 바로 내리기",
   "Up one folder": "상위 폴더",
   "Moonraker is still busy with another task, usually checking for updates. The update starts as soon as that finishes.": "Moonraker가 아직 다른 작업(주로 업데이트 확인)을 하고 있습니다. 그 작업이 끝나면 바로 업데이트가 시작됩니다.",
+  "Icon of {name}": "{name} 아이콘",
+  "this printer": "이 프린터",
+  "Restart {name}": "{name} 재시작",
+  "force_logins is on in moonraker.conf and a Moonraker user exists, so every browser signs in. Use that user, or turn force_logins off.": "moonraker.conf에서 force_logins가 켜져 있고 Moonraker 사용자가 있어 모든 브라우저가 로그인해야 합니다. 그 사용자를 쓰거나 force_logins를 끄세요.",
+  "Moonraker does not trust this device’s address. Without a Moonraker user there is nothing to sign in with: add your network to trusted_clients in moonraker.conf and restart Moonraker.": "Moonraker가 이 기기의 주소를 신뢰하지 않습니다. Moonraker 사용자가 없으면 로그인할 계정도 없습니다: moonraker.conf의 trusted_clients에 네트워크를 추가하고 Moonraker를 재시작하세요.",
+  "Opening the printer by a .local name can connect over IPv6, which needs its own line. The IP address works too.": ".local 이름으로 열면 IPv6로 연결될 수 있으며, 이때는 별도의 줄이 필요합니다. IP 주소로 열어도 됩니다.",
 }

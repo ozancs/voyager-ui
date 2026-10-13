@@ -722,7 +722,7 @@ function reset() {
                   }}</span>
                 </div>
                 <div class="col v" style="gap: 10px; align-items: flex-end">
-                  <div class="row" style="gap: 8px">
+                  <div class="row" style="gap: 8px; flex-wrap: wrap; justify-content: flex-end; max-width: 100%">
                     <img
                       v-if="iconUrl()"
                       :src="iconUrl()"
