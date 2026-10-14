@@ -106,7 +106,7 @@ const ACTIONS = computed(() => [
   {
     t: 'Customize dashboard',
     s: 'layout cards edit move',
-    icon: 'layout',
+    icon: 'customize',
     run: () => {
       go('dashboard');
       state.dashEditReq = Date.now();
@@ -122,6 +122,13 @@ const ACTIONS = computed(() => [
       if (state.settings.sound.enabled) playSound('heated');
     },
     dest: 'Setting',
+  },
+  {
+    t: 'Report a problem',
+    s: 'bug issue github feedback hata bildir',
+    icon: 'warn',
+    run: () => (state.reportOpen = true),
+    dest: 'GitHub',
   },
   { t: 'Job queue', s: 'queue next print jobs', icon: 'queue', run: () => go('files'), dest: 'G-code Files' },
   {

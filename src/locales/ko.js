@@ -1899,4 +1899,11 @@ export default {
   "force_logins is on in moonraker.conf and a Moonraker user exists, so every browser signs in. Use that user, or turn force_logins off.": "moonraker.conf에서 force_logins가 켜져 있고 Moonraker 사용자가 있어 모든 브라우저가 로그인해야 합니다. 그 사용자를 쓰거나 force_logins를 끄세요.",
   "Moonraker does not trust this device’s address. Without a Moonraker user there is nothing to sign in with: add your network to trusted_clients in moonraker.conf and restart Moonraker.": "Moonraker가 이 기기의 주소를 신뢰하지 않습니다. Moonraker 사용자가 없으면 로그인할 계정도 없습니다: moonraker.conf의 trusted_clients에 네트워크를 추가하고 Moonraker를 재시작하세요.",
   "Opening the printer by a .local name can connect over IPv6, which needs its own line. The IP address works too.": ".local 이름으로 열면 IPv6로 연결될 수 있으며, 이때는 별도의 줄이 필요합니다. IP 주소로 열어도 됩니다.",
+  "Report a problem": "문제 신고",
+  "Opens a new issue on GitHub with the details below filled in. You can read and change everything there before posting; a GitHub account is needed.": "아래 정보가 채워진 새 이슈를 GitHub에서 엽니다. 올리기 전에 모두 읽고 고칠 수 있으며 GitHub 계정이 필요합니다.",
+  "What happened?": "무슨 일이 있었나요?",
+  "For example: the webcam stays black after switching printers": "예: 프린터를 바꾸면 웹캠이 검은 화면으로 남음",
+  "Add the last {n} console lines (IP addresses hidden)": "마지막 콘솔 {n}줄 추가 (IP 주소는 숨김)",
+  "Open on GitHub": "GitHub에서 열기",
+  "Print cancelled": "출력 취소됨",
 }

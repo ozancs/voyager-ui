@@ -1899,4 +1899,11 @@ export default {
   "force_logins is on in moonraker.conf and a Moonraker user exists, so every browser signs in. Use that user, or turn force_logins off.": "force_logins è attivo in moonraker.conf ed esiste un utente Moonraker, quindi ogni browser deve accedere. Usa quell'utente o disattiva force_logins.",
   "Moonraker does not trust this device’s address. Without a Moonraker user there is nothing to sign in with: add your network to trusted_clients in moonraker.conf and restart Moonraker.": "Moonraker non si fida dell'indirizzo di questo dispositivo. Senza un utente Moonraker non c'è nulla con cui accedere: aggiungi la tua rete a trusted_clients in moonraker.conf e riavvia Moonraker.",
   "Opening the printer by a .local name can connect over IPv6, which needs its own line. The IP address works too.": "Aprire la stampante con un nome .local può collegarsi via IPv6, che richiede una riga a parte. Anche l'indirizzo IP funziona.",
+  "Report a problem": "Segnala un problema",
+  "Opens a new issue on GitHub with the details below filled in. You can read and change everything there before posting; a GitHub account is needed.": "Apre una nuova issue su GitHub con i dati qui sotto già compilati. Puoi leggere e modificare tutto prima di pubblicarla; serve un account GitHub.",
+  "What happened?": "Cosa è successo?",
+  "For example: the webcam stays black after switching printers": "Per esempio: la webcam resta nera dopo aver cambiato stampante",
+  "Add the last {n} console lines (IP addresses hidden)": "Aggiungi le ultime {n} righe della console (indirizzi IP nascosti)",
+  "Open on GitHub": "Apri su GitHub",
+  "Print cancelled": "Stampa annullata",
 }

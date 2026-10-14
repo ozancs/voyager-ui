@@ -9,6 +9,7 @@ import { api } from './api/moonraker';
 import { setLang, t } from './i18n';
 import { currentHost, currentPrinter, perPrinterKey } from './printers';
 import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
+import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 
 export const VERSION = '0.28.1';
@@ -230,6 +231,7 @@ export const state = reactive({
   pip: null, // webcam name floating over the pages (FloatingCam.vue)
   guard: null, // { script, cmd, resolve } while a risky command waits for a confirm during a print (GuardDialog.vue)
   whatsNew: false, // the changelog dialog (WhatsNew.vue)
+  reportOpen: false, // Report a problem (ReportDialog.vue)
   dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
   etaLearn: { k: null, n: 0 }, // how much real prints differ from the slicer estimate (median of past prints)
 });
@@ -1384,6 +1386,11 @@ export function start() {
   // sample temperatures every second (same as moonraker's store); the long history (a day, 15 s steps, kept in
   // this browser) takes one of them every 15 s
   loadLong(perPrinterKey('voyager-ui-temphist'));
+  startTempEvents(perPrinterKey('voyager-ui-tempevents'), {
+    printState: () => state.status.print_stats?.state,
+    klippy: () => state.klippy,
+    klippyMessage: () => state.klippyMessage,
+  });
   window.addEventListener('pagehide', () => saveLong(true));
   setInterval(() => {
     if (state.klippy !== 'ready') return;

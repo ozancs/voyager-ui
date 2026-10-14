@@ -10,3 +10,15 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+  # every page of the demo at phone, tablet and desktop widths: sideways scrolling, overlapping
+  # buttons, content spilling onto another card, console errors (scripts/layout-sweep.mjs)
+  layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:demo
+      - run: npm run layout

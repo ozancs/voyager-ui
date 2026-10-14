@@ -150,5 +150,7 @@ export const ICONS = {
     'M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3 3.6M6.6 6.6C3.8 8.4 2 12 2 12s4 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2',
   move: 'M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3',
   layout: 'M3 3h18v18H3zM3 9h18M9 9v12',
+  // dashboard tiles with a pencil: customize the dashboard
+  customize: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM13.5 21l.7-3.3 5.3-5.3a1.8 1.8 0 0 1 2.6 2.6l-5.3 5.3z',
 };
 export const ICON_NAMES = Object.keys(ICONS);

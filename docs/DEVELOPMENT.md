@@ -10,6 +10,7 @@ Open `http://localhost:5173/?host=<printer>` to point the dev server at a printe
 | Command | What it does |
 | --- | --- |
 | `npm test` | runs the tests |
+| `npm run layout` | opens every page of the demo build (run `npm run build:demo` first) at phone, tablet and desktop widths and lists layout problems and console errors; CI runs it on every push |
 | `npm run format:check` | checks the code style (`npm run format` fixes it) |
 | `npm run build:demo` | builds the live demo: the UI plus a fake Moonraker in `src/demo/mock.js`. GitHub Pages serves it from every push to main |
 | `bash scripts/pack.sh` | builds the release zip |

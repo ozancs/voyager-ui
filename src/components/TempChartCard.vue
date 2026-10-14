@@ -10,6 +10,7 @@ import CardCollapse from './CardCollapse.vue';
 import { computed, ref, onBeforeUnmount } from 'vue';
 import { state, sensors, hist } from '../store';
 import { longHist, STEP, MAX_AGE, oldestLong } from '../temphist';
+import { tempEvents } from '../tempEvents';
 import { t } from '../i18n';
 import { sensorColor } from '../sensorStyle';
 const colorOf = (i, name) => sensorColor(state.settings.sensorColors, name, i);
@@ -150,6 +151,28 @@ const windowText = computed(() => {
   return clock(now - end.value - span.value, day) + ' – ' + clock(now - end.value, day);
 });
 
+// print start / pause / resume / end / errors in the window, as thin vertical marks with an icon on top
+const EV = {
+  start: { icon: 'play', label: 'Print started' },
+  pause: { icon: 'pause', label: 'Paused' },
+  resume: { icon: 'play', label: 'Resumed' },
+  done: { icon: 'check', label: 'Print finished' },
+  cancel: { icon: 'x', label: 'Print cancelled' },
+  error: { icon: 'warn', label: 'Error' },
+};
+const marks = computed(() => {
+  state.histTick;
+  const now = Date.now() / 1000;
+  return tempEvents
+    .map((e) => ({ ...e, a: now - e.ts }))
+    .filter((e) => e.a >= end.value && e.a <= end.value + span.value && EV[e.kind])
+    .map((e) => ({
+      ...e,
+      x: x(e.a),
+      icon: EV[e.kind].icon,
+      tip: t(EV[e.kind].label) + ' · ' + clock(e.ts) + (e.text ? ' · ' + e.text : ''),
+    }));
+});
 // hover: values at the pointer's time shown in the legend
 const hover = ref(null); // seconds ago
 function valueAt(entry) {
@@ -303,6 +326,18 @@ onBeforeUnmount(() => ptrs.clear());
             vector-effect="non-scaling-stroke"
           />
           <line
+            v-for="m in marks"
+            :key="'ev' + m.ts + m.kind"
+            :x1="m.x"
+            :x2="m.x"
+            y1="0"
+            :y2="H"
+            :stroke="m.kind === 'error' ? 'var(--dg)' : 'var(--mu2)'"
+            :opacity="m.kind === 'error' ? 0.8 : 0.5"
+            stroke-width="1.2"
+            vector-effect="non-scaling-stroke"
+          />
+          <line
             v-if="hover != null"
             :x1="x(hover)"
             :x2="x(hover)"
@@ -316,6 +351,16 @@ onBeforeUnmount(() => ptrs.clear());
         <span v-for="g in scale.ticks" :key="'l' + g" class="yl mono" :style="{ top: (y(g) / H) * 100 + '%' }"
           >{{ g }}°</span
         >
+        <span
+          v-for="m in marks"
+          :key="'em' + m.ts + m.kind"
+          class="evm"
+          :class="m.kind"
+          :style="{ left: (m.x / W) * 100 + '%' }"
+          :data-tip="m.tip"
+          :aria-label="m.tip"
+          ><Icon :name="m.icon" :size="10" :stroke="3"
+        /></span>
         <span v-for="tk in xticks" :key="'xl' + tk.x" class="xl mono" :style="{ left: (tk.x / W) * 100 + '%' }">{{
           tk.label
         }}</span>
@@ -324,6 +369,24 @@ onBeforeUnmount(() => ptrs.clear());
   </section>
 </template>
 <style scoped>
+.evm {
+  position: absolute;
+  top: -2px;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--s3);
+  color: var(--tx);
+  cursor: default;
+}
+.evm.error {
+  background: var(--dg);
+  color: #fff;
+}
 .chart {
   position: relative;
   flex: 1;

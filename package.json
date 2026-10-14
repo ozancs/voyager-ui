@@ -13,7 +13,8 @@
     "format": "prettier --write \"src/**/*.{js,vue,css}\" \"tests/**/*.js\" \"scripts/**/*.{js,cjs,mjs}\" vite.config.js",
     "format:check": "prettier --check \"src/**/*.{js,vue,css}\" \"tests/**/*.js\" \"scripts/**/*.{js,cjs,mjs}\" vite.config.js",
     "same-code": "node scripts/same-code.mjs",
-    "code-map": "node scripts/code-map.mjs"
+    "code-map": "node scripts/code-map.mjs",
+    "layout": "node scripts/layout-sweep.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.0",
+    "playwright": "1.56.0",
     "prettier": "^3.9.9",
     "vite": "^5.4.0",
     "vitest": "^3.2.7"

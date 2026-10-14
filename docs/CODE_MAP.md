@@ -211,6 +211,12 @@ paths so nothing else in their database is touched. The other UI picks the value
 Tablet mode, for a tablet or touch screen that stays next to the printer: larger touch targets, no hover  
 tooltips, full screen and the screen kept on (Wake Lock) while the page is visible. Kept per browser.
 
+**[src/tempEvents.js](../src/tempEvents.js)**  
+Moments worth marking on the temperature graph: a print starting, pausing, resuming, finishing, being cancelled  
+or failing, and Klipper shutting down. Kept a day, in this browser, per printer (like the long temperature  
+history), so the 1h / 6h / 24h ranges can show them. Only changes seen while the page is open are recorded: the  
+state found when the page loads is not an event.
+
 **[src/temphist.js](../src/temphist.js)**  
 Long temperature history for the graph: one sample per sensor every STEP seconds, up to a day, kept in this  
 browser (localStorage, per printer) so it survives a reload. The store's 1-second buffers (hist) only hold the  
@@ -573,6 +579,11 @@ The newest G-code files with thumbnail, estimated time and a print button.
 
 **[src/components/RecentJobsCard.vue](../src/components/RecentJobsCard.vue)**  
 The last prints from Moonraker's history with their result and duration.
+
+**[src/components/ReportDialog.vue](../src/components/ReportDialog.vue)**  
+Report a problem: opens a new GitHub issue with the details a bug report usually lacks (versions, Klipper state,  
+browser, the page, the last console lines) already filled in. Nothing is sent from here; GitHub opens in a new  
+tab with the text in the editor, so it can be read and changed before it is posted.
 
 **[src/components/RetractionCard.vue](../src/components/RetractionCard.vue)**  
 Firmware retraction settings ([firmware_retraction]): shows the live values and changes them with  

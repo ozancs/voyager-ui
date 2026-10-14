@@ -15,6 +15,7 @@ import UpdateModal from './components/UpdateModal.vue';
 import PreprintDialog from './components/PreprintDialog.vue';
 import GuardDialog from './components/GuardDialog.vue';
 import WhatsNew from './components/WhatsNew.vue';
+import ReportDialog from './components/ReportDialog.vue';
 import ExplainBox from './components/ExplainBox.vue';
 import { explain } from './explain';
 import Tooltip from './components/Tooltip.vue';
@@ -247,6 +248,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
           <span v-if="state.versions.moonraker">Moonraker {{ state.versions.moonraker }}</span>
           <span v-if="state.versions.host">{{ state.versions.host }}</span>
           <span class="grow"></span>
+          <button class="ver" @click="state.reportOpen = true">{{ t('Report a problem') }}</button>
           <Handoff />
           <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">{{
             t('Open {name}', { name: 'Mainsail' })
@@ -264,6 +266,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     <PreprintDialog />
     <GuardDialog />
     <WhatsNew />
+    <ReportDialog v-if="state.reportOpen" @close="state.reportOpen = false" />
     <Transition name="fade"
       ><div v-if="state.connected && !state.booted" class="bootpill">
         <Icon name="refresh" :size="15" class="spin" /><span>{{ bootTask }}</span>

@@ -1,6 +1,6 @@
 // Browser-side fake Moonraker for the live demo (npm run build:demo). Replaces WebSocket and fetch so the UI runs
 // without a printer. Everything is in memory: settings reset on reload, g-code is only echoed to the console card.
-import { currentHost, savePrinters } from '../printers';
+import { currentHost, savePrinters, perPrinterKey } from '../printers';
 import { api } from '../api/moonraker';
 import demoMp4 from './timelapse.mp4?url';
 import demoWebm from './timelapse.webm?url'; // for a browser without H.264 (headless Chromium)
@@ -2512,6 +2512,22 @@ export function installDemo() {
     return fileUrl(root, path);
   };
   setInterval(tick, 1000);
+  // a few graph marks to show on the temperature graph (start, pause, resume of the print that just finished)
+  try {
+    const k = perPrinterKey('voyager-ui-tempevents');
+    if (!localStorage.getItem(k)) {
+      const now = Math.floor(Date.now() / 1000);
+      localStorage.setItem(
+        k,
+        JSON.stringify([
+          { ts: now - 540, kind: 'start', text: '' },
+          { ts: now - 330, kind: 'pause', text: '' },
+          { ts: now - 250, kind: 'resume', text: '' },
+          { ts: now - 90, kind: 'done', text: '' },
+        ]),
+      );
+    }
+  } catch {}
   window.WebSocket = FakeSocket;
   window.fetch = fakeFetch;
   // uploads go through XMLHttpRequest (for the progress bar): answer them here too. A config file that is

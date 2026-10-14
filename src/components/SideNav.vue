@@ -80,7 +80,7 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
         nav('dashboard');
       "
     >
-      <Icon name="layout" /><span>{{ t('Customize dashboard') }}</span>
+      <Icon name="customize" /><span>{{ t('Customize dashboard') }}</span>
     </button>
     <button
       class="it"

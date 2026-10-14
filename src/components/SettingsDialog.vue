@@ -445,7 +445,7 @@ function reset() {
                   ><span>{{ t('Add, remove, move and resize cards, choose card colours, hide top tiles.') }}</span>
                 </div>
                 <button class="btn acc" @click="customize">
-                  <Icon name="layout" :size="16" />{{ t('Customize') }}
+                  <Icon name="customize" :size="16" />{{ t('Customize') }}
                 </button>
               </div>
               <div class="rw">

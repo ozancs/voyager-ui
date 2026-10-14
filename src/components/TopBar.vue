@@ -328,6 +328,7 @@ function runConfirmed() {
       ><span v-else class="hide-m">{{ t('Upload & Print') }}</span>
     </button>
     <input ref="fileInput" type="file" :accept="UPLOAD_ACCEPT" hidden @change="onFile" />
+    <span class="grp hide-s" aria-hidden="true"></span>
     <div class="rel">
       <button class="btn ibtn" data-away="bell" :aria-label="t('Notifications')" @click="showBell = !showBell">
         <Icon name="bell" :size="22" :stroke="2.4" /><span
@@ -372,7 +373,7 @@ function runConfirmed() {
       </div>
     </div>
     <button v-if="!state.editDash" class="btn ibtn hide-s" :aria-label="t('Customize dashboard')" @click="customize">
-      <Icon name="layout" :size="21" :stroke="2.2" />
+      <Icon name="customize" :size="22" :stroke="2.2" />
     </button>
     <button class="btn ibtn hide-s" :aria-label="t('Interface settings')" @click="state.settingsOpen = 'general'">
       <Icon name="gear" :size="22" :stroke="2.4" />
@@ -422,7 +423,7 @@ function runConfirmed() {
             customize();
           "
         >
-          <Icon name="layout" :size="18" />{{ t('Customize dashboard') }}
+          <Icon name="customize" :size="18" />{{ t('Customize dashboard') }}
         </button>
         <button
           class="btn clear mi"
@@ -455,6 +456,7 @@ function runConfirmed() {
         </div>
       </div>
     </div>
+    <span class="grp" aria-hidden="true"></span>
     <LockButton />
     <div class="rel pwr">
       <button class="btn ibtn" data-away="power" :aria-label="t('Power')" @click="showPower = !showPower">
@@ -519,6 +521,24 @@ function runConfirmed() {
   padding: 0 20px;
   background: var(--bg);
   border-bottom: 1px solid var(--bd);
+}
+/* the buttons come in three groups (files and config, the interface, the machine's power and safety); a wide
+   gap between the groups says which belong together */
+.grp {
+  width: 26px;
+  flex-shrink: 0;
+}
+/* icons of the plain top bar buttons carry a faint touch of the accent so they read as actions; E-STOP keeps its
+   own colours */
+.tb > .btn:not(.dgf):not(.clear):not(.on):not(:disabled) > :deep(svg),
+.tb > .rel > .btn:not(.clear) > :deep(svg),
+.tb > :deep(.btn.lock:not(.on) > svg) {
+  color: color-mix(in srgb, var(--ac) 38%, var(--tx));
+}
+@media (max-width: 720px) {
+  .grp {
+    width: 0;
+  }
 }
 .brand {
   display: flex;
