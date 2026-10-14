@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.29.0
+
+- Heaters show how long until they reach their target, on the tiles and in the temperature table. It learns how each heater behaves, and when a heater will not get there (a chamber warmed only by the bed) it says where it levels off
+- Heaters left on with no print for 20 minutes get a reminder with Cooldown (Settings > Control; skipped when Klipper's idle_timeout turns them off sooner)
+- Health: boards running firmware older than Klipper on the host are marked, with the commands to rebuild and flash each one (Katapult over CAN, USB or the Pi itself) ready to copy
+- Machine > Config backup: back up the config folder to GitHub through Klipper-Backup, by hand or a minute after any config change, never during a print
+- Temperature graph: print start, pause, resume, end and errors are marked on the timeline
+- Report a problem (footer and Ctrl+K) opens a GitHub issue with the versions, Klipper state, browser and last console lines filled in
+- The finish time of a file printed before uses its real time; the queue and Files list show times corrected by past prints
+- Top bar: buttons in three groups with more room between them, a clearer Customize icon
+
 ## 0.28.1
 
 - Printers dialog: pick an icon for each printer (Voyager, the bundled logos or your own image). The printer menu and the All printers page show them; a printer that is not open takes its icon over the next time it is opened. Suggested by Raidy
