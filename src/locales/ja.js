@@ -1951,4 +1951,7 @@ export default {
   "Show larger": "拡大表示",
   "This file has no thumbnail": "このファイルにはサムネイルがありません",
   "These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:": "これは一般的な手順です。ボードごとの詳細（ブートローダー、Katapult、CAN ブリッジ）は多くの人が使う Esoterical の CANBus ガイドを参照してください：",
+  "Background": "背景",
+  "Darker makes the page behind the cards almost black, so the cards stand out more.": "暗めにするとカードの後ろのページがほぼ黒になり、カードが際立ちます。",
+  "Darker": "暗め",
 }

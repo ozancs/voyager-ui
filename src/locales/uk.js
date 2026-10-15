@@ -1951,4 +1951,7 @@ export default {
   "Show larger": "Збільшити",
   "This file has no thumbnail": "Цей файл не має мініатюри",
   "These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:": "Це звичайні кроки. Докладно для вашої плати (завантажувач, Katapult, CAN-міст) — посібник CANBus від Esoterical, яким користується більшість:",
+  "Background": "Тло",
+  "Darker makes the page behind the cards almost black, so the cards stand out more.": "Темніше робить сторінку за картками майже чорною, картки виділяються сильніше.",
+  "Darker": "Темніше",
 }

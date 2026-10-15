@@ -1290,7 +1290,7 @@ function detachCard(i) {
 .grid {
   margin: -16px;
 }
-:global(:root.compact) .top {
+:root.compact .top {
   padding-bottom: 6px;
 }
 .cell {

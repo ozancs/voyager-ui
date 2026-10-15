@@ -10,6 +10,7 @@ import Modal from './Modal.vue';
 import Popover from './Popover.vue';
 import { printerList, currentPrinter, selectPrinter } from '../printers';
 import { listIconUrl } from '../printerIcon';
+import { heatEta, fmtEta } from '../heatEta';
 import PowerList from './PowerList.vue';
 import { powerAsk, flipPower } from '../power';
 import LockButton from './LockButton.vue';
@@ -113,6 +114,7 @@ const POWER = [
     run: () => api.call('machine.shutdown'),
   },
 ];
+const topHeaters = computed(() => ['extruder', 'heater_bed'].filter((h) => state.objects.includes(h)));
 // Other services Moonraker may restart (KlipperScreen, crowsnest, Obico...): read once when a power menu opens.
 // Klipper and Moonraker have their own entries above.
 const services = ref([]);
@@ -172,7 +174,7 @@ function runConfirmed() {
 </script>
 
 <template>
-  <header class="tb">
+  <header class="tb" :class="{ pilled: active && state.settings.printBar === 'top' }">
     <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')">
       <Icon name="menu" :size="22" />
     </button>
@@ -305,6 +307,21 @@ function runConfirmed() {
       >
         <Icon name="refresh" :size="16" :stroke="2.4" /><span class="hide-m">{{ t('Reprint') }}</span>
       </button>
+    </div>
+    <!-- hotend and bed on every page; the dashboard's tiles show more -->
+    <div v-if="state.klippy === 'ready' && topHeaters.length" class="tmp hide-s">
+      <span
+        v-for="h in topHeaters"
+        :key="h"
+        class="th mono"
+        :class="{ hot: S(h).target > 0 }"
+        :data-tip="prettyName(h) + (S(h).target > 0 ? ' → ' + S(h).target.toFixed(0) + '°' : ' · ' + t('off'))"
+        ><Icon :name="h === 'extruder' ? 'nozzle' : 'bed'" :size="15" /><b>{{
+          S(h).temperature != null ? S(h).temperature.toFixed(0) + '°' : '--'
+        }}</b
+        ><small v-if="S(h).target > 0">/{{ S(h).target.toFixed(0) }}</small
+        ><small v-if="S(h).target > 0 && heatEta(h)?.secs" class="eta">{{ fmtEta(heatEta(h).secs) }}</small></span
+      >
     </div>
     <button class="btn lg srch hide-s" :aria-label="t('Search (Ctrl+K)')" @click="state.spotlight = true">
       <Icon name="search" :size="18" :stroke="2.4" /><kbd class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
@@ -594,6 +611,41 @@ function runConfirmed() {
   align-items: center;
   justify-content: center;
 }
+.tmp {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+/* with the print pill up here the bar is full below wide screens: the temperatures give way to the pill */
+:root.ew-lt-1750 .tb.pilled .tmp {
+  display: none;
+}
+.th {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--rb);
+  font-size: 13px;
+  color: var(--mu);
+  align-items: center;
+  white-space: nowrap;
+}
+.th b {
+  color: var(--tx);
+  font-weight: 600;
+}
+.th.hot b {
+  color: var(--heat);
+}
+.th small {
+  font-size: 11px;
+}
+.th .eta {
+  margin-left: 2px;
+  opacity: 0.8;
+}
 .srch {
   gap: 10px;
   color: var(--mu);
@@ -661,6 +713,21 @@ function runConfirmed() {
 .pill.job .jf {
   max-width: 180px;
   font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pill.job .jc > .row {
+  overflow: hidden; /* a long state or file name is cut, it never runs over the time left */
+}
+.pill.job .st,
+.pill.job .st2 {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+/* a narrower window: the time left goes, the state and percentage keep their room */
+:root.ew-lt-1300 .pill.job .jl {
+  display: none;
 }
 .pill.job .st {
   font-size: 13px;

@@ -1949,5 +1949,8 @@
 "line {n}",
 "Show larger",
 "This file has no thumbnail",
-"These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:"
+"These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:",
+"Background",
+"Darker makes the page behind the cards almost black, so the cards stand out more.",
+"Darker"
 ]

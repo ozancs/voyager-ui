@@ -720,6 +720,21 @@ function reset() {
               </div>
               <div class="rw">
                 <div class="k">
+                  <b>{{ t('Background') }}</b
+                  ><span>{{
+                    t('Darker makes the page behind the cards almost black, so the cards stand out more.')
+                  }}</span>
+                </div>
+                <div class="seg v">
+                  <button :class="{ on: !state.settings.bgDark }" @click="state.settings.bgDark = false">
+                    {{ t('Normal') }}</button
+                  ><button :class="{ on: !!state.settings.bgDark }" @click="state.settings.bgDark = true">
+                    {{ t('Darker') }}
+                  </button>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
                   <b>{{ t('Accent') }}</b
                   ><span>{{ t('Colour of actions, section headings and the logo.') }}</span>
                 </div>

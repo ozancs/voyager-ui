@@ -92,6 +92,13 @@
   --oa: #ffffff;
   color-scheme: light;
 }
+/* Appearance > Background: Darker. Only the page behind the cards gets darker (dark mode only), so the cards
+   stand out more; the cards and inner panels keep their colours. */
+:root.bg-dark:not([data-theme='light']) {
+  --bg: #0d0e11;
+  --plate: #0f1013;
+  --grid: #2a2e34;
+}
 :root[data-theme='light'] ::-webkit-scrollbar-thumb {
   border-color: var(--bg);
 }

@@ -1951,4 +1951,7 @@ export default {
   "Show larger": "Büyüt",
   "This file has no thumbnail": "Bu dosyada önizleme yok",
   "These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:": "Bunlar genel adımlar. Kartına özel ayrıntılar (bootloader, Katapult, CAN köprüsü) için çoğu kişinin izlediği rehber Esoterical'ın CANBus rehberi:",
+  "Background": "Arka plan",
+  "Darker makes the page behind the cards almost black, so the cards stand out more.": "Koyu, kartların arkasındaki sayfayı neredeyse siyah yapar; kartlar daha çok öne çıkar.",
+  "Darker": "Koyu",
 }

@@ -21,6 +21,7 @@ const NS = APP;
 
 export const DEFAULT_SETTINGS = () => ({
   accent: '#ff6b1a',
+  bgDark: false, // Appearance > Background: a darker page behind the cards (dark mode)
   printerIcon: { kind: 'voyager', logo: '', theme: '', img: '' }, // tab icon and top bar logo, see printerIcon.js
   favorites: [], // filled once from the macros the printer has (see resolveDefaultFavorites)
   presets: [
@@ -1089,6 +1090,16 @@ window.addEventListener('resize', () => {
   rsz = setTimeout(applyScale, 120);
 });
 document.documentElement.dataset.look = 'panel';
+watch(
+  () => !!state.settings.bgDark,
+  (on) => {
+    document.documentElement.classList.toggle('bg-dark', on);
+    try {
+      localStorage.setItem(APP + '-bgdark', on ? '1' : '');
+    } catch {}
+  },
+  { immediate: true },
+);
 watch(
   () => state.settings.compactCards !== false,
   (c) => document.documentElement.classList.toggle('compact', c),

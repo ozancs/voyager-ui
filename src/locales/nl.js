@@ -1951,4 +1951,7 @@ export default {
   "Show larger": "Groter tonen",
   "This file has no thumbnail": "Dit bestand heeft geen miniatuur",
   "These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:": "Dit zijn de gebruikelijke stappen. Voor je bord in detail (bootloader, Katapult, CAN-brug) volgen de meesten de CANBus-gids van Esoterical:",
+  "Background": "Achtergrond",
+  "Darker makes the page behind the cards almost black, so the cards stand out more.": "Donkerder maakt de pagina achter de kaarten bijna zwart, zodat de kaarten meer opvallen.",
+  "Darker": "Donkerder",
 }
