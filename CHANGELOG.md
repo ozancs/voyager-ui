@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.30.0
+
+- New first dashboard laid out like Mainsail: print, webcam, toolhead, macros and limits on the left, temperatures, the graph and the console on the right. Phones get the same order. Saved layouts are not touched. Suggested by Raidy
+- Favorites start from the printer's own macros (PRINT_START, LOAD_FILAMENT and the like) instead of a fixed list
+- Temperatures: heaters first (hotends, bed, other heaters), then fans and sensors
+- The pre-print check for a nozzle or max_temp mismatch says which config file and line hold the value, one click opens it. Suggested by Raidy
+- Webcam editor shows a live preview while the URL is typed. Suggested by Raidy
+- Calibrations: Home all, the homed state, hotend and bed temperatures and a webcam beside the steps. Suggested by Raidy
+- Thumbnail card, and the print thumbnail opens full size. Suggested by Raidy
+- LED effects card for klipper-led_effect: every effect as a button, lit while it runs, and stop all. Added by itself when effects are found. Suggested by Raidy
+- Health: link to Esoterical's CAN bus guide under the flash steps
+- Folded cards are just their title bar
+- No scrollbar for a pixel or two of overflow (temperature graph and others)
+- Top bar shows the hotend and bed temperature with their target and time to reach it. Suggested by Raidy
+- Settings > Appearance > Background: Darker, a deeper background for the dark theme. Suggested by Raidy
+- Top bar during a print: the job pill no longer overlaps on narrower screens
+
 ## 0.29.0
 
 - Heaters show how long until they reach their target, on the tiles and in the temperature table. It learns how each heater behaves, and when a heater will not get there (a chamber warmed only by the bed) it says where it levels off
