@@ -29,12 +29,22 @@ function fit(cell) {
   const cur = parseFloat(card.style.zoom) || 1;
   // measure at zoom 1 so the result does not drift
   card.style.zoom = '';
+  card.style.overflowY = '';
+  for (const el of card.querySelectorAll('[data-fit]')) el.style.overflowY = '';
   const need = measure(card);
   let z = 1;
   if (need > 1.005) z = 1 / need;
   if (z < MIN) z = MIN; // too much: smallest size, the rest scrolls
   z = Math.floor(z * 200) / 200;
   card.style.zoom = z === 1 ? '' : String(z);
+  // smaller text can wrap differently: check again and step down while it still does not fit
+  for (let k = 0; k < 4 && z > MIN && measure(card) > 1.002; k++) {
+    z = Math.max(MIN, Math.floor((z - 0.02) * 200) / 200);
+    card.style.zoom = String(z);
+  }
+  // a pixel or two left over (rounding) would only show an empty scrollbar
+  for (const el of [card, ...card.querySelectorAll('[data-fit]')])
+    if (el.scrollHeight > el.clientHeight && el.scrollHeight - el.clientHeight <= 3) el.style.overflowY = 'hidden';
   if (z !== cur) card.classList.toggle('fitted', z !== 1);
 }
 export const vfit = {

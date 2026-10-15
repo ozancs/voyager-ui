@@ -79,7 +79,7 @@ const MODULES = {
     c: LedEffectsCard,
     n: 'LED effects',
     min: [3, 3],
-    def: [6, 4],
+    def: [6, 5],
     need: () => state.objects.some((o) => o.startsWith('led_effect ')),
   },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
@@ -189,13 +189,14 @@ onMounted(() => document.addEventListener('click', closeColor));
 onBeforeUnmount(() => document.removeEventListener('click', closeColor));
 const minOf = (i) =>
   folded(i)
-    ? [2, COLLAPSED_H]
+    ? [2, collapsedH()]
     : isCustom(i)
       ? { btn: [1, 2], cam: [3, 4], tabs: [3, 4], ctl: [3, 3] }[state.settings.customCards?.[i]?.type] || [2, 3]
       : MODULES[i]?.min || [2, 2];
-// ---- collapsed cards: only the header shows, the card takes COLLAPSED_H rows and the cards below move up.
+// ---- collapsed cards: only the header shows, the card takes one or two rows and the cards below move up.
 // The full height is kept so expanding puts it back; the saved layout always holds the full height.
-const COLLAPSED_H = 2;
+// one grid row with compact cards (their title bar fits in 40 px), two with the taller title bar
+const collapsedH = () => (state.settings.compactCards !== false ? 1 : 2);
 const fullH = {};
 const isCollapsed = (i) => !!state.settings.collapsed?.[i];
 // in Customize every card shows at its full size, so it can be resized; the fold comes back on Done / Cancel
@@ -206,8 +207,8 @@ const canCollapse = (i) =>
 function applyCollapsed(l) {
   return l.map((x) => {
     if (!folded(x.i)) return x;
-    if (x.h !== COLLAPSED_H) fullH[x.i] = x.h;
-    return { ...x, h: COLLAPSED_H };
+    if (x.h !== collapsedH()) fullH[x.i] = x.h;
+    return { ...x, h: collapsedH() };
   });
 }
 function toggleCollapse(i) {
@@ -222,7 +223,7 @@ function toggleCollapse(i) {
     state.settings.collapsed = c;
     if (it) {
       fullH[i] = it.h;
-      it.h = COLLAPSED_H;
+      it.h = collapsedH();
     }
   }
   layout.value = [...layout.value];
@@ -315,6 +316,7 @@ function reload() {
   layout.value = applyCollapsed(clean(srcLayout()));
 }
 watch(mode, reload);
+watch(() => state.settings.compactCards, reload); // a folded card is one or two rows high depending on it
 watch(
   () => state.settingsLoaded,
   (v) => v && reload(),
@@ -622,7 +624,7 @@ const inTabs = (i, except) =>
 function attachCard(i) {
   if (inTabs(i) || !(MODULES[i] || state.settings.customCards?.[i])) return;
   const d = DEFAULT_LAYOUT().find((x) => x.i === i);
-  const [w, h] = d ? [d.w, d.h] : [Math.max(minOf(i)[0], 3), Math.max(minOf(i)[1], 4)];
+  const [w, h] = d ? [d.w, d.h] : MODULES[i]?.def || [Math.max(minOf(i)[0], 3), Math.max(minOf(i)[1], 4)];
   for (const k of ['hiddenCards', 'hiddenCardsPrint'])
     if (state.settings[k]?.includes(i)) state.settings[k] = state.settings[k].filter((x) => x !== i);
   for (const k of ['layout', 'layoutPrint']) {
@@ -1346,6 +1348,17 @@ function detachCard(i) {
 .cell.collapsed > :deep(.fill) {
   justify-content: center;
   overflow: hidden;
+  padding: 0 !important; /* the title bar is the whole card: no strip of card body under it */
+  gap: 0;
+}
+.cell.collapsed > :deep(.card > .card-h),
+.cell.collapsed > :deep(.fill > .card-h) {
+  margin: 0 !important;
+  flex: 1;
+  min-height: 0 !important;
+  position: static !important;
+  border-radius: inherit !important;
+  padding-left: 12px;
 }
 .mcell {
   height: auto;
