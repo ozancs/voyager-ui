@@ -8,6 +8,7 @@ import Icon from '../components/Icon.vue';
 import ShakeTune from './ShakeTune.vue';
 import ShaperGraphs from '../components/ShaperGraphs.vue';
 import CalibPath from '../components/CalibPath.vue';
+import CalibSide from '../components/CalibSide.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
 import { availableGroups, buildCommand, missingParams, invalidParams, parseResult } from '../calibrations';
 import { route, go } from '../router';
@@ -116,6 +117,7 @@ function applyShaper(r) {
       </section>
 
       <div class="side-col">
+        <CalibSide part="status" />
         <section v-if="item" class="card">
           <div class="card-h">
             <h2>{{ item.free ? item.name : t(item.name) }}</h2>
@@ -202,6 +204,7 @@ function applyShaper(r) {
             <Icon name="save" :size="16" />{{ t('Save config and restart') }}
           </button>
         </section>
+        <CalibSide part="cam" />
       </div>
     </div>
   </div>

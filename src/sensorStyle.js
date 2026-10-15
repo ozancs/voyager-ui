@@ -18,10 +18,24 @@ export const SENSOR_COLORS = [
 export const sensorColor = (colors, name, i) => colors?.[name] || SENSOR_COLORS[i % SENSOR_COLORS.length];
 
 // names in the user's order; anything not in it keeps Klipper's order, after them
+// Without an order of the user's, heaters come first like in Mainsail: extruder(s), bed, other heaters,
+// temperature fans, then the plain sensors (each group in Klipper's order).
+const group = (n) =>
+  n === 'extruder'
+    ? 0
+    : /^extruder\d+$/.test(n)
+      ? 1
+      : n === 'heater_bed'
+        ? 2
+        : n.startsWith('heater_generic ')
+          ? 3
+          : n.startsWith('temperature_fan ')
+            ? 4
+            : 5;
 export function sortSensors(names, order = []) {
   const pos = (n) => {
     const i = order.indexOf(n);
-    return i < 0 ? order.length + names.indexOf(n) : i;
+    return i < 0 ? order.length + group(n) * 1000 + names.indexOf(n) : i;
   };
   return [...names].sort((a, b) => pos(a) - pos(b));
 }

@@ -330,6 +330,14 @@ function measureAgain(h) {
                 </button>
               </div>
             </li>
+            <li class="guide">
+              {{
+                t(
+                  'These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:',
+                )
+              }}
+              <a href="https://canbus.esoterical.online/" target="_blank" rel="noopener">canbus.esoterical.online</a>
+            </li>
           </ol>
         </div>
         <p class="mu sm" style="margin: 0">
@@ -609,6 +617,12 @@ function measureAgain(h) {
   flex-direction: column;
   gap: 8px;
   font-size: 12.5px;
+}
+.guide {
+  list-style: none;
+  margin: 2px 0 0 -20px;
+  color: var(--mu);
+  line-height: 1.5;
 }
 .steps li > span {
   color: var(--mu);

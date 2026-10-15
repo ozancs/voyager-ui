@@ -1938,5 +1938,16 @@
 "Build",
 "Flash over CAN with Katapult",
 "Flash over USB",
-"Start Klipper"
+"Start Klipper",
+"All axes are homed",
+"Not homed",
+"Homed",
+"Thumbnail",
+"LED effects",
+"Stop all effects",
+"Running: click to stop",
+"line {n}",
+"Show larger",
+"This file has no thumbnail",
+"These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:"
 ]

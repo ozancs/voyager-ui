@@ -5,6 +5,7 @@ import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import PauseAtLayer from './PauseAtLayer.vue';
+import ImageZoom from './ImageZoom.vue';
 import {
   state,
   S,
@@ -26,6 +27,7 @@ const emit = () => {
   state.showExclude = true;
 };
 const ask = ref(false);
+const zoom = ref(false); // the thumbnail shown large
 const ps = computed(() => S('print_stats'));
 const active = computed(() => ['printing', 'paused'].includes(printState.value));
 const thumb = computed(() => {
@@ -94,10 +96,11 @@ async function reprint() {
 </script>
 <template>
   <section class="card pc">
-    <div class="th">
-      <img v-if="thumb" :src="thumb" alt="" />
-      <Icon v-else name="cube" :size="44" :stroke="1.6" />
-    </div>
+    <button v-if="thumb" class="th zm" :aria-label="t('Show larger')" @click="zoom = true">
+      <img :src="thumb" alt="" />
+    </button>
+    <div v-else class="th"><Icon name="cube" :size="44" :stroke="1.6" /></div>
+    <ImageZoom v-if="zoom && thumb" :src="thumb" @close="zoom = false" />
     <div class="grow col" style="gap: 10px">
       <div class="row" style="gap: 10px; min-width: 0">
         <span class="chip" :style="{ color }"><i></i>{{ t(printState) }}</span>
@@ -208,6 +211,10 @@ async function reprint() {
   justify-content: center;
   color: var(--mu);
   overflow: hidden;
+}
+.th.zm {
+  padding: 0;
+  cursor: zoom-in;
 }
 .th img {
   width: 100%;

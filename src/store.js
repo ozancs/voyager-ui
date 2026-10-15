@@ -22,17 +22,7 @@ const NS = APP;
 export const DEFAULT_SETTINGS = () => ({
   accent: '#ff6b1a',
   printerIcon: { kind: 'voyager', logo: '', theme: '', img: '' }, // tab icon and top bar logo, see printerIcon.js
-  favorites: [
-    { id: 'f1', name: 'Chamber 50°', icon: 'box', gcode: 'CHAMBER TEMP=50', highlight: true },
-    { id: 'f2', name: 'Bed Mesh', icon: 'mesh', gcode: 'BED_MESH_CALIBRATE', highlight: false },
-    { id: 'f3', name: 'Load', icon: 'load', gcode: 'FILAMENT_LOAD', highlight: false },
-    { id: 'f4', name: 'Unload', icon: 'unload', gcode: 'FILAMENT_UNLOAD', highlight: false },
-    { id: 'f5', name: 'Cut', icon: 'cut', gcode: 'FILAMENT_CUT', highlight: false },
-    { id: 'f6', name: 'Purge', icon: 'drop', gcode: 'POOP_PURGE', highlight: false },
-    { id: 'f7', name: 'Brush', icon: 'brush', gcode: 'BRUSH_ONLY', highlight: false },
-    { id: 'f8', name: 'Wipe', icon: 'wiper', gcode: 'WIPER_WIPE', highlight: false },
-    { id: 'f9', name: 'Vent 40°', icon: 'fan', gcode: 'CHAMBER_VENT MAX=40', highlight: false },
-  ],
+  favorites: [], // filled once from the macros the printer has (see resolveDefaultFavorites)
   presets: [
     { id: 'p1', name: 'PLA', temps: { extruder: 210, heater_bed: 60, 'heater_generic chamber': 0 } },
     { id: 'p2', name: 'PETG', temps: { extruder: 240, heater_bed: 80, 'heater_generic chamber': 0 } },
@@ -127,15 +117,86 @@ export const DEFAULT_SETTINGS = () => ({
   accentReach: 'subtle', // how far the accent colour reaches: subtle (buttons only) | normal | strong (card and dialog outlines)
 });
 
+// The favorites a fresh install starts with: the usual macros, each under the names it commonly has, and only
+// the ones this printer actually has (a button for a macro that does not exist would look broken).
+const FAV_CANDIDATES = [
+  { name: 'Bed Mesh', icon: 'mesh', cmds: ['BED_MESH_CALIBRATE'] },
+  { name: 'Load', icon: 'load', cmds: ['LOAD_FILAMENT', 'FILAMENT_LOAD', 'M701'] },
+  { name: 'Unload', icon: 'unload', cmds: ['UNLOAD_FILAMENT', 'FILAMENT_UNLOAD', 'M702'] },
+  { name: 'Purge', icon: 'drop', cmds: ['PURGE', 'LINE_PURGE', 'VORON_PURGE', 'PURGE_LINE', 'PRIME_LINE'] },
+  { name: 'Clean nozzle', icon: 'brush', cmds: ['CLEAN_NOZZLE', 'NOZZLE_CLEAN', 'BRUSH_NOZZLE', 'WIPE_NOZZLE'] },
+  { name: 'Heat soak', icon: 'flame', cmds: ['HEAT_SOAK'] },
+  { name: 'Park', icon: 'park', cmds: ['PARK', 'PARK_TOOLHEAD', 'G27'] },
+];
+// the list older versions started everyone with (the author's own macros)
+const OLD_DEFAULT_FAV_GCODE = [
+  'CHAMBER TEMP=50',
+  'BED_MESH_CALIBRATE',
+  'FILAMENT_LOAD',
+  'FILAMENT_UNLOAD',
+  'FILAMENT_CUT',
+  'POOP_PURGE',
+  'BRUSH_ONLY',
+  'WIPER_WIPE',
+  'CHAMBER_VENT MAX=40',
+];
+export function resolveDefaultFavorites(commands) {
+  const has = (c) => Object.prototype.hasOwnProperty.call(commands, c.split(' ')[0].toUpperCase());
+  const s = state.settings;
+  if (s.favResolved) return;
+  const cur = s.favorites || [];
+  if (!cur.length)
+    s.favorites = FAV_CANDIDATES.map((f, k) => {
+      const c = f.cmds.find(has);
+      return c && { id: 'f' + (k + 1), name: f.name, icon: f.icon, gcode: c, highlight: false };
+    }).filter(Boolean);
+  // the old built-in list, never changed: keep only the buttons whose macro exists here
+  else if (cur.length === OLD_DEFAULT_FAV_GCODE.length && cur.every((f, k) => f.gcode === OLD_DEFAULT_FAV_GCODE[k]))
+    s.favorites = cur.filter((f) => has(f.gcode));
+  s.favResolved = true;
+}
+
+// The first dashboard has the cards of Mainsail's dashboard in the same places, so someone coming from Mainsail
+// finds what they know: on the left print status, webcam, toolhead (with the Z offset), extruder, macros, machine
+// limits and the fans/pins/LEDs card; on the right temperatures with their graph and the console.
 export const DEFAULT_LAYOUT = () => [
-  { i: 'console', x: 0, y: 0, w: 12, h: 7 },
-  { i: 'temps', x: 0, y: 7, w: 6, h: 8 },
-  { i: 'webcam', x: 6, y: 7, w: 6, h: 8 },
-  { i: 'tempchart', x: 0, y: 15, w: 12, h: 6 },
-  { i: 'toolhead', x: 0, y: 21, w: 8, h: 6 },
-  { i: 'livez', x: 8, y: 21, w: 4, h: 6 },
-  { i: 'extruder', x: 0, y: 26, w: 6, h: 7 },
-  { i: 'limits', x: 6, y: 26, w: 6, h: 7 },
+  { i: 'print', x: 0, y: 0, w: 6, h: 4 },
+  { i: 'webcam', x: 0, y: 4, w: 6, h: 8 },
+  { i: 'toolhead', x: 0, y: 12, w: 6, h: 5 },
+  { i: 'livez', x: 0, y: 17, w: 6, h: 4 },
+  { i: 'extruder', x: 0, y: 21, w: 6, h: 7 },
+  { i: 'macros', x: 0, y: 28, w: 6, h: 4 },
+  { i: 'limits', x: 0, y: 32, w: 6, h: 7 },
+  { i: 'devices', x: 0, y: 39, w: 6, h: 7 },
+  { i: 'temps', x: 6, y: 0, w: 6, h: 8 },
+  { i: 'tempchart', x: 6, y: 8, w: 6, h: 6 },
+  { i: 'console', x: 6, y: 14, w: 6, h: 8 },
+];
+// the cards of the first dashboard before it followed Mainsail: a saved layout gets one of these back when it is missing (and not
+// hidden), the newer default cards are not pushed into layouts people already arranged
+export const LEGACY_DEFAULT_IDS = [
+  'console',
+  'temps',
+  'webcam',
+  'tempchart',
+  'toolhead',
+  'livez',
+  'extruder',
+  'limits',
+];
+// phone order, as Mainsail's: status, toolhead, extruder, macros, machine settings, misc, temperatures; then the rest
+export const DEFAULT_MOBILE_ORDER = [
+  'print',
+  'toolhead',
+  'livez',
+  'extruder',
+  'macros',
+  'limits',
+  'devices',
+  'temps',
+  'tempchart',
+  'webcam',
+  'console',
 ];
 export const LAYOUT_KEYS = [
   'layout',
@@ -971,6 +1032,12 @@ watch(
   (l) => {
     if (l) setLang(l);
   },
+  { immediate: true },
+);
+// fresh install: default favorites from the macros this printer has
+watch(
+  () => state.settingsLoaded && Object.keys(state.commands || {}).length > 0,
+  (ok) => ok && resolveDefaultFavorites(state.commands),
   { immediate: true },
 );
 // light / dark: 'auto' follows the operating system

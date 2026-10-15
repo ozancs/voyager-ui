@@ -39,6 +39,13 @@ const objects = ['mmu'].concat([
   'fan_generic Intake_Fan',
   'fan_generic Aux_Fan',
   'neopixel hotend_rgb',
+  // klipper-led_effect
+  'led_effect sb_logo_busy',
+  'led_effect sb_logo_heating',
+  'led_effect sb_logo_printing',
+  'led_effect sb_nozzle_heating',
+  'led_effect rainbow',
+  'led_effect critical_error',
   'output_pin Chamber_Light',
   'filament_switch_sensor filament_sensor',
   'smart_filament_sensor sfs',
@@ -78,6 +85,12 @@ const objects = ['mmu'].concat([
   'canbus_stats EBBCan',
 ]);
 const status = {
+  'led_effect sb_logo_busy': { enabled: false },
+  'led_effect sb_logo_heating': { enabled: false },
+  'led_effect sb_logo_printing': { enabled: true },
+  'led_effect sb_nozzle_heating': { enabled: false },
+  'led_effect rainbow': { enabled: false },
+  'led_effect critical_error': { enabled: false },
   webhooks: { state: 'ready', state_message: 'Printer is ready' },
   mmu: {
     enabled: true,
@@ -2135,6 +2148,17 @@ gcodeScript = function (sc) {
         res('ok');
       }, 24000),
     );
+  }
+  if ((m = S.match(/^SET_LED_EFFECT EFFECT=(\S+)( STOP=1)?/))) {
+    const o = 'led_effect ' + m[1].toLowerCase();
+    if (status[o]) pushStatus({ [o]: { enabled: !m[2] } });
+    return 'ok';
+  }
+  if (/^STOP_LED_EFFECTS\b/.test(S)) {
+    const o = {};
+    for (const k of Object.keys(status)) if (k.startsWith('led_effect ')) o[k] = { enabled: false };
+    pushStatus(o);
+    return 'ok';
   }
   if (/^UPDATE_GIT\b/.test(S)) {
     const sha = Math.random().toString(16).slice(2, 9);

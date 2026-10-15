@@ -27,6 +27,8 @@ import CustomCard from '../components/CustomCard.vue';
 import CellScope from '../components/CellScope.vue';
 import QueueCard from '../components/QueueCard.vue';
 import MacrosCard from '../components/MacrosCard.vue';
+import ThumbCard from '../components/ThumbCard.vue';
+import LedEffectsCard from '../components/LedEffectsCard.vue';
 import DevicesCard from '../components/DevicesCard.vue';
 import RecentFilesCard from '../components/RecentFilesCard.vue';
 import TimelapseCard from '../components/TimelapseCard.vue';
@@ -44,6 +46,8 @@ import {
   state,
   isPrinting,
   DEFAULT_LAYOUT,
+  LEGACY_DEFAULT_IDS,
+  DEFAULT_MOBILE_ORDER,
   DEFAULT_SETTINGS,
   layoutSnapshot,
   pushLayoutBackup,
@@ -70,6 +74,14 @@ const MODULES = {
   limits: { c: LimitsCard, n: 'Machine Limits', min: [3, 5], def: [6, 7] },
   printctl: { c: PrintControlsCard, n: 'Print controls (speed, flow)', min: [3, 3], def: [4, 4] },
   print: { c: PrintCard, n: 'Print Status', min: [5, 3], def: [12, 3] },
+  thumb: { c: ThumbCard, n: 'Thumbnail', min: [2, 3], def: [4, 6] },
+  ledfx: {
+    c: LedEffectsCard,
+    n: 'LED effects',
+    min: [3, 3],
+    def: [6, 4],
+    need: () => state.objects.some((o) => o.startsWith('led_effect ')),
+  },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
   system: { c: SystemLoads, n: 'System Loads', min: [3, 3], def: [6, 3] },
@@ -263,7 +275,14 @@ function clean(l) {
   const out = (l || [])
     .filter((x) => ok(x.i) && !seen.has(x.i) && seen.add(x.i))
     .map(({ i, x, y, w, h }) => ({ i, x, y, w: Math.max(w, minOf(i)[0]), h: Math.max(h, minOf(i)[1]) })); // a raised minimum applies to saved layouts too
-  for (const d of DEFAULT_LAYOUT()) if (!seen.has(d.i) && !hidden.includes(d.i)) out.push({ ...d, y: 999 });
+  // a default card missing from the layout comes back (unless hidden); for a layout someone saved, only the cards
+  // that were defaults when it was saved, so a newer default card does not appear on its own
+  const saved = !!(mode.value === 'print'
+    ? state.settings.layoutPrint || state.settings.layout
+    : state.settings.layout);
+  for (const d of DEFAULT_LAYOUT())
+    if (!seen.has(d.i) && !hidden.includes(d.i) && (!saved || LEGACY_DEFAULT_IDS.includes(d.i)))
+      out.push({ ...d, y: 999 });
   return out;
 }
 const layout = ref(applyCollapsed(clean(srcLayout())));
@@ -304,7 +323,7 @@ const sorted = computed(() => [...layout.value].sort((a, b) => a.y - b.y || a.x 
 // phone / narrow window: one column. Its order is kept on its own (mobileOrder), so moving a card here does not
 // shuffle the desktop grid. Cards not in the list yet follow in desktop order.
 const column = computed(() => {
-  const ord = state.settings.mobileOrder || [];
+  const ord = state.settings.mobileOrder || DEFAULT_MOBILE_ORDER;
   const has = (i) => layout.value.some((x) => x.i === i);
   const ids = [...ord.filter(has), ...sorted.value.map((x) => x.i).filter((i) => !ord.includes(i))];
   return ids.map((i) => layout.value.find((x) => x.i === i));
@@ -329,6 +348,20 @@ function persist(force = false) {
   }));
 }
 const bottom = () => Math.max(0, ...layout.value.map((x) => x.y + x.h));
+// klipper-led_effect: the LED effects card goes on the dashboard by itself the first time effects are found
+watch(
+  () => state.settingsLoaded && state.objects.some((o) => o.startsWith('led_effect ')),
+  (on) => {
+    if (!on || state.settings.ledfxSeen) return;
+    state.settings.ledfxSeen = true;
+    if (!layout.value.some((x) => x.i === 'ledfx')) {
+      // into the saved layouts too (both, when there are two), so a reload keeps it
+      if (!Array.isArray(state.settings.layout)) state.settings.layout = layout.value.map((x) => ({ ...x }));
+      attachCard('ledfx');
+    }
+  },
+  { immediate: true },
+);
 function removeCard(i) {
   if (MODULES[i] && DEFAULT_LAYOUT().some((d) => d.i === i))
     state.settings[HK()] = [...new Set([...(state.settings[HK()] || []), i])];

@@ -367,6 +367,11 @@ its own dialog that runs the command and draws what is going on: the hotend glow
 settling pass after pass, the probe points landing on the bed, the toolhead shaking and the shapers it found.  
 Nothing is written to the config until "Save to config". The last run of each is remembered per printer.
 
+**[src/components/CalibSide.vue](../src/components/CalibSide.vue)**  
+Beside the calibrations: what is needed when the printer is not in front of you. `part` 'status' is a strip  
+with Home all and the hotend and bed temperatures (and how long until they reach their target); 'cam' is a  
+webcam picture, the camera remembered in the settings.
+
 **[src/components/CardCollapse.vue](../src/components/CardCollapse.vue)**  
 The fold chevron at the end of a card header. Shown only for a card on the dashboard (CellScope provides the  
 context); the same card elsewhere (Machine page, inside a Tabs card) gets nothing.
@@ -481,9 +486,16 @@ searchable by name and by keyword (search "temperature" finds thermometers), and
 Shows an image from a Moonraker root (e.g. the Shake&Tune graphs in config/ShakeTune_results).  
 The arrows (and the arrow keys) go through the other images of the same folder.
 
+**[src/components/ImageZoom.vue](../src/components/ImageZoom.vue)**  
+A picture shown as large as the window allows, over everything; a click anywhere or Escape closes it.
+
 **[src/components/JobMenu.vue](../src/components/JobMenu.vue)**  
 The running print's actions as a ··· menu: pause / resume, exclude object, pause at next layer, job queue and  
 cancel. Used by the compact print pill in the top bar; the PrintBar band shows the same actions as buttons.
+
+**[src/components/LedEffectsCard.vue](../src/components/LedEffectsCard.vue)**  
+LED effects card for klipper-led_effect: every [led_effect] in the config as a button, lit while the effect  
+runs. A click starts it (or stops it when it runs); the square stops them all. Found by itself, nothing to set up.
 
 **[src/components/LimitsCard.vue](../src/components/LimitsCard.vue)**  
 The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor / flow below them when  
@@ -688,6 +700,10 @@ button, dashed lines for targets.
 **[src/components/TempsCard.vue](../src/components/TempsCard.vue)**  
 Temperature table: current, target and power for heaters and sensors. Targets can be typed in,  
 presets and cooldown are in the header.
+
+**[src/components/ThumbCard.vue](../src/components/ThumbCard.vue)**  
+Thumbnail card: the current (or last) file's picture as big as the card, with its name and progress. A click  
+shows it over the whole window.
 
 **[src/components/TimelapseCard.vue](../src/components/TimelapseCard.vue)**  
 Dashboard card: is the timelapse recording, how many frames so far, the newest frame, and the last clips.

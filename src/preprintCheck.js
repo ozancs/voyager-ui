@@ -71,6 +71,7 @@ export function checkPrint(ctx) {
     out.push({
       level: 'warn',
       ...msg('The file is sliced for a {file} mm nozzle, the config says {cfg} mm.', { file: nz, cfg: cnz }),
+      cfg: { section: 'extruder', key: 'nozzle_diameter' }, // where that value is (the dialog links to it)
     });
   const et = +m.first_layer_extr_temp,
     emax = +ex.max_temp;
@@ -78,6 +79,7 @@ export function checkPrint(ctx) {
     out.push({
       level: 'error',
       ...msg('The file heats the nozzle to {temp}°, max_temp is {max}°.', { temp: et, max: emax }),
+      cfg: { section: 'extruder', key: 'max_temp' },
     });
   const bt = +m.first_layer_bed_temp,
     bmax = +ctx.settings?.heater_bed?.max_temp;
@@ -85,10 +87,15 @@ export function checkPrint(ctx) {
     out.push({
       level: 'error',
       ...msg('The file heats the bed to {temp}°, max_temp is {max}°.', { temp: bt, max: bmax }),
+      cfg: { section: 'heater_bed', key: 'max_temp' },
     });
   const h = +m.object_height,
     zmax = +ctx.toolhead?.axis_maximum?.[2];
   if (h > 0 && zmax > 0 && h > zmax)
-    out.push({ level: 'error', ...msg('The print is {h} mm tall, Z only goes to {max} mm.', { h, max: zmax }) });
+    out.push({
+      level: 'error',
+      ...msg('The print is {h} mm tall, Z only goes to {max} mm.', { h, max: zmax }),
+      cfg: { section: 'stepper_z', key: 'position_max' },
+    });
   return out;
 }

@@ -1,6 +1,7 @@
 <script setup>
 // Interface settings as a dialog (like Mainsail's), categories on the left. Opened from the gear in the top bar.
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
+import WebcamView from './WebcamView.vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import Toggle from './Toggle.vue';
@@ -194,6 +195,32 @@ function newCam() {
 function editCam(c) {
   cam.value = { ...c, _old: c.name };
 }
+// live preview in the camera dialog: the picture follows flips and rotation at once, a new address or service
+// after a short pause in typing (each change reconnects the stream)
+const pv = reactive({});
+const pvKey = ref(0);
+let pvT = null;
+watch(
+  () => cam.value && [cam.value.service, cam.value.stream_url, cam.value.snapshot_url],
+  (v, o) => {
+    if (!v) return;
+    clearTimeout(pvT);
+    pvT = setTimeout(
+      () => {
+        Object.assign(pv, { ...cam.value, name: cam.value.name || 'preview' });
+        pvKey.value++;
+      },
+      o ? 700 : 0,
+    );
+  },
+  { immediate: true },
+);
+watch(
+  () => cam.value && [cam.value.flip_horizontal, cam.value.flip_vertical, cam.value.rotation],
+  (v) => {
+    if (v) Object.assign(pv, { flip_horizontal: v[0], flip_vertical: v[1], rotation: v[2] });
+  },
+);
 async function saveCam() {
   // `source` is read-only on Moonraker's side. An edited camera keeps its `uid`, which is how Moonraker finds it,
   // so Moonraker renames it in place. Deleting the old name first (as before) removed the camera, and the post
@@ -1101,6 +1128,9 @@ function reset() {
         </select></label
       >
     </div>
+    <div class="pvw">
+      <WebcamView v-if="pvKey" :key="pvKey" :cam="pv" :overlay="false" />
+    </div>
     <template #foot
       ><button class="btn lg" @click="cam = null">{{ t('Cancel') }}</button
       ><button class="btn lg acc" :disabled="!cam.name.trim()" @click="saveCam">{{ t('Save') }}</button></template
@@ -1136,6 +1166,19 @@ function reset() {
 </template>
 
 <style scoped>
+.pvw {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 260px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--plate);
+}
+.pvw > :deep(*) {
+  width: 100%;
+  height: 100%;
+}
 .ov {
   position: fixed;
   inset: 0;

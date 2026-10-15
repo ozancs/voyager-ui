@@ -3,8 +3,24 @@
 // to print anyway or cancel. "Don't check again" turns the check off (Settings > General turns it back on).
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
+import { onMounted } from 'vue';
 import { state, saveSettings } from '../store';
+import { cfgIndex, loadConfigIndex } from '../features';
+import { go } from '../router';
 import { t } from '../i18n';
+// where a config value the check compared against lives: file and line, from the config index
+onMounted(() => loadConfigIndex());
+const where = (c) =>
+  c &&
+  cfgIndex.items.find(
+    (x) => x.kind === 'option' && x.section.toLowerCase() === c.section && x.key.toLowerCase() === c.key,
+  );
+function openCfg(c) {
+  const w = where(c);
+  answer(false); // the print does not start; the file opens at the line
+  state.jump = { file: w.file, line: w.line, t: Date.now() };
+  go('config', w.file);
+}
 const answer = (v) => state.preprint?.resolve(v);
 function never() {
   state.settings.preprintCheck = false;
@@ -21,7 +37,14 @@ function never() {
         :size="18"
         :style="{ color: i.level === 'error' ? 'var(--dg)' : 'var(--wn)' }"
       />
-      <span>{{ t(i.text, i.params) }}</span>
+      <span class="col" style="gap: 3px"
+        >{{ t(i.text, i.params) }}
+        <button v-if="where(i.cfg)" class="lnk sm" @click="openCfg(i.cfg)">
+          {{ where(i.cfg).file }}, {{ t('line {n}', { n: where(i.cfg).line }) }}: [{{ where(i.cfg).section }}]
+          {{ i.cfg.key }}
+        </button>
+        <span v-else-if="i.cfg" class="mono sm mu">[{{ i.cfg.section }}] {{ i.cfg.key }}</span>
+      </span>
     </div>
     <button class="lnk sm mu" @click="never">{{ t('Print and stop checking files before printing') }}</button>
     <template #foot>
