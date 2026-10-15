@@ -283,6 +283,24 @@ let idleSince = 0,
   idleSaid = 0, // idleSince of the stretch already reported
   idleToast = null;
 const idleKey = () => 'idleheat:' + idleSince;
+const ZERO = (p) => new RegExp('\\b' + p + '0+(?:\\.0+)?(?![\\d.])', 'i');
+// heaters the idle_timeout gcode turns off ({all} for TURN_OFF_HEATERS or Klipper's default); comments skipped
+function idleOffs(it) {
+  const offs = new Set();
+  if (!it || it.gcode == null) return Object.assign(offs, { all: true }); // Klipper's default gcode turns all off
+  for (const raw of String(it.gcode).split('\n')) {
+    const l = raw.replace(/[#;].*/, '').trim();
+    if (/^TURN_OFF_HEATERS\b/i.test(l)) offs.all = true;
+    else if (/^M104\b/i.test(l) && ZERO('S').test(l) && !/\bT[1-9]/i.test(l))
+      offs.add(S('toolhead').extruder || 'extruder');
+    else if (/^M140\b/i.test(l) && ZERO('S').test(l)) offs.add('heater_bed');
+    else {
+      const m = /^SET_HEATER_TEMPERATURE\b.*\bHEATER=(\S+)/i.exec(l);
+      if (m && ZERO('TARGET=').test(l)) offs.add(m[1].toLowerCase());
+    }
+  }
+  return offs;
+}
 function checkIdleHeat() {
   const mins = state.settings.idleHeatMin ?? 20;
   const st = S('print_stats').state;
@@ -302,10 +320,12 @@ function checkIdleHeat() {
     idleSince = Date.now();
     return;
   }
-  // idle_timeout turns them off before we would speak up: Klipper takes care of it
+  // idle_timeout turns them off before we would speak up: Klipper takes care of it (only when it turns off every
+  // heater that is on; M104 S0 and M140 S0 leave a chamber running)
   const it = S('configfile').settings?.idle_timeout;
-  const itHeaters = it ? /TURN_OFF_HEATERS|M104 S0|M140 S0/i.test(it.gcode || '') : true;
-  if (itHeaters && (it?.timeout ?? 600) / 60 < mins) return;
+  const offs = idleOffs(it);
+  if (on.every((n) => offs.all || offs.has(n) || offs.has(n.split(' ').pop())) && (it?.timeout ?? 600) / 60 < mins)
+    return;
   if (Date.now() - idleSince < mins * 60e3) return;
   if (idleSaid === idleSince) return; // said once for this stretch (dismissing it keeps it quiet)
   idleSaid = idleSince;

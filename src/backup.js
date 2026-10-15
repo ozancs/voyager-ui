@@ -8,7 +8,7 @@ import { api } from './api/moonraker';
 import { state, S, gcode, toast, saveSettings } from './store';
 import { t } from './i18n';
 
-export const backup = reactive({ running: false, waiting: false, lines: [] });
+export const backup = reactive({ running: false, waiting: false, waitWhy: '', lines: [] });
 
 // the command that starts a backup: the UPDATE_GIT macro, or a shell command that runs klipper-backup directly
 export function backupCommand() {
@@ -25,8 +25,14 @@ const BAD = /error|fatal|failed|denied|rejected|timed out|could not|not found/i;
 export async function runBackup(why = '') {
   const cmd = backupCommand();
   if (!cmd || backup.running) return;
+  // an automatic one that was waiting (debounce, a print, a Klipper restart) is dropped when Auto was turned off
+  if (why === 'auto' && !state.settings.backupAuto) {
+    if (backup.waitWhy === 'auto') backup.waiting = false;
+    return;
+  }
   if (busyPrinting()) {
     backup.waiting = true; // runs when the print is over
+    if (backup.waitWhy !== 'manual') backup.waitWhy = why === 'auto' ? 'auto' : 'manual';
     return;
   }
   if (state.klippy !== 'ready') {
@@ -35,6 +41,7 @@ export async function runBackup(why = '') {
     return;
   }
   backup.waiting = false;
+  backup.waitWhy = '';
   backup.running = true;
   backup.lines = [];
   const grab = ([line]) => {
@@ -75,10 +82,22 @@ export function startBackupWatch() {
     clearTimeout(timer);
     timer = setTimeout(() => runBackup('auto'), 60e3);
   });
+  // Auto turned off: forget the change waiting to be backed up (a backup asked for by hand still runs)
+  watch(
+    () => state.settings.backupAuto,
+    (on) => {
+      if (on) return;
+      clearTimeout(timer);
+      if (backup.waitWhy === 'auto') backup.waiting = false;
+    },
+  );
   watch(
     () => S('print_stats').state,
     (s) => {
-      if (backup.waiting && !['printing', 'paused'].includes(s)) setTimeout(() => runBackup('auto'), 5000);
+      if (backup.waiting && !['printing', 'paused'].includes(s)) {
+        const why = backup.waitWhy === 'auto' ? 'auto' : '';
+        setTimeout(() => runBackup(why), 5000);
+      }
     },
   );
 }
