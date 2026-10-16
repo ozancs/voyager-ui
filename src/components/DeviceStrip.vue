@@ -400,16 +400,12 @@ function sensorExtra(id) {
             style="flex: none"
             :class="{ spin: S(d.obj).speed > 0 }"
             :style="{ animationDuration: 1.9 - 1.4 * (S(d.obj).speed || 0) + 's' }"
-          /><span v-if="S(d.obj).rpm && S(d.obj).temperature == null" class="rpmw"
-            ><span class="mono mu rpm">{{ Math.round(S(d.obj).rpm) }} rpm</span
+          /><span v-if="S(d.obj).temperature != null || S(d.obj).rpm" class="rpmw"
+            ><span v-if="S(d.obj).temperature != null" class="mono mu rpm"
+              >{{ S(d.obj).temperature.toFixed(0) }}° → {{ S(d.obj).target?.toFixed(0) }}°</span
+            ><span v-else class="mono mu rpm">{{ Math.round(S(d.obj).rpm) }} rpm</span
             ><span class="big">{{ pct(S(d.obj).speed) }}<small>%</small></span></span
           ><span v-else class="big">{{ pct(S(d.obj).speed) }}<small>%</small></span>
-          <span
-            v-if="S(d.obj).temperature != null"
-            class="mono mu"
-            style="font-size: 11px; margin-left: auto; text-align: right"
-            >{{ S(d.obj).temperature.toFixed(0) }}°<br />→{{ S(d.obj).target?.toFixed(0) }}°</span
-          >
         </div>
         <div class="bar"><div :style="{ width: pct(S(d.obj).speed) + '%' }"></div></div>
         <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
