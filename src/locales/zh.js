@@ -1954,4 +1954,10 @@ export default {
   "Background": "背景",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "更暗会让卡片后面的页面接近黑色，卡片更突出。",
   "Darker": "更暗",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "挤出:约 {len} mm,{vol} mm³/s,{nd} mm 喷嘴",
+  "Icon": "图标",
+  "Icon and colour": "图标和颜色",
+  "Icon and colour of {name}": "{name} 的图标和颜色",
+  "Default icon and colour": "默认图标和颜色",
+  "Shade under the lines": "填充线条下方",
 }

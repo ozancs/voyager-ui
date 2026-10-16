@@ -1954,4 +1954,10 @@ export default {
   "Background": "Achtergrond",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "Donkerder maakt de pagina achter de kaarten bijna zwart, zodat de kaarten meer opvallen.",
   "Darker": "Donkerder",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "Extrusie: ongeveer {len} mm bij {vol} mm³/s door een {nd} mm nozzle",
+  "Icon": "Icoon",
+  "Icon and colour": "Icoon en kleur",
+  "Icon and colour of {name}": "Icoon en kleur van {name}",
+  "Default icon and colour": "Standaardicoon en -kleur",
+  "Shade under the lines": "Vlak onder de lijnen kleuren",
 }

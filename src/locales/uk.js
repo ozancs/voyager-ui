@@ -1954,4 +1954,10 @@ export default {
   "Background": "Тло",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "Темніше робить сторінку за картками майже чорною, картки виділяються сильніше.",
   "Darker": "Темніше",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "Екструзія: близько {len} мм при {vol} мм³/с через сопло {nd} мм",
+  "Icon": "Значок",
+  "Icon and colour": "Значок і колір",
+  "Icon and colour of {name}": "Значок і колір: {name}",
+  "Default icon and colour": "Типовий значок і колір",
+  "Shade under the lines": "Заливка під лініями",
 }

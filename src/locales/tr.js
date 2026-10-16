@@ -1954,4 +1954,10 @@ export default {
   "Background": "Arka plan",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "Koyu, kartların arkasındaki sayfayı neredeyse siyah yapar; kartlar daha çok öne çıkar.",
   "Darker": "Koyu",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "Ekstrüzyon: {nd} mm nozuldan {vol} mm³/s ile yaklaşık {len} mm",
+  "Icon": "Simge",
+  "Icon and colour": "Simge ve renk",
+  "Icon and colour of {name}": "{name} simgesi ve rengi",
+  "Default icon and colour": "Varsayılan simge ve renk",
+  "Shade under the lines": "Çizgilerin altını doldur",
 }

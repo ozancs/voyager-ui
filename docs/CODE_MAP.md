@@ -434,8 +434,10 @@ the file (heating, moving, only without plastic), so the dialog offers to cancel
 Plain-words explanation of a Klipper error (explain.js): what it means, the usual cause, what to check.
 
 **[src/components/ExtruderCard.vue](../src/components/ExtruderCard.vue)**  
-Extruder card: extrude and retract with chosen length and speed, pressure advance, and the  
-temperature check (Klipper refuses to extrude below min_extrude_temp).
+Extruder card, everything about the filament in one place like Mainsail's: flow (unless the Print controls  
+card is on the dashboard), pressure advance, firmware retraction (unless its own card is there), extrude and  
+retract with chosen length and speed, and the temperature check (Klipper refuses to extrude below  
+min_extrude_temp). The line at the bottom says what the chosen length and speed come out of the nozzle as.
 
 **[src/components/FavoritesBar.vue](../src/components/FavoritesBar.vue)**  
 Favorites bar. Pencil = edit right here: drag to reorder, click a button to change it, + to add.
@@ -498,8 +500,8 @@ LED effects card for klipper-led_effect: every [led_effect] in the config as a b
 runs. A click starts it (or stops it when it runs); the square stops them all. Found by itself, nothing to set up.
 
 **[src/components/LimitsCard.vue](../src/components/LimitsCard.vue)**  
-The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor / flow below them when  
-the Print controls card is not on the dashboard (the dashboard says which cards it shows).
+The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor below them when the Print  
+controls card is not on the dashboard (flow too, unless the Extruder card shows it).
 
 **[src/components/LiveZCard.vue](../src/components/LiveZCard.vue)**  
 Small card for the first layer: live X / Y / Z, the Z offset and baby-step buttons. Meant for the print layout,  
@@ -643,6 +645,10 @@ A bare range input that follows the pointer while dragging: the fill and the liv
 the printer's value is only taken over again once it has caught up (or after a short wait), so the thumb never  
 jumps back while a command is on its way.
 
+**[src/components/SensorIcon.vue](../src/components/SensorIcon.vue)**  
+A temperature sensor's icon in its colour (sensorStyle.js), the same in the Temperatures card, the graph legend  
+and the Edit menu. A fan icon turns while its fan runs, faster the faster it runs.
+
 **[src/components/SensorPicker.vue](../src/components/SensorPicker.vue)**  
 Edit button in the Temperatures card and graph: pick which sensors they show (same list as Settings > Dashboard),  
 their colour and their order, and for the graph the line width. Colour and order are shared by the card and  
@@ -669,7 +675,8 @@ the arrow keys. v-model is the array; each row is the default slot with { item, 
 **[src/components/SpeedFlow.vue](../src/components/SpeedFlow.vue)**  
 Speed factor (M220) and flow (M221): slider, -/+ and a typed value. The slider shows the value while dragging and  
 sends it when released; a typed value is sent on Enter, Esc or leaving the field puts the current value back.  
-Used by the Print controls card and, when that card is not on the dashboard, by the Machine Limits card.
+Used by the Print controls card and, when that card is not on the dashboard, by the Machine Limits card (speed)  
+and the Extruder card (flow).
 
 **[src/components/SpoolCard.vue](../src/components/SpoolCard.vue)**  
 Active Spoolman spool: filament name, colour, remaining weight. Only shown when Moonraker has  

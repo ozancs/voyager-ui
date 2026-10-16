@@ -1952,5 +1952,11 @@
 "These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:",
 "Background",
 "Darker makes the page behind the cards almost black, so the cards stand out more.",
-"Darker"
+"Darker",
+"Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle",
+"Icon",
+"Icon and colour",
+"Icon and colour of {name}",
+"Default icon and colour",
+"Shade under the lines"
 ]

@@ -17,6 +17,20 @@ export const SENSOR_COLORS = [
 // the colour of a sensor: the one the user picked, otherwise the next one from the palette
 export const sensorColor = (colors, name, i) => colors?.[name] || SENSOR_COLORS[i % SENSOR_COLORS.length];
 
+// The icon of a sensor: the one the user picked, otherwise one for its kind (Mainsail shows the same idea).
+// sensorType is its sensor_type from the config, which tells an MCU or the Pi apart from a thermistor.
+export function defaultSensorIcon(name, sensorType = '') {
+  const kind = name.split(' ')[0];
+  if (kind === 'extruder' || /^extruder\d+$/.test(kind)) return 'nozzle';
+  if (kind === 'heater_bed') return 'bed';
+  if (kind === 'heater_generic') return 'fire';
+  if (kind === 'temperature_fan') return 'fan';
+  if (/temperature_(mcu|host)/i.test(sensorType) || /\b(mcu|host|pi|rpi|cpu)\b/i.test(name.split(' ').pop() || ''))
+    return 'chip';
+  return 'thermo';
+}
+export const sensorIcon = (icons, name, sensorType) => icons?.[name] || defaultSensorIcon(name, sensorType);
+
 // names in the user's order; anything not in it keeps Klipper's order, after them
 // Without an order of the user's, heaters come first like in Mainsail: extruder(s), bed, other heaters,
 // temperature fans, then the plain sensors (each group in Klipper's order).

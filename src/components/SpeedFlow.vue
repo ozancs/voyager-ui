@@ -1,13 +1,14 @@
 <script setup>
 // Speed factor (M220) and flow (M221): slider, -/+ and a typed value. The slider shows the value while dragging and
 // sends it when released; a typed value is sent on Enter, Esc or leaving the field puts the current value back.
-// Used by the Print controls card and, when that card is not on the dashboard, by the Machine Limits card.
+// Used by the Print controls card and, when that card is not on the dashboard, by the Machine Limits card (speed)
+// and the Extruder card (flow).
 import { computed, reactive } from 'vue';
 import Rng from './Rng.vue';
 import Icon from './Icon.vue';
 import { S, gcode } from '../store';
 import { t } from '../i18n';
-defineProps({ resets: Boolean }); // show "100%" buttons next to the values
+defineProps({ resets: Boolean, only: { type: String, default: '' } }); // resets: "100%" buttons; only: 'speed' or 'flow'
 const lv = reactive({ speed: null, flow: null }); // value under the thumb while dragging
 const gm = computed(() => S('gcode_move'));
 const speed = computed(() => Math.round((gm.value.speed_factor ?? 1) * 100));
@@ -24,8 +25,8 @@ function setFlow(v) {
 }
 </script>
 <template>
-  <div class="g2">
-    <div class="fac">
+  <div class="sf">
+    <div v-if="only !== 'flow'" class="fac">
       <div class="row" style="justify-content: space-between; gap: 6px">
         <span class="nl" style="margin-right: auto">{{ t('Speed factor') }}</span
         ><label class="nb"
@@ -59,7 +60,7 @@ function setFlow(v) {
         </button>
       </div>
     </div>
-    <div class="fac">
+    <div v-if="only !== 'speed'" class="fac">
       <div class="row" style="justify-content: space-between; gap: 6px">
         <span class="nl" style="margin-right: auto">{{ t('Flow') }}</span
         ><label class="nb"
@@ -95,7 +96,7 @@ function setFlow(v) {
   </div>
 </template>
 <style scoped>
-.g2 {
+.sf {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;

@@ -5,6 +5,7 @@
 // click) comes back to now. Hovering shows the values at that time in the legend. Sensors picked with the eye
 // button, dashed lines for targets.
 import SensorPicker from './SensorPicker.vue';
+import SensorIcon from './SensorIcon.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { computed, ref, onBeforeUnmount } from 'vue';
@@ -110,16 +111,28 @@ const lines = computed(() =>
       if (!pts.length) return null;
       let d = '',
         dt = '',
+        area = '',
+        x0 = null,
+        xl = null,
         pen = false;
       for (const p of pts) {
         const px = x(p.a).toFixed(1);
         d += (d && !p.brk ? 'L' : 'M') + px + ',' + y(p.v).toFixed(1);
+        // the area under the line, closed at the bottom; a gap in the data closes it and starts a new one
+        if (x0 == null || p.brk) {
+          if (x0 != null) area += 'L' + xl + ',' + H + 'Z';
+          area += 'M' + px + ',' + H;
+          x0 = px;
+        }
+        area += 'L' + px + ',' + y(p.v).toFixed(1);
+        xl = px;
         if ((s.isHeater || s.isTempFan) && p.g > 0) {
           dt += (pen && !p.brk ? 'L' : 'M') + px + ',' + y(p.g).toFixed(1);
           pen = true;
         } else pen = false;
       }
-      return { name: s.name, d, dt, color: colorOf(i, s.name) };
+      if (x0 != null) area += 'L' + xl + ',' + H + 'Z';
+      return { name: s.name, d, dt, area, color: colorOf(i, s.name) };
     })
     .filter(Boolean),
 );
@@ -261,7 +274,7 @@ onBeforeUnmount(() => ptrs.clear());
     </div>
     <div class="lg">
       <span v-for="e in data" :key="e.s.name"
-        ><i :style="{ background: colorOf(e.i, e.s.name) }"></i>{{ e.s.label }}
+        ><SensorIcon :name="e.s.name" :color="colorOf(e.i, e.s.name)" :size="13" />{{ e.s.label }}
         <b class="mono">{{ fmt(valueAt(e)) }}</b></span
       >
       <span class="mono mu win">{{ hover != null ? clock(Date.now() / 1000 - hover) : windowText }}</span>
@@ -303,6 +316,16 @@ onBeforeUnmount(() => ptrs.clear());
             stroke-dasharray="2 4"
             vector-effect="non-scaling-stroke"
           />
+          <template v-if="state.settings.graphFill !== false">
+            <path
+              v-for="l in lines"
+              :key="l.name + 'a'"
+              :d="l.area"
+              :fill="l.color"
+              fill-opacity="0.12"
+              stroke="none"
+            />
+          </template>
           <path
             v-for="l in lines"
             :key="l.name + 't'"
@@ -460,13 +483,8 @@ onBeforeUnmount(() => ptrs.clear());
   font-weight: 700;
   color: var(--mu);
 }
-.lg i {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  margin-right: 6px;
-  vertical-align: -1px;
+.lg .si {
+  margin-right: 5px;
 }
 .lg b {
   color: var(--tx);

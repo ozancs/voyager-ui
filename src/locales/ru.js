@@ -1954,4 +1954,10 @@ export default {
   "Background": "Фон",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "Темнее делает страницу за карточками почти чёрной, карточки выделяются сильнее.",
   "Darker": "Темнее",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "Экструзия: около {len} мм при {vol} мм³/с через сопло {nd} мм",
+  "Icon": "Значок",
+  "Icon and colour": "Значок и цвет",
+  "Icon and colour of {name}": "Значок и цвет: {name}",
+  "Default icon and colour": "Значок и цвет по умолчанию",
+  "Shade under the lines": "Заливка под линиями",
 }

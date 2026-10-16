@@ -437,10 +437,10 @@ let db = {
       { i: 'livez', x: 9, y: 7, w: 3, h: 5 },
       { i: 'limits', x: 0, y: 11, w: 3, h: 6 },
       { i: 'macros', x: 3, y: 12, w: 6, h: 3 },
-      { i: 'extruder', x: 9, y: 12, w: 3, h: 7 },
+      { i: 'extruder', x: 9, y: 12, w: 3, h: 9 },
       { i: 'spool', x: 3, y: 15, w: 6, h: 4 },
       { i: 'mmu', x: 0, y: 19, w: 9, h: 7 },
-      { i: 'timelapse', x: 9, y: 19, w: 3, h: 4 },
+      { i: 'timelapse', x: 9, y: 21, w: 3, h: 4 },
     ],
     // printing: print status across the top, then what matters during a print
     layoutPrint: [
@@ -453,8 +453,8 @@ let db = {
       { i: 'system', x: 9, y: 9, w: 3, h: 3 },
       { i: 'limits', x: 9, y: 12, w: 3, h: 7 },
       { i: 'tempchart', x: 0, y: 14, w: 6, h: 5 },
-      { i: 'extruder', x: 6, y: 14, w: 3, h: 7 },
-      { i: 'mmu', x: 0, y: 19, w: 9, h: 7 },
+      { i: 'extruder', x: 6, y: 14, w: 3, h: 9 },
+      { i: 'mmu', x: 0, y: 23, w: 9, h: 7 },
       { i: 'timelapse', x: 9, y: 19, w: 3, h: 4 },
     ],
     sound: { enabled: true, volume: 0.6, complete: true, error: true, paused: true, heated: false },

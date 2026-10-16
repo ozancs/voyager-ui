@@ -115,6 +115,8 @@ export const DEFAULT_SETTINGS = () => ({
   seenVersion: '', // the version whose changelog was shown; a new one opens What's new once
   sensorColors: {}, // sensor name -> colour picked in the eye menu (sensorStyle.js)
   sensorOrder: [], // sensor names in the order the user put them (sensorStyle.js)
+  sensorIcons: {}, // sensor name -> icon picked in the Edit menu (sensorStyle.js)
+  graphFill: true, // temperature graph: each line's area filled with a faint shade of its colour
   accentReach: 'subtle', // how far the accent colour reaches: subtle (buttons only) | normal | strong (card and dialog outlines)
 });
 
@@ -158,17 +160,18 @@ export function resolveDefaultFavorites(commands) {
 }
 
 // The first dashboard has the cards of Mainsail's dashboard in the same places, so someone coming from Mainsail
-// finds what they know: on the left print status, webcam, toolhead (with the Z offset), extruder, macros, machine
+// finds what they know: on the left print status, webcam, toolhead (with the Z offset), extruder (flow, pressure
+// advance and retraction in it), macros, machine
 // limits and the fans/pins/LEDs card; on the right temperatures with their graph and the console.
 export const DEFAULT_LAYOUT = () => [
   { i: 'print', x: 0, y: 0, w: 6, h: 4 },
   { i: 'webcam', x: 0, y: 4, w: 6, h: 8 },
   { i: 'toolhead', x: 0, y: 12, w: 6, h: 6 },
   { i: 'livez', x: 0, y: 18, w: 6, h: 4 },
-  { i: 'extruder', x: 0, y: 22, w: 6, h: 7 },
-  { i: 'macros', x: 0, y: 29, w: 6, h: 4 },
-  { i: 'limits', x: 0, y: 33, w: 6, h: 7 },
-  { i: 'devices', x: 0, y: 40, w: 6, h: 7 },
+  { i: 'extruder', x: 0, y: 22, w: 6, h: 10 },
+  { i: 'macros', x: 0, y: 32, w: 6, h: 4 },
+  { i: 'limits', x: 0, y: 36, w: 6, h: 6 },
+  { i: 'devices', x: 0, y: 42, w: 6, h: 7 },
   { i: 'temps', x: 6, y: 0, w: 6, h: 8 },
   { i: 'tempchart', x: 6, y: 8, w: 6, h: 6 },
   { i: 'console', x: 6, y: 14, w: 6, h: 8 },

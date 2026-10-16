@@ -1954,4 +1954,10 @@ export default {
   "Background": "배경",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "더 어둡게 하면 카드 뒤 페이지가 거의 검은색이 되어 카드가 더 돋보입니다.",
   "Darker": "더 어둡게",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "압출: 약 {len} mm, {vol} mm³/s, {nd} mm 노즐",
+  "Icon": "아이콘",
+  "Icon and colour": "아이콘과 색",
+  "Icon and colour of {name}": "{name}의 아이콘과 색",
+  "Default icon and colour": "기본 아이콘과 색",
+  "Shade under the lines": "선 아래 채우기",
 }

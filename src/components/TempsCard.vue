@@ -6,6 +6,7 @@ import { computed, ref } from 'vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import SensorPicker from './SensorPicker.vue';
+import SensorIcon from './SensorIcon.vue';
 import Popover from './Popover.vue';
 import { state, sensors, setHeater, applyPreset, gcode, allPresets, isPrinting } from '../store';
 import { go } from '../router';
@@ -90,7 +91,7 @@ const presets = allPresets;
         <tbody>
           <tr v-for="(s, i) in sensors" :key="s.name">
             <td class="nm">
-              <i :style="{ background: colorOf(i, s.name) }"></i>{{ s.label
+              <SensorIcon :name="s.name" :color="colorOf(i, s.name)" class="ic" />{{ s.label
               }}<template v-if="s.isHeater && s.target > 0 && heatEta(s.name)"
                 ><small
                   v-if="heatEta(s.name).levels != null"
@@ -177,11 +178,7 @@ const presets = allPresets;
   font-weight: 700;
   white-space: nowrap;
 }
-.nm i {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
+.nm .ic {
   margin-right: 8px;
 }
 .v {

@@ -291,8 +291,8 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   pointer-events: none;
 }
 .jog {
-  flex: 1 1 280px; /* jog buttons can get narrow, so the whole card still fits at its minimum width */
-  max-width: 480px;
+  flex: 1 1 280px; /* jog buttons can get narrow, so the whole card still fits at its minimum width; */
+  /* they also grow to take what the card has left, instead of an empty strip on the right */
 }
 .jr {
   display: grid;

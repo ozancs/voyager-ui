@@ -1954,4 +1954,10 @@ export default {
   "Background": "Tło",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "Ciemniejsze sprawia, że strona za kartami jest prawie czarna, więc karty bardziej się wyróżniają.",
   "Darker": "Ciemniejsze",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "Ekstruzja: około {len} mm przy {vol} mm³/s przez dyszę {nd} mm",
+  "Icon": "Ikona",
+  "Icon and colour": "Ikona i kolor",
+  "Icon and colour of {name}": "Ikona i kolor: {name}",
+  "Default icon and colour": "Domyślna ikona i kolor",
+  "Shade under the lines": "Cieniuj pod liniami",
 }

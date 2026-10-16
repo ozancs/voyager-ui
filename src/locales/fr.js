@@ -1954,4 +1954,10 @@ export default {
   "Background": "Arrière-plan",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "Plus sombre rend la page derrière les cartes presque noire, les cartes ressortent davantage.",
   "Darker": "Plus sombre",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "Extrusion : environ {len} mm à {vol} mm³/s par une buse de {nd} mm",
+  "Icon": "Icône",
+  "Icon and colour": "Icône et couleur",
+  "Icon and colour of {name}": "Icône et couleur de {name}",
+  "Default icon and colour": "Icône et couleur par défaut",
+  "Shade under the lines": "Ombrer sous les courbes",
 }

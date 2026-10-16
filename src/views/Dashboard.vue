@@ -70,7 +70,7 @@ const MODULES = {
   toolhead: { c: ToolheadCard, n: 'Toolhead', min: [5, 4], def: [12, 5] },
   favorites: { c: FavoritesCard, n: 'Favorites', min: [2, 2], def: [6, 3] },
   livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 3], def: [3, 4] },
-  extruder: { c: ExtruderCard, n: 'Extruder', min: [3, 5], def: [6, 7] },
+  extruder: { c: ExtruderCard, n: 'Extruder', min: [3, 5], def: [6, 10] },
   limits: { c: LimitsCard, n: 'Machine Limits', min: [3, 5], def: [6, 7] },
   printctl: { c: PrintControlsCard, n: 'Print controls (speed, flow)', min: [3, 3], def: [4, 4] },
   print: { c: PrintCard, n: 'Print Status', min: [5, 3], def: [12, 3] },

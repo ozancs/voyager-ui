@@ -5,11 +5,14 @@
 import { ref, computed } from 'vue';
 import Icon from './Icon.vue';
 import Popover from './Popover.vue';
+import SensorIcon from './SensorIcon.vue';
+import IconPicker from './IconPicker.vue';
 import { state, prettyName, tempSensors, saveSettings } from '../store';
 import { sensorColor, sortSensors, moveSensor } from '../sensorStyle';
 import { t } from '../i18n';
 defineProps({ lines: Boolean });
 const open = ref(false);
+const picking = ref(null); // sensor whose icon and colour are being picked
 const btn = ref(null);
 function toggle(s) {
   const h = state.settings.hiddenSensors || (state.settings.hiddenSensors = []);
@@ -23,11 +26,29 @@ function setColor(s, v) {
   state.settings.sensorColors = { ...(state.settings.sensorColors || {}), [s]: v };
   saveSettings();
 }
-function resetColor(s) {
-  const c = { ...(state.settings.sensorColors || {}) };
-  delete c[s];
-  state.settings.sensorColors = c;
+function setIcon(s, v) {
+  state.settings.sensorIcons = { ...(state.settings.sensorIcons || {}), [s]: v };
   saveSettings();
+}
+// back to the default icon and colour
+function resetColor(s) {
+  const c = { ...(state.settings.sensorColors || {}) },
+    ic = { ...(state.settings.sensorIcons || {}) };
+  delete c[s];
+  delete ic[s];
+  state.settings.sensorColors = c;
+  state.settings.sensorIcons = ic;
+  saveSettings();
+}
+const custom = (s) => !!(state.settings.sensorColors?.[s] || state.settings.sensorIcons?.[s]);
+function pickColor(s, v) {
+  if (v) setColor(s, v);
+  else {
+    const c = { ...(state.settings.sensorColors || {}) };
+    delete c[s];
+    state.settings.sensorColors = c;
+    saveSettings();
+  }
 }
 function move(s, dir) {
   const o = moveSensor(tempSensors.value, state.settings.sensorOrder || [], s, dir);
@@ -47,29 +68,29 @@ function move(s, dir) {
     >
       <Icon name="pencil" :size="15" :stroke="2.4" />{{ t('Edit') }}
     </button>
-    <Popover v-if="open" :anchor="btn" :width="300" @close="open = false">
+    <Popover v-if="open" :anchor="btn" :width="300" @close="!picking && (open = false)">
       <div class="hd">
-        <span class="c1">{{ t('Colour') }}</span
+        <span class="c1">{{ t('Icon') }}</span
         ><span class="c2">{{ t('Sensor') }}</span
         ><span class="c3">{{ t('Show') }}</span
         ><span class="c4">{{ t('Order') }}</span>
       </div>
       <div class="rows">
         <div v-for="(s, i) in list" :key="s" class="srow" :class="{ off: hidden(s) }">
-          <label class="sw" :data-tip="t('Change colour')" :aria-label="t('Colour of {name}', { name: prettyName(s) })">
-            <i :style="{ background: colorOf(s, i) }"><Icon name="palette" :size="11" :stroke="2.6" /></i>
-            <input
-              type="color"
-              :value="colorOf(s, i).startsWith('#') ? colorOf(s, i) : '#5aa9ff'"
-              @input="setColor(s, $event.target.value)"
-            />
-          </label>
+          <button
+            class="sw"
+            :data-tip="t('Icon and colour')"
+            :aria-label="t('Icon and colour of {name}', { name: prettyName(s) })"
+            @click="picking = s"
+          >
+            <SensorIcon :name="s" :color="colorOf(s, i)" :size="17" />
+          </button>
           <span class="nm">{{ prettyName(s) }}</span>
           <button
-            v-if="state.settings.sensorColors?.[s]"
+            v-if="custom(s)"
             class="mini"
-            :aria-label="t('Default colour')"
-            :data-tip="t('Default colour')"
+            :aria-label="t('Default icon and colour')"
+            :data-tip="t('Default icon and colour')"
             @click="resetColor(s)"
           >
             <Icon name="rot" :size="13" />
@@ -103,8 +124,21 @@ function move(s, dir) {
             {{ w }}
           </button>
         </div>
+        <label class="fl">
+          <input v-model="state.settings.graphFill" type="checkbox" @change="saveSettings()" />{{
+            t('Shade under the lines')
+          }}
+        </label>
       </template>
     </Popover>
+    <IconPicker
+      v-if="picking"
+      :icon="state.settings.sensorIcons?.[picking]"
+      :color="state.settings.sensorColors?.[picking]"
+      @pick="setIcon(picking, $event)"
+      @color="pickColor(picking, $event)"
+      @close="picking = null"
+    />
   </div>
 </template>
 <style scoped>
@@ -154,7 +188,7 @@ function move(s, dir) {
 .srow.off .nm {
   color: var(--mu2);
 }
-.srow.off .sw i {
+.srow.off .sw {
   opacity: 0.35;
 }
 .sw {
@@ -166,24 +200,21 @@ function move(s, dir) {
   align-items: center;
   cursor: pointer;
 }
-.sw i {
+.sw {
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: var(--s2);
+}
+.sw:hover {
+  background: var(--s3);
+}
+.fl {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 20px;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
-  color: rgba(0, 0, 0, 0.55);
-}
-.sw:hover i {
-  outline: 2px solid var(--mu2);
-  outline-offset: 1px;
-}
-.sw input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
+  gap: 8px;
+  font-size: 12.5px;
+  margin-top: 8px;
   cursor: pointer;
 }
 .nm {

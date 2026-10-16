@@ -1,6 +1,6 @@
 <script setup>
-// The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor / flow below them when
-// the Print controls card is not on the dashboard (the dashboard says which cards it shows).
+// The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor below them when the Print
+// controls card is not on the dashboard (flow too, unless the Extruder card shows it).
 import { computed, inject } from 'vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
@@ -10,6 +10,8 @@ import { S, gcode } from '../store';
 import { t } from '../i18n';
 const shownCards = inject('dashCards', null);
 const hideFactors = computed(() => !!shownCards?.value?.includes('printctl'));
+// flow is in the Extruder card when that one is on the dashboard
+const flowInExtruder = computed(() => !!shownCards?.value?.includes('extruder'));
 const th = computed(() => S('toolhead'));
 const cfg = computed(() => S('configfile').settings?.printer || {});
 const hasMcr = computed(() => th.value.minimum_cruise_ratio !== undefined);
@@ -76,7 +78,7 @@ function reset() {
         @commit="gcode(`SET_VELOCITY_LIMIT ACCEL_TO_DECEL=${$event}`)"
       />
     </div>
-    <SpeedFlow v-if="!hideFactors" />
+    <SpeedFlow v-if="!hideFactors" :only="flowInExtruder ? 'speed' : ''" />
     <span class="mu" style="font-size: 12px">{{
       t('Live values. Klipper resets them to printer.cfg on restart.')
     }}</span>

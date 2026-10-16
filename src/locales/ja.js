@@ -1954,4 +1954,10 @@ export default {
   "Background": "背景",
   "Darker makes the page behind the cards almost black, so the cards stand out more.": "暗めにするとカードの後ろのページがほぼ黒になり、カードが際立ちます。",
   "Darker": "暗め",
+  "Extrusion: about {len} mm at {vol} mm³/s through a {nd} mm nozzle": "押し出し: 約 {len} mm、{vol} mm³/s、{nd} mm ノズル",
+  "Icon": "アイコン",
+  "Icon and colour": "アイコンと色",
+  "Icon and colour of {name}": "{name} のアイコンと色",
+  "Default icon and colour": "既定のアイコンと色",
+  "Shade under the lines": "線の下を塗りつぶす",
 }
