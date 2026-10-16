@@ -1273,13 +1273,14 @@ function detachCard(i) {
   position: absolute;
   right: 0;
   top: 40px;
-  width: 240px;
+  width: 260px;
   z-index: 40;
   gap: 2px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   /* a long list (many modules, webcams) scrolls inside the menu instead of running off the bottom of the window */
   max-height: calc(100dvh - 160px); /* vFitBelow sets the exact room below the button */
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
 }
 .dd > * {
@@ -1287,8 +1288,17 @@ function detachCard(i) {
 }
 .di {
   justify-content: flex-start;
-  height: 36px;
+  height: auto;
+  min-height: 36px;
+  padding-block: 7px;
   color: var(--tx);
+  /* a long name wraps onto a second line instead of making the menu scroll sideways */
+  white-space: normal;
+  text-align: left;
+  line-height: 1.25;
+}
+.di > svg {
+  flex-shrink: 0;
 }
 .grid {
   margin: -16px;
