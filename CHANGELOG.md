@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.31.0
+
+- Temperatures: each sensor has an icon for its kind (nozzle, bed, heater, fan, chip, thermometer) instead of a dot. Edit picks another icon and its colour; a fan icon turns while its fan runs
+- Temperature graph: the area under each line is shaded in its colour (Edit turns it off)
+- Extruder card holds everything about the filament like Mainsail's: flow, pressure advance, firmware retraction, extrude and retract, and what the chosen length and speed come out of the nozzle as. Flow and retraction stay out of it when their own cards are on the dashboard; Machine Limits keeps the speed factor
+- Toolhead: the jog buttons use the whole width of the card, no empty strip on the right
+
 ## 0.30.1
 
 - A printer switched off at the plug is noticed within seconds: the page greys out and shows it is reconnecting, instead of the last values. Suggested by Raidy
