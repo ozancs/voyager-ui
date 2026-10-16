@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.31.1
+
+- Print status: the values after speed and flow no longer jump sideways while those change
+- Fan tiles: a temperature fan's temperature and target sit above the percentage instead of running past the tile
+
 ## 0.31.0
 
 - Temperatures: each sensor has an icon for its kind (nozzle, bed, heater, fan, chip, thermometer) instead of a dot. Edit picks another icon and its colour; a fan icon turns while its fan runs
