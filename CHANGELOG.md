@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.31.2
+
+- Restore from file asks which parts to take: dashboard cards, favorites, presets, sensors, control, appearance, this printer's name and icon, everything else. Unticked parts keep what this printer has; the printer's own name and icon are unticked to begin with, so cards can move to another printer on their own. Suggested by Raidy
+- After a restore the dashboard shows the restored cards at once
+- Config files: an open file shows changes made outside the editor (SAVE_CONFIG, another UI, SSH) without reloading the page; with edits of your own it asks before replacing them. Suggested by Raidy
+- A heater's target box takes typing as soon as it opens. Suggested by Raidy
+
 ## 0.31.1
 
 - Print status: the values after speed and flow no longer jump sideways while those change
