@@ -1958,5 +1958,16 @@
 "Icon and colour",
 "Icon and colour of {name}",
 "Default icon and colour",
-"Shade under the lines"
+"Shade under the lines",
+"What to take from {name}?",
+"Parts left unticked keep what this printer has now. Your current settings are kept so you can go back.",
+"{f} was changed outside this editor.",
+"Keep my edits",
+"Load the new version",
+"Dashboard cards",
+"Temperature sensors and graph",
+"Control (jog steps, speeds)",
+"Appearance and language",
+"This printer (name, icon, maintenance, heater measurements)",
+"Everything else"
 ]

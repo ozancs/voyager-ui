@@ -316,6 +316,9 @@ function reload() {
   layout.value = applyCollapsed(clean(srcLayout()));
 }
 watch(mode, reload);
+// a restored settings file (or a reset, or Go back) replaces the settings as a whole: show its cards at once, so the
+// old layout still on screen is never written back over the restored one
+watch(() => state.settings, reload);
 watch(() => state.settings.compactCards, reload); // a folded card is one or two rows high depending on it
 watch(
   () => state.settingsLoaded,

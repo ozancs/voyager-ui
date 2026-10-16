@@ -220,6 +220,11 @@ a sensor looks the same everywhere. Both are kept per printer in the settings: s
 name -> '#rrggbb', sensorOrder is the names in the order the user put them. Pure functions, no store import  
 (the store sorts the sensor list with sortSensors, so it cannot import from a module that imports it back).
 
+**[src/settingsParts.js](../src/settingsParts.js)**  
+A settings backup is one file with everything; a restore can take only some parts of it (the dashboard cards  
+of one printer onto another, without its name, presets or theme). PARTS groups the settings keys, anything not  
+listed belongs to 'other'. Parts not picked keep what this printer has now.
+
 **[src/smart.js](../src/smart.js)**  
 "Smart" commands for the Ctrl+K box: "chamber 40", "bed off", "fan 50", "speed 120", "z offset -0.05", "home xy"...  
 Every result is checked against the printer (heater exists, max_temp, homed axes, axis limits) before it is offered.

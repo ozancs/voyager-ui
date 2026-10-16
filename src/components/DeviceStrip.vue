@@ -170,6 +170,11 @@ watch(
 );
 const isHeater = (o) => (S('heaters').available_heaters || []).includes(o); // time to target: heaters only
 const tgt = ref('');
+// the target field takes the typing as soon as the pop-up opens (with a mouse; on a touch screen the keyboard
+// would pop up on every tap of a tile)
+const vFocus = {
+  mounted: (el) => window.matchMedia?.('(pointer: fine)').matches && el.focus({ preventScroll: true }),
+};
 function setT(d, v) {
   if (v === '' || v == null || isNaN(+v)) return;
   setHeater(d.obj, +v)?.catch?.(() => {});
@@ -370,6 +375,7 @@ function sensorExtra(id) {
           <span class="lbl">{{ t('{name} target', { name: prettyName(d.obj) }) }}</span>
           <div class="row">
             <input
+              v-focus
               class="input mono grow"
               type="number"
               v-model="tgt"

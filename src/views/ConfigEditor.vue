@@ -68,6 +68,11 @@ async function loadFiles() {
 }
 useApiEvent('notify_filelist_changed', ([p]) => {
   if (p?.item?.root === 'config') loadFiles();
+  // an open file changed on disk (SAVE_CONFIG, another UI, an edit over SSH): show the new version
+  if (['create_file', 'modify_file', 'move_file'].includes(p?.action)) {
+    const tab = tabs.value.find((x) => x.root === p.item?.root && x.path === p.item?.path);
+    if (tab) refreshTab(tab);
+  }
 });
 const treeQ = ref('');
 const openDirs = ref(new Set(['']));
@@ -290,6 +295,48 @@ function makeState(tab, doc) {
 }
 
 let viewKey = ''; // the tab whose document the editor shows right now
+// Open files stay open between visits (state.cache), so a file changed elsewhere would keep showing its old text.
+// Read it again: an unedited tab takes the new text at once; a tab with edits here keeps them and says the file
+// changed on disk, with Reload to take the new version.
+const fileUrl = (tab) => `/server/files/${tab.root}/${tab.path.split('/').map(encodeURIComponent).join('/')}`;
+async function refreshTab(tab, force = false) {
+  if (tab.loading || tab.failed || tab.root === 'logs' || saving.value) return;
+  let raw;
+  try {
+    raw = await api.getText(fileUrl(tab));
+  } catch {
+    return;
+  }
+  const text = raw.replace(/\r\n/g, '\n');
+  const shown =
+    viewKey === tab.key && view.value ? view.value.state.doc.toString() : TABS.states[tab.key]?.doc.toString();
+  if (text === tab.orig && !force) {
+    tab.disk = false;
+    return;
+  }
+  if (text === shown) {
+    // what is on disk is what the editor already has (our own save coming back)
+    tab.orig = text;
+    tab.dirty = false;
+    tab.disk = false;
+    tabs.value = [...tabs.value];
+    return;
+  }
+  if (tab.dirty && !force) {
+    tab.disk = true;
+    tabs.value = [...tabs.value];
+    return;
+  }
+  tab.orig = text;
+  tab.crlf = raw.includes('\r\n');
+  tab.disk = false;
+  if (viewKey === tab.key && view.value)
+    view.value.dispatch({ changes: { from: 0, to: view.value.state.doc.length, insert: text } });
+  else TABS.states[tab.key] = markRaw(makeState(tab, text));
+  tab.dirty = false;
+  tabs.value = [...tabs.value];
+}
+onMounted(() => tabs.value.forEach((x) => refreshTab(x)));
 async function openTab(l) {
   const key = keyOf(l);
   let tab = tabs.value.find((x) => x.key === key);
@@ -703,6 +750,12 @@ function openSearch() {
         <button class="btn clear ibtn sm" :aria-label="t('Outline')" @click="showOutline = !showOutline">
           <Icon name="sidebar" :size="16" />
         </button>
+      </div>
+      <div v-if="active?.disk" class="disk">
+        <Icon name="warn" :size="16" />
+        <span class="grow">{{ t('{f} was changed outside this editor.', { f: active.path }) }}</span>
+        <button class="btn" @click="active.disk = false">{{ t('Keep my edits') }}</button>
+        <button class="btn acc" @click="refreshTab(active, true)">{{ t('Load the new version') }}</button>
       </div>
       <div ref="host" class="cm-host" :class="{ loading: active?.loading }"></div>
       <div class="status">
@@ -1236,6 +1289,20 @@ function openSearch() {
   .status .kb {
     display: none;
   }
+}
+.disk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--wn) 12%, var(--s2));
+  color: var(--tx);
+  font-size: 13px;
+}
+.disk > svg {
+  color: var(--wn);
+  flex: none;
 }
 </style>
 

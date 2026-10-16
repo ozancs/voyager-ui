@@ -30,6 +30,7 @@ import { sync, detect, importFrom, push } from '../sync';
 import { go } from '../router';
 import { iconUrl, readIcon, LOGOS, probeMainsailLogos } from '../printerIcon';
 import { t, LANGS } from '../i18n';
+import { PARTS, partsIn, restoreParts } from '../settingsParts';
 
 const TABS = [
   ['general', 'gear', 'General'],
@@ -299,7 +300,8 @@ async function pickFile(e) {
     const d = JSON.parse(await f.text());
     if (![APP, ...OLD_APPS].includes(d.app) || !d.settings)
       throw new Error(t('not a {app} settings file', { app: APP_NAME }));
-    pending.value = { ...d, name: f.name };
+    const parts = partsIn(d.settings);
+    pending.value = { ...d, name: f.name, parts, pick: parts.filter((x) => !x.off).map((x) => x.id) };
   } catch (err) {
     toast(t('Could not read backup: {msg}', { msg: err.message }), 'error');
   }
@@ -325,10 +327,19 @@ async function apply(data, label) {
   saveSettings();
   toast(label);
 }
+// only the parts ticked in the dialog; the others keep what this printer has now
 function applyPending() {
   const p = pending.value;
   pending.value = null;
-  apply(p.settings, t('Settings restored from {name}', { name: p.name }));
+  if (!p.pick.length) return;
+  const cur = JSON.parse(JSON.stringify(state.settings));
+  apply(
+    restoreParts(cur, p.settings, p.pick, DEFAULT_SETTINGS()),
+    t('Settings restored from {name}', { name: p.name }),
+  );
+}
+function togglePart(p, id) {
+  p.pick = p.pick.includes(id) ? p.pick.filter((x) => x !== id) : [...p.pick, id];
 }
 function undoRestore() {
   if (prev.value) apply(prev.value.settings, t('Previous settings restored'));
@@ -1162,13 +1173,26 @@ function reset() {
   </Modal>
   <Modal v-if="pending" :title="t('Restore settings?')" @close="pending = null">
     <p style="margin: 0">
-      {{ t('Replace all current UI settings with {name}?', { name: pending.name }) }}
-      <span class="mu">({{ fmtD(pending.date) }}, v{{ pending.version }})</span>
+      {{ t('What to take from {name}?', { name: pending.name }) }}
+      <span class="mu"
+        >({{ [fmtD(pending.date), pending.version && 'v' + pending.version].filter(Boolean).join(', ') }})</span
+      >
     </p>
-    <span class="mu">{{ t('Your current settings are kept so you can go back.') }}</span>
+    <div class="parts">
+      <label v-for="x in pending.parts" :key="x.id" class="part"
+        ><input type="checkbox" :checked="pending.pick.includes(x.id)" @change="togglePart(pending, x.id)" />{{
+          t(x.name)
+        }}</label
+      >
+    </div>
+    <span class="mu">{{
+      t('Parts left unticked keep what this printer has now. Your current settings are kept so you can go back.')
+    }}</span>
     <template #foot
       ><button class="btn lg" @click="pending = null">{{ t('Cancel') }}</button
-      ><button class="btn lg acc" @click="applyPending">{{ t('Restore') }}</button></template
+      ><button class="btn lg acc" :disabled="!pending.pick.length" @click="applyPending">
+        {{ t('Restore') }}
+      </button></template
     >
   </Modal>
   <Modal v-if="confirmReset" :title="t('Reset UI settings?')" @close="confirmReset = false">
@@ -1446,5 +1470,23 @@ function reset() {
     width: 100%;
     max-width: 100%;
   }
+}
+.parts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0;
+}
+.part {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.part:hover {
+  background: var(--s2);
 }
 </style>

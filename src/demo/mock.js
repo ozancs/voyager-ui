@@ -2175,6 +2175,16 @@ gcodeScript = function (sc) {
     );
     return new Promise((res) => setTimeout(() => res('ok'), 6 * 450 + 100));
   }
+  // SAVE_CONFIG writes printer.cfg (the editor shows the new version without a page reload)
+  if (/^SAVE_CONFIG\b/.test(S)) {
+    cfgText['printer.cfg'] = cfgText['printer.cfg'].replace(/\n*$/, '\n#*# # saved ' + new Date().toISOString() + '\n');
+    wsAll({
+      jsonrpc: '2.0',
+      method: 'notify_filelist_changed',
+      params: [{ action: 'modify_file', item: { root: 'config', path: 'printer.cfg' } }],
+    });
+    return 'ok';
+  }
   if (/^BED_MESH_CALIBRATE\b/.test(S)) {
     const bm = status.configfile?.config?.bed_mesh || {};
     const nums = (v, d) =>
