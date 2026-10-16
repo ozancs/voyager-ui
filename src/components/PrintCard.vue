@@ -107,34 +107,34 @@ async function reprint() {
         <span class="fn">{{ ps.filename || t('No file loaded') }}</span>
       </div>
       <div class="stats">
-        <div>
+        <div :style="{ minWidth: '9ch' }">
           <span class="lbl">{{ t('Layer') }}</span
           ><b class="mono">{{ layerInfo.cur }} / {{ layerInfo.total || '--' }}</b>
         </div>
-        <div>
+        <div :style="{ minWidth: '8.5ch' }">
           <span class="lbl">Z</span><b class="mono">{{ z }} mm</b>
         </div>
-        <div>
+        <div :style="{ minWidth: '8ch' }">
           <span class="lbl">{{ t('Speed') }}</span
           ><b class="mono">{{ speed }}</b>
         </div>
-        <div>
+        <div :style="{ minWidth: '9.5ch' }">
           <span class="lbl">{{ t('Flow') }}</span
           ><b class="mono">{{ flow }}</b>
         </div>
-        <div>
+        <div :style="{ minWidth: '7.5ch' }">
           <span class="lbl">{{ t('Filament') }}</span
           ><b class="mono">{{ filament }}</b>
         </div>
-        <div>
+        <div :style="{ minWidth: '7ch' }">
           <span class="lbl">{{ t('Print time') }}</span
           ><b class="mono">{{ fmtTime(ps.print_duration) }}</b>
         </div>
-        <div>
+        <div :style="{ minWidth: '7ch' }">
           <span class="lbl">{{ t('Slicer') }}</span
           ><b class="mono">{{ slicer }}</b>
         </div>
-        <div>
+        <div :style="{ minWidth: '7ch' }">
           <span class="lbl">{{ t('Left') }}</span
           ><b class="mono">{{ active ? fmtTime(printTimes.left) : '--' }}</b>
         </div>
@@ -237,6 +237,7 @@ async function reprint() {
   flex-wrap: wrap;
 }
 .stats > div {
+  /* a minimum width per value (in digit widths) so the ones after it stay put while speed and flow change */
   display: flex;
   flex-direction: column;
   gap: 2px;
