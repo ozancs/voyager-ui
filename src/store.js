@@ -1397,7 +1397,7 @@ export function start() {
     state.conn.attempts++;
     // find out why: is moonraker reachable over http?
     try {
-      const r = await api.fetch('/server/info');
+      const r = await api.fetch('/server/info', { signal: AbortSignal.timeout?.(6000) });
       if (r.status === 502 || r.status === 504)
         state.conn.probe = t(
           'Moonraker is not responding (nginx {status}). It may be restarting or crashed; check moonraker.log.',

@@ -389,8 +389,27 @@ const zColor = (z, lo, hi) => {
   const f = hi > lo ? (z - lo) / (hi - lo) : 0.5;
   return `color-mix(in srgb, #ff5a4d ${Math.round(f * 100)}%, #4d9bff)`;
 };
+// A rapid scan (eddy probes) prints no per-point results: once it is done, the points come from the mesh itself
+const matrixPts = () => {
+  const bm = S('bed_mesh'),
+    m = bm.probed_matrix;
+  if (!run.value?.ended || !Array.isArray(m) || !m.length || !Array.isArray(m[0])) return [];
+  const [x0, y0] = bm.mesh_min || [],
+    [x1, y1] = bm.mesh_max || [],
+    ny = m.length,
+    nx = m[0].length;
+  if (![x0, y0, x1, y1].every(Number.isFinite) || nx < 2 || ny < 2) return [];
+  const out = [];
+  m.forEach((row, j) =>
+    row.forEach((z, i) => {
+      if (typeof z === 'number')
+        out.push({ x: x0 + ((x1 - x0) * i) / (nx - 1), y: y0 + ((y1 - y0) * j) / (ny - 1), z });
+    }),
+  );
+  return out;
+};
 const meshPts = computed(() => {
-  const p = probes.value;
+  const p = probes.value.length ? probes.value : cur.value?.kind === 'mesh' ? matrixPts() : [];
   if (!p.length) return [];
   const zs = p.map((q) => q.z),
     lo = Math.min(...zs),
@@ -666,7 +685,14 @@ const RUNS = _reactive({});
             </text>
           </template>
           <template v-else>
-            <circle v-for="p in planPts" :key="'g' + p.k" :cx="bx(p.x)" :cy="by(p.y)" r="4" class="plan" />
+            <circle
+              v-for="p in run?.ended && meshPts.length ? [] : planPts"
+              :key="'g' + p.k"
+              :cx="bx(p.x)"
+              :cy="by(p.y)"
+              r="4"
+              class="plan"
+            />
             <path v-if="run?.running && trail.length > 1" :d="trailPath" class="trail" />
             <circle
               v-for="p in meshPts"
@@ -841,7 +867,7 @@ const RUNS = _reactive({});
         </div>
         <div v-if="cur.kind === 'mesh' && meshRange != null" class="res">
           <b>{{ t('Bed range {r} mm', { r: meshRange }) }}</b>
-          <span class="mu sm">{{ t('{n} points probed', { n: probes.length }) }}</span>
+          <span class="mu sm">{{ t('{n} points probed', { n: meshPts.length }) }}</span>
         </div>
         <div v-if="zres" class="res">
           <b>{{ zres.key }}: {{ zres.value }}</b>

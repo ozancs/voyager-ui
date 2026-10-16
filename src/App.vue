@@ -206,7 +206,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
       >
         <Icon name="chevr2" :size="16" :stroke="2.4" />
       </button>
-      <main class="main">
+      <main class="main" :class="{ stale: !state.connected && state.booted }">
         <div v-if="!state.connected" class="banner">
           <Icon name="refresh" :size="20" class="spin" />
           <div class="grow">
@@ -362,6 +362,13 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
 }
 .main > * {
   flex-shrink: 0;
+}
+/* the printer is gone: what is left on the page is old, so it is greyed out and cannot be clicked */
+.main.stale > :not(.banner) {
+  opacity: 0.35;
+  filter: grayscale(1);
+  pointer-events: none;
+  user-select: none;
 }
 .main {
   flex: 1;

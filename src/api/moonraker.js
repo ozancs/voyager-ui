@@ -8,6 +8,8 @@ export class Moonraker {
     this.handlers = {};
     this.host = '';
     this.retry = null;
+    this.lastMsg = 0; // when the socket last brought anything
+    this.watch = null;
     // Moonraker login (only used when Moonraker asks for it, trusted clients never see a login)
     this.auth = { token: '', refresh: '', user: '' };
     this.loadAuth();
@@ -123,7 +125,7 @@ export class Moonraker {
   async wsQuery() {
     let r;
     try {
-      r = await this.fetch('/server/info');
+      r = await this.fetch('/server/info', { signal: AbortSignal.timeout?.(6000) });
     } catch {
       return '';
     } // network error: let the websocket fail and retry
@@ -134,7 +136,7 @@ export class Moonraker {
       this.auth = { token: '', refresh: '', user: '' };
       this.saveAuth();
       try {
-        r = await this.fetch('/server/info');
+        r = await this.fetch('/server/info', { signal: AbortSignal.timeout?.(6000) });
       } catch {
         return '';
       }
@@ -198,7 +200,11 @@ export class Moonraker {
     }
     const ws = new WebSocket(`${proto}://${target}/websocket${q}`);
     this.ws = ws;
-    ws.onopen = () => this.emit('open');
+    ws.onopen = () => {
+      this.lastMsg = Date.now();
+      this.startWatch();
+      this.emit('open');
+    };
     ws.onclose = () => {
       if (this.ws !== ws) return; // replaced by a newer socket
       for (const [, p] of this.pending) p.reject(new Error('disconnected'));
@@ -208,6 +214,7 @@ export class Moonraker {
     };
     ws.onerror = () => {};
     ws.onmessage = (ev) => {
+      this.lastMsg = Date.now();
       let msg;
       try {
         msg = JSON.parse(ev.data);
@@ -223,6 +230,32 @@ export class Moonraker {
         this.emit(msg.method, msg.params);
       }
     };
+  }
+
+  // A printer switched off at the plug never closes its socket: the browser keeps it open for minutes and the page
+  // keeps showing the last values. Moonraker sends something every second (proc stats), so after 10 s of silence
+  // ask it something; no answer in 5 s and the socket counts as gone (closed here, the usual reconnect follows).
+  startWatch() {
+    clearInterval(this.watch);
+    this.watch = setInterval(() => {
+      const ws = this.ws;
+      if (!ws || ws.readyState !== 1 || this.probing || Date.now() - this.lastMsg < 10e3) return;
+      this.probing = true;
+      const tm = setTimeout(() => {
+        this.probing = false;
+        if (this.ws !== ws || Date.now() - this.lastMsg < 10e3) return;
+        ws.close();
+        ws.onclose?.(); // a dead connection may not report its close for minutes
+        ws.onclose = null;
+      }, 5000);
+      this._call('server.info').then(
+        () => {
+          clearTimeout(tm);
+          this.probing = false;
+        },
+        () => {},
+      );
+    }, 2000);
   }
 
   // optional hook so the UI can show what is being loaded

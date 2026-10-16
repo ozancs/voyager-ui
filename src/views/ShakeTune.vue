@@ -7,6 +7,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import ImageViewer from '../components/ImageViewer.vue';
+import CalibSide from '../components/CalibSide.vue';
 import { state, S, gcode, toast, isPrinting, useApiEvent, fmtDate, restartKlipper } from '../store';
 import { api } from '../api/moonraker';
 import { writeOptions } from '../cfgwrite';
@@ -304,6 +305,7 @@ const shortName = (n) => n.replace(/\.png$/i, '');
     </section>
 
     <div class="side-col">
+      <CalibSide part="status" />
       <section class="card">
         <div class="card-h"><h2>Shake&amp;Tune</h2></div>
         <div v-if="!installed" class="empty">
@@ -365,6 +367,7 @@ const shortName = (n) => n.replace(/\.png$/i, '');
         </div>
         <pre class="log">{{ runLines.slice(-12).join('\n') || (run.running ? t('Waiting for output…') : '') }}</pre>
       </section>
+      <CalibSide part="cam" />
     </div>
   </div>
 

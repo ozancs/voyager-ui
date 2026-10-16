@@ -15,7 +15,7 @@ const cams = computed(() => state.webcams.filter((w) => w.enabled !== false));
 const cam = computed(() => cams.value.find((c) => c.name === state.settings.calibCam) || cams.value[0] || null);
 </script>
 <template>
-  <section v-if="part === 'status'" class="card st">
+  <section v-if="part === 'status'" class="card cs-st">
     <div class="row hs">
       <button
         class="btn"
@@ -56,7 +56,7 @@ const cam = computed(() => cams.value.find((c) => c.name === state.settings.cali
   </section>
 </template>
 <style scoped>
-.st {
+.cs-st {
   gap: 12px;
 }
 .hs {

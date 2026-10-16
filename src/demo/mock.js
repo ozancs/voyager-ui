@@ -2187,6 +2187,7 @@ gcodeScript = function (sc) {
         Math.min(mx[0], status.toolhead.axis_maximum[0] - 20),
         Math.min(mx[1], status.toolhead.axis_maximum[1] - 20),
       ];
+    const rapid = /METHOD=rapid_scan/i.test(S) || globalThis.__demoRapid;
     const n = nums(bm.probe_count, '7')[0] || 7,
       out = [],
       m = [],
@@ -2199,7 +2200,8 @@ gcodeScript = function (sc) {
           y = y0 + ((y1 - y0) * j) / (n - 1);
         const z = 2.5 + 0.06 * Math.sin(ii / 1.6) - 0.04 * Math.cos(j / 2) + 0.01 * Math.random();
         row[ii] = z - 2.5;
-        out.push(`// probe at ${x.toFixed(3)},${y.toFixed(3)} is z=${z.toFixed(6)}`);
+        // a rapid scan (eddy probes) prints no per-point lines
+        if (!rapid) out.push(`// probe at ${x.toFixed(3)},${y.toFixed(3)} is z=${z.toFixed(6)}`);
         pts.push([x, y]);
       }
       m.push(row);
@@ -2219,7 +2221,7 @@ gcodeScript = function (sc) {
     return new Promise((res) =>
       setTimeout(() => {
         pushStatus({
-          bed_mesh: { probed_matrix: m, profile_name: 'default' },
+          bed_mesh: { probed_matrix: m, profile_name: 'default', mesh_min: [x0, y0], mesh_max: [x1, y1] },
           configfile: { save_config_pending: true },
         });
         res('ok');
@@ -2338,11 +2340,16 @@ class FakeSocket {
     this.onopen = this.onmessage = this.onclose = this.onerror = null;
     sockets.push(this);
     setTimeout(() => {
+      if (globalThis.__demoDead) {
+        this.readyState = 3; // nothing there to connect to
+        return this.onclose && this.onclose({});
+      }
       this.readyState = 1;
       this.onopen && this.onopen({});
     }, 60);
   }
   _recv(s) {
+    if (globalThis.__demoDead) return; // a printer switched off at the plug: the socket just goes quiet
     this.readyState === 1 && this.onmessage && this.onmessage({ data: s });
   }
   send(d) {
