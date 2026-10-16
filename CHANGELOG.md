@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.30.1
+
+- A printer switched off at the plug is noticed within seconds: the page greys out and shows it is reconnecting, instead of the last values. Suggested by Raidy
+- Shake&Tune: Home all, hotend and bed temperatures and the webcam beside the tests, like the other calibration tabs. Suggested by Raidy
+- Guided bed mesh: a rapid scan (eddy probes) shows its points and how many were probed when it is done. Suggested by Raidy
+- Heaters left on: an idle_timeout that turns off only the hotend and bed no longer hides a chamber still heating
+- Config backup: turning Auto off also drops a backup that was waiting to run
+
 ## 0.30.0
 
 - New first dashboard laid out like Mainsail: print, webcam, toolhead, macros and limits on the left, temperatures, the graph and the console on the right. Phones get the same order. Saved layouts are not touched. Suggested by Raidy
