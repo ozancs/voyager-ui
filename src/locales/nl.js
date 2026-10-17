@@ -530,7 +530,6 @@ export default {
  "The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.": "De eerste keer dat een verwarming een temperatuur vasthoudt, wordt het benodigde vermogen onthouden. Als er later veel meer nodig is, kan dat wijzen op een gescheurde siliconensok, een falende verwarming of een ventilator die op het blok blaast.",
  "The job queue is a Moonraker feature that prints files one after another. It is not turned on in moonraker.conf yet.": "De wachtrij is een Moonraker-functie die bestanden na elkaar print. Deze staat nog niet aan in moonraker.conf.",
  "The printer host is not reachable from this browser (network / Pi down).": "De printer-host is niet bereikbaar vanuit deze browser (netwerk / Pi uit).",
- "The printer will skip {name} for the rest of this print. This can't be undone.": "De printer slaat {name} over voor de rest van deze print. Dit kan niet ongedaan worden gemaakt.",
  "The toolhead / gantry": "De printkop / gantry",
  "This adds the lines below to": "Dit voegt onderstaande regels toe aan",
  "This makes the Z jog arrows point the way the nozzle moves relative to the bed.": "Hierdoor wijzen de Z-jogpijlen de richting aan waarin de nozzle beweegt ten opzichte van het bed.",
@@ -1971,4 +1970,5 @@ export default {
   "Appearance and language": "Uiterlijk en taal",
   "This printer (name, icon, maintenance, heater measurements)": "Deze printer (naam, icoon, onderhoud, verwarmingsmetingen)",
   "Everything else": "Al het andere",
+  "The printer will skip it for the rest of this print. This cannot be undone.": "De printer slaat het over voor de rest van deze print. Dit kan niet ongedaan worden gemaakt.",
 }

@@ -530,7 +530,6 @@ export default {
  "The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.": "La première fois qu'un chauffage maintient une température, la puissance nécessaire est mémorisée. En avoir besoin de beaucoup plus par la suite peut indiquer une chaussette en silicone déchirée, un chauffage défaillant ou un ventilateur qui souffle sur le bloc.",
  "The job queue is a Moonraker feature that prints files one after another. It is not turned on in moonraker.conf yet.": "La file d'attente est une fonctionnalité de Moonraker qui imprime les fichiers l'un après l'autre. Elle n'est pas encore activée dans moonraker.conf.",
  "The printer host is not reachable from this browser (network / Pi down).": "L'hôte de l'imprimante n'est pas joignable depuis ce navigateur (réseau / Pi éteint).",
- "The printer will skip {name} for the rest of this print. This can't be undone.": "L'imprimante sautera {name} pour le reste de cette impression. C'est irréversible.",
  "The toolhead / gantry": "La tête d'impression / le portique",
  "This adds the lines below to": "Ceci ajoute les lignes ci-dessous à",
  "This makes the Z jog arrows point the way the nozzle moves relative to the bed.": "Ceci fait pointer les flèches de déplacement Z dans le sens où la buse se déplace par rapport au plateau.",
@@ -1971,4 +1970,5 @@ export default {
   "Appearance and language": "Apparence et langue",
   "This printer (name, icon, maintenance, heater measurements)": "Cette imprimante (nom, icône, entretien, mesures des chauffages)",
   "Everything else": "Tout le reste",
+  "The printer will skip it for the rest of this print. This cannot be undone.": "L'imprimante l'ignorera pour le reste de cette impression. Impossible d'annuler.",
 }

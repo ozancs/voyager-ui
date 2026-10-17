@@ -530,7 +530,6 @@ export default {
  "The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.": "ヒーターが初めてある温度を維持したとき、必要だった出力が記憶されます。後で大幅に多くの出力が必要になった場合、シリコンソックの破損、ヒーターの故障、ブロックに風が当たっているなどの原因が考えられます。",
  "The job queue is a Moonraker feature that prints files one after another. It is not turned on in moonraker.conf yet.": "印刷キューはファイルを順番に印刷する Moonraker の機能です。moonraker.conf ではまだ有効になっていません。",
  "The printer host is not reachable from this browser (network / Pi down).": "このブラウザからプリンターホストに接続できません（ネットワークまたは Pi がダウンしている可能性があります）。",
- "The printer will skip {name} for the rest of this print. This can't be undone.": "この印刷の残りの部分で {name} はスキップされます。元に戻すことはできません。",
  "The toolhead / gantry": "ツールヘッド / ガントリー",
  "This adds the lines below to": "以下の行が次のファイルに追加されます：",
  "This makes the Z jog arrows point the way the nozzle moves relative to the bed.": "これにより Z ジョグの矢印が、ベッドに対するノズルの移動方向を示すようになります。",
@@ -1971,4 +1970,5 @@ export default {
   "Appearance and language": "外観と言語",
   "This printer (name, icon, maintenance, heater measurements)": "このプリンター (名前、アイコン、メンテナンス、ヒーター測定)",
   "Everything else": "その他すべて",
+  "The printer will skip it for the rest of this print. This cannot be undone.": "この印刷の残りの間、プリンターはこれをスキップします。元に戻せません。",
 }

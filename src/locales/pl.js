@@ -530,7 +530,6 @@ export default {
  "The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.": "Za pierwszym razem, gdy grzałka utrzymuje temperaturę, zapamiętywana jest potrzebna moc. Znaczny wzrost zapotrzebowania później może wskazywać na uszkodzoną skarpetkę silikonową, uszkodzoną grzałkę lub wentylator nawiewający na blok.",
  "The job queue is a Moonraker feature that prints files one after another. It is not turned on in moonraker.conf yet.": "Kolejka zadań to funkcja Moonrakera drukująca pliki jeden po drugim. Nie jest jeszcze włączona w moonraker.conf.",
  "The printer host is not reachable from this browser (network / Pi down).": "Host drukarki jest niedostępny z tej przeglądarki (sieć / Pi nie działa).",
- "The printer will skip {name} for the rest of this print. This can't be undone.": "Drukarka pominie {name} do końca tego wydruku. Tej operacji nie można cofnąć.",
  "The toolhead / gantry": "Głowica / gantry",
  "This adds the lines below to": "To dodaje poniższe linie do",
  "This makes the Z jog arrows point the way the nozzle moves relative to the bed.": "Powoduje, że strzałki jog Z wskazują kierunek ruchu dyszy względem stołu.",
@@ -1971,4 +1970,5 @@ export default {
   "Appearance and language": "Wygląd i język",
   "This printer (name, icon, maintenance, heater measurements)": "Ta drukarka (nazwa, ikona, konserwacja, pomiary grzałek)",
   "Everything else": "Wszystko inne",
+  "The printer will skip it for the rest of this print. This cannot be undone.": "Drukarka pominie go do końca tego wydruku. Tego nie można cofnąć.",
 }

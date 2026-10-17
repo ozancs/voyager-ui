@@ -530,7 +530,6 @@ export default {
  "The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.": "При першому утриманні температури запам'ятовується потрібна потужність нагрівача. Якщо пізніше потрібно набагато більше — можливо, порваний силіконовий чохол, нагрівач виходить з ладу або вентилятор обдуває блок.",
  "The job queue is a Moonraker feature that prints files one after another. It is not turned on in moonraker.conf yet.": "Черга завдань — функція Moonraker для друку файлів підряд. Вона ще не увімкнена в moonraker.conf.",
  "The printer host is not reachable from this browser (network / Pi down).": "Хост принтера недоступний з цього браузера (мережа недоступна / Pi вимкнено).",
- "The printer will skip {name} for the rest of this print. This can't be undone.": "Принтер пропустить {name} до кінця цього друку. Це неможливо скасувати.",
  "The toolhead / gantry": "Каретка / портал",
  "This adds the lines below to": "Це додасть рядки нижче до",
  "This makes the Z jog arrows point the way the nozzle moves relative to the bed.": "Це робить так, що стрілки переміщення по Z вказують напрямок руху сопла відносно стола.",
@@ -1971,4 +1970,5 @@ export default {
   "Appearance and language": "Вигляд і мова",
   "This printer (name, icon, maintenance, heater measurements)": "Цей принтер (назва, значок, обслуговування, вимірювання нагрівачів)",
   "Everything else": "Усе інше",
+  "The printer will skip it for the rest of this print. This cannot be undone.": "Принтер пропустить його до кінця цього друку. Скасувати не можна.",
 }

@@ -530,7 +530,6 @@ export default {
  "The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.": "加热器首次维持某一温度时，所需功率会被记录下来。之后如果需要明显更高的功率，可能是硅胶套破损、加热器故障，或有风扇对着加热块吹风。",
  "The job queue is a Moonraker feature that prints files one after another. It is not turned on in moonraker.conf yet.": "打印队列是 Moonraker 的一项功能，可依次打印多个文件。目前尚未在 moonraker.conf 中启用。",
  "The printer host is not reachable from this browser (network / Pi down).": "此浏览器无法连接到打印机主机（网络或树莓派已离线）。",
- "The printer will skip {name} for the rest of this print. This can't be undone.": "打印机在本次打印剩余过程中将跳过 {name}，此操作无法撤销。",
  "The toolhead / gantry": "打印头 / 龙门架",
  "This adds the lines below to": "这将把以下内容添加到",
  "This makes the Z jog arrows point the way the nozzle moves relative to the bed.": "这样 Z 轴点动箭头会指向喷嘴相对于热床移动的方向。",
@@ -1971,4 +1970,5 @@ export default {
   "Appearance and language": "外观和语言",
   "This printer (name, icon, maintenance, heater measurements)": "此打印机 (名称、图标、维护、加热器测量)",
   "Everything else": "其他所有内容",
+  "The printer will skip it for the rest of this print. This cannot be undone.": "打印机将在本次打印的剩余部分跳过它。此操作无法撤销。",
 }

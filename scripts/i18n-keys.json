@@ -529,7 +529,6 @@
 "The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.",
 "The job queue is a Moonraker feature that prints files one after another. It is not turned on in moonraker.conf yet.",
 "The printer host is not reachable from this browser (network / Pi down).",
-"The printer will skip {name} for the rest of this print. This can't be undone.",
 "The toolhead / gantry",
 "This adds the lines below to",
 "This makes the Z jog arrows point the way the nozzle moves relative to the bed.",
@@ -1969,5 +1968,6 @@
 "Control (jog steps, speeds)",
 "Appearance and language",
 "This printer (name, icon, maintenance, heater measurements)",
-"Everything else"
+"Everything else",
+"The printer will skip it for the rest of this print. This cannot be undone."
 ]

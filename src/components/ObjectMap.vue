@@ -1,10 +1,12 @@
 <script setup>
 // Top view of the bed with the print's objects (from exclude_object) drawn as outlines. Excluded
-// objects are greyed out, the current one is highlighted; clicking one emits 'pick'.
+// objects are greyed out, the current one is highlighted; clicking one emits 'pick'. `marked` is the object about
+// to be excluded (drawn red, on top), `hot` the one under the pointer here or in a list beside the map.
 import { computed } from 'vue';
 import { S } from '../store';
 import { t } from '../i18n';
-const emit = defineEmits(['pick']);
+const props = defineProps({ marked: String, hot: String });
+const emit = defineEmits(['pick', 'hover']);
 const bed = computed(() => {
   const t = S('toolhead');
   const min = t.axis_minimum || [0, 0],
@@ -13,14 +15,33 @@ const bed = computed(() => {
 });
 const objs = computed(() => {
   const eo = S('exclude_object');
-  return (eo.objects || []).map((o) => ({
-    name: o.name,
-    pts: (o.polygon || []).map(([x, y]) => `${x - bed.value.x0},${bed.value.h - (y - bed.value.y0)}`).join(' '),
-    c: o.center ? [o.center[0] - bed.value.x0, bed.value.h - (o.center[1] - bed.value.y0)] : null,
-    excluded: eo.excluded_objects?.includes(o.name),
-    current: eo.current_object === o.name,
-  }));
+  return (
+    (eo.objects || [])
+      .map((o) => ({
+        name: o.name,
+        pts: (o.polygon || []).map(([x, y]) => `${x - bed.value.x0},${bed.value.h - (y - bed.value.y0)}`).join(' '),
+        c: o.center ? [o.center[0] - bed.value.x0, bed.value.h - (o.center[1] - bed.value.y0)] : null,
+        excluded: eo.excluded_objects?.includes(o.name),
+        current: eo.current_object === o.name,
+        marked: o.name === props.marked,
+        hot: o.name === props.hot,
+      }))
+      // the marked one last, so it is drawn over its neighbours
+      .sort((a, b) => a.marked - b.marked)
+  );
 });
+const fill = (o) =>
+  o.marked
+    ? 'rgba(229,72,77,.7)'
+    : o.excluded
+      ? 'rgba(229,72,77,.15)'
+      : o.hot
+        ? 'color-mix(in srgb, var(--tx) 22%, transparent)'
+        : o.current
+          ? 'color-mix(in srgb, var(--ac) 35%, transparent)'
+          : 'color-mix(in srgb, var(--tx) 8%, transparent)';
+const stroke = (o) =>
+  o.marked || o.excluded ? '#e5484d' : o.hot ? 'var(--tx)' : o.current ? 'var(--ac)' : 'var(--mu)';
 const pos = computed(() => {
   const p = S('toolhead').position;
   return p ? [p[0] - bed.value.x0, bed.value.h - (p[1] - bed.value.y0)] : null;
@@ -43,23 +64,48 @@ const pos = computed(() => {
       stroke-width="1.5"
       rx="4"
     />
-    <g v-for="o in objs" :key="o.name" style="cursor: pointer" @click="!o.excluded && emit('pick', o.name)">
+    <g
+      v-for="o in objs"
+      :key="o.name"
+      style="cursor: pointer"
+      @click="!o.excluded && emit('pick', o.name)"
+      @mouseenter="emit('hover', o.name)"
+      @mouseleave="emit('hover', null)"
+    >
       <polygon
         v-if="o.pts"
         :points="o.pts"
-        :fill="
-          o.excluded
-            ? 'rgba(229,72,77,.15)'
-            : o.current
-              ? 'color-mix(in srgb, var(--ac) 35%, transparent)'
-              : 'color-mix(in srgb, var(--tx) 8%, transparent)'
-        "
-        :stroke="o.excluded ? '#e5484d' : o.current ? 'var(--ac)' : 'var(--mu)'"
-        stroke-width="1.5"
+        :fill="fill(o)"
+        :stroke="stroke(o)"
+        :stroke-width="o.marked ? 3 : 1.5"
+        :stroke-dasharray="o.excluded && !o.marked ? '4 3' : null"
+        :class="{ mk: o.marked }"
       />
-      <circle v-else-if="o.c" :cx="o.c[0]" :cy="o.c[1]" r="6" :fill="o.excluded ? '#e5484d' : 'var(--ac)'" />
+      <circle
+        v-else-if="o.c"
+        :cx="o.c[0]"
+        :cy="o.c[1]"
+        :r="o.marked || o.hot ? 9 : 6"
+        :fill="o.marked || o.excluded ? '#e5484d' : o.hot ? 'var(--tx)' : 'var(--ac)'"
+      />
       <title>{{ o.name }}</title>
     </g>
     <circle v-if="pos" :cx="pos[0]" :cy="pos[1]" r="3" fill="#fff" />
   </svg>
 </template>
+<style scoped>
+/* the object about to be excluded breathes a little, so it is found at a glance */
+.mk {
+  animation: mk 1.4s ease-in-out infinite;
+}
+@keyframes mk {
+  50% {
+    fill-opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mk {
+    animation: none;
+  }
+}
+</style>

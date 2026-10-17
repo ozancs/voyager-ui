@@ -431,7 +431,8 @@ Small ring gauge (a value out of max) used for CPU, memory and MCU load.
 
 **[src/components/ExcludeModal.vue](../src/components/ExcludeModal.vue)**  
 Exclude object dialog: pick an object on the bed map (ObjectMap) or in the list, confirm, and  
-EXCLUDE_OBJECT is sent. Needs [exclude_object] in Klipper and labelled objects in the G-code.  
+EXCLUDE_OBJECT is sent. The picked object turns red on the map and the question takes the list's place, so the  
+map stays in view while confirming; pointing at a row lights its object up on the map and the other way round. Needs [exclude_object] in Klipper and labelled objects in the G-code.  
 Excluding the last object that is still printing would leave nothing to print while the printer keeps running  
 the file (heating, moving, only without plastic), so the dialog offers to cancel the print instead.
 
@@ -577,7 +578,8 @@ Number input with a label and unit, used in settings forms. Emits the value as a
 
 **[src/components/ObjectMap.vue](../src/components/ObjectMap.vue)**  
 Top view of the bed with the print's objects (from exclude_object) drawn as outlines. Excluded  
-objects are greyed out, the current one is highlighted; clicking one emits 'pick'.
+objects are greyed out, the current one is highlighted; clicking one emits 'pick'. `marked` is the object about  
+to be excluded (drawn red, on top), `hot` the one under the pointer here or in a list beside the map.
 
 **[src/components/ObjectsCard.vue](../src/components/ObjectsCard.vue)**  
 Dashboard card with the object map and the button that opens the exclude object dialog.

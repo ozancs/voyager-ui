@@ -530,7 +530,6 @@ export default {
  "The first time a heater holds a temperature, the power it needs is remembered. Needing a lot more later can point to a torn silicone sock, a failing heater or a fan blowing on the block.": "Bir ısıtıcı bir sıcaklığı ilk kez tuttuğunda gereken güç hatırlanır. Sonradan çok daha fazlası gerekirse yırtık silikon çorap, bozulan ısıtıcı ya da bloğa üfleyen bir fan olabilir.",
  "The job queue is a Moonraker feature that prints files one after another. It is not turned on in moonraker.conf yet.": "Baskı kuyruğu, dosyaları art arda basan bir Moonraker özelliği. moonraker.conf'ta henüz açık değil.",
  "The printer host is not reachable from this browser (network / Pi down).": "Yazıcı bilgisayarına bu tarayıcıdan ulaşılamıyor (ağ ya da Pi kapalı).",
- "The printer will skip {name} for the rest of this print. This can't be undone.": "Yazıcı bu baskının geri kalanında {name} nesnesini atlayacak. Geri alınamaz.",
  "The toolhead / gantry": "Kafa / gantry",
  "This adds the lines below to": "Bu işlem aşağıdaki satırları şu dosyaya ekler:",
  "This makes the Z jog arrows point the way the nozzle moves relative to the bed.": "Böylece Z okları nozulun tablaya göre hareket yönünü gösterir.",
@@ -1971,4 +1970,5 @@ export default {
   "Appearance and language": "Görünüm ve dil",
   "This printer (name, icon, maintenance, heater measurements)": "Bu yazıcı (ad, simge, bakım, ısıtıcı ölçümleri)",
   "Everything else": "Diğer her şey",
+  "The printer will skip it for the rest of this print. This cannot be undone.": "Yazıcı bu baskının geri kalanında bunu atlayacak. Geri alınamaz.",
 }
