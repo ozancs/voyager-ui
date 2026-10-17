@@ -88,6 +88,18 @@ function open(it) {
   if (EDITABLE.test(it.name)) go('config', root.value + '/' + rel);
   else window.open(api.fileUrl(root.value, rel), '_blank', 'noopener');
 }
+// the path above the list, each part clickable: the root and every folder on the way go back there
+const crumbs = computed(() => {
+  const parts = path.value ? path.value.split('/') : [];
+  return [{ name: root.value, to: '' }, ...parts.map((n, i) => ({ name: n, to: parts.slice(0, i + 1).join('/') }))];
+});
+const pathLbl = computed(() => t('Current path: /{p}', { p: '\u0000' }).split('\u0000')[0]);
+function goDir(to) {
+  if (to === path.value) return;
+  path.value = to;
+  picked.value = new Set();
+  load();
+}
 function upDir() {
   path.value = path.value.split('/').slice(0, -1).join('/');
   picked.value = new Set();
@@ -275,7 +287,13 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
       <button class="btn clear" @click="picked = new Set()">{{ t('Cancel') }}</button>
     </div>
     <div class="row mono" style="justify-content: space-between; font-size: 12px">
-      <b>{{ t('Current path: /{p}', { p: full }) }}</b
+      <b class="crumbs"
+        >{{ pathLbl
+        }}<template v-for="(c, i) in crumbs" :key="c.to"
+          ><span v-if="i" class="sep">/</span
+          ><button v-if="i < crumbs.length - 1" class="crumb" @click="goDir(c.to)">{{ c.name }}</button
+          ><span v-else>{{ c.name }}</span></template
+        ></b
       ><span class="mu" v-if="disk">{{
         up != null
           ? t('Uploading {n}%', { n: Math.round(up * 100) })
@@ -465,5 +483,26 @@ th.s {
 }
 .fr:hover .acts {
   opacity: 1;
+}
+.crumbs {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.crumb {
+  background: none;
+  border: 0;
+  padding: 0 1px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.crumb:hover {
+  text-decoration-style: solid;
+}
+.sep {
+  color: var(--mu);
+  padding: 0 1px;
 }
 </style>
