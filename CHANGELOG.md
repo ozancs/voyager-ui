@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.31.3
+
+- Exclude object: the object picked turns red on the map and the question sits beside the map instead of over it; pointing at a name in the list lights its object up on the map and the other way round. Suggested by Raidy
+- Add card menu: long names wrap instead of making the menu scroll sideways
+
 ## 0.31.2
 
 - Restore from file asks which parts to take: dashboard cards, favorites, presets, sensors, control, appearance, this printer's name and icon, everything else. Unticked parts keep what this printer has; the printer's own name and icon are unticked to begin with, so cards can move to another printer on their own. Suggested by Raidy
