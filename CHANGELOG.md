@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.32.0
+
+- Config files: pick the folder the list shows (config, config_examples, docs, logs), and upload, make a new file or a new folder right above it. Right click a file (long press on a phone, or the menu at the end of its row) to rename, duplicate, download or delete it. Suggested by Raidy
+- Webcams: put the cameras in an order in Settings > Webcams; the first one is what every card and page shows until another is picked. Suggested by Raidy
+- Files: each part of the current path can be clicked to go back to that folder
+
 ## 0.31.3
 
 - Exclude object: the object picked turns red on the map and the question sits beside the map instead of over it; pointing at a name in the list lights its object up on the map and the other way round. Suggested by Raidy
