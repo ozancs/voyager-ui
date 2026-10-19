@@ -58,16 +58,29 @@ const showProblems = ref(false);
 
 // ---------------------------------------------------------------- files
 const files = ref([]);
+// the folder the tree shows: config, or another of Moonraker's roots (config_examples and docs help when setting up a
+// printer, logs to read). Read only ones get no upload / new / rename / delete.
+const troot = ref(loc.value.root === 'gcodes' || loc.value.root === 'timelapse' ? 'config' : loc.value.root);
+const roots = ref([{ name: 'config', permissions: 'rw' }]);
+api
+  .call('server.files.roots')
+  .then((r) => (roots.value = r.filter((x) => !['gcodes', 'timelapse'].includes(x.name))))
+  .catch(() => {});
+const writable = computed(() => (roots.value.find((r) => r.name === troot.value)?.permissions || 'rw').includes('w'));
+watch(troot, () => {
+  files.value = [];
+  loadFiles();
+});
 async function loadFiles() {
   try {
-    files.value = (await api.call('server.files.list', { root: 'config' }))
+    files.value = (await api.call('server.files.list', { root: troot.value }))
       .map((f) => f.path)
       .filter((p, i, a) => !p.includes('::TMPNAME') && a.indexOf(p) === i)
       .sort();
   } catch {}
 }
 useApiEvent('notify_filelist_changed', ([p]) => {
-  if (p?.item?.root === 'config') loadFiles();
+  if (p?.item?.root === troot.value) loadFiles();
   // an open file changed on disk (SAVE_CONFIG, another UI, an edit over SSH): show the new version
   if (['create_file', 'modify_file', 'move_file'].includes(p?.action)) {
     const tab = tabs.value.find((x) => x.root === p.item?.root && x.path === p.item?.path);
@@ -123,6 +136,139 @@ const editable = (p) =>
 function openFile(p, root = 'config') {
   go('config', root === 'config' ? p : root + '/' + p);
 }
+
+// ---------------------------------------------------------------- file actions (tree)
+// Right click (or a long press, or the ⋯ on a row) opens a menu: rename, duplicate, download, delete. The buttons
+// above the tree upload, make a new file or a new folder in the top folder of the root shown.
+const menu = ref(null); // { row, x, y }
+const fm = ref(null); // { kind: 'newfile'|'newdir'|'rename'|'copy'|'delete', row, value }
+const upIn = ref(null);
+function menuAt(r, e) {
+  const el = e.currentTarget,
+    b = el?.getBoundingClientRect?.();
+  // the interface scale is a CSS zoom on <html>: screen pixels per CSS pixel, measured like Popover does
+  const k = (b && el.offsetWidth && b.width / el.offsetWidth) || zoomK;
+  zoomK = k;
+  const x = (e.clientX || b?.right || 0) / k,
+    y = (e.clientY || b?.bottom || 0) / k;
+  // kept inside the window
+  menu.value = {
+    row: r,
+    x: Math.min(x, window.innerWidth / k - 200),
+    y: Math.min(y, window.innerHeight / k - 190),
+  };
+}
+let zoomK = 1;
+let press = null,
+  pressed = false; // a long press opened the menu: the click that follows does not also open the file
+function pressStart(r, e) {
+  pressed = false;
+  if (e.pointerType !== 'touch') return;
+  clearTimeout(press);
+  const { clientX, clientY } = e;
+  press = setTimeout(() => {
+    pressed = true;
+    menuAt(r, { clientX, clientY });
+  }, 550);
+}
+function rowClick(r) {
+  if (pressed) return (pressed = false);
+  if (r.dir) toggleDir(r.path);
+  else if (IMG.test(r.path)) openImage(r.path);
+  else openFile(r.path, troot.value);
+}
+const pressEnd = () => clearTimeout(press);
+function closeMenu() {
+  menu.value = null;
+}
+onMounted(() => {
+  window.addEventListener('pointerdown', closeMenu);
+  window.addEventListener('keydown', escMenu);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('pointerdown', closeMenu);
+  window.removeEventListener('keydown', escMenu);
+});
+const escMenu = (e) => e.key === 'Escape' && closeMenu();
+const dirOf = (p) => p.split('/').slice(0, -1).join('/');
+const full = (p) => troot.value + '/' + p;
+function act(kind) {
+  const r = menu.value.row;
+  menu.value = null;
+  if (kind === 'download') {
+    const a = document.createElement('a');
+    a.href = api.fileUrl(troot.value, r.path);
+    a.download = r.name;
+    a.click();
+    return;
+  }
+  const dot = r.name.lastIndexOf('.');
+  const copyName = dot > 0 ? r.name.slice(0, dot) + '_copy' + r.name.slice(dot) : r.name + '_copy';
+  fm.value = { kind, row: r, value: kind === 'copy' ? copyName : r.name };
+}
+const openTabOf = (p) => tabs.value.find((x) => x.root === troot.value && (x.path === p || x.path.startsWith(p + '/')));
+async function fileAction() {
+  const m = fm.value;
+  fm.value = null;
+  const name = (m.value || '').trim();
+  try {
+    if (m.kind === 'newfile' || m.kind === 'newdir') {
+      if (!name || name.includes('/')) return;
+      if (m.kind === 'newdir') await api.call('server.files.post_directory', { path: full(name) });
+      else {
+        await api.upload(new Blob([''], { type: 'text/plain' }), { root: troot.value, path: '', name });
+        if (editable(name)) openFile(name, troot.value);
+      }
+    } else if (m.kind === 'rename' || m.kind === 'copy') {
+      if (!name || name.includes('/') || name === m.row.name) return;
+      const dest = [dirOf(m.row.path), name].filter(Boolean).join('/');
+      if (m.kind === 'rename') {
+        // an open file would keep its old name in its tab: close it first (unless it has edits to save)
+        const tab = openTabOf(m.row.path);
+        if (tab?.dirty) return toast(t('{f} has unsaved changes. Save it first.', { f: tab.path }), 'error');
+        await api.call('server.files.move', { source: full(m.row.path), dest: full(dest) });
+        tabs.value
+          .filter((x) => x.root === troot.value && (x.path === m.row.path || x.path.startsWith(m.row.path + '/')))
+          .forEach((x) => closeTab(x));
+      } else await api.call('server.files.copy', { source: full(m.row.path), dest: full(dest) });
+    } else if (m.kind === 'delete') {
+      const tab = openTabOf(m.row.path);
+      if (tab?.dirty) return toast(t('{f} has unsaved changes. Save it first.', { f: tab.path }), 'error');
+      if (m.row.dir) await api.call('server.files.delete_directory', { path: full(m.row.path), force: true });
+      else await api.call('server.files.delete_file', { path: full(m.row.path) });
+      tabs.value
+        .filter((x) => x.root === troot.value && (x.path === m.row.path || x.path.startsWith(m.row.path + '/')))
+        .forEach((x) => closeTab(x));
+    }
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+  loadFiles();
+}
+async function uploadFiles(e) {
+  const list = [...e.target.files];
+  e.target.value = '';
+  let ok = 0;
+  for (const f of list)
+    try {
+      await api.upload(f, { root: troot.value, path: '' });
+      ok++;
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  if (ok) toast(t('{n} file(s) uploaded', { n: ok }));
+  loadFiles();
+}
+// the name field takes the typing at once, the part before the extension selected for a rename
+const vFocusSelect = {
+  mounted: (el) =>
+    requestAnimationFrame(() => {
+      el.focus();
+      const dot = el.value.lastIndexOf('.');
+      el.setSelectionRange(0, dot > 0 ? dot : el.value.length);
+    }),
+};
+const FM_TITLES = { newfile: 'New file', newdir: 'New folder', rename: 'Rename', copy: 'Duplicate', delete: 'Delete' };
 
 // ---------------------------------------------------------------- completion
 function complete(ctx) {
@@ -663,6 +809,31 @@ function openSearch() {
       <div class="th">
         <Icon name="folder" :size="16" /><b>{{ t('Config files') }}</b>
       </div>
+      <div class="row" style="gap: 4px">
+        <select v-if="roots.length > 1" v-model="troot" class="input rsel" :aria-label="t('Folder')">
+          <option v-for="r in roots" :key="r.name" :value="r.name">{{ r.name }}</option>
+        </select>
+        <template v-if="writable">
+          <button class="btn clear ibtn sm" :aria-label="t('Upload')" :data-tip="t('Upload')" @click="upIn.click()">
+            <Icon name="upload" :size="15" /></button
+          ><button
+            class="btn clear ibtn sm"
+            :aria-label="t('New file')"
+            :data-tip="t('New file')"
+            @click="fm = { kind: 'newfile', value: '' }"
+          >
+            <Icon name="plus" :size="15" /></button
+          ><button
+            class="btn clear ibtn sm"
+            :aria-label="t('New folder')"
+            :data-tip="t('New folder')"
+            @click="fm = { kind: 'newdir', value: '' }"
+          >
+            <Icon name="folder" :size="15" />
+          </button>
+        </template>
+        <input ref="upIn" type="file" multiple hidden @change="uploadFiles" />
+      </div>
       <input v-model="treeQ" class="input tq" :placeholder="t('Filter')" :aria-label="t('Filter files')" />
       <div class="tl">
         <template v-for="r in tree" :key="(r.dir ? 'd:' : 'f:') + r.path">
@@ -670,7 +841,11 @@ function openSearch() {
             v-if="r.dir"
             class="tr dir"
             :style="{ paddingLeft: 10 + r.depth * 14 + 'px' }"
-            @click="toggleDir(r.path)"
+            @click="rowClick(r)"
+            @contextmenu.prevent="menuAt(r, $event)"
+            @pointerdown="pressStart(r, $event)"
+            @pointerup="pressEnd"
+            @pointerleave="pressEnd"
           >
             <Icon :name="openDirs.has(r.path) || treeQ ? 'down' : 'right'" :size="13" /><Icon
               name="folder"
@@ -681,15 +856,26 @@ function openSearch() {
             v-else
             class="tr"
             :class="{
-              on: active?.root === 'config' && active?.path === r.path,
+              on: active?.root === troot && active?.path === r.path,
               dim: !editable(r.path) && !IMG.test(r.path),
             }"
             :style="{ paddingLeft: 10 + r.depth * 14 + 'px' }"
             :disabled="!editable(r.path) && !IMG.test(r.path)"
-            @click="IMG.test(r.path) ? openImage(r.path) : openFile(r.path)"
+            @click="rowClick(r)"
+            @contextmenu.prevent="menuAt(r, $event)"
+            @pointerdown="pressStart(r, $event)"
+            @pointerup="pressEnd"
+            @pointerleave="pressEnd"
           >
             <Icon :name="IMG.test(r.path) ? 'camera' : 'file'" :size="15" /><span>{{ r.name }}</span
-            ><i v-if="tabs.find((x) => x.key === 'config/' + r.path)?.dirty" class="dd"></i>
+            ><i v-if="tabs.find((x) => x.key === troot + '/' + r.path)?.dirty" class="dd"></i
+            ><span
+              class="more"
+              role="button"
+              :aria-label="t('More for {name}', { name: r.name })"
+              @click.stop="menuAt(r, $event)"
+              ><Icon name="menu" :size="14"
+            /></span>
           </button>
         </template>
       </div>
@@ -875,6 +1061,51 @@ function openSearch() {
     </div>
   </Modal>
   <ImageViewer v-if="img" :list="img.list" :start="img.start" @close="img = null" />
+  <div v-if="menu" class="fmenu card" :style="{ left: menu.x + 'px', top: menu.y + 'px' }" @pointerdown.stop>
+    <b class="fmn mono">{{ menu.row.name }}</b>
+    <template v-if="writable">
+      <button class="btn clear" @click="act('rename')"><Icon name="pencil" :size="15" />{{ t('Rename') }}</button>
+      <button v-if="!menu.row.dir" class="btn clear" @click="act('copy')">
+        <Icon name="copy" :size="15" />{{ t('Duplicate') }}
+      </button>
+    </template>
+    <button v-if="!menu.row.dir" class="btn clear" @click="act('download')">
+      <Icon name="download" :size="15" />{{ t('Download') }}
+    </button>
+    <button v-if="writable" class="btn clear dgt" @click="act('delete')">
+      <Icon name="trash" :size="15" />{{ t('Delete') }}
+    </button>
+  </div>
+  <Modal v-if="fm" :title="t(FM_TITLES[fm.kind])" width="420px" @close="fm = null">
+    <p v-if="fm.kind === 'delete'" style="margin: 0">
+      {{
+        fm.row.dir
+          ? t('Delete the folder {f} and everything in it?', { f: fm.row.path })
+          : t('Delete {f}?', { f: fm.row.path })
+      }}
+    </p>
+    <input
+      v-else
+      v-model="fm.value"
+      v-focus-select
+      class="input mono"
+      :placeholder="fm.kind === 'newdir' ? t('Folder name') : t('File name')"
+      :aria-label="t('Name')"
+      @keydown.enter="fileAction"
+    />
+    <template #foot
+      ><button class="btn lg" @click="fm = null">{{ t('Cancel') }}</button
+      ><button class="btn lg" :class="fm.kind === 'delete' ? 'dgf' : 'acc'" @click="fileAction">
+        {{
+          fm.kind === 'delete'
+            ? t('Delete')
+            : fm.kind === 'newfile' || fm.kind === 'newdir'
+              ? t('Create')
+              : t(FM_TITLES[fm.kind])
+        }}
+      </button></template
+    >
+  </Modal>
 </template>
 
 <style scoped>
@@ -1303,6 +1534,56 @@ function openSearch() {
 .disk > svg {
   color: var(--wn);
   flex: none;
+}
+.rsel {
+  height: 30px;
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  padding: 0 8px;
+}
+.tr .more {
+  margin-left: auto;
+  display: none;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: 5px;
+}
+.tr:hover .more,
+.tr.on .more {
+  display: flex;
+}
+@media (hover: none) {
+  .tr .more {
+    display: flex;
+  }
+}
+.tr .more:hover {
+  background: var(--s3);
+}
+.fmenu {
+  position: fixed;
+  z-index: 300;
+  min-width: 180px;
+  padding: 6px;
+  gap: 2px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.fmenu .btn {
+  justify-content: flex-start;
+  height: 34px;
+}
+.fmenu .dgt {
+  color: var(--dg);
+}
+.fmn {
+  font-size: 11.5px;
+  color: var(--mu);
+  padding: 4px 8px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
 }
 </style>
 

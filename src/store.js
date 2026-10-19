@@ -116,6 +116,7 @@ export const DEFAULT_SETTINGS = () => ({
   sensorColors: {}, // sensor name -> colour picked in the eye menu (sensorStyle.js)
   sensorOrder: [], // sensor names in the order the user put them (sensorStyle.js)
   sensorIcons: {}, // sensor name -> icon picked in the Edit menu (sensorStyle.js)
+  camOrder: [], // camera names in the order picked in Settings > Webcams (sortCams)
   graphFill: true, // temperature graph: each line's area filled with a faint shade of its colour
   accentReach: 'subtle', // how far the accent colour reaches: subtle (buttons only) | normal | strong (card and dialog outlines)
 });
@@ -217,17 +218,36 @@ export const LAYOUT_KEYS = [
 // Moonraker lists cameras from moonraker.conf first, then the saved ones in database (uid) order, and moves a
 // camera to the end when it is renamed, so the same two cameras could come back in a different order and
 // "the first camera" (the default of every card) changed between reloads. Sorted by name they always line up.
-export function sortCams(list) {
-  return [...(list || [])].sort((a, b) =>
-    String(a.name).localeCompare(String(b.name), undefined, { numeric: true, sensitivity: 'base' }),
+// The user can put them in an order of their own (Settings > Webcams, settings.camOrder): the first one is what
+// every card and page shows until another is picked. Cameras not in that order follow, by name.
+export function sortCams(list, order = state.settings?.camOrder || []) {
+  const pos = (n) => {
+    const i = order.indexOf(n);
+    return i < 0 ? Infinity : i;
+  };
+  return [...(list || [])].sort(
+    (a, b) =>
+      pos(a.name) - pos(b.name) ||
+      String(a.name).localeCompare(String(b.name), undefined, { numeric: true, sensitivity: 'base' }),
   );
 }
+let camList = []; // as Moonraker sent it, sorted again when the order changes
 // Moonraker's own order is still what moonraker-timelapse and moonraker-telegram-bot / notifier mean by "the first
 // camera", so it is kept next to the sorted list.
 export function setCams(list) {
   if (!list) return;
+  camList = list;
   state.webcamOrder = list.map((c) => c.name);
   state.webcams = sortCams(list);
+}
+// one place up (-1) or down (+1) in the user's camera order
+export function moveCam(name, dir) {
+  const names = state.webcams.map((c) => c.name);
+  const i = names.indexOf(name),
+    j = i + dir;
+  if (i < 0 || j < 0 || j >= names.length) return;
+  [names[i], names[j]] = [names[j], names[i]];
+  state.settings.camOrder = names;
 }
 export const firstCam = computed(
   () => state.webcams.find((c) => c.name === state.webcamOrder[0]) || state.webcams[0] || null,
@@ -1030,6 +1050,10 @@ watch(
     if (state.settingsLoaded) saveSettings();
   },
   { deep: true },
+);
+watch(
+  () => state.settings.camOrder,
+  () => (state.webcams = sortCams(camList)),
 );
 watch(
   () => state.settings.lang,

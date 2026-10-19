@@ -1080,7 +1080,6 @@
 "M105 / temperature reports are filtered out of the console.",
 "Mode",
 "Colour of actions, section headings and the logo.",
-"Webcams are stored by Moonraker, so this list is the same in Mainsail and Fluidd.",
 "No webcams yet.",
 "Edit crowsnest.conf",
 "Add webcam",
@@ -1969,5 +1968,15 @@
 "Appearance and language",
 "This printer (name, icon, maintenance, heater measurements)",
 "Everything else",
-"The printer will skip it for the rest of this print. This cannot be undone."
+"The printer will skip it for the rest of this print. This cannot be undone.",
+"Webcams are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.",
+"First: shown wherever no camera is picked",
+"{f} has unsaved changes. Save it first.",
+"{n} file(s) uploaded",
+"Folder",
+"More for {name}",
+"Duplicate",
+"Delete the folder {f} and everything in it?",
+"Delete {f}?",
+"File name"
 ]

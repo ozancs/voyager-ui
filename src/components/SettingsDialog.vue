@@ -21,6 +21,7 @@ import {
   APP_NAME,
   uiZoomFor,
   setCams,
+  moveCam,
 } from '../store';
 import { api } from '../api/moonraker';
 import { playSound, speak, desktopPermission, askDesktop } from '../features';
@@ -1002,9 +1003,11 @@ function reset() {
             <!-- Webcams -->
             <template v-else-if="tab === 'webcams'">
               <span class="hint">{{
-                t('Webcams are stored by Moonraker, so this list is the same in Mainsail and Fluidd.')
+                t(
+                  'Webcams are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.',
+                )
               }}</span>
-              <div v-for="w in state.webcams" :key="w.name" class="rw">
+              <div v-for="(w, i) in state.webcams" :key="w.name" class="rw">
                 <div class="k">
                   <b>{{ w.name }}</b
                   ><span class="mono"
@@ -1013,6 +1016,23 @@ function reset() {
                   >
                 </div>
                 <div class="row" style="gap: 6px">
+                  <template v-if="state.webcams.length > 1"
+                    ><button
+                      class="btn clear ibtn sm"
+                      :disabled="i === 0"
+                      :aria-label="t('Move up')"
+                      :data-tip="i === 1 ? t('First: shown wherever no camera is picked') : t('Move up')"
+                      @click="moveCam(w.name, -1)"
+                    >
+                      <Icon name="up" :size="15" :stroke="2.4" /></button
+                    ><button
+                      class="btn clear ibtn sm"
+                      :disabled="i === state.webcams.length - 1"
+                      :aria-label="t('Move down')"
+                      @click="moveCam(w.name, 1)"
+                    >
+                      <Icon name="down" :size="15" :stroke="2.4" /></button
+                  ></template>
                   <button class="btn" @click="editCam(w)"><Icon name="pencil" :size="15" />{{ t('Edit') }}</button
                   ><button
                     class="btn clear ibtn sm"

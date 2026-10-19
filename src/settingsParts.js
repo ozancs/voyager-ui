@@ -22,6 +22,7 @@ export const PARTS = [
       'devices',
       'ledfxSeen',
       'mmuSeen',
+      'camOrder',
     ],
   },
   { id: 'fav', name: 'Favorites', keys: ['favorites', 'favBar', 'favResolved'] },

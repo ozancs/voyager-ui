@@ -1560,6 +1560,10 @@ function handle(m) {
       }, 100);
       return 'ok';
     case 'server.files.delete_file': {
+      if (/^config\//.test(p.path || '')) {
+        delete cfgText[p.path.slice(7)];
+        return { item: { path: p.path.slice(7), root: 'config' }, action: 'delete_file' };
+      }
       if (/^timelapse_frames\//.test(p.path || '')) {
         TL_N = 0;
         return { item: { path: p.path, root: 'timelapse_frames' }, action: 'delete_file' };
@@ -1570,7 +1574,25 @@ function handle(m) {
       return { item: { path: p.path, root: 'timelapse' }, action: 'delete_file' };
     }
     case 'server.files.copy':
-    case 'server.files.move':
+    case 'server.files.move': {
+      // config files live in cfgText: a rename or copy there shows up in the editor's tree
+      const src = (p.source || '').replace(/^config\//, ''),
+        dst = (p.dest || '').replace(/^config\//, '');
+      if (src in cfgText && dst) {
+        cfgText[dst] = cfgText[src];
+        if (m.method === 'server.files.move') delete cfgText[src];
+      }
+      setTimeout(
+        () =>
+          wsAll({
+            jsonrpc: '2.0',
+            method: 'notify_filelist_changed',
+            params: [{ action: 'create_file', item: { root: 'config', path: dst } }],
+          }),
+        50,
+      );
+      return { item: { path: dst, root: 'config' }, action: 'create_file' };
+    }
     case 'server.files.post_directory':
       return { item: { path: p.dest || p.path, root: 'config' }, action: 'create_file' };
     case 'access.users.list':
@@ -1673,6 +1695,24 @@ function handle(m) {
           modified: Date.now() / 1000,
           size: 60000,
         }));
+      if (p.root === 'config_examples')
+        return [
+          'generic-bigtreetech-octopus-v1.1.cfg',
+          'printer-voron-v2.4-2022.cfg',
+          'sample-bigtreetech-ebb-canbus-v1.2.cfg',
+        ].map((f) => ({ path: f, modified: Date.now() / 1000 - 9e6, size: 12000 }));
+      if (p.root === 'docs')
+        return ['Config_Reference.md', 'Bed_Mesh.md', 'Measuring_Resonances.md'].map((f) => ({
+          path: f,
+          modified: Date.now() / 1000 - 9e6,
+          size: 30000,
+        }));
+      if (p.root === 'logs')
+        return ['klippy.log', 'moonraker.log', 'crowsnest.log'].map((f) => ({
+          path: f,
+          modified: Date.now() / 1000,
+          size: 90000,
+        }));
       return p.root === 'config'
         ? Object.keys(cfgText)
             .concat(['printer-20260923_121809.cfg'])
@@ -1745,7 +1785,13 @@ function handle(m) {
       emitLines(['// demo: ' + p.service + ' restarted']);
       return 'ok';
     case 'server.files.roots':
-      return [{ name: 'config' }, { name: 'gcodes' }, { name: 'logs' }];
+      return [
+        { name: 'config', permissions: 'rw' },
+        { name: 'gcodes', permissions: 'rw' },
+        { name: 'logs', permissions: 'r' },
+        { name: 'config_examples', permissions: 'r' },
+        { name: 'docs', permissions: 'r' },
+      ];
     case 'machine.proc_stats':
       return {
         throttled_state: { bits: 0x50000, flags: ['Previously Under-Volted', 'Previously Throttled'] },
