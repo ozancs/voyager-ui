@@ -14,7 +14,7 @@ const ROUTES = (
   process.env.R ||
   'dashboard,webcam,console,heightmap,calibrations,fleet,files,viewer,history,machine,health,quick,config'
 ).split(',');
-const WIDTHS = (process.env.W || '390,768,1024,1400').split(',').map(Number);
+const WIDTHS = (process.env.W || '390,768,1024,1150,1400').split(',').map(Number);
 const PROFILES = (process.env.P || 'print,idle').split(',');
 const TYPES = {
   '.html': 'text/html',

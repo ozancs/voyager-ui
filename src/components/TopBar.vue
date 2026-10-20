@@ -620,6 +620,10 @@ function runConfirmed() {
 :root.ew-lt-1750 .tb.pilled .tmp {
   display: none;
 }
+/* and below 1300 px they would push E-STOP off the edge even without it */
+:root.ew-lt-1300 .tmp {
+  display: none;
+}
 .th {
   display: inline-flex;
   align-items: baseline;
@@ -724,6 +728,17 @@ function runConfirmed() {
 .pill.job .st2 {
   flex-shrink: 0;
   white-space: nowrap;
+}
+/* the idle pill on a narrower window: the queue count goes first, then the picture, so Reprint never runs over
+   the search button next to it */
+.pill {
+  min-width: 0;
+}
+:root.ew-lt-1300 .pill .qb {
+  display: none;
+}
+:root.ew-lt-1200 .pill:not(.job) .pth {
+  display: none;
 }
 /* a narrower window: the time left goes, the state and percentage keep their room */
 :root.ew-lt-1300 .pill.job .jl {

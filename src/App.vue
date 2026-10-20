@@ -391,6 +391,18 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
   font-weight: 700;
   flex-shrink: 0;
 }
+/* the buttons keep their full label; when the page is narrow (the config editor beside it) they go below the text */
+.banner {
+  flex-wrap: wrap;
+}
+.banner > .grow {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.banner > .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 .banner.err {
   border-color: var(--dg);
   color: var(--tx);
