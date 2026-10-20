@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.32.1
+
+- Windows between 1100 and 1300 px wide: the top bar no longer pushes E-STOP and the page past the right edge; the hotend and bed temperatures, the queue count and the job picture give way first. Reported by Raidy
+- The Klipper error banner keeps Restart and Firmware Restart whole on a narrow page, below the message when there is no room beside it. Reported by Raidy
+
 ## 0.32.0
 
 - Config files: pick the folder the list shows (config, config_examples, docs, logs), and upload, make a new file or a new folder right above it. Right click a file (long press on a phone, or the menu at the end of its row) to rename, duplicate, download or delete it. Suggested by Raidy
