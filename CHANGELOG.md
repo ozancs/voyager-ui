@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.32.2
+
+- Toolhead, Extruder, System Loads, Live Z, Print controls, Machine Limits and Health shrink as a whole to fit when made small, instead of scrolling, and can be made much smaller than before. The toolhead keeps its D-pad and keeps everything on one line
+- A card that shrinks to fit takes the largest size that still fits after its content rearranges, so no empty space is left below it
+
 ## 0.32.1
 
 - Windows between 1100 and 1300 px wide: the top bar no longer pushes E-STOP and the page past the right edge; the hotend and bed temperatures, the queue count and the job picture give way first. Reported by Raidy
