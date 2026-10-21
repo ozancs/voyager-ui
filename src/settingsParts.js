@@ -30,7 +30,16 @@ export const PARTS = [
   {
     id: 'sensors',
     name: 'Temperature sensors and graph',
-    keys: ['hiddenSensors', 'sensorColors', 'sensorOrder', 'sensorIcons', 'graphFill', 'graphLine', 'tempRange'],
+    keys: [
+      'hiddenSensors',
+      'hiddenGraph',
+      'sensorColors',
+      'sensorOrder',
+      'sensorIcons',
+      'graphFill',
+      'graphLine',
+      'tempRange',
+    ],
   },
   { id: 'control', name: 'Control (jog steps, speeds)', keys: ['control', 'invertZ', 'quickConfig'] },
   {

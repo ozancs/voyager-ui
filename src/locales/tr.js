@@ -1981,4 +1981,10 @@ export default {
   "Delete the folder {f} and everything in it?": "{f} klasörü ve içindeki her şey silinsin mi?",
   "Delete {f}?": "{f} silinsin mi?",
   "File name": "Dosya adı",
+  "Back to live": "Canlıya dön",
+  "Click to show all": "Hepsini göstermek için tıkla",
+  "Click to show only this one": "Sadece bunu göstermek için tıkla",
+  "Temperatures card": "Sıcaklıklar kartı",
+  "Sensors shown in the Temperatures card.": "Sıcaklıklar kartında gösterilen sensörler.",
+  "Sensors drawn in the graph.": "Grafikte çizilen sensörler.",
 }

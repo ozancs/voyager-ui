@@ -89,9 +89,9 @@ const presets = allPresets;
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(s, i) in sensors" :key="s.name">
+          <tr v-for="s in sensors" :key="s.name">
             <td class="nm">
-              <SensorIcon :name="s.name" :color="colorOf(i, s.name)" class="ic" />{{ s.label
+              <SensorIcon :name="s.name" :color="colorOf(s.ci, s.name)" class="ic" />{{ s.label
               }}<template v-if="s.isHeater && s.target > 0 && heatEta(s.name)"
                 ><small
                   v-if="heatEta(s.name).levels != null"

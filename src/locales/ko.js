@@ -1981,4 +1981,10 @@ export default {
   "Delete the folder {f} and everything in it?": "{f} 폴더와 그 안의 모든 것을 삭제할까요?",
   "Delete {f}?": "{f}을(를) 삭제할까요?",
   "File name": "파일 이름",
+  "Back to live": "실시간으로 돌아가기",
+  "Click to show all": "클릭하면 모두 표시",
+  "Click to show only this one": "클릭하면 이것만 표시",
+  "Temperatures card": "온도 카드",
+  "Sensors shown in the Temperatures card.": "온도 카드에 표시할 센서.",
+  "Sensors drawn in the graph.": "그래프에 그릴 센서.",
 }

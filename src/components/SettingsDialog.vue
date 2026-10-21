@@ -22,6 +22,7 @@ import {
   uiZoomFor,
   setCams,
   moveCam,
+  graphHidden,
 } from '../store';
 import { api } from '../api/moonraker';
 import { playSound, speak, desktopPermission, askDesktop } from '../features';
@@ -272,6 +273,22 @@ async function removeCam() {
 }
 const sub = computed(() => cam.value || delCam.value || pending.value || confirmReset.value);
 
+// the Temperatures card and the graph each hide sensors on their own (the graph follows the card until changed)
+const SENSOR_LISTS = [
+  {
+    key: 'hiddenSensors',
+    title: 'Temperatures card',
+    desc: 'Sensors shown in the Temperatures card.',
+    list: () => state.settings.hiddenSensors || [],
+  },
+  { key: 'hiddenGraph', title: 'Temperature graph', desc: 'Sensors drawn in the graph.', list: () => graphHidden() },
+];
+function toggleSensor(key, s) {
+  const h = [...SENSOR_LISTS.find((g) => g.key === key).list()];
+  const i = h.indexOf(s);
+  i >= 0 ? h.splice(i, 1) : h.push(s);
+  state.settings[key] = h;
+}
 // ---- backup / restore / reset ----
 const confirmReset = ref(false);
 const restoreFile = ref(null);
@@ -507,19 +524,19 @@ function reset() {
                 </div>
                 <Toggle v-model="state.settings.autoLayout" :label="t('Separate dashboard while printing')" />
               </div>
-              <div class="rw col">
+              <div v-for="g in SENSOR_LISTS" :key="g.key" class="rw col">
                 <div class="k">
-                  <b>{{ t('Temperatures card & graph') }}</b
-                  ><span>{{ t('Sensors shown in the temperatures card and graph.') }}</span>
+                  <b>{{ t(g.title) }}</b
+                  ><span>{{ t(g.desc) }}</span>
                 </div>
                 <div class="row" style="flex-wrap: wrap; gap: 6px">
                   <button
                     v-for="s in tempSensors"
                     :key="s"
                     class="sch"
-                    :class="{ on: !state.settings.hiddenSensors.includes(s) }"
-                    :aria-pressed="!state.settings.hiddenSensors.includes(s)"
-                    @click="toggleHidden(state.settings.hiddenSensors, s)"
+                    :class="{ on: !g.list().includes(s) }"
+                    :aria-pressed="!g.list().includes(s)"
+                    @click="toggleSensor(g.key, s)"
                   >
                     {{ prettyName(s) }}
                   </button>

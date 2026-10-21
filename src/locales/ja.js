@@ -1981,4 +1981,10 @@ export default {
   "Delete the folder {f} and everything in it?": "フォルダー {f} とその中身をすべて削除しますか?",
   "Delete {f}?": "{f} を削除しますか?",
   "File name": "ファイル名",
+  "Back to live": "ライブに戻る",
+  "Click to show all": "クリックですべて表示",
+  "Click to show only this one": "クリックでこれだけ表示",
+  "Temperatures card": "温度カード",
+  "Sensors shown in the Temperatures card.": "温度カードに表示するセンサー。",
+  "Sensors drawn in the graph.": "グラフに描くセンサー。",
 }

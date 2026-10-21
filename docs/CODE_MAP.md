@@ -659,7 +659,7 @@ A temperature sensor's icon in its colour (sensorStyle.js), the same in the Temp
 and the Edit menu. A fan icon turns while its fan runs, faster the faster it runs.
 
 **[src/components/SensorPicker.vue](../src/components/SensorPicker.vue)**  
-Edit button in the Temperatures card and graph: pick which sensors they show (same list as Settings > Dashboard),  
+Edit button in the Temperatures card and graph: pick which sensors each shows (the card and the graph separately),  
 their colour and their order, and for the graph the line width. Colour and order are shared by the card and  
 the graph (sensorStyle.js).
 

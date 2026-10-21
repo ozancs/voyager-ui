@@ -1981,4 +1981,10 @@ export default {
   "Delete the folder {f} and everything in it?": "Usunąć folder {f} z całą zawartością?",
   "Delete {f}?": "Usunąć {f}?",
   "File name": "Nazwa pliku",
+  "Back to live": "Wróć na żywo",
+  "Click to show all": "Kliknij, aby pokazać wszystkie",
+  "Click to show only this one": "Kliknij, aby pokazać tylko ten",
+  "Temperatures card": "Karta temperatur",
+  "Sensors shown in the Temperatures card.": "Czujniki pokazane w karcie temperatur.",
+  "Sensors drawn in the graph.": "Czujniki rysowane na wykresie.",
 }

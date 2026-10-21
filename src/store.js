@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS = () => ({
   ],
   devices: { hidden: [], names: {} },
   hiddenSensors: [],
+  hiddenGraph: null, // sensors hidden in the temperature graph; null: the same as the Temperatures card
   quickConfig: [
     { section: 'printer', key: 'max_velocity', unit: 'mm/s' },
     { section: 'printer', key: 'max_accel', unit: 'mm/s²' },
@@ -531,20 +532,27 @@ export const tempSensors = computed(() => [
   // so the temperatures card does not grow a row the moment the motors switch on
   ...state.objects.filter((o) => /^tmc2240 /.test(o)),
 ]);
-export const sensors = computed(() => {
+// The Temperatures card and the graph each hide sensors on their own (hiddenSensors / hiddenGraph; the graph follows
+// the card until something is hidden in it). `ci` is a sensor's place in the full list, so its default colour is
+// the same in both whatever each one hides.
+function sensorRows(hidden) {
   const h = S('heaters');
-  const list = tempSensors.value;
   const heaters = new Set(h.available_heaters || []);
-  return sortSensors(list, state.settings.sensorOrder)
-    .filter((n) => !state.settings.hiddenSensors.includes(n))
-    .map((n) => ({
+  return sortSensors(tempSensors.value, state.settings.sensorOrder)
+    .map((n, ci) => ({ n, ci }))
+    .filter(({ n }) => !hidden.includes(n))
+    .map(({ n, ci }) => ({
       name: n,
+      ci,
       label: prettyName(n),
       isHeater: heaters.has(n),
       isTempFan: n.startsWith('temperature_fan '),
       ...S(n),
     }));
-});
+}
+export const graphHidden = () => state.settings.hiddenGraph ?? state.settings.hiddenSensors ?? [];
+export const sensors = computed(() => sensorRows(state.settings.hiddenSensors || []));
+export const graphSensors = computed(() => sensorRows(graphHidden()));
 
 const FAN_TYPES = ['fan', 'fan_generic', 'heater_fan', 'controller_fan', 'temperature_fan'];
 export const devices = computed(() => {

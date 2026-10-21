@@ -1981,4 +1981,10 @@ export default {
   "Delete the folder {f} and everything in it?": "删除文件夹 {f} 及其中的所有内容?",
   "Delete {f}?": "删除 {f}?",
   "File name": "文件名",
+  "Back to live": "回到实时",
+  "Click to show all": "点击显示全部",
+  "Click to show only this one": "点击只显示这一个",
+  "Temperatures card": "温度卡片",
+  "Sensors shown in the Temperatures card.": "温度卡片中显示的传感器。",
+  "Sensors drawn in the graph.": "图表中绘制的传感器。",
 }

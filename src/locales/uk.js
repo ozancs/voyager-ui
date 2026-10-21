@@ -1981,4 +1981,10 @@ export default {
   "Delete the folder {f} and everything in it?": "Видалити теку {f} з усім вмістом?",
   "Delete {f}?": "Видалити {f}?",
   "File name": "Назва файлу",
+  "Back to live": "Повернутися до живих даних",
+  "Click to show all": "Натисніть, щоб показати всі",
+  "Click to show only this one": "Натисніть, щоб показати лише цей",
+  "Temperatures card": "Картка температур",
+  "Sensors shown in the Temperatures card.": "Датчики в картці температур.",
+  "Sensors drawn in the graph.": "Датчики на графіку.",
 }

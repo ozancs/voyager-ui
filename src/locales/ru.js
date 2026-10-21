@@ -1981,4 +1981,10 @@ export default {
   "Delete the folder {f} and everything in it?": "Удалить папку {f} со всем содержимым?",
   "Delete {f}?": "Удалить {f}?",
   "File name": "Имя файла",
+  "Back to live": "Вернуться к живым данным",
+  "Click to show all": "Нажмите, чтобы показать все",
+  "Click to show only this one": "Нажмите, чтобы показать только этот",
+  "Temperatures card": "Карточка температур",
+  "Sensors shown in the Temperatures card.": "Датчики в карточке температур.",
+  "Sensors drawn in the graph.": "Датчики на графике.",
 }

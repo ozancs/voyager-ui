@@ -9,7 +9,7 @@ import SensorIcon from './SensorIcon.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { computed, ref, onBeforeUnmount } from 'vue';
-import { state, sensors, hist } from '../store';
+import { state, graphSensors as sensors, hist } from '../store';
 import { longHist, STEP, MAX_AGE, oldestLong } from '../temphist';
 import { tempEvents } from '../tempEvents';
 import { t } from '../i18n';
@@ -21,6 +21,12 @@ const RANGES = [300, 600, 1200, 3600, 21600, 86400];
 const rangeLabel = (r) => (r >= 3600 ? r / 3600 + 'h' : r / 60 + 'm');
 const SHORT = 1200; // seconds the 1-second buffers hold
 // the window: span seconds ending `end` seconds ago (0 = now). zoom overrides the chosen range while set.
+// solo: pointing at a sensor in the legend dims the other lines; a click keeps it that way and fits the scale to it
+const hot = ref(null),
+  pinned = ref(null);
+const solo = computed(() => hot.value || pinned.value);
+const pin = (n) => (pinned.value = pinned.value === n ? null : n);
+const pinOn = computed(() => !!pinned.value && sensors.value.some((s) => s.name === pinned.value));
 const zoom = ref(null);
 const range = computed(() => state.settings.tempRange || 600);
 const span = computed(() => zoom.value?.span || range.value);
@@ -74,13 +80,14 @@ function series(name) {
 const data = computed(() => {
   state.histTick;
   zoom.value;
-  return sensors.value.map((s, i) => ({ s, i, pts: series(s.name) }));
+  return sensors.value.map((s) => ({ s, i: s.ci, pts: series(s.name) }));
 });
 // auto scale to the visible data (values + targets that are set)
 const scale = computed(() => {
   let lo = Infinity,
     hi = -Infinity;
-  for (const { pts } of data.value)
+  for (const { s, pts } of data.value) {
+    if (pinOn.value && s.name !== pinned.value) continue; // a sensor picked on its own gets the whole height
     for (const p of pts) {
       if (p.v < lo) lo = p.v;
       if (p.v > hi) hi = p.v;
@@ -89,6 +96,7 @@ const scale = computed(() => {
         if (p.g > hi) hi = p.g;
       }
     }
+  }
   if (!isFinite(lo)) {
     lo = 0;
     hi = 100;
@@ -267,13 +275,31 @@ onBeforeUnmount(() => ptrs.clear());
         <button v-for="r in RANGES" :key="r" :class="{ on: !zoom && range === r }" @click="pickRange(r)">{{ rangeLabel(r) }}</button>
       </div>
       <div class="acts">
-        <button v-if="!live" class="btn sm acc" @click="goLive"><Icon name="play" :size="14" />{{ t('Live') }}</button>
+        <button
+          v-if="!live"
+          class="btn ibtn sm acc"
+          :aria-label="t('Live')"
+          :data-tip="t('Back to live')"
+          @click="goLive"
+        >
+          <Icon name="play" :size="14" />
+        </button>
         <SensorPicker lines />
       </div>
       <CardCollapse />
     </div>
     <div class="lg">
-      <span v-for="e in data" :key="e.s.name"
+      <span
+        v-for="e in data"
+        :key="e.s.name"
+        class="li"
+        :class="{ dim: solo && solo !== e.s.name, pin: pinned === e.s.name }"
+        role="button"
+        :aria-pressed="pinned === e.s.name"
+        :data-tip="pinned === e.s.name ? t('Click to show all') : t('Click to show only this one')"
+        @mouseenter="hot = e.s.name"
+        @mouseleave="hot = null"
+        @click="pin(e.s.name)"
         ><SensorIcon :name="e.s.name" :color="colorOf(e.i, e.s.name)" :size="13" />{{ e.s.label }}
         <b class="mono">{{ fmt(valueAt(e)) }}</b></span
       >
@@ -292,7 +318,12 @@ onBeforeUnmount(() => ptrs.clear());
         @pointerleave="onLeave"
         @dblclick="pickRange(range)"
       >
-        <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" :aria-label="t('Temperature graph')">
+        <svg
+          :viewBox="`0 0 ${W} ${H}`"
+          preserveAspectRatio="none"
+          overflow="hidden"
+          :aria-label="t('Temperature graph')"
+        >
           <line
             v-for="g in scale.ticks"
             :key="g"
@@ -319,6 +350,7 @@ onBeforeUnmount(() => ptrs.clear());
           <template v-if="state.settings.graphFill !== false">
             <path
               v-for="l in lines"
+              v-show="!solo || solo === l.name"
               :key="l.name + 'a'"
               :d="l.area"
               :fill="l.color"
@@ -335,7 +367,7 @@ onBeforeUnmount(() => ptrs.clear());
             :stroke="l.color"
             stroke-width="1"
             stroke-dasharray="4 4"
-            opacity=".5"
+            :opacity="solo && solo !== l.name ? 0.08 : 0.5"
             vector-effect="non-scaling-stroke"
           />
           <path
@@ -344,6 +376,7 @@ onBeforeUnmount(() => ptrs.clear());
             :d="l.d"
             fill="none"
             :stroke="l.color"
+            :opacity="solo && solo !== l.name ? 0.15 : 1"
             :stroke-width="state.settings.graphLine || 2.5"
             stroke-linejoin="round"
             vector-effect="non-scaling-stroke"
@@ -456,8 +489,29 @@ onBeforeUnmount(() => ptrs.clear());
   margin-left: auto;
   flex-shrink: 0;
 }
+/* the title stays on one line (a zoomed-in graph adds the Live button, which used to wrap it and grow the header) */
+.card-h h2 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.card-h .acts {
+  flex-wrap: nowrap;
+}
+.li {
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.li.dim {
+  opacity: 0.4;
+}
+.li.pin {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 /* a narrow dashboard card: the ranges get their own row under the title */
-@container cell (max-width: 520px) {
+@container cell (max-width: 600px) {
   .card-h {
     flex-wrap: wrap;
     row-gap: 8px;

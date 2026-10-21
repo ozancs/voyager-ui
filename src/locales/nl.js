@@ -1981,4 +1981,10 @@ export default {
   "Delete the folder {f} and everything in it?": "De map {f} en alles erin verwijderen?",
   "Delete {f}?": "{f} verwijderen?",
   "File name": "Bestandsnaam",
+  "Back to live": "Terug naar live",
+  "Click to show all": "Klik om alles te tonen",
+  "Click to show only this one": "Klik om alleen deze te tonen",
+  "Temperatures card": "Temperatuurkaart",
+  "Sensors shown in the Temperatures card.": "Sensoren in de temperatuurkaart.",
+  "Sensors drawn in the graph.": "Sensoren in de grafiek.",
 }

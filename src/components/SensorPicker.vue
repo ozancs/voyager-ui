@@ -1,5 +1,5 @@
 <script setup>
-// Edit button in the Temperatures card and graph: pick which sensors they show (same list as Settings > Dashboard),
+// Edit button in the Temperatures card and graph: pick which sensors each shows (the card and the graph separately),
 // their colour and their order, and for the graph the line width. Colour and order are shared by the card and
 // the graph (sensorStyle.js).
 import { ref, computed } from 'vue';
@@ -7,20 +7,22 @@ import Icon from './Icon.vue';
 import Popover from './Popover.vue';
 import SensorIcon from './SensorIcon.vue';
 import IconPicker from './IconPicker.vue';
-import { state, prettyName, tempSensors, saveSettings } from '../store';
+import { state, prettyName, tempSensors, saveSettings, graphHidden } from '../store';
 import { sensorColor, sortSensors, moveSensor } from '../sensorStyle';
 import { t } from '../i18n';
-defineProps({ lines: Boolean });
+const props = defineProps({ lines: Boolean }); // lines: the graph's picker, which hides sensors on its own
 const open = ref(false);
 const picking = ref(null); // sensor whose icon and colour are being picked
 const btn = ref(null);
 function toggle(s) {
-  const h = state.settings.hiddenSensors || (state.settings.hiddenSensors = []);
+  const key = props.lines ? 'hiddenGraph' : 'hiddenSensors';
+  const h = [...(props.lines ? graphHidden() : state.settings.hiddenSensors || [])];
   const i = h.indexOf(s);
   i >= 0 ? h.splice(i, 1) : h.push(s);
+  state.settings[key] = h;
 }
 const list = computed(() => sortSensors(tempSensors.value, state.settings.sensorOrder));
-const hidden = (s) => (state.settings.hiddenSensors || []).includes(s);
+const hidden = (s) => (props.lines ? graphHidden() : state.settings.hiddenSensors || []).includes(s);
 const colorOf = (s, i) => sensorColor(state.settings.sensorColors, s, i);
 function setColor(s, v) {
   state.settings.sensorColors = { ...(state.settings.sensorColors || {}), [s]: v };

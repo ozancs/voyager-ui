@@ -465,7 +465,6 @@
 "Scroll to bottom",
 "Send G-code… (type to search commands, ↑↓ history)",
 "Sends this line as typed",
-"Sensors shown in the temperatures card and graph.",
 "Separate dashboard while printing",
 "Separate layout while printing",
 "Services may restart during the update.",
@@ -522,7 +521,6 @@
 "Temperature graph",
 "Temperature presets",
 "Temperatures",
-"Temperatures card & graph",
 "Test",
 "The bed",
 "The current print will be cancelled.",
@@ -1978,5 +1976,11 @@
 "Duplicate",
 "Delete the folder {f} and everything in it?",
 "Delete {f}?",
-"File name"
+"File name",
+"Back to live",
+"Click to show all",
+"Click to show only this one",
+"Temperatures card",
+"Sensors shown in the Temperatures card.",
+"Sensors drawn in the graph."
 ]
