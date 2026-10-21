@@ -1,6 +1,7 @@
 <script setup>
 // Dashboard: the status tiles (DeviceStrip) and a grid of cards the user arranges (grid-layout-plus).
-// MODULES lists every card type with its size limits. Customize mode: drag, resize (also from the bottom-left
+// MODULES lists every card type with its size limits. `scale`: made smaller than its content, the card shrinks all of
+// it to fit (fit.js) instead of scrolling, so it can go down to a small minimum size. Customize mode: drag, resize (also from the bottom-left
 // corner), hide, colour and add cards, a separate layout while printing, undo and saved backups. On narrow
 // screens the cards stack in one column with their own order (mobileOrder).
 import { ref, computed, onMounted, onBeforeUnmount, watch, provide } from 'vue';
@@ -67,12 +68,12 @@ const MODULES = {
   temps: { c: TempsCard, n: 'Temperatures', min: [3, 3], def: [6, 8] },
   tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [3, 4], def: [12, 6] },
   webcam: { c: WebcamCard, n: 'Webcam', min: [2, 3], def: [6, 8] },
-  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [5, 4], def: [12, 5] },
+  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [3, 2], def: [12, 5], scale: true },
   favorites: { c: FavoritesCard, n: 'Favorites', min: [2, 2], def: [6, 3] },
-  livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 3], def: [3, 4] },
-  extruder: { c: ExtruderCard, n: 'Extruder', min: [3, 5], def: [6, 10] },
-  limits: { c: LimitsCard, n: 'Machine Limits', min: [3, 5], def: [6, 7] },
-  printctl: { c: PrintControlsCard, n: 'Print controls (speed, flow)', min: [3, 3], def: [4, 4] },
+  livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 2], def: [3, 4], scale: true },
+  extruder: { c: ExtruderCard, n: 'Extruder', min: [2, 3], def: [6, 10], scale: true },
+  limits: { c: LimitsCard, n: 'Machine Limits', min: [2, 3], def: [6, 7], scale: true },
+  printctl: { c: PrintControlsCard, n: 'Print controls (speed, flow)', min: [2, 2], def: [4, 4], scale: true },
   print: { c: PrintCard, n: 'Print Status', min: [5, 3], def: [12, 3] },
   thumb: { c: ThumbCard, n: 'Thumbnail', min: [2, 3], def: [4, 6] },
   ledfx: {
@@ -84,7 +85,7 @@ const MODULES = {
   },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
-  system: { c: SystemLoads, n: 'System Loads', min: [3, 3], def: [6, 3] },
+  system: { c: SystemLoads, n: 'System Loads', min: [2, 2], def: [6, 3], scale: true },
   queue: { c: QueueCard, n: 'Job Queue', min: [3, 4], def: [4, 6] },
   macros: { c: MacrosCard, n: 'Macros', min: [2, 3], def: [6, 4], opts: true },
   devices: { c: DevicesCard, n: 'Devices (fans, pins, LEDs)', min: [3, 4], def: [6, 7] },
@@ -98,7 +99,7 @@ const MODULES = {
     def: [6, 4],
     need: () => state.objects.includes('firmware_retraction'),
   },
-  health: { c: HealthCard, n: 'Health', min: [3, 3], def: [4, 4] },
+  health: { c: HealthCard, n: 'Health', min: [2, 2], def: [4, 4], scale: true },
   power: { c: PowerCard, n: 'Power devices', min: [3, 3], def: [4, 4], need: () => state.power.length > 0 },
   mmu: { c: MmuCard, n: 'MMU (Happy Hare, Box Turtle)', min: [4, 5], def: [12, 7], need: () => hasMmu.value },
   timelapse: { c: TimelapseCard, n: 'Timelapse', min: [3, 3], def: [4, 4], need: () => tl.has },
@@ -827,6 +828,7 @@ function detachCard(i) {
       >
         <div
           v-fit
+          :data-scale="MODULES[it.i]?.scale ? '' : null"
           class="cell"
           :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i, collapsed: folded(it.i) }"
           :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null"

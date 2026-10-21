@@ -85,7 +85,8 @@ Versions look like v0.13.0-628-g373f200c(-dirty): a release tag, then the number
 v-fit: when a dashboard card is only a little too small for its content, shrink the content (CSS zoom) instead of  
 showing a scrollbar. Up to 25% smaller; beyond that the card stays at 75% and scrolls (it used to jump back to  
 100%, so opening something inside a card, like an MMU gate menu, suddenly blew the whole card up). Measured on the card itself and on  
-inner scroll areas marked data-fit (the temperatures table). Console logs and editors are not touched.
+inner scroll areas marked data-fit (the temperatures table). Console logs and editors are not touched.  
+Cards marked data-scale (controls: toolhead, extruder, system loads...) keep shrinking as a whole, much further.
 
 **[src/fleet.js](../src/fleet.js)**  
 All printers overview: reads the state of every saved printer over plain HTTP (no second websocket), every few  
@@ -303,7 +304,8 @@ Full console page: the console plus a searchable list of commands and macros wit
 
 **[src/views/Dashboard.vue](../src/views/Dashboard.vue)**  
 Dashboard: the status tiles (DeviceStrip) and a grid of cards the user arranges (grid-layout-plus).  
-MODULES lists every card type with its size limits. Customize mode: drag, resize (also from the bottom-left  
+MODULES lists every card type with its size limits. `scale`: made smaller than its content, the card shrinks all of  
+it to fit (fit.js) instead of scrolling, so it can go down to a small minimum size. Customize mode: drag, resize (also from the bottom-left  
 corner), hide, colour and add cards, a separate layout while printing, undo and saved backups. On narrow  
 screens the cards stack in one column with their own order (mobileOrder).
 

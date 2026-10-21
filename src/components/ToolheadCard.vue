@@ -378,4 +378,20 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
     display: none;
   }
 }
+/* on the dashboard grid the card scales as a whole instead (fit.js, data-scale): everything stays, on one line */
+.cell[data-scale] .body {
+  flex-wrap: nowrap;
+}
+.cell[data-scale] .jog {
+  min-width: 280px;
+}
+@container (max-width: 580px) {
+  .cell[data-scale] .dpad,
+  .cell[data-scale] .zcol {
+    display: grid;
+  }
+  .cell[data-scale] .steps {
+    display: flex;
+  }
+}
 </style>

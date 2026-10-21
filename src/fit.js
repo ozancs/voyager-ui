@@ -2,7 +2,9 @@
 // showing a scrollbar. Up to 25% smaller; beyond that the card stays at 75% and scrolls (it used to jump back to
 // 100%, so opening something inside a card, like an MMU gate menu, suddenly blew the whole card up). Measured on the card itself and on
 // inner scroll areas marked data-fit (the temperatures table). Console logs and editors are not touched.
-const MIN = 0.75;
+// Cards marked data-scale (controls: toolhead, extruder, system loads...) keep shrinking as a whole, much further.
+const MIN = 0.75,
+  MIN_SCALE = 0.35;
 function measure(card) {
   let need = 1;
   const cH = card.clientHeight,
@@ -26,6 +28,7 @@ function fit(cell) {
     card.classList.remove('fitted');
     return;
   }
+  const min = cell.hasAttribute('data-scale') ? MIN_SCALE : MIN;
   const cur = parseFloat(card.style.zoom) || 1;
   // measure at zoom 1 so the result does not drift
   card.style.zoom = '';
@@ -34,13 +37,27 @@ function fit(cell) {
   const need = measure(card);
   let z = 1;
   if (need > 1.005) z = 1 / need;
-  if (z < MIN) z = MIN; // too much: smallest size, the rest scrolls
+  if (z < min) z = min; // too much: smallest size, the rest scrolls
   z = Math.floor(z * 200) / 200;
   card.style.zoom = z === 1 ? '' : String(z);
   // smaller text can wrap differently: check again and step down while it still does not fit
-  for (let k = 0; k < 4 && z > MIN && measure(card) > 1.002; k++) {
-    z = Math.max(MIN, Math.floor((z - 0.02) * 200) / 200);
+  for (let k = 0; k < 4 && z > min && measure(card) > 1.002; k++) {
+    z = Math.max(min, Math.floor((z - 0.02) * 200) / 200);
     card.style.zoom = String(z);
+  }
+  // and the other way: zoomed out, a card has more room inside and its content reflows (fields side by side
+  // instead of below each other), so a larger zoom may fit too. Find the largest one that does.
+  if (z < 1 && measure(card) <= 1.002) {
+    let lo = z,
+      hi = 1;
+    for (let k = 0; k < 6; k++) {
+      const mid = (lo + hi) / 2;
+      card.style.zoom = String(mid);
+      if (measure(card) <= 1.002) lo = mid;
+      else hi = mid;
+    }
+    z = Math.floor(lo * 200) / 200;
+    card.style.zoom = z >= 1 ? '' : String(z);
   }
   // a pixel or two left over (rounding) would only show an empty scrollbar
   for (const el of [card, ...card.querySelectorAll('[data-fit]')])
