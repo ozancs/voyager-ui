@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.33.0
+
+- Temperature graph: point at a sensor in the legend to see it on its own; a click keeps it that way and fits the scale to that sensor, a second click shows all again
+- The Temperatures card and the graph hide sensors separately (Edit in each, or Settings > Dashboard). The graph starts from what the card hides
+- Temperature graph: the header stays on one line when zoomed in; Live is a play button now
+
 ## 0.32.2
 
 - Toolhead, Extruder, System Loads, Live Z, Print controls, Machine Limits and Health shrink as a whole to fit when made small, instead of scrolling, and can be made much smaller than before. The toolhead keeps its D-pad and keeps everything on one line
