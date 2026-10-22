@@ -752,7 +752,17 @@ export function initFeatures() {
       if (!seen) {
         state.settings.seenVersion = VERSION;
         saveSettings();
-      } else if (seen !== VERSION) state.whatsNew = true;
+      } else if (seen !== VERSION)
+        // only when this version has notes of its own; a release without any just counts as seen
+        import('../CHANGELOG.md?raw')
+          .then(({ default: md }) => {
+            if (new RegExp('^## ' + VERSION.replace(/\./g, '\\.') + '\\s*$', 'm').test(md)) state.whatsNew = true;
+            else {
+              state.settings.seenVersion = VERSION;
+              saveSettings();
+            }
+          })
+          .catch(() => (state.whatsNew = true));
     },
     { immediate: true },
   );

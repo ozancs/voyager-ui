@@ -1982,5 +1982,7 @@
 "Click to show only this one",
 "Temperatures card",
 "Sensors shown in the Temperatures card.",
-"Sensors drawn in the graph."
+"Sensors drawn in the graph.",
+"Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.",
+"Open in a new tab"
 ]

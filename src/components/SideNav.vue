@@ -18,6 +18,7 @@ const NAV = [
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
   ['calibrations', 'target', 'Calibrations'],
+  ['oznlab', 'sensor', 'OznLab Sensor'],
   ['files', 'file', 'G-code Files'],
   ['viewer', 'cube', 'G-code Viewer'],
   ['history', 'clock', 'History'],
@@ -26,7 +27,13 @@ const NAV = [
 ];
 // Calibrations only shows up when the printer has one of the commands it knows
 const hasCal = computed(() => availableGroups(state.commands).length > 0);
-const navItems = computed(() => NAV.filter(([k]) => k !== 'calibrations' || hasCal.value || route.name === k));
+// the OznLab Sensor page only on printers that have the sensor's Klipper module
+const hasOznlab = computed(() => state.objects.some((o) => o === 'oznlab_sensor' || o.startsWith('oznlab_sensor ')));
+const navItems = computed(() =>
+  NAV.filter(
+    ([k]) => route.name === k || (k === 'calibrations' ? hasCal.value : k === 'oznlab' ? hasOznlab.value : true),
+  ),
+);
 const NAV2 = [
   ['quick', 'sliders', 'Printer settings'],
   ['config', 'code', 'Config files'],

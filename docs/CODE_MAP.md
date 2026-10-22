@@ -334,6 +334,13 @@ and delete.
 Machine page: system loads, the file browser for config and logs, the update manager (with the  
 confirm dialog that lists incoming commits) and endstop state.
 
+**[src/views/OznLabPage.vue](../src/views/OznLabPage.vue)**  
+The OznLab Sensor page, inside Voyager. The sensor's Klipper module links its own oznlab.html next to Mainsail and  
+Fluidd at every Klipper start, so the page shown here is always the one of the module that is installed: Voyager  
+keeps no copy, and a sensor update brings its new page with it. Looked for on Voyager's own address first (in case  
+the module ever links it there too), otherwise on the printer's port 80 where Mainsail / Fluidd live.  
+The side menu shows this page only when Klipper has an oznlab_sensor object.
+
 **[src/views/QuickConfig.vue](../src/views/QuickConfig.vue)**  
 Printer settings page: the config options the user picked (settings.quickConfig) as a form, read from the  
 live config. Saving finds each option in the config files, writes it (backup first) and can restart Klipper.

@@ -1987,4 +1987,6 @@ export default {
   "Temperatures card": "温度卡片",
   "Sensors shown in the Temperatures card.": "温度卡片中显示的传感器。",
   "Sensors drawn in the graph.": "图表中绘制的传感器。",
+  "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "从此打印机上的 Mainsail / Fluidd(端口 80)显示。如果无法加载,需要其中之一。",
+  "Open in a new tab": "在新标签页中打开",
 }

@@ -1987,4 +1987,6 @@ export default {
   "Temperatures card": "温度カード",
   "Sensors shown in the Temperatures card.": "温度カードに表示するセンサー。",
   "Sensors drawn in the graph.": "グラフに描くセンサー。",
+  "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "このプリンターの Mainsail / Fluidd (ポート 80) から表示しています。読み込めない場合はどちらかが必要です。",
+  "Open in a new tab": "新しいタブで開く",
 }

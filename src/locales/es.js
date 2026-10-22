@@ -1987,4 +1987,6 @@ export default {
   "Temperatures card": "Tarjeta de temperaturas",
   "Sensors shown in the Temperatures card.": "Sensores mostrados en la tarjeta de temperaturas.",
   "Sensors drawn in the graph.": "Sensores dibujados en la gráfica.",
+  "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "Se muestra desde Mainsail / Fluidd en esta impresora (puerto 80). Si no carga, hace falta uno de ellos.",
+  "Open in a new tab": "Abrir en una pestaña nueva",
 }
