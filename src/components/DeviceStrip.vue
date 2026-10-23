@@ -537,7 +537,7 @@ function sensorExtra(id) {
             <span class="spool" :style="{ background: '#' + (spool.filament?.color_hex || '333') }"></span>
             <div class="col" style="gap: 0; min-width: 0">
               <b class="ell" style="font-size: 14px">{{ spool.filament?.name || spool.filament?.material }}</b
-              ><span class="mono mu" style="font-size: 11px">{{ spool.filament?.material }} · #{{ spool.id }}</span>
+              ><span class="mono mu ell" style="font-size: 11px">{{ spool.filament?.material }} · #{{ spool.id }}</span>
             </div>
           </div>
           <div v-else class="mu" style="font-size: 13px">{{ t('No active spool') }}</div>
