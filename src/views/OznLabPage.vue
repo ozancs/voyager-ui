@@ -44,13 +44,13 @@ onMounted(async () => {
   </div>
 </template>
 <style scoped>
+/* the page's own console sits at its bottom: the frame ends above Voyager's footer, never under it */
 .oz {
-  flex: 1;
-  min-height: 0;
+  flex: 1 1 0;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: -8px -12px -12px;
 }
 .note {
   gap: 10px;
@@ -63,7 +63,7 @@ onMounted(async () => {
 }
 .frame {
   flex: 1;
-  min-height: calc(var(--main-h, 100vh) - 80px);
+  min-height: 0;
   width: 100%;
   border: 0;
   border-radius: var(--r);
