@@ -1286,7 +1286,7 @@ export default {
  "Tunes the TMC driver settings from the motor data (klipper_tmc_autotune).": "Regola i driver TMC dai dati del motore (klipper_tmc_autotune).",
  "Endstop phase": "Fase endstop",
  "Reports the stepper phase at the endstop.": "Riporta la fase del motore all'endstop.",
- "OznLab Sensor": "OznLab Sensor",
+ "PA Sensei": "PA Sensei",
  "Health check": "Controllo stato",
  "Chip, frequency, noise, errors and config check. Nothing moves.": "Controlla chip, frequenza, rumore, errori e configurazione. Nulla si muove.",
  "Frequency and noise": "Frequenza e rumore",

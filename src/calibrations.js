@@ -36,7 +36,7 @@ export const SHAKETUNE_CMDS = [
 export const GROUPS = [
   {
     key: 'oznlab',
-    name: 'OznLab Sensor',
+    name: 'PA Sensei',
     icon: 'sensor',
     items: [
       {
@@ -429,7 +429,7 @@ const OZNLAB = [
       ['errors', m[4]],
     ],
   ],
-  [/OznLab Sensor v[\w.]+ check \[(\w+)\]/, (m) => [['check', m[1]]]],
+  [/(?:OznLab Sensor|PA Sensei) v[\w.]+ check \[(\w+)\]/, (m) => [['check', m[1]]]],
   [
     /OznLab tap: z offset ([-\d.]+) set \(([^)]*)\)/,
     (m) => [

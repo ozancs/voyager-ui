@@ -1,5 +1,5 @@
 <script setup>
-// The OznLab Sensor page, inside Voyager. The sensor's Klipper module links its own oznlab.html next to Mainsail and
+// The PA Sensei sensor page (by OznLab, earlier called OznLab Sensor), inside Voyager. The sensor's Klipper module links its own oznlab.html next to Mainsail and
 // Fluidd at every Klipper start, so the page shown here is always the one of the module that is installed: Voyager
 // keeps no copy, and a sensor update brings its new page with it. Looked for on Voyager's own address first (in case
 // the module ever links it there too), otherwise on the printer's port 80 where Mainsail / Fluidd live.
@@ -21,7 +21,7 @@ onMounted(async () => {
   try {
     const own = (api.webBase || '') + '/oznlab.html';
     const r = await fetch(own, { cache: 'no-store' });
-    if (r.ok && /<title>\s*OznLab Sensor/i.test(await r.text())) {
+    if (r.ok && /<title>\s*(PA Sensei|OznLab Sensor)/i.test(await r.text())) {
       fromOwn.value = true;
       src.value = own;
       return;
@@ -40,7 +40,7 @@ onMounted(async () => {
         ><Icon name="ext" :size="14" />{{ t('Open in a new tab') }}</a
       >
     </div>
-    <iframe v-if="src" :src="src" title="OznLab Sensor" class="frame" allow="clipboard-write"></iframe>
+    <iframe v-if="src" :src="src" title="PA Sensei" class="frame" allow="clipboard-write"></iframe>
   </div>
 </template>
 <style scoped>

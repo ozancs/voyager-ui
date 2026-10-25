@@ -1282,7 +1282,7 @@
 "Tunes the TMC driver settings from the motor data (klipper_tmc_autotune).",
 "Endstop phase",
 "Reports the stepper phase at the endstop.",
-"OznLab Sensor",
+"PA Sensei",
 "Health check",
 "Chip, frequency, noise, errors and config check. Nothing moves.",
 "Frequency and noise",

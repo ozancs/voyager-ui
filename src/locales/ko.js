@@ -1286,7 +1286,7 @@ export default {
  "Tunes the TMC driver settings from the motor data (klipper_tmc_autotune).": "모터 데이터로 TMC 드라이버 설정을 조정합니다 (klipper_tmc_autotune).",
  "Endstop phase": "엔드스탑 위상",
  "Reports the stepper phase at the endstop.": "엔드스탑에서의 스테퍼 위상을 보고합니다.",
- "OznLab Sensor": "OznLab Sensor",
+ "PA Sensei": "PA Sensei",
  "Health check": "상태 점검",
  "Chip, frequency, noise, errors and config check. Nothing moves.": "칩, 주파수, 노이즈, 오류, 설정을 확인합니다. 아무것도 움직이지 않습니다.",
  "Frequency and noise": "주파수와 노이즈",
