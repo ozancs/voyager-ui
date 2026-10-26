@@ -279,11 +279,17 @@ function checkHeated() {
 // Heaters with a target while nothing prints, for longer than Settings > Control > "Heaters left on" (minutes):
 // a notification and a toast with Cool down. Klipper's idle_timeout already turns heaters off when its gcode has
 // TURN_OFF_HEATERS; when that comes first nothing is said. Changing a target starts the count again, and
-// dismissing the notification keeps quiet until the heaters are turned off.
+// dismissing the notification keeps quiet until the heaters are turned off. With "Turn them off" set
+// (idleHeatOff) the heaters go off a minute after the warning unless Keep them on is pressed.
 let idleSince = 0,
   idleSig = '',
   idleSaid = 0, // idleSince of the stretch already reported
-  idleToast = null;
+  idleToast = null,
+  idleOffTm = null;
+function stopIdleOff() {
+  clearTimeout(idleOffTm);
+  idleOffTm = null;
+}
 const idleKey = () => 'idleheat:' + idleSince;
 const ZERO = (p) => new RegExp('\\b' + p + '0+(?:\\.0+)?(?![\\d.])', 'i');
 // heaters the idle_timeout gcode turns off ({all} for TURN_OFF_HEATERS or Klipper's default); comments skipped
@@ -310,6 +316,7 @@ function checkIdleHeat() {
   if (!mins || st === 'printing' || st === 'paused' || !on.length) {
     if (idleSince) unnotify('idleheat');
     if (idleToast) closeToast(idleToast);
+    stopIdleOff();
     idleSince = 0;
     idleSig = '';
     idleToast = null;
@@ -318,6 +325,7 @@ function checkIdleHeat() {
   const sig = on.map((n) => n + ':' + S(n).target).join(',');
   if (sig !== idleSig) {
     unnotify('idleheat');
+    stopIdleOff();
     idleSig = sig;
     idleSince = Date.now();
     return;
@@ -335,6 +343,21 @@ function checkIdleHeat() {
   const msg = t('{list}: on for {n} min with no print', { list, n: mins });
   notify(idleKey(), msg, 'warn');
   alertEvent('error', msg);
+  if (state.settings.idleHeatOff) {
+    idleToast = toast(msg + ' ' + t('Turning them off in a minute.'), 'warn', {
+      ms: 0,
+      action: { label: t('Keep them on'), run: stopIdleOff },
+    });
+    idleOffTm = setTimeout(() => {
+      idleOffTm = null;
+      const ps = S('print_stats').state;
+      if (ps === 'printing' || ps === 'paused') return;
+      Promise.resolve(gcode('TURN_OFF_HEATERS')).catch(() => {});
+      if (idleToast) closeToast(idleToast);
+      toast(t('Heaters turned off: {n} min with no print', { n: mins }), 'info');
+    }, 60e3);
+    return;
+  }
   idleToast = toast(msg, 'warn', {
     ms: 0,
     action: { label: t('Cooldown'), run: () => gcode('TURN_OFF_HEATERS') },

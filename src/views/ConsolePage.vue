@@ -7,6 +7,8 @@ import { state, macroList, clearConsole } from '../store';
 import { t } from '../i18n';
 const cv = ref(null);
 const q = ref('');
+const find = ref(''); // search in the console output
+const errOnly = ref(false);
 const list = computed(() => {
   const all = [...new Set([...macroList.value, ...Object.keys(state.commands)])].sort();
   const f = q.value.toUpperCase();
@@ -20,6 +22,16 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
       <div class="card-h">
         <h2>{{ t('Console') }}</h2>
         <div class="acts">
+          <label class="row input fnd"
+            ><Icon name="search" :size="15" /><input
+              v-model="find"
+              :placeholder="t('Search')"
+              :aria-label="t('Search the console')"
+              @keydown.esc="find = ''"
+          /></label>
+          <button class="btn" :class="{ on: errOnly }" :aria-pressed="errOnly" @click="errOnly = !errOnly">
+            <Icon name="warn" :size="15" />{{ t('Errors') }}
+          </button>
           <button
             class="btn"
             :class="{ on: state.settings.consoleHideTemps }"
@@ -30,7 +42,7 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
           ><button class="btn" @click="clearConsole"><Icon name="trash" :size="16" />{{ t('Clear') }}</button>
         </div>
       </div>
-      <ConsoleView ref="cv" :limit="600" />
+      <ConsoleView ref="cv" :limit="600" :search="find" :errors="errOnly" />
     </section>
     <section class="card side-col">
       <div class="card-h">
@@ -54,6 +66,19 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
   </div>
 </template>
 <style scoped>
+.fnd {
+  height: 34px;
+  width: 180px;
+  gap: 6px;
+}
+.fnd input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--tx);
+}
 .cp {
   height: calc(var(--main-h, 100vh) - 105px);
   min-height: 420px;

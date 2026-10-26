@@ -7,7 +7,8 @@ import WebcamView from '../components/WebcamView.vue';
 import TimelapsePanel from '../components/TimelapsePanel.vue';
 import TimelapseSettings from '../components/TimelapseSettings.vue';
 import CrowsnestCard from '../components/CrowsnestCard.vue';
-import { state } from '../store';
+import CamOverlay from '../components/CamOverlay.vue';
+import { state, printState } from '../store';
 import { api } from '../api/moonraker';
 import { route } from '../router';
 import { tl } from '../timelapse';
@@ -39,6 +40,9 @@ const wrap = ref(null);
 function full() {
   wrap.value?.requestFullscreen?.();
 }
+// the print shown over the picture while one runs (button in the header turns it off, remembered)
+const info = computed(() => opts().camInfo !== false);
+const printing = computed(() => ['printing', 'paused'].includes(printState.value));
 function snapshot(c) {
   if (c) window.open(api.url(c.snapshot_url), '_blank', 'noopener');
 }
@@ -49,7 +53,15 @@ function snapshot(c) {
       <div class="card-h">
         <h2>{{ lapse ? t('Timelapse') : all ? t('All cameras') : cam?.name || t('Webcam') }}</h2>
         <div v-if="!lapse" class="acts">
-          <button v-if="!all" class="btn" :disabled="!cam" @click="snapshot(cam)">
+          <button
+            v-if="!all && printing"
+            class="btn"
+            :class="{ on: info }"
+            :aria-pressed="info"
+            @click="opts().camInfo = !info"
+          >
+            <Icon name="info" :size="16" :stroke="2.4" />{{ t('Print info') }}</button
+          ><button v-if="!all" class="btn" :disabled="!cam" @click="snapshot(cam)">
             <Icon name="snap" :size="16" :stroke="2.4" />{{ t('Snapshot') }}</button
           ><button class="btn" @click="full"><Icon name="ext" :size="16" :stroke="2.4" />{{ t('Fullscreen') }}</button>
         </div>
@@ -64,7 +76,10 @@ function snapshot(c) {
           </div>
         </div>
       </div>
-      <WebcamView v-else :cam="cam" />
+      <div v-else class="one">
+        <WebcamView :cam="cam" />
+        <CamOverlay v-if="info" />
+      </div>
     </section>
     <div class="side-col">
       <section class="card">
@@ -138,6 +153,15 @@ function snapshot(c) {
   </div>
 </template>
 <style scoped>
+.one {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
 .cm {
   display: flex;
   align-items: center;

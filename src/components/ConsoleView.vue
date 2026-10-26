@@ -12,7 +12,12 @@ import Popover from './Popover.vue';
 import ExplainBox from './ExplainBox.vue';
 import { explain } from '../explain';
 import { describe } from '../gcodeHelp';
-const props = defineProps({ limit: { type: Number, default: 400 } });
+// search: only lines with this text (marked); errors: only error lines, each with the command sent before it
+const props = defineProps({
+  limit: { type: Number, default: 400 },
+  search: { type: String, default: '' },
+  errors: Boolean,
+});
 const box = ref(null);
 const cmd = ref('');
 const hist = [];
@@ -27,8 +32,41 @@ const lines = computed(() => {
       !x.message.startsWith('// action:'),
   );
   if (state.settings.consoleHideTemps) l = l.filter((x) => !TEMP_RE.test(x.message));
+  if (props.errors) {
+    const keep = new Set();
+    l.forEach((x, i) => {
+      if (!isErr(x)) return;
+      keep.add(x);
+      for (let k = i - 1; k >= 0 && k >= i - 6; k--)
+        if (l[k].type === 'command') {
+          keep.add(l[k]);
+          break;
+        }
+    });
+    l = l.filter((x) => keep.has(x));
+  }
+  const q = props.search.trim().toLowerCase();
+  if (q) l = l.filter((x) => x.message.toLowerCase().includes(q));
   return l.slice(-props.limit);
 });
+const isErr = (x) => x.type !== 'command' && (/^!!/.test(x.message) || /\b(error|failed|shutdown)\b/i.test(x.message));
+// the line cut where the search text is, so the hits can be marked
+function parts(msg) {
+  const q = props.search.trim().toLowerCase();
+  if (!q) return [{ s: msg }];
+  const out = [],
+    low = msg.toLowerCase();
+  let i = 0,
+    j;
+  while ((j = low.indexOf(q, i)) >= 0) {
+    if (j > i) out.push({ s: msg.slice(i, j) });
+    out.push({ s: msg.slice(j, j + q.length), hit: true });
+    i = j + q.length;
+  }
+  if (i < msg.length) out.push({ s: msg.slice(i) });
+  return out;
+}
+const filtering = computed(() => props.errors || !!props.search.trim());
 const fmt = (t) => new Date(t * 1000).toLocaleTimeString(undefined, { hour12: false });
 function scroll() {
   if (auto.value && box.value) box.value.scrollTop = box.value.scrollHeight;
@@ -124,7 +162,11 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
           <span class="t">{{ fmt(l.time) }}</span
           ><span v-if="l.type !== 'command' && hasMarkup(l.message)" class="m" v-html="richHtml(l.message)"></span
           ><span v-else class="m" :data-tip="l.type === 'command' ? describe(l.message) || null : null"
-            >{{ l.type === 'command' ? '> ' : '' }}{{ l.message }}</span
+            >{{ l.type === 'command' ? '> ' : ''
+            }}<template v-for="(p, i) in parts(l.message)" :key="i"
+              ><mark v-if="p.hit">{{ p.s }}</mark
+              ><template v-else>{{ p.s }}</template></template
+            ></span
           ><button
             v-if="cls(l) === 'e' && explain(l.message)"
             class="xq"
@@ -134,6 +176,9 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
           >
             ?
           </button>
+        </div>
+        <div v-if="filtering && !lines.length" class="none">
+          {{ errors ? t('No errors in the console') : t('Nothing matches') }}
         </div>
       </div>
       <Transition name="jb">
@@ -164,6 +209,15 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
   </div>
 </template>
 <style scoped>
+mark {
+  background: color-mix(in srgb, var(--ac) 35%, transparent);
+  color: inherit;
+  border-radius: 2px;
+}
+.none {
+  color: var(--mu);
+  padding: 8px 2px;
+}
 .m[data-tip] {
   cursor: help;
 }

@@ -394,6 +394,10 @@ Beside the calibrations: what is needed when the printer is not in front of you.
 with Home all and the hotend and bed temperatures (and how long until they reach their target); 'cam' is a  
 webcam picture, the camera remembered in the settings.
 
+**[src/components/CamOverlay.vue](../src/components/CamOverlay.vue)**  
+The print over the camera picture: file, progress, layer, time left, ETA and the hotend and bed temperatures,  
+in a strip along the bottom. Shown while a print runs or is paused; also in full screen.
+
 **[src/components/CardCollapse.vue](../src/components/CardCollapse.vue)**  
 The fold chevron at the end of a card header. Shown only for a card on the dashboard (CellScope provides the  
 context); the same card elsewhere (Machine page, inside a Tabs card) gets nothing.

@@ -6,7 +6,16 @@ import { ref, onMounted, computed } from 'vue';
 import Icon from './Icon.vue';
 import { api } from '../api/moonraker';
 import { toast, backupBeforeWrite, isPrinting } from '../store';
-import { parseCrowsnest, writeCrowsnest, CAM_KEYS, REQUIRED_KEYS, MODES } from '../crowsnest';
+import {
+  parseCrowsnest,
+  writeCrowsnest,
+  CAM_KEYS,
+  REQUIRED_KEYS,
+  MODES,
+  parseCamControls,
+  parseV4l2ctl,
+  v4l2ctlString,
+} from '../crowsnest';
 import { t } from '../i18n';
 const text = ref(null);
 const cams = ref([]);
@@ -61,6 +70,53 @@ async function save() {
   saving.value = false;
 }
 const RES = ['640x480', '800x600', '1280x720', '1920x1080', '2560x1440'];
+
+// ---------------------------------------------------------------- picture: the camera's own controls
+// read from crowsnest.log (crowsnest lists them at start); a change goes into the camera's v4l2ctl line. With
+// camera-streamer it is also sent to the running stream at once; ustreamer takes it on Save (crowsnest restarts).
+const ctrls = ref(null); // { device: [controls] }, null until read
+async function loadCtrls() {
+  try {
+    ctrls.value = parseCamControls(await api.getText('/server/files/logs/crowsnest.log'));
+  } catch {
+    ctrls.value = {};
+  }
+}
+const ctrlsOf = (c) => ctrls.value?.[String(c.opts.device || '').trim()] || [];
+const pic = ref({}); // cam name -> open
+function valOf(c, k) {
+  const set = parseV4l2ctl(c.opts.v4l2ctl);
+  return k.name in set ? Number(set[k.name]) : k.value;
+}
+// the /webcam/ address of a crowsnest port as KIAUH and the installer set it up: 8080 -> /webcam/, 8081 -> /webcam2/
+const camPath = (port) => {
+  const n = Number(port) - 8079;
+  return n >= 1 && n <= 9 ? `/webcam${n > 1 ? n : ''}/` : null;
+};
+let liveTm = {};
+function setCtrl(c, k, v) {
+  const o = parseV4l2ctl(c.opts.v4l2ctl);
+  o[k.name] = String(v);
+  c.opts.v4l2ctl = v4l2ctlString(o);
+  if (c.opts.mode === 'camera-streamer' && camPath(c.opts.port)) {
+    clearTimeout(liveTm[k.name]);
+    liveTm[k.name] = setTimeout(() => {
+      const u = api.url(
+        camPath(c.opts.port) + `option?key=${encodeURIComponent(k.name)}&value=${encodeURIComponent(v)}`,
+      );
+      fetch(u, { method: 'POST' }).catch(() => {});
+    }, 150);
+  }
+}
+function resetCtrls(c) {
+  const o = parseV4l2ctl(c.opts.v4l2ctl);
+  for (const k of ctrlsOf(c)) if (k.def != null && k.name in o) o[k.name] = String(k.def);
+  c.opts.v4l2ctl = v4l2ctlString(o);
+}
+function togglePic(c) {
+  pic.value[c.name] = !pic.value[c.name];
+  if (pic.value[c.name] && !ctrls.value) loadCtrls();
+}
 </script>
 <template>
   <section v-if="!missing" class="card">
@@ -103,6 +159,66 @@ const RES = ['640x480', '800x600', '1280x720', '1920x1080', '2560x1440'];
             ><span>{{ t('Extra flags') }}</span
             ><input v-model="c.opts.custom_flags" class="input mono" :placeholder="t('e.g. --format=MJPEG')"
           /></label>
+          <div class="pic" style="grid-column: 1 / -1">
+            <button class="btn clear sm pt" :aria-expanded="!!pic[c.name]" @click="togglePic(c)">
+              <Icon name="chev" :size="14" :style="{ transform: pic[c.name] ? 'rotate(90deg)' : '' }" />{{
+                t('Picture (brightness, focus, exposure…)')
+              }}
+            </button>
+            <template v-if="pic[c.name]">
+              <span v-if="!ctrls" class="mu sm">{{ t('Loading…') }}</span>
+              <span v-else-if="!ctrlsOf(c).length" class="mu sm">{{
+                t(
+                  'crowsnest.log does not list this camera’s controls. They are written at start with log_level: verbose; check the device path above.',
+                )
+              }}</span>
+              <template v-else>
+                <span class="mu sm">{{
+                  c.opts.mode === 'camera-streamer'
+                    ? t('Changes show on the stream at once; Save keeps them.')
+                    : t('Changes are applied when you save (crowsnest restarts).')
+                }}</span>
+                <div v-for="k in ctrlsOf(c)" :key="k.name" class="ctl" :class="{ off: k.inactive }">
+                  <span class="mono kn" :data-tip="k.inactive ? t('Not active while an automatic mode is on') : null">{{
+                    k.name
+                  }}</span>
+                  <template v-if="k.type === 'bool'"
+                    ><input
+                      type="checkbox"
+                      class="cb"
+                      :checked="!!valOf(c, k)"
+                      :aria-label="k.name"
+                      @change="setCtrl(c, k, $event.target.checked ? 1 : 0)"
+                  /></template>
+                  <select
+                    v-else-if="k.menu.length"
+                    class="input"
+                    :value="valOf(c, k)"
+                    :aria-label="k.name"
+                    @change="setCtrl(c, k, +$event.target.value)"
+                  >
+                    <option v-for="m in k.menu" :key="m.v" :value="m.v">{{ m.label }}</option>
+                  </select>
+                  <template v-else
+                    ><input
+                      class="rng"
+                      type="range"
+                      :min="k.min"
+                      :max="k.max"
+                      :step="k.step"
+                      :value="valOf(c, k)"
+                      :style="{ '--f': (valOf(c, k) - k.min) / (k.max - k.min || 1) }"
+                      :aria-label="k.name"
+                      @input="setCtrl(c, k, +$event.target.value)"
+                    /><span class="mono v">{{ valOf(c, k) }}</span></template
+                  >
+                </div>
+                <button class="btn sm" style="align-self: flex-start" @click="resetCtrls(c)">
+                  {{ t('Back to the camera defaults') }}
+                </button>
+              </template>
+            </template>
+          </div>
           <label class="f" style="grid-column: 1 / -1"
             ><span>v4l2ctl</span
             ><input
@@ -131,6 +247,45 @@ const RES = ['640x480', '800x600', '1280x720', '1920x1080', '2560x1440'];
   </section>
 </template>
 <style scoped>
+.pic {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pt {
+  align-self: flex-start;
+  gap: 6px;
+  padding-left: 2px;
+}
+.ctl {
+  display: grid;
+  grid-template-columns: minmax(110px, 38%) 1fr auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 30px;
+  font-size: 12.5px;
+}
+.ctl.off {
+  opacity: 0.5;
+}
+.ctl .kn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ctl select,
+.ctl .cb {
+  grid-column: 2 / -1;
+  justify-self: start;
+}
+.ctl select {
+  height: 30px;
+  font-size: 12.5px;
+}
+.ctl .v {
+  min-width: 42px;
+  text-align: right;
+}
 .cam {
   display: flex;
   flex-direction: column;

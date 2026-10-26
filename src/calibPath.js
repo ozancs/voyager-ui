@@ -27,6 +27,8 @@ export function pathSteps(ctx) {
     out.push({ key: 'zoffset', kind: 'zoffset', cmd: 'PROBE_CALIBRATE', name: 'Z offset' });
   else if (has('Z_ENDSTOP_CALIBRATE'))
     out.push({ key: 'zoffset', kind: 'zoffset', cmd: 'Z_ENDSTOP_CALIBRATE', name: 'Z endstop' });
+  if (probe && set.axis_twist_compensation && has('AXIS_TWIST_COMPENSATION_CALIBRATE'))
+    out.push({ key: 'twist', kind: 'twist', cmd: 'AXIS_TWIST_COMPENSATION_CALIBRATE', name: 'Axis twist' });
   if (set.bed_mesh && has('BED_MESH_CALIBRATE'))
     out.push({ key: 'mesh', kind: 'mesh', cmd: 'BED_MESH_CALIBRATE', name: 'Bed mesh' });
   if (set.resonance_tester && has('SHAPER_CALIBRATE'))
@@ -133,6 +135,18 @@ export function parseShaper(list) {
 }
 
 // after ACCEPT: "probe: z_offset: 1.234" or "stepper_z: position_endstop: 0.5"
+// axis twist compensation: which point of how many is being measured, and whether it has finished
+export function parseTwist(list) {
+  let n = 0,
+    of = 0,
+    done = false;
+  for (const l of lines(list)) {
+    const m = /Probing point (\d+) of (\d+)/i.exec(l);
+    if (m) [n, of] = [+m[1], +m[2]];
+    if (/AXIS_TWIST_COMPENSATION state has been saved/i.test(l)) done = true;
+  }
+  return { n, of, done };
+}
 export function parseZOffset(list) {
   for (const l of lines(list)) {
     const m = /(z_offset|position_endstop):\s*([-\d.]+)/i.exec(l);

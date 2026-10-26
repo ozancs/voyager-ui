@@ -72,3 +72,64 @@ export function writeCrowsnest(text, cams) {
   }
   return lines.join('\n');
 }
+
+// ---------------------------------------------------------------- camera image controls
+// crowsnest writes each camera's controls into crowsnest.log at start (log_level verbose or debug):
+//   [10/27/26 14:03:12] crowsnest: /dev/v4l/by-id/usb-Cam-video-index0 -> /dev/video0
+//   [10/27/26 14:03:12] crowsnest: Supported Controls:
+//   [10/27/26 14:03:12] crowsnest:		 brightness 0x00980900 (int)    : min=-64 max=64 step=1 default=0 value=0
+//   ...                 crowsnest:				1: Manual Mode        (an entry of the menu above)
+// Returns { devicePath: [{ name, type, min, max, step, def, value, inactive, menu: [{ v, label }] }] }; both the
+// by-id path and the /dev/videoN it points to are keys. A later start replaces what an earlier one wrote.
+export function parseCamControls(log) {
+  const out = {};
+  let devs = [],
+    list = null,
+    last = null;
+  for (const raw of String(log || '').split('\n')) {
+    const l = raw.replace(/^\[[^\]]*\]\s*crowsnest:\s?/, '');
+    let m;
+    if ((m = /^(\/dev\/\S+)\s+->\s+(\/dev\/\S+)\s*$/.exec(l.trim()))) {
+      devs = [m[1], m[2]];
+      list = null;
+    } else if (/^Supported Controls:/i.test(l.trim())) {
+      if (!devs.length) continue;
+      list = [];
+      for (const d of devs) out[d] = list;
+    } else if (list && (m = /^\s*([a-z0-9_]+)\s+0x[0-9a-f]+\s+\((\w+)\)\s*:\s*(.*)$/i.exec(l))) {
+      const kv = Object.fromEntries([...m[3].matchAll(/(\w+)=(\S+)/g)].map((x) => [x[1], x[2]]));
+      const num = (k) => (kv[k] !== undefined && !isNaN(+kv[k]) ? +kv[k] : null);
+      last = {
+        name: m[1],
+        type: m[2].toLowerCase(),
+        min: num('min'),
+        max: num('max'),
+        step: num('step') || 1,
+        def: num('default'),
+        value: num('value'),
+        inactive: /inactive/.test(kv.flags || ''),
+        menu: [],
+      };
+      if (['int', 'bool', 'menu', 'intmenu'].includes(last.type)) list.push(last);
+    } else if (list && last && (m = /^\s*(-?\d+):\s*(.+?)\s*$/.exec(l)) && /menu/.test(last.type)) {
+      last.menu.push({ v: +m[1], label: m[2] });
+    } else if (list && l.trim() && !/^\s/.test(l)) {
+      list = null; // the next log message: the controls block has ended
+      last = null;
+    }
+  }
+  return out;
+}
+// "a=1, b=2" <-> { a: '1', b: '2' }, the order kept
+export function parseV4l2ctl(s) {
+  const o = {};
+  for (const part of String(s || '').split(',')) {
+    const m = /^\s*([a-z0-9_]+)\s*=\s*(-?[\w.]+)\s*$/i.exec(part);
+    if (m) o[m[1]] = m[2];
+  }
+  return o;
+}
+export const v4l2ctlString = (o) =>
+  Object.entries(o)
+    .map(([k, v]) => `${k}=${v}`)
+    .join(',');

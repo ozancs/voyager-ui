@@ -12,6 +12,7 @@ function wsAll(m) {
 }
 const objects = ['mmu'].concat([
   'probe_eddy_current btt_eddy',
+  'axis_twist_compensation',
   'adxl345',
   'quad_gantry_level',
   'system_stats',
@@ -615,6 +616,7 @@ function pushStatus(o) {
   for (const [k, v] of Object.entries(o)) Object.assign(status[k], v);
   wsAll({ jsonrpc: '2.0', method: 'notify_status_update', params: [o, 1] });
 }
+let twistSim = null; // the axis twist wizard: which point of how many
 let gcodeScript = function (sc) {
   const S = sc.trim().toUpperCase();
   if (S === 'GENERATE_SHAPER_GRAPHS' || /^RUN_SHELL_COMMAND CMD=GENERATE_SHAPER_GRAPHS/.test(S)) {
@@ -645,7 +647,27 @@ let gcodeScript = function (sc) {
       '// action:prompt_show',
     ]);
   else if (S.startsWith('RESPOND') && S.includes('PROMPT_END')) emitLines(['// action:prompt_end']);
-  else if (S === 'PROBE_CALIBRATE' || S === 'Z_ENDSTOP_CALIBRATE')
+  else if (S.startsWith('AXIS_TWIST_COMPENSATION_CALIBRATE')) {
+    twistSim = { n: 1, of: +(S.match(/SAMPLE_COUNT=(\d+)/)?.[1] || 3) };
+    emitLines([`// AXIS_TWIST_COMPENSATION_CALIBRATE: Probing point 1 of ${twistSim.of}`]);
+    pushStatus({ manual_probe: { is_active: true, z_position: 5, z_position_lower: null, z_position_upper: null } });
+  } else if (S === 'ACCEPT' && twistSim) {
+    pushStatus({ manual_probe: { is_active: false } });
+    if (twistSim.n < twistSim.of) {
+      twistSim.n++;
+      emitLines([`// AXIS_TWIST_COMPENSATION_CALIBRATE: Probing point ${twistSim.n} of ${twistSim.of}`]);
+      setTimeout(() => pushStatus({ manual_probe: { is_active: true, z_position: 5 } }), 900);
+    } else {
+      twistSim = null;
+      pushStatus({ configfile: { save_config_pending: true } });
+      emitLines([
+        '// AXIS_TWIST_COMPENSATION state has been saved for the current session. The SAVE_CONFIG command will update the printer config file and restart the printer.',
+      ]);
+    }
+  } else if (S === 'ABORT' && twistSim) {
+    twistSim = null;
+    pushStatus({ manual_probe: { is_active: false } });
+  } else if (S === 'PROBE_CALIBRATE' || S === 'Z_ENDSTOP_CALIBRATE')
     pushStatus({ manual_probe: { is_active: true, z_position: 5, z_position_lower: null, z_position_upper: null } });
   else if (S.startsWith('TESTZ')) {
     const m = S.match(/Z=([-+]?[\d.]*)/);
@@ -1086,7 +1108,7 @@ const versions = {
       date: String(Math.round(Date.now() / 1000 - i * 86400)),
     })),
   },
-  moonraker: { version: 'v0.9.3', remote_version: 'v0.9.3' },
+  moonraker: { configured_type: 'git_repo', version: 'v0.9.3', remote_version: 'v0.9.3', rollback_version: 'v0.9.2' },
   'voyager-ui': {
     configured_type: 'web',
     owner: 'ozancs',
@@ -1498,6 +1520,8 @@ function handle(m) {
         LDC_CALIBRATE_DRIVE_CURRENT: 'Calibrate LDC1612 DRIVE_CURRENT register',
         PROBE_ACCURACY: 'Probe Z-height accuracy at current XY position',
         PROBE_CALIBRATE: "Calibrate the probe's z_offset",
+        AXIS_TWIST_COMPENSATION_CALIBRATE:
+          'Performs the x twist calibration wizard, measurement will be at the 3 points',
         QUAD_GANTRY_LEVEL: 'Conform a moving, twistable gantry to the shape of a stationary bed',
         SAVE_CONFIG: 'Overwrite config file and restart',
         G28: 'Home',
@@ -1541,6 +1565,23 @@ function handle(m) {
           names.filter((n) => n !== 'system').forEach(finishUpdate);
         }
       }, 350);
+      return 'ok';
+    }
+    case 'machine.update.rollback': {
+      const v = versions[p.name];
+      if (!v?.rollback_version) throw { code: 400, message: 'No rollback version for ' + p.name };
+      setTimeout(() => {
+        wsAll({
+          jsonrpc: '2.0',
+          method: 'notify_update_response',
+          params: [
+            { application: p.name, proc_id: 1, message: 'Rolling back to ' + v.rollback_version, complete: true },
+          ],
+        });
+        [v.version, v.rollback_version] = [v.rollback_version, v.version];
+        v.remote_version = v.rollback_version;
+        wsAll({ jsonrpc: '2.0', method: 'notify_update_refreshed', params: [updStatus()] });
+      }, 300);
       return 'ok';
     }
     case 'machine.update.upgrade':
@@ -2592,6 +2633,29 @@ function demoLog(name) {
       out.push(
         `${ts(i)} crowsnest: ${i % 300 === 0 ? 'WARN: Camera cam1 lost frames' : 'Camera cam1 running at 15 fps'}`,
       );
+  }
+  // what crowsnest lists at start (log_level: verbose): each camera's controls, read by the camera settings form
+  if (name === 'crowsnest.log') {
+    const p = '[10/27/26 09:12:03] crowsnest:';
+    out.unshift(
+      `${p} INFO: Detect available Devices`,
+      `${p} /dev/v4l/by-id/usb-046d_Logitech_Webcam_C920-video-index0 -> /dev/video0`,
+      `${p} Supported Formats:`,
+      `${p}\t\t[0]: 'MJPG' (Motion-JPEG, compressed)`,
+      `${p} Supported Controls:`,
+      `${p}\t\t                     brightness 0x00980900 (int)    : min=0 max=255 step=1 default=128 value=128`,
+      `${p}\t\t                       contrast 0x00980901 (int)    : min=0 max=255 step=1 default=128 value=128`,
+      `${p}\t\t                     saturation 0x00980902 (int)    : min=0 max=255 step=1 default=128 value=128`,
+      `${p}\t\t        white_balance_automatic 0x0098090c (bool)   : default=1 value=1`,
+      `${p}\t\t                      sharpness 0x0098091b (int)    : min=0 max=255 step=1 default=128 value=128`,
+      `${p}\t\t                  auto_exposure 0x009a0901 (menu)   : min=0 max=3 default=3 value=3 (Aperture Priority Mode)`,
+      `${p}\t\t\t\t1: Manual Mode`,
+      `${p}\t\t\t\t3: Aperture Priority Mode`,
+      `${p}\t\t         exposure_time_absolute 0x009a0902 (int)    : min=3 max=2047 step=1 default=250 value=250 flags=inactive`,
+      `${p}\t\t     focus_automatic_continuous 0x009a090c (bool)   : default=1 value=1`,
+      `${p}\t\t                 focus_absolute 0x009a090a (int)    : min=0 max=250 step=5 default=0 value=0 flags=inactive`,
+      `${p} INFO: No usable CSI Devices found.`,
+    );
   }
   return out.join('\n') + '\n';
 }

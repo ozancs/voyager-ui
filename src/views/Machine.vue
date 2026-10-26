@@ -144,6 +144,31 @@ async function doUpdate(name) {
   busy.value = '';
   loadUpd();
 }
+// Moonraker keeps the version a component had before its last update (rollback_version): one step back
+const canRollback = (v) =>
+  !!v.rollback_version &&
+  v.rollback_version !== '?' &&
+  v.rollback_version !== verText(v) &&
+  v.rollback_version !== v.remote_version && // just rolled back: the update button brings it forward again
+  !v.is_dirty;
+const rb = ref(null); // name of the component to roll back
+const rbRisk = ref(false);
+watch(rb, () => (rbRisk.value = false));
+async function doRollback(name) {
+  rb.value = null;
+  busy.value = name;
+  state.update = { app: name, lines: [], complete: false };
+  try {
+    await api.call('machine.update.rollback', { name });
+  } catch (e) {
+    if (state.update) {
+      state.update.lines.push('!! ' + e.message);
+      state.update.complete = true;
+    }
+  }
+  busy.value = '';
+  loadUpd();
+}
 async function doUpdateAll() {
   confirm.value = null;
   busy.value = 'all';
@@ -204,6 +229,16 @@ const viewLog = ref(null);
           <span v-else class="chip" :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"
             ><i></i>{{ v.detached ? t('Pinned') : t('Up to date') }}</span
           >
+          <button
+            v-if="canRollback(v)"
+            class="btn clear ibtn sm"
+            :disabled="!!busy"
+            :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
+            :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
+            @click="rb = name"
+          >
+            <Icon name="rewind" :size="16" />
+          </button>
         </div>
         <div v-if="sysUpd" class="it">
           <div class="grow col" style="gap: 2px">
@@ -257,6 +292,26 @@ const viewLog = ref(null);
     </div>
   </div>
   <LogViewer v-if="viewLog" :file="viewLog" @close="viewLog = null" />
+  <Modal v-if="rb" :title="t('Roll back {name}?', { name: rb })" @close="rb = null">
+    <div class="row mono" style="gap: 8px; font-size: 13px">
+      <span>{{ verText(upd?.version_info?.[rb] || {}) }}</span
+      ><Icon name="right" :size="14" /><b>{{ upd?.version_info?.[rb]?.rollback_version }}</b>
+    </div>
+    <p class="mu" style="margin: 0">
+      {{
+        t(
+          'Goes back to the version it had before its last update. Use it when an update broke something; the next update brings the new version again.',
+        )
+      }}
+    </p>
+    <label class="row" style="gap: 10px; cursor: pointer"
+      ><input v-model="rbRisk" type="checkbox" class="cb" /><span>{{ t('I understand the risk') }}</span></label
+    >
+    <template #foot
+      ><button class="btn lg" @click="rb = null">{{ t('Cancel') }}</button
+      ><button class="btn lg acc" :disabled="!rbRisk" @click="doRollback(rb)">{{ t('Roll back') }}</button></template
+    >
+  </Modal>
   <Modal
     v-if="confirm"
     :title="confirm === '__all' ? t('Update everything?') : t('Update {name}?', { name: confirm })"

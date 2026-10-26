@@ -74,7 +74,7 @@ describe('backup', () => {
     expect(mock.gcode).not.toHaveBeenCalled();
   });
 });
-function idleHarness(cfg, extra = {}) {
+function idleHarness(cfg, extra = {}, settings = {}) {
   const src = readFileSync(new URL('../src/features.js', import.meta.url), 'utf8');
   const part = src.slice(
     src.indexOf('let idleSince ='),
@@ -92,7 +92,7 @@ function idleHarness(cfg, extra = {}) {
     configfile: { settings: { idle_timeout: cfg } },
     ...extra,
   };
-  const state = { settings: { idleHeatMin: 20 } };
+  const state = { settings: { idleHeatMin: 20, ...settings } };
   const check = Function(
     'state',
     'S',
@@ -144,4 +144,27 @@ describe('idle heaters', () => {
   it('M104 S200 is not a turn-off', async () =>
     expect(await run({ timeout: 600, gcode: 'M104 S200\nM140 S0' })).toBe(1));
   it('no idle_timeout section uses the default', async () => expect(await run(undefined)).toBe(0));
+});
+describe('idle heaters turned off', () => {
+  beforeEach(() => mock.gcode.mockClear());
+  it('turns them off a minute after the warning', async () => {
+    const h = idleHarness({ timeout: 3600, gcode: 'M84' }, {}, { idleHeatOff: true });
+    h.check();
+    await vi.advanceTimersByTimeAsync(1200000);
+    h.check();
+    expect(h.notices.length).toBe(1);
+    expect(mock.gcode).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(61000);
+    expect(mock.gcode).toHaveBeenCalledWith('TURN_OFF_HEATERS');
+  });
+  it('not when a print starts in that minute', async () => {
+    const h = idleHarness({ timeout: 3600, gcode: 'M84' }, {}, { idleHeatOff: true });
+    h.check();
+    await vi.advanceTimersByTimeAsync(1200000);
+    h.check();
+    h.obj.print_stats.state = 'printing';
+    h.check();
+    await vi.advanceTimersByTimeAsync(61000);
+    expect(mock.gcode).not.toHaveBeenCalled();
+  });
 });

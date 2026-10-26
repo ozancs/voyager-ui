@@ -19,6 +19,7 @@ import {
   parseScrews,
   parseShaper,
   parseZOffset,
+  parseTwist,
 } from '../calibPath';
 import { heatColor } from '../sensorStyle';
 import { t } from '../i18n';
@@ -31,6 +32,7 @@ const SHORT = {
   screws: 'How far to turn each bed screw',
   accuracy: 'How repeatable the probe is',
   zoffset: 'Paper test for the first layer',
+  twist: 'Probe and nozzle agree along the gantry',
   mesh: 'Maps the shape of the bed',
   shaper: 'Less ringing at high speed',
 };
@@ -40,6 +42,7 @@ const ICON = {
   screws: 'screwdriver',
   accuracy: 'target',
   zoffset: 'ruler',
+  twist: 'axis',
   mesh: 'mesh',
   shaper: 'wave',
 };
@@ -74,6 +77,10 @@ const running = computed(() => steps.value.find((s) => RUNS[s.key]?.running) || 
 const target = ref(0);
 const samples = ref(10);
 const axis = ref('');
+const twistAxis = ref('X');
+const twistN = ref(3);
+// steps that wait for the paper test (TESTZ / ACCEPT) while Klipper's manual probe is active
+const paper = (s) => s?.kind === 'zoffset' || s?.kind === 'twist';
 function open(s) {
   cur.value = s;
   if (!RUNS[s.key]?.running) hist.value = [];
@@ -113,10 +120,11 @@ const progress = computed(() => {
   const k = cur.value?.kind;
   if (k === 'mesh' && meshTotal.value) return { n: probes.value.length, of: meshTotal.value };
   if (k === 'accuracy') return { n: probes.value.length, of: Math.max(3, Math.min(50, Math.round(samples.value))) };
+  if (k === 'twist' && twist.value?.of) return { n: twist.value.n, of: twist.value.of };
   return null;
 });
 // the paper test is drawn here: the app-wide manual probe dialog stays away while this is open
-watch(cur, (c) => (state.calibWizard = c?.kind === 'zoffset'));
+watch(cur, (c) => (state.calibWizard = paper(c)));
 onBeforeUnmount(() => (state.calibWizard = false));
 
 const homed = computed(() => ['x', 'y', 'z'].every((a) => (S('toolhead').homed_axes || '').includes(a)));
@@ -222,6 +230,9 @@ function commandFor(s) {
   if (s.kind === 'pid') return `PID_CALIBRATE HEATER=${s.heater} TARGET=${Math.round(target.value)}`;
   if (s.kind === 'accuracy') return `PROBE_ACCURACY SAMPLES=${Math.max(3, Math.min(50, Math.round(samples.value)))}`;
   if (s.kind === 'shaper') return axis.value ? `SHAPER_CALIBRATE AXIS=${axis.value}` : 'SHAPER_CALIBRATE';
+  if (s.kind === 'twist')
+    // AXIS= only for Y: Klipper versions before Y support know X only
+    return `${s.cmd} SAMPLE_COUNT=${Math.max(2, Math.min(15, Math.round(twistN.value) || 3))}${twistAxis.value === 'Y' ? ' AXIS=Y' : ''}`;
   return s.cmd;
 }
 const pidMax = computed(() => Number(S('configfile').settings?.[cur.value?.heater]?.max_temp) || 300);
@@ -268,6 +279,7 @@ const screws = computed(() => {
 });
 const shaper = computed(() => (cur.value?.kind === 'shaper' ? parseShaper(out.value) : {}));
 const zres = computed(() => (cur.value?.kind === 'zoffset' ? parseZOffset(out.value) : null));
+const twist = computed(() => (cur.value?.kind === 'twist' ? parseTwist(out.value) : null));
 const mp = computed(() => S('manual_probe'));
 
 // a finished step is remembered with a short summary
@@ -314,6 +326,7 @@ const result = computed(() => {
   if (s.kind === 'screws' && screws.value.length && run.value.ended)
     return screws.value.every((x) => x.base || x.turns < 0.1) ? t('level') : t('adjust the screws');
   if (s.kind === 'zoffset' && zres.value) return `${zres.value.key} ${zres.value.value}`;
+  if (s.kind === 'twist' && twist.value?.done) return t('{n} points', { n: twist.value.of || twistN.value });
   if (s.kind === 'mesh' && run.value.ended && !errLine.value)
     return meshRange.value != null ? t('range {r} mm', { r: meshRange.value }) : 'ok';
   if (s.kind === 'shaper' && Object.keys(shaper.value).length)
@@ -337,7 +350,7 @@ function estop() {
   api.call('printer.emergency_stop').catch((e) => toast(e.message, 'error'));
 }
 function close() {
-  if (cur.value?.kind === 'zoffset' && mp.value.is_active) gcode('ABORT').catch(() => {});
+  if (paper(cur.value) && mp.value.is_active) gcode('ABORT').catch(() => {});
   cur.value = null;
 }
 
@@ -554,6 +567,8 @@ const why = {
     'Probes next to each bed screw and says how far to turn it. Turn the screws as shown, then run it again until nothing needs turning.',
   accuracy:
     'Probes the same spot several times. The closer the readings are to each other, the more you can trust the mesh and the Z offset.',
+  twist:
+    'A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.',
   zoffset:
     'The paper test: lower the nozzle until a sheet of paper drags a little when you slide it under the nozzle. Small steps near the bed.',
   mesh: 'Probes a grid over the bed to map its shape. Klipper then follows that shape during the first layers.',
@@ -731,7 +746,7 @@ const RUNS = _reactive({});
         </svg>
 
         <!-- Z offset: nozzle, paper and the gap between them -->
-        <svg v-else-if="cur.kind === 'zoffset'" viewBox="0 0 360 260" class="svg">
+        <svg v-else-if="paper(cur)" viewBox="0 0 360 260" class="svg">
           <rect x="30" y="200" width="300" height="14" rx="3" class="bed" />
           <rect x="70" :y="200 - 3" width="220" height="3" class="paper" />
           <g :style="{ transform: `translateY(${-gapPx}px)`, transition: 'transform .3s' }">
@@ -794,6 +809,16 @@ const RUNS = _reactive({});
           <span>{{ t('Samples') }}</span>
           <input v-model.number="samples" type="number" class="input mono" min="3" max="50" />
         </label>
+        <template v-if="cur.kind === 'twist' && !mp.is_active">
+          <div class="seg">
+            <button :class="{ on: twistAxis === 'X' }" @click="twistAxis = 'X'">X</button>
+            <button :class="{ on: twistAxis === 'Y' }" @click="twistAxis = 'Y'">Y</button>
+          </div>
+          <label class="fld">
+            <span>{{ t('Points') }}</span>
+            <input v-model.number="twistN" type="number" class="input mono" min="2" max="15" />
+          </label>
+        </template>
         <div v-if="cur.kind === 'shaper'" class="seg">
           <button :class="{ on: !axis }" @click="axis = ''">{{ t('Both axes') }}</button>
           <button :class="{ on: axis === 'X' }" @click="axis = 'X'">X</button>
@@ -801,7 +826,10 @@ const RUNS = _reactive({});
         </div>
 
         <!-- Z offset: the paper test buttons while Klipper waits -->
-        <template v-if="cur.kind === 'zoffset' && mp.is_active">
+        <template v-if="paper(cur) && mp.is_active">
+          <b v-if="cur.kind === 'twist' && twist?.of" class="sm">{{
+            t('Point {n} of {of}', { n: twist.n, of: twist.of })
+          }}</b>
           <div class="zg">
             <span class="mu sm">{{ t('Lower') }}</span>
             <button v-for="d in STEPS_Z" :key="'d' + d" class="btn" :disabled="tooBig(d)" @click="testz(-d)">
@@ -884,7 +912,7 @@ const RUNS = _reactive({});
           {{ t('Klipper stopped (E-STOP or an error). A Firmware Restart is needed before the next run.') }}
         </div>
         <div v-if="errLine" class="warn">{{ errLine.replace(/^!!\s*/, '') }}</div>
-        <div v-if="run?.running && cur.kind !== 'zoffset'" class="prog">
+        <div v-if="run?.running && !(paper(cur) && mp.is_active)" class="prog">
           <div class="row">
             <b class="grow"
               >{{ t('Running') }}
@@ -903,7 +931,7 @@ const RUNS = _reactive({});
     <template #foot>
       <span class="grow"></span>
       <button
-        v-if="savePending && result && ['pid', 'zoffset', 'mesh', 'shaper'].includes(cur.kind)"
+        v-if="savePending && result && ['pid', 'zoffset', 'twist', 'mesh', 'shaper'].includes(cur.kind)"
         class="btn lg"
         :disabled="isPrinting"
         :data-tip="t('Writes the new values to printer.cfg and restarts Klipper')"
@@ -911,7 +939,7 @@ const RUNS = _reactive({});
       >
         <Icon name="save" :size="16" />{{ t('Save to config') }}
       </button>
-      <button v-if="!(cur.kind === 'zoffset' && mp.is_active)" class="btn lg acc" :disabled="!canStart" @click="start">
+      <button v-if="!(paper(cur) && mp.is_active)" class="btn lg acc" :disabled="!canStart" @click="start">
         <Icon name="play" :size="16" />{{ run?.ended ? t('Run again') : t('Start') }}
       </button>
     </template>

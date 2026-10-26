@@ -582,6 +582,17 @@ function reset() {
                   </button>
                 </div>
               </div>
+              <div v-if="(state.settings.idleHeatMin ?? 20) > 0" class="rw">
+                <div class="k">
+                  <b>{{ t('Turn them off') }}</b
+                  ><span>{{
+                    t(
+                      'After the warning the heaters are turned off a minute later, unless Keep them on is pressed. Needs a Voyager page open at that time.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle v-model="state.settings.idleHeatOff" :label="t('Turn them off')" />
+              </div>
               <h3 class="sec"><Icon name="move" :size="16" />{{ t('Toolhead') }}</h3>
               <div class="rw">
                 <div class="k">

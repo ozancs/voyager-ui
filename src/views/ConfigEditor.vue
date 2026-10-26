@@ -24,7 +24,8 @@ import { MergeView } from '@codemirror/merge';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import ImageViewer from '../components/ImageViewer.vue';
-import { state, S, toast, gcode, isPrinting, backupBeforeWrite, useApiEvent, restartKlipper } from '../store';
+import { state, S, toast, gcode, isPrinting, backupBeforeWrite, useApiEvent, restartKlipper, APP } from '../store';
+import { perPrinterKey } from '../printers';
 import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -42,6 +43,46 @@ const loc = computed(() => {
   return { root: 'config', path: a || 'printer.cfg' };
 });
 const keyOf = (l) => l.root + '/' + l.path;
+
+// ---------------------------------------------------------------- where each file was left (survives a reload)
+// { key: { line, top, at } } per printer in this browser; a file opened again starts there
+const POS_KEY = () => perPrinterKey(APP + '-editpos');
+function readPos() {
+  try {
+    return JSON.parse(localStorage.getItem(POS_KEY()) || '{}') || {};
+  } catch {
+    return {};
+  }
+}
+function savePos(key) {
+  const v = view.value;
+  if (!key || !v || viewKey !== key) return;
+  const all = readPos();
+  all[key] = {
+    line: v.state.doc.lineAt(v.state.selection.main.head).number,
+    top: Math.round(v.scrollDOM.scrollTop),
+    at: Date.now(),
+  };
+  const keep = Object.entries(all)
+    .sort((a, b) => b[1].at - a[1].at)
+    .slice(0, 60);
+  try {
+    localStorage.setItem(POS_KEY(), JSON.stringify(Object.fromEntries(keep)));
+  } catch {}
+}
+function restorePos(key) {
+  const p = readPos()[key],
+    v = view.value;
+  if (!p || !v || (state.jump && keyOf(loc.value) === key)) return;
+  const l = v.state.doc.line(Math.max(1, Math.min(v.state.doc.lines, p.line)));
+  v.dispatch({ selection: { anchor: l.from } });
+  requestAnimationFrame(() => {
+    if (view.value === v && viewKey === key) v.scrollDOM.scrollTop = p.top;
+  });
+}
+const onHide = () => savePos(viewKey);
+onMounted(() => window.addEventListener('pagehide', onHide));
+onBeforeUnmount(() => window.removeEventListener('pagehide', onHide));
 
 // ---------------------------------------------------------------- tabs (kept while the app is open)
 const TABS = (state.cache.editorTabs ||= { list: [], states: {} });
@@ -486,6 +527,7 @@ onMounted(() => tabs.value.forEach((x) => refreshTab(x)));
 async function openTab(l) {
   const key = keyOf(l);
   let tab = tabs.value.find((x) => x.key === key);
+  const fresh = !tab;
   if (!tab) {
     tab = { key, root: l.root, path: l.path, orig: '', crlf: false, dirty: false, loading: true };
     tabs.value = [...tabs.value, tab];
@@ -509,13 +551,16 @@ async function openTab(l) {
   if (!view.value) view.value = markRaw(new EditorView({ state: TABS.states[key], parent: host.value }));
   else if (view.value.state !== TABS.states[key]) view.value.setState(TABS.states[key]);
   viewKey = key;
+  if (fresh) restorePos(key);
   applyJump();
 }
 function remember() {
+  savePos(viewKey);
   if (viewKey && view.value && TABS.states[viewKey]) TABS.states[viewKey] = markRaw(view.value.state);
 }
 function closeTab(tab) {
   if (tab.dirty && !confirm(t('{f} has unsaved changes. Close anyway?', { f: tab.path }))) return;
+  savePos(tab.key);
   const i = tabs.value.indexOf(tab);
   tabs.value = tabs.value.filter((x) => x !== tab);
   TABS.list = tabs.value;
@@ -534,6 +579,7 @@ watch(
     if (o) {
       const ot = tabs.value.find((x) => x.key === o);
       if (ot && !ot.loading && view.value && viewKey === o) TABS.states[o] = markRaw(view.value.state);
+      savePos(o);
     }
     openTab(loc.value);
   },
