@@ -1,25 +1,28 @@
 <script setup>
-// The PA Sensei sensor page (by OznLab, earlier called OznLab Sensor), inside Voyager. The sensor's Klipper module links its own oznlab.html next to Mainsail and
+// The PA Sensei sensor page, inside Voyager. The sensor's Klipper module links its own page next to Mainsail and
 // Fluidd at every Klipper start, so the page shown here is always the one of the module that is installed: Voyager
 // keeps no copy, and a sensor update brings its new page with it. Looked for on Voyager's own address first (in case
 // the module ever links it there too), otherwise on the printer's port 80 where Mainsail / Fluidd live.
-// The side menu shows this page only when Klipper has an oznlab_sensor object.
+// The module is [pa_sensei ...] with pa_sensei.html; before its rename (OznLab Sensor) it was [oznlab_sensor ...]
+// with oznlab.html. The side menu shows this page only when Klipper has one of the two.
 import { ref, computed, onMounted } from 'vue';
 import Icon from '../components/Icon.vue';
 import { api } from '../api/moonraker';
+import { state } from '../store';
 import { t } from '../i18n';
 
+const file = computed(() => (state.objects.some((o) => /^pa_sensei( |$)/.test(o)) ? 'pa_sensei.html' : 'oznlab.html'));
 // the same printer's port 80 (Mainsail / Fluidd), whatever port Voyager or Moonraker is on
 const port80 = computed(() => {
   const host = api.host ? api.host.split(':')[0] : location.hostname;
-  return `${location.protocol}//${host}/oznlab.html`;
+  return `${location.protocol}//${host}/${file.value}`;
 });
 const src = ref('');
 const fromOwn = ref(false);
 onMounted(async () => {
   // Voyager's nginx answers any unknown path with its own index.html: check that this really is the sensor page
   try {
-    const own = (api.webBase || '') + '/oznlab.html';
+    const own = (api.webBase || '') + '/' + file.value;
     const r = await fetch(own, { cache: 'no-store' });
     if (r.ok && /<title>\s*(PA Sensei|OznLab Sensor)/i.test(await r.text())) {
       fromOwn.value = true;
@@ -40,7 +43,7 @@ onMounted(async () => {
         ><Icon name="ext" :size="14" />{{ t('Open in a new tab') }}</a
       >
     </div>
-    <iframe v-if="src" :src="src" title="PA Sensei" class="frame" allow="clipboard-write"></iframe>
+    <iframe v-if="src" :src="src" title="PA Sensei by oznlab" class="frame" allow="clipboard-write"></iframe>
   </div>
 </template>
 <style scoped>

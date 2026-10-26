@@ -27,8 +27,9 @@ const NAV = [
 ];
 // Calibrations only shows up when the printer has one of the commands it knows
 const hasCal = computed(() => availableGroups(state.commands).length > 0);
-// the PA Sensei page (the sensor once called OznLab Sensor) only on printers that have the sensor's Klipper module
-const hasOznlab = computed(() => state.objects.some((o) => o === 'oznlab_sensor' || o.startsWith('oznlab_sensor ')));
+// the PA Sensei page only on printers that have the sensor's Klipper module: [pa_sensei ...], or [oznlab_sensor ...]
+// from before the rename
+const hasOznlab = computed(() => state.objects.some((o) => /^(pa_sensei|oznlab_sensor)( |$)/.test(o)));
 const navItems = computed(() =>
   NAV.filter(
     ([k]) => route.name === k || (k === 'calibrations' ? hasCal.value : k === 'oznlab' ? hasOznlab.value : true),

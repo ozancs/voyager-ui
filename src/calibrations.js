@@ -15,8 +15,9 @@ const heaters = (ctx) => ctx.status.heaters?.available_heaters || [];
 const tmcSteppers = named(/^tmc\w+ (.+)$/);
 const eddyChips = named(/^probe_eddy_current (.+)$/);
 const tempProbes = named(/^temperature_probe (.+)$/);
-// OznLab Sensor commands take SENSOR= only when there is more than one sensor
-const oznlabSensors = named(/^oznlab_sensor (.+)$/);
+// PA Sensei commands take SENSOR= only when there is more than one sensor ([pa_sensei hotend]; modules from
+// before the rename call it [oznlab_sensor ...])
+const oznlabSensors = named(/^(?:pa_sensei|oznlab_sensor) (.+)$/);
 const sensorParam = {
   k: 'SENSOR',
   onlyWithOpts: true,
@@ -40,25 +41,25 @@ export const GROUPS = [
     icon: 'sensor',
     items: [
       {
-        cmd: 'OZNLAB_CHECK',
+        cmd: 'SENSEI_CHECK',
         name: 'Health check',
         desc: 'Chip, frequency, noise, errors and config check. Nothing moves.',
         params: [sensorParam],
       },
       {
-        cmd: 'OZNLAB_STATUS',
+        cmd: 'SENSEI_STATUS',
         name: 'Frequency and noise',
         desc: 'Reads the sensor for a moment and shows its frequency and noise.',
         params: [sensorParam, { k: 'DURATION', def: '1', hint: 's' }],
       },
       {
-        cmd: 'OZNLAB_SETUP',
+        cmd: 'SENSEI_SETUP',
         name: 'Guided setup',
         desc: 'First-time setup, one step per run. It says what to do next.',
         params: [sensorParam, { k: 'STEP', def: '', hint: '1-8' }],
       },
       {
-        cmd: 'OZNLAB_TAP',
+        cmd: 'SENSEI_TAP',
         name: 'Tap Z offset',
         desc: 'Touches the bed with the nozzle a few times and sets the Z offset from the contact point.',
         home: true,
@@ -72,14 +73,14 @@ export const GROUPS = [
         ],
       },
       {
-        cmd: 'OZNLAB_HOME_TEST',
+        cmd: 'SENSEI_HOME_TEST',
         name: 'Tap homing test',
         desc: 'Dry run of tap homing: shows how far past the bed the nozzle stopped. Needs a homed Z.',
         home: true,
         params: [sensorParam, { k: 'SPEED', def: '3', hint: 'mm/s' }],
       },
       {
-        cmd: 'OZNLAB_THERMAL_CAL',
+        cmd: 'SENSEI_THERMAL_CAL',
         name: 'Thermal drift',
         desc: 'Taps at several nozzle temperatures to measure how much the nozzle moves per degree.',
         home: true,
@@ -93,7 +94,7 @@ export const GROUPS = [
         ],
       },
       {
-        cmd: 'OZNLAB_CALIBRATE_PA',
+        cmd: 'SENSEI_CALIBRATE_PA',
         name: 'Pressure advance',
         desc: 'Extrudes in the air, measures how fast the melt pressure rises and sets pressure advance (not saved).',
         params: [
@@ -105,7 +106,7 @@ export const GROUPS = [
         ],
       },
       {
-        cmd: 'OZNLAB_PA_SCALE',
+        cmd: 'SENSEI_PA_SCALE',
         name: 'PA scale for a filament',
         desc: 'One-time setup per filament: enter the best PA from a pattern test after a pressure advance run.',
         params: [
@@ -115,7 +116,7 @@ export const GROUPS = [
         ],
       },
       {
-        cmd: 'OZNLAB_MAX_FLOW',
+        cmd: 'SENSEI_MAX_FLOW',
         name: 'Max flow',
         desc: 'Extrudes faster and faster in the air to find the real volumetric limit.',
         params: [
@@ -126,7 +127,7 @@ export const GROUPS = [
         ],
       },
       {
-        cmd: 'OZNLAB_RETRACT_TEST',
+        cmd: 'SENSEI_RETRACT_TEST',
         name: 'Retraction',
         desc: 'Finds the retraction length that actually drops the melt pressure.',
         params: [
@@ -138,7 +139,7 @@ export const GROUPS = [
         ],
       },
       {
-        cmd: 'OZNLAB_TEMP_SCAN',
+        cmd: 'SENSEI_TEMP_SCAN',
         name: 'Temperature scan',
         desc: 'Melt pressure over nozzle temperature at a fixed flow, to see where more heat stops helping.',
         params: [
@@ -149,13 +150,13 @@ export const GROUPS = [
         ],
       },
       {
-        cmd: 'OZNLAB_MESH_SETUP',
+        cmd: 'SENSEI_MESH_SETUP',
         name: 'Mesh area',
         desc: 'Pick the bed mesh area with the nozzle.',
         params: [sensorParam],
       },
       {
-        cmd: 'OZNLAB_MESH',
+        cmd: 'SENSEI_MESH',
         name: 'Nozzle bed mesh',
         desc: 'Bed mesh with the nozzle as the probe.',
         home: true,
@@ -168,10 +169,10 @@ export const GROUPS = [
         ],
       },
       {
-        cmd: 'OZNLAB_MESH_COMPARE',
+        cmd: 'SENSEI_MESH_COMPARE',
         name: 'Compare meshes',
         desc: 'Compares two bed mesh profiles point by point.',
-        params: [sensorParam, { k: 'A', def: 'default', hint: '' }, { k: 'B', def: 'oznlab', hint: '' }],
+        params: [sensorParam, { k: 'A', def: 'default', hint: '' }, { k: 'B', def: 'sensei', hint: '' }],
       },
     ],
   },
@@ -374,15 +375,22 @@ export function availableGroups(commands) {
   const out = [];
   if ([...names.keys()].some((c) => /^_?AXES_SHAPER_CALIBRATION$/.test(c)))
     out.push({ key: 'shaketune', name: 'Shake&Tune', icon: 'wave', items: [] });
+  // the PA Sensei module before its rename had the same commands as OZNLAB_x instead of SENSEI_x
+  const has = (cmd) =>
+    names.has(cmd)
+      ? cmd
+      : cmd.startsWith('SENSEI_') && names.has('OZNLAB_' + cmd.slice(7))
+        ? 'OZNLAB_' + cmd.slice(7)
+        : null;
   for (const g of GROUPS) {
-    const items = g.items.filter((i) => names.has(i.cmd));
+    const items = g.items.map((i) => has(i.cmd) && { ...i, cmd: has(i.cmd) }).filter(Boolean);
     if (items.length) out.push({ ...g, items });
   }
   const other = [...names.keys()]
     .filter(
       (c) =>
         !c.startsWith('_') &&
-        !c.startsWith('OZNLAB_') &&
+        !/^(OZNLAB|SENSEI)_/.test(c) &&
         !KNOWN.has(c) &&
         !KNOWN.has(c.replace(/^_/, '')) &&
         LOOKS_LIKE.test(c),
@@ -418,10 +426,10 @@ export const missingParams = (item, vals) =>
   (item.params || []).filter((x) => x.req && !String(vals[x.k] ?? '').trim()).map((x) => x.k);
 
 // numbers worth showing from the console output. rows: [[label, value]], shapers: [{ axis, type, freq, maxAccel }]
-// OznLab Sensor result lines -> rows
+// PA Sensei result lines -> rows (the module printed "OznLab ..." before its rename)
 const OZNLAB = [
   [
-    /OznLab: ([\d.]+) MHz, noise ([\d.]+) Hz, (\d+) samples\/s, (.+)/,
+    /(?:OznLab|PA Sensei|Sensei): ([\d.]+) MHz, noise ([\d.]+) Hz, (\d+) samples\/s, (.+)/,
     (m) => [
       ['frequency', m[1] + ' MHz'],
       ['noise', m[2] + ' Hz'],
@@ -431,22 +439,22 @@ const OZNLAB = [
   ],
   [/(?:OznLab Sensor|PA Sensei) v[\w.]+ check \[(\w+)\]/, (m) => [['check', m[1]]]],
   [
-    /OznLab tap: z offset ([-\d.]+) set \(([^)]*)\)/,
+    /(?:OznLab|PA Sensei|Sensei) tap: z offset ([-\d.]+) set \(([^)]*)\)/,
     (m) => [
       ['z offset', m[1]],
       ['taps', m[2]],
     ],
   ],
   [
-    /OznLab tap: contact at z=([-\d.]+) \(([^)]*)\)/,
+    /(?:OznLab|PA Sensei|Sensei) tap: contact at z=([-\d.]+) \(([^)]*)\)/,
     (m) => [
       ['contact z', m[1]],
       ['taps', m[2]],
     ],
   ],
-  [/OznLab tap: the taps disagree \(([\d.]+) mm\)/, (m) => [['taps disagree', m[1] + ' mm']]],
+  [/(?:OznLab|PA Sensei|Sensei) tap: the taps disagree \(([\d.]+) mm\)/, (m) => [['taps disagree', m[1] + ' mm']]],
   [
-    /OznLab home test: (.+?) - stopped ([\d.]+) mm past the bed, contact at z=([-\d.]+)/,
+    /(?:OznLab|PA Sensei|Sensei) home test: (.+?) - stopped ([\d.]+) mm past the bed, contact at z=([-\d.]+)/,
     (m) => [
       ['home test', m[1]],
       ['overshoot', m[2] + ' mm'],
@@ -454,26 +462,26 @@ const OZNLAB = [
     ],
   ],
   [
-    /OznLab PA: pressure advance ([\d.]+) set \(was ([\d.]+)\)/,
+    /(?:OznLab|PA Sensei|Sensei) PA: pressure advance ([\d.]+) set \(was ([\d.]+)\)/,
     (m) => [
       ['pressure advance', m[1]],
       ['was', m[2]],
     ],
   ],
   [
-    /OznLab PA: measured ([\d.]+) \(tau ([\d.]+) s/,
+    /(?:OznLab|PA Sensei|Sensei) PA: measured ([\d.]+) \(tau ([\d.]+) s/,
     (m) => [
       ['pressure advance', m[1]],
       ['tau', m[2] + ' s'],
     ],
   ],
-  [/OznLab: (pa_scale\w*) ([\d.]+)/, (m) => [[m[1], m[2]]]],
+  [/(?:OznLab|PA Sensei|Sensei): (pa_scale\w*) ([\d.]+)/, (m) => [[m[1], m[2]]]],
   [/max flow: last good ([\d.]+) mm\/s = ([\d.]+) mm3\/s/, (m) => [['max flow', m[2] + ' mm³/s']]],
   [/Put about ([\d.]+) mm3\/s in the slicer/, (m) => [['slicer max flow', m[1] + ' mm³/s']]],
   [/retraction test: use about ([\d.]+) mm at (\d+) mm\/s/, (m) => [['retraction', m[1] + ' mm @ ' + m[2] + ' mm/s']]],
   [/Above about (\d+) C more heat buys little/, (m) => [['temperature', m[1] + ' °C']]],
   [/the nozzle moves (up|down) ([\d.]+) um per degree C/, (m) => [['thermal drift', m[2] + ' µm/°C ' + m[1]]]],
-  [/OznLab mesh: done in .+?, bed range ([\d.]+) mm/, (m) => [['bed range', m[1] + ' mm']]],
+  [/(?:OznLab|PA Sensei|Sensei) mesh: done in .+?, bed range ([\d.]+) mm/, (m) => [['bed range', m[1] + ' mm']]],
 ];
 
 export function parseResult(cmd, lines) {

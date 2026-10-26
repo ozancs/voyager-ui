@@ -14,7 +14,7 @@ import { availableGroups, buildCommand, missingParams, invalidParams, parseResul
 import { route, go } from '../router';
 import { t } from '../i18n';
 
-// the demo printer's OznLab Sensor commands stay out of the calibration tabs (they are shown elsewhere)
+// the demo printer's PA Sensei commands stay out of the calibration tabs (they are shown elsewhere)
 const groups = computed(() =>
   availableGroups(state.commands).filter((g) => !(import.meta.env.VITE_DEMO && g.key === 'oznlab')),
 );
