@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.33.4
+
+- Console: Clear stays cleared after reloading the page, the old lines no longer come back
+
 ## 0.33.3
 
 - LEDs: colour picker with a colour wheel, brightness and red / green / blue (and white) values, in the LED tile and in the Devices card (Suggested by Raidy)
