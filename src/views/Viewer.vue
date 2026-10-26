@@ -1,6 +1,7 @@
 <script setup>
 // G-code viewer (gcode-preview, three.js): loads a file from the printer and shows it in 3D or as
-// layers, can follow the running print and exclude objects.
+// layers, can follow the running print and exclude objects. Following the print shows what is printed so far
+// down to the line being printed, the rest of the model faded, and a cone where the nozzle is.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, shallowRef } from 'vue';
 import { readGcodeText, is3mf } from '../gcode3mf';
 import { colorByFeature, colorBySpeed, objectAt } from '../gcodeColor';
@@ -33,6 +34,7 @@ watch(colorMode, (m) => {
 });
 let offsets = null;
 let lineLayer = null;
+let showMap = null; // the colour modes rewrite the text: map[shown line] = original line
 const parsed = ref(0); // bumped when a file is parsed: offsets/lineLayer are plain variables, not reactive
 const files = ref([]);
 
@@ -119,6 +121,8 @@ async function parse(text) {
   let i = 0;
   for (let k = 0; k < text.length; k++) if (text.charCodeAt(k) === 10) offsets[++i] = k + 1;
   lineLayer = p.layers.map((l) => (map ? (map[l.lineNumber] ?? l.lineNumber) : l.lineNumber));
+  showMap = map;
+  dropGhost();
   parsed.value++;
   layers.value = p.layers.length;
   layer.value = layers.value;
@@ -152,38 +156,149 @@ async function cvClick(e) {
   state.excludePick = name;
   emit('exclude');
 }
-function update() {
+// following the print: the model up to the line being printed, the rest faded (a second render of the layers
+// still to come, kept with its own see-through material while that layer prints)
+let ghost = null,
+  ghostDisp = [],
+  ghostFor = -1,
+  marker = null;
+function dropGhost() {
+  ghost?.parent?.remove(ghost);
+  for (const d of ghostDisp) d.dispose?.();
+  ghost = null;
+  ghostDisp = [];
+  ghostFor = -1;
+}
+// gcode-preview brings its own copy of three.js: the faded material and the nozzle cone are made from the classes of
+// the objects it drew, an object from another three.js copy breaks its renderer
+function firstLine(group) {
+  let found = null;
+  group?.traverse((o) => !found && o.isLineSegments && (found = o));
+  return found;
+}
+function ensureMarker(like) {
+  if (marker || !like) return marker;
+  const pts = [];
+  const N = 12,
+    R = 2.5,
+    H = 7;
+  const ring = (k) => [Math.cos((k / N) * 2 * Math.PI) * R, H, Math.sin((k / N) * 2 * Math.PI) * R];
+  for (let k = 0; k < N; k++) pts.push(0, 0, 0, ...ring(k), ...ring(k), ...ring(k + 1)); // tip down, like a nozzle
+  const g = new like.geometry.constructor();
+  g.setAttribute('position', new like.geometry.attributes.position.constructor(new Float32Array(pts), 3));
+  marker = new like.constructor(g, new like.material.constructor({ color: 0xffffff }));
+  return marker;
+}
+function placeMarker() {
+  if (!marker) return;
+  const [x = 0, y = 0, z = 0] = S('gcode_move').gcode_position || [];
+  const max = S('toolhead').axis_maximum || [300, 300, 300];
+  // the same mapping as gcode-preview's group: print X along X, print Y along -Z, print Z up
+  marker.position.set(x - max[0] / 2, z, -y + max[1] / 2);
+}
+function renderLive(p, at) {
+  const { li, line } = at;
+  if (ghostFor !== li) {
+    dropGhost();
+    p.startLayer = li + 1;
+    p.endLayer = undefined;
+    p.render();
+    ghost = p.group;
+    p.scene.remove(ghost);
+    ghostDisp = p.disposables.splice(0); // the next render must not dispose them
+    const base = firstLine(ghost)?.material;
+    if (base) {
+      const mat = base.clone();
+      mat.color.setHex(0x9aa0a8);
+      Object.assign(mat, { transparent: true, opacity: 0.13, depthWrite: false });
+      ghostDisp.push(mat);
+      ghost.traverse((o) => o.isLineSegments && (o.material = mat));
+    }
+    ghostFor = li;
+  }
+  // the layer being printed only up to the current line
+  const l = p.layers[li];
+  const all = l.commands;
+  l.commands = all.slice(0, Math.max(0, line - l.lineNumber + 1));
+  p.startLayer = undefined;
+  p.endLayer = li + 1;
+  try {
+    p.render();
+  } finally {
+    l.commands = all;
+  }
+  p.scene.add(ghost);
+  const m = ensureMarker(firstLine(p.group) || firstLine(ghost));
+  if (m) p.scene.add(m);
+  placeMarker();
+  p.renderer.render(p.scene, p.camera);
+}
+const live = computed(() => follow.value && active.value && printAt.value);
+async function update() {
   const p = preview.value;
   if (!p) return;
-  p.endLayer = Math.max(1, layer.value);
   p.renderTravel = travel.value;
+  if (live.value) return renderLive(p, printAt.value);
+  dropGhost();
+  if (marker) p.scene.remove(marker);
+  p.startLayer = undefined;
+  p.endLayer = Math.max(1, layer.value);
   p.render();
 }
 const curPrint = computed(() => S('print_stats').filename);
 const active = computed(() => ['printing', 'paused'].includes(printState.value));
-const printLayer = computed(() => {
+// where the print is in the loaded file: li is the index in gcode-preview's layers, line the line of the text
+// it shows (the rewritten one in the colour modes)
+const lastAtOrBelow = (arr, v) => {
+  let lo = 0,
+    hi = arr.length - 1;
+  while (lo < hi) {
+    const m = (lo + hi + 1) >> 1;
+    if (arr[m] <= v) lo = m;
+    else hi = m - 1;
+  }
+  return lo;
+};
+const printAt = computed(() => {
   // read the reactive inputs first, so the computed keeps tracking them even while nothing is loaded yet
   const pos = S('virtual_sdcard').file_position || 0;
   if (!parsed.value || !offsets || !lineLayer || file.value !== curPrint.value) return null;
-  let lo = 0,
-    hi = offsets.length - 1;
-  while (lo < hi) {
-    const m = (lo + hi + 1) >> 1;
-    if (offsets[m] <= pos) lo = m;
-    else hi = m - 1;
-  }
+  const lo = lastAtOrBelow(offsets, pos);
   let li = 0;
   for (let k = 0; k < lineLayer.length; k++)
     if (lineLayer[k] <= lo) li = k;
     else break;
-  return li + 1;
+  return { li, line: showMap ? lastAtOrBelow(showMap, lo) : lo };
 });
-watch([printLayer, follow], ([v]) => {
-  if (follow.value && v && v !== layer.value) {
-    layer.value = v;
-    update();
-  }
-});
+const printLayer = computed(() => (printAt.value ? printAt.value.li + 1 : null));
+// a new layer is drawn at once, progress inside a layer at most every 1.5 s (a large file takes a moment)
+let liveTm = null,
+  liveLast = 0;
+watch(
+  [printAt, follow, active],
+  ([at], old) => {
+    // follow turned off or the print ended: back to the plain view of the chosen layers
+    if (!follow.value || !active.value) {
+      if (old?.[1] && old?.[2]) update();
+      return;
+    }
+    if (!at) return;
+    const newLayer = at.li + 1 !== layer.value || !old?.[1] || old?.[2] !== active.value;
+    layer.value = at.li + 1;
+    clearTimeout(liveTm);
+    const wait = newLayer ? 0 : Math.max(0, 1500 - (Date.now() - liveLast));
+    liveTm = setTimeout(() => {
+      liveLast = Date.now();
+      update();
+    }, wait);
+  },
+  { deep: true },
+);
+// the nozzle cone moves with every position report, without drawing the model again
+watch(
+  () => S('gcode_move').gcode_position,
+  () => live.value && placeMarker(),
+);
 watch(travel, update);
 function onResize() {
   preview.value?.resize();
@@ -205,6 +320,10 @@ onMounted(async () => {
 // opened before the printer answered (a direct link to the page): load the running job once it is known
 watch(curPrint, (f) => f && !file.value && !loading.value && load(f));
 onBeforeUnmount(() => {
+  clearTimeout(liveTm);
+  dropGhost();
+  marker?.geometry.dispose();
+  marker?.material.dispose();
   ro?.disconnect();
   preview.value?.dispose?.();
 });
