@@ -377,7 +377,7 @@ const status = {
   'gcode_macro CLEAN_NOZZLE': {},
   'gcode_macro HEAT_SOAK': {},
   'gcode_macro GENERATE_SHAPER_GRAPHS': {},
-  'gcode_macro PARK': {},
+  'gcode_macro PARK': { z_hop: 10, park_at: 'back', fast: true },
   'gcode_macro SET_PAUSE_NEXT_LAYER': {},
   'gcode_macro SET_PAUSE_AT_LAYER': {},
   'gcode_macro SET_PRINT_STATS_INFO': {
@@ -1656,6 +1656,12 @@ function handle(m) {
     case 'server.database.post_item':
       db[p.namespace + '/' + p.key] = p.value;
       return { value: p.value };
+    case 'server.database.delete_item': {
+      const k = p.namespace + '/' + p.key;
+      const v = db[k];
+      delete db[k];
+      return { value: v };
+    }
     case 'server.webcams.list':
       return {
         webcams: [
@@ -1933,6 +1939,8 @@ gcode:
 
 [gcode_macro PARK]
 variable_z_hop: 10
+variable_park_at: 'back'
+variable_fast: True
 gcode:
   {% if "xyz" in printer.toolhead.homed_axes %}
     G91
@@ -2063,6 +2071,12 @@ gcodeScript = function (sc) {
   if (S === 'CANCEL_PRINT') {
     pushStatus({ print_stats: { state: 'cancelled' } });
     emitLines(['// Print cancelled']);
+    // the job goes into history (the newest demo job), which also takes the end picture
+    const job = { job_id: 'x0', filename: status.print_stats?.filename, status: 'cancelled' };
+    setTimeout(
+      () => wsAll({ jsonrpc: '2.0', method: 'notify_history_changed', params: [{ action: 'finished', job }] }),
+      300,
+    );
     return 'ok';
   }
   if (S === 'TURN_OFF_HEATERS') {
@@ -2195,6 +2209,19 @@ gcodeScript = function (sc) {
         res('ok');
       }, 24000),
     );
+  }
+  if ((m = sc.trim().match(/^SET_GCODE_VARIABLE MACRO=(\S+) VARIABLE=(\S+) VALUE=(.+)$/i))) {
+    const o = Object.keys(status).find((k) => k.toLowerCase() === 'gcode_macro ' + m[1].toLowerCase());
+    if (!o) throw { code: 400, message: `Unknown gcode_macro '${m[1]}'` };
+    let v = m[3].trim().replace(/^"(.*)"$/s, (x, y) => y.replace(/\\(.)/g, '$1'));
+    v = v === 'True' ? true : v === 'False' ? false : v === 'None' ? null : v;
+    if (typeof v === 'string') {
+      try {
+        v = JSON.parse(v.replace(/'/g, '"'));
+      } catch {}
+    }
+    pushStatus({ [o]: { [m[2].toLowerCase()]: v } });
+    return 'ok';
   }
   if ((m = S.match(/^SET_LED LED=(\S+)(.*)/))) {
     const o = Object.keys(status).find(

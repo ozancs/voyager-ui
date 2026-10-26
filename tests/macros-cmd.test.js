@@ -33,3 +33,30 @@ describe('switch state test', () => {
     expect(isOn(undefined)).toBe(false);
   });
 });
+
+const { pyLiteral, typedLiteral, setVarCommand } = await import('../src/macros.js');
+describe('macro variables', () => {
+  it('writes Klipper values back as Python literals', () => {
+    expect(pyLiteral(10)).toBe('10');
+    expect(pyLiteral('back')).toBe('"back"');
+    expect(pyLiteral(true)).toBe('True');
+    expect(pyLiteral(null)).toBe('None');
+    expect(pyLiteral([1, 'a', false])).toBe('[1, "a", False]');
+    expect(pyLiteral({ enable: false, layer: 0 })).toBe('{"enable": False, "layer": 0}');
+  });
+  it('reads what was typed by the type the variable has', () => {
+    expect(typedLiteral('front left', 'back')).toEqual({ value: '"front left"' });
+    expect(typedLiteral('"x"', 'back')).toEqual({ value: '"x"' });
+    expect(typedLiteral('false', true)).toEqual({ value: 'False' });
+    expect(typedLiteral('12.5', 10)).toEqual({ value: '12.5' });
+    expect(typedLiteral('abc', 10).error).toBeTruthy();
+    expect(typedLiteral('a;b', 'x').error).toBeTruthy();
+  });
+  it('quotes the value for the command line', () => {
+    expect(setVarCommand('PARK', 'z_hop', '25')).toBe('SET_GCODE_VARIABLE MACRO=PARK VARIABLE=z_hop VALUE=25');
+    expect(setVarCommand('PARK', 'at', '"it\'s ok"')).toBe(
+      'SET_GCODE_VARIABLE MACRO=PARK VARIABLE=at VALUE="\\"it\'s ok\\""',
+    );
+    expect(setVarCommand('P', 'l', '[1, 2]')).toBe('SET_GCODE_VARIABLE MACRO=P VARIABLE=l VALUE="[1, 2]"');
+  });
+});

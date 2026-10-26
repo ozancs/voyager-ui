@@ -9,6 +9,7 @@ import { api } from '../api/moonraker';
 import { t } from '../i18n';
 import { startPrint, askReprint } from '../preprint';
 import { undoable, isHidden } from '../undo';
+import { shots, loadShots, getShot, dropShots } from '../endShot';
 const jobs = ref(state.cache.jobs || []);
 const totals = ref(state.cache.totals || null);
 const loading = ref(!state.cache.jobs);
@@ -48,10 +49,25 @@ async function load() {
   loading.value = false;
 }
 onMounted(load);
+onMounted(loadShots);
+// the webcam picture kept at the end of a job (endShot.js)
+const hasShot = (j) => shots.ids.includes(String(j.job_id));
+const shot = ref(null); // { job, img } while open
+async function openShot(j) {
+  shot.value = { job: j, img: '' };
+  try {
+    const v = await getShot(j.job_id);
+    if (shot.value?.job === j) shot.value.img = v?.img || '';
+  } catch (e) {
+    toast(e.message, 'error');
+    shot.value = null;
+  }
+}
 let rt;
 useApiEvent('notify_history_changed', () => {
   clearTimeout(rt);
   rt = setTimeout(load, 500);
+  setTimeout(loadShots, 12000); // the picture is taken a few seconds after the job ends
 });
 const STATUS = {
   completed: { c: 'var(--mu)', i: 'check' },
@@ -181,6 +197,7 @@ function remove() {
         }
         if (!ok) fail++;
       }
+      await dropShots(list.map((j) => j.job_id));
       await load();
       if (fail) toast(t('{n} job(s) could not be deleted (already removed?). List refreshed.', { n: fail }), 'error');
     },
@@ -350,7 +367,7 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
               <th class="s" @click="sortBy('print_duration')">{{ t('Print time') }}{{ arrow('print_duration') }}</th>
               <th class="s" @click="sortBy('filament_used')">{{ t('Filament') }}{{ arrow('filament_used') }}</th>
               <th>{{ t('Slicer') }}</th>
-              <th style="width: 80px"></th>
+              <th style="width: 116px"></th>
             </tr>
           </thead>
           <tbody>
@@ -391,6 +408,14 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
               <td>
                 <div class="row" style="gap: 4px">
                   <button
+                    v-if="hasShot(j)"
+                    class="btn ibtn sm clear"
+                    :aria-label="t('Picture at the end')"
+                    :data-tip="t('Picture at the end')"
+                    @click="openShot(j)"
+                  >
+                    <Icon name="snap" :size="16" /></button
+                  ><button
                     class="btn ibtn sm"
                     :aria-label="t('Print again')"
                     :disabled="isPrinting || !j.exists"
@@ -429,6 +454,20 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
       </div>
     </section>
   </div>
+  <Modal v-if="shot" :title="shot.job.filename" width="min(760px, 96vw)" @close="shot = null">
+    <div class="shot">
+      <img v-if="shot.img" :src="shot.img" :alt="t('Picture at the end')" />
+      <span v-else class="mu">{{ t('Loading…') }}</span>
+    </div>
+    <div class="row mu" style="gap: 10px; font-size: 13px; flex-wrap: wrap">
+      <span :style="{ color: st(shot.job.status).c }"
+        ><Icon :name="st(shot.job.status).i" :size="15" :stroke="2.4" style="vertical-align: -2px" />
+        {{ t(shot.job.status.replace('_', ' ')) }}</span
+      >
+      <span class="mono">{{ fmtDate(shot.job.end_time || shot.job.start_time) }}</span>
+      <span class="mono">{{ fmtTime(shot.job.print_duration) }}</span>
+    </div>
+  </Modal>
   <Modal
     v-if="del"
     :title="del.length > 1 ? t('Delete {n} jobs from history?', { n: del.length }) : t('Delete job from history?')"
@@ -444,6 +483,21 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
   </Modal>
 </template>
 <style scoped>
+.shot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.shot img {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  max-height: 70vh;
+}
 .stats {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(320px, 1.2fr) minmax(320px, 1.4fr);

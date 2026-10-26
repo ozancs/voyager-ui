@@ -22,6 +22,8 @@ import { t } from './i18n';
 import { cmpVer } from './firmware';
 import { startBackupWatch } from './backup';
 import { expandPaths } from './paths';
+import { go } from './router';
+import { startEndShots } from './endShot';
 import { counterGrowth } from './calc';
 export { counterGrowth };
 
@@ -479,6 +481,38 @@ export async function loadConfigIndex() {
   cfgIndex.loading = false;
 }
 
+// ---------------------------------------------------------------- macro definitions and variables
+const secName = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+// where [gcode_macro NAME] is written (the last one read wins in Klipper, so the last one found here), or one of
+// its variable_ lines
+export async function findMacroDef(name, variable) {
+  await loadConfigIndex();
+  const sec = 'gcode_macro ' + name.toLowerCase();
+  const hits = cfgIndex.items.filter(
+    (c) =>
+      secName(c.section || '') === sec &&
+      (variable
+        ? c.kind === 'option' && c.key.toLowerCase() === 'variable_' + variable.toLowerCase()
+        : c.kind === 'section'),
+  );
+  return hits[hits.length - 1] || null;
+}
+export function openCfgLine(file, line) {
+  state.jump = { file, line, t: Date.now() };
+  go('config', file);
+}
+export async function openMacroDef(name, variable) {
+  const d = (await findMacroDef(name, variable)) || (variable && (await findMacroDef(name)));
+  if (d) openCfgLine(d.file, d.line);
+  else toast(t('{name} was not found in the config files', { name }), 'warn');
+}
+export { pyLiteral, typedLiteral, setVarCommand } from './macros';
+// a macro's variables as Klipper reports them ({} for a macro without any)
+export const macroVars = (name) => {
+  const o = S('gcode_macro ' + name) || {};
+  return Object.fromEntries(Object.entries(o).filter(([k]) => k !== 'description'));
+};
+
 // ---------------------------------------------------------------- health sampling
 // kept outside Vue reactivity, the page reads it through `healthTick`
 export const health = reactive({ tick: 0 });
@@ -704,6 +738,7 @@ export const dueMaintenance = computed(() => (state.settings.maintenance || []).
 // ---------------------------------------------------------------- wiring
 let started = false;
 export function initFeatures() {
+  startEndShots();
   if (started) return;
   started = true;
   startBackupWatch();

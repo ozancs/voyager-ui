@@ -6,9 +6,13 @@ defineOptions({ inheritAttrs: false });
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
+import Popover from './Popover.vue';
+import Modal from './Modal.vue';
+import MacroVars from './MacroVars.vue';
 import { state, S, gcode, macroList, isPrinting, dangerIn, toast } from '../store';
 const locked = (m) => isPrinting.value && !!dangerIn(m);
 import { macroParams, orderMacros, macroLabel } from '../macros';
+import { macroVars, openMacroDef } from '../features';
 import { t } from '../i18n';
 
 const opts = computed(() => state.settings.cardOpts?.macros || {});
@@ -70,6 +74,7 @@ const grid = computed(() => {
 const pop = ref(null); // { name, params, vals }
 function click(m, e) {
   if (state.editDash) return;
+  if (held) return void (held = false); // the end of a long press opened the menu, it does not run the macro
   // plain click runs with defaults, the arrow (or shift+click) asks for parameters
   if (e.shiftKey && macroParams(m).length) {
     openParams(m);
@@ -97,6 +102,37 @@ function runPop() {
   pop.value = null;
 }
 const hasParams = (m) => macroParams(m).length > 0;
+
+// right click, or a long press on a touch screen: parameters, the macro's variables, where it is in the config
+const menu = ref(null); // { m, el }
+const varsOf = ref(null);
+let pressTm = null,
+  held = false;
+function ctx(m, e) {
+  if (state.editDash) return;
+  clearTimeout(pressTm);
+  menu.value = { m, el: e.currentTarget };
+}
+function pDown(m, e) {
+  held = false;
+  if (e.pointerType !== 'touch' || state.editDash) return;
+  const el = e.currentTarget;
+  clearTimeout(pressTm);
+  pressTm = setTimeout(() => {
+    held = true;
+    menu.value = { m, el };
+  }, 550);
+}
+const pUp = () => clearTimeout(pressTm);
+onBeforeUnmount(pUp);
+const hasVars = (m) => Object.keys(macroVars(m)).length > 0;
+function pick(what) {
+  const m = menu.value.m;
+  menu.value = null;
+  if (what === 'params') openParams(m);
+  else if (what === 'vars') varsOf.value = m;
+  else openMacroDef(m);
+}
 </script>
 
 <template>
@@ -121,6 +157,11 @@ const hasParams = (m) => macroParams(m).length > 0;
             :class="{ locked: locked(m), raw: own(m) }"
             :data-tip="(locked(m) ? t('Locked while printing') + ': ' : '') + (S('gcode_macro ' + m).description || m)"
             @click="click(m, $event)"
+            @contextmenu.prevent="ctx(m, $event)"
+            @pointerdown="pDown(m, $event)"
+            @pointerup="pUp"
+            @pointercancel="pUp"
+            @pointerleave="pUp"
           >
             <Icon name="play" :size="12" :stroke="2.6" class="lp" /><span>{{ label(m) }}</span>
           </button>
@@ -149,6 +190,11 @@ const hasParams = (m) => macroParams(m).length > 0;
             :class="{ locked: locked(m), raw: own(m) }"
             :data-tip="(locked(m) ? t('Locked while printing') + ': ' : '') + (S('gcode_macro ' + m).description || m)"
             @click="click(m, $event)"
+            @contextmenu.prevent="ctx(m, $event)"
+            @pointerdown="pDown(m, $event)"
+            @pointerup="pUp"
+            @pointercancel="pUp"
+            @pointerleave="pUp"
           >
             {{ label(m) }}
           </button>
@@ -170,6 +216,18 @@ const hasParams = (m) => macroParams(m).length > 0;
       <div class="mp card" role="dialog" :aria-label="pop.name">
         <div class="card-h">
           <h2 class="code" style="font-size: 15px">{{ pop.name }}</h2>
+          <span class="grow"></span>
+          <button
+            class="btn clear ibtn sm"
+            :aria-label="t('Open in the config')"
+            :data-tip="t('Open in the config')"
+            @click="
+              openMacroDef(pop.name);
+              pop = null;
+            "
+          >
+            <Icon name="file" :size="16" />
+          </button>
           <button class="btn clear ibtn sm" :aria-label="t('Close')" @click="pop = null">
             <Icon name="x" :size="16" />
           </button>
@@ -185,9 +243,36 @@ const hasParams = (m) => macroParams(m).length > 0;
       </div>
     </div></Teleport
   >
+  <Popover v-if="menu" :anchor="menu.el" :width="230" @close="menu = null">
+    <b class="mono mn">{{ menu.m }}</b>
+    <button v-if="hasParams(menu.m)" class="btn clear mi" @click="pick('params')">
+      <Icon name="chev" :size="15" />{{ t('Run with parameters…') }}
+    </button>
+    <button v-if="hasVars(menu.m)" class="btn clear mi" @click="pick('vars')">
+      <Icon name="sliders" :size="15" />{{ t('Variables') }}
+    </button>
+    <button class="btn clear mi" @click="pick('def')">
+      <Icon name="file" :size="15" />{{ t('Open in the config') }}
+    </button>
+  </Popover>
+  <Modal v-if="varsOf" :title="t('Variables of {name}', { name: varsOf })" width="560px" @close="varsOf = null">
+    <MacroVars :only="varsOf" @opened="varsOf = null" />
+  </Modal>
 </template>
 
 <style scoped>
+.mn {
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 4px 4px;
+}
+.mi {
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+}
 .run.locked {
   opacity: 0.4;
 }

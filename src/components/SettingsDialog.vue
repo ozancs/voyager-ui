@@ -1061,6 +1061,17 @@ function reset() {
                 </div>
               </div>
               <div v-if="!state.webcams.length" class="hint">{{ t('No webcams yet.') }}</div>
+              <div v-if="state.webcams.length" class="rw">
+                <div class="k">
+                  <b>{{ t('Picture at the end of each print') }}</b
+                  ><span>{{
+                    t(
+                      'When a print ends, the first camera’s picture is kept with the job in History, also when it failed. Taken by a Voyager page open at that moment; the last 60 are kept.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle v-model="state.settings.endShot" :label="t('Picture at the end of each print')" />
+              </div>
               <div class="row" style="justify-content: space-between; flex-wrap: wrap">
                 <button
                   class="btn clear"

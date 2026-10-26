@@ -65,6 +65,12 @@ fps, flags). Only the lines of the keys shown are touched; everything else in th
 as written. Values in the file: "key: value" or "key = value".  
 crowsnest refuses to start when one of these is missing from a [cam] section
 
+**[src/endShot.js](../src/endShot.js)**  
+The last picture of each print: when a print ends (done, cancelled or stopped by an error) the first webcam's  
+picture is saved with the job, so a failed print can be looked at later from History. It is taken by the  
+Voyager page that is open at that moment (none open, no picture), turned like the camera is set to be, made  
+small (640 px wide JPEG) and kept in Moonraker's database, so every device sees it. The last KEEP jobs are kept.
+
 **[src/explain.js](../src/explain.js)**  
 "What does this error mean": common Klipper errors in plain words, with what usually causes them and what to  
 check. Used under the Klipper error banner and behind the ? on error lines in the console. The texts are  
@@ -354,7 +360,8 @@ The recommendation is read from the console lines the test prints ("Recommended 
 
 **[src/views/Viewer.vue](../src/views/Viewer.vue)**  
 G-code viewer (gcode-preview, three.js): loads a file from the printer and shows it in 3D or as  
-layers, can follow the running print and exclude objects.
+layers, can follow the running print and exclude objects. Following the print shows what is printed so far  
+down to the line being printed, the rest of the model faded, and a cone where the nozzle is.
 
 **[src/views/WebcamPage.vue](../src/views/WebcamPage.vue)**  
 Webcam page: one camera large, or all of them side by side ("All cameras", the default when there is more than  
@@ -555,6 +562,11 @@ Z_ENDSTOP_CALIBRATE, manual bed mesh...), BED_SCREWS_ADJUST and SCREWS_TILT_CALC
 **[src/components/MacroParamsDialog.vue](../src/components/MacroParamsDialog.vue)**  
 Asks for a macro's parameters before it runs (a button set to "ask when clicked"). Fields start with the values  
 saved on the button, or empty so the macro's own default applies.
+
+**[src/components/MacroVars.vue](../src/components/MacroVars.vue)**  
+The variables of the printer's macros (variable_ lines of [gcode_macro]) as Klipper has them right now, and  
+a way to change one with SET_GCODE_VARIABLE. A change lasts until Klipper restarts; the config keeps the  
+starting value. `only` shows one macro (from the Macros card), otherwise every macro that has variables.
 
 **[src/components/MacrosCard.vue](../src/components/MacrosCard.vue)**  
 All printer macros as buttons or as a compact list. The button grid follows the card size: wide card -> many  

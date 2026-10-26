@@ -118,6 +118,7 @@ export const DEFAULT_SETTINGS = () => ({
   sensorOrder: [], // sensor names in the order the user put them (sensorStyle.js)
   sensorIcons: {}, // sensor name -> icon picked in the Edit menu (sensorStyle.js)
   camOrder: [], // camera names in the order picked in Settings > Webcams (sortCams)
+  endShot: true, // keep the webcam's picture at the end of each print with the job (endShot.js)
   graphFill: true, // temperature graph: each line's area filled with a faint shade of its colour
   accentReach: 'subtle', // how far the accent colour reaches: subtle (buttons only) | normal | strong (card and dialog outlines)
 });

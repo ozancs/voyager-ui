@@ -115,3 +115,39 @@ export function withArgs(line, updates) {
   }
   return [...tokens.map((t) => t.raw), tail].filter(Boolean).join(' ');
 }
+
+// a value from Klipper's status (JSON) written back as the Python literal SET_GCODE_VARIABLE expects
+export function pyLiteral(v) {
+  if (v === null || v === undefined) return 'None';
+  if (v === true) return 'True';
+  if (v === false) return 'False';
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'string') return JSON.stringify(v);
+  if (Array.isArray(v)) return '[' + v.map(pyLiteral).join(', ') + ']';
+  return (
+    '{' +
+    Object.entries(v)
+      .map(([k, x]) => JSON.stringify(k) + ': ' + pyLiteral(x))
+      .join(', ') +
+    '}'
+  );
+}
+// what was typed, as the Python literal to send: a variable that holds text takes plain words without quotes,
+// true / false become True / False. Returns { value } or { error: 'chars' | 'number' | 'empty' }.
+export function typedLiteral(text, old) {
+  const s = String(text).trim();
+  if (/[#;*\n\r]/.test(s)) return { error: 'chars' };
+  if (typeof old === 'string' && !/^(["']).*\1$/s.test(s)) return { value: JSON.stringify(s) };
+  if (typeof old === 'boolean' || /^(true|false)$/i.test(s)) {
+    if (/^(true|1)$/i.test(s)) return { value: 'True' };
+    if (/^(false|0)$/i.test(s)) return { value: 'False' };
+  }
+  if (typeof old === 'number' && !/^-?\d+(\.\d+)?(e-?\d+)?$/i.test(s)) return { error: 'number' };
+  if (!s) return { error: 'empty' };
+  return { value: s };
+}
+// SET_GCODE_VARIABLE with the value quoted for Klipper's command line (it splits words like a shell does)
+export function setVarCommand(macro, variable, literal) {
+  const v = /^[\w.+-]+$/.test(literal) ? literal : '"' + literal.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+  return `SET_GCODE_VARIABLE MACRO=${macro} VARIABLE=${variable} VALUE=${v}`;
+}

@@ -7,10 +7,12 @@ import Modal from '../components/Modal.vue';
 import LogViewer from '../components/LogViewer.vue';
 import BackupCard from '../components/BackupCard.vue';
 import UsersCard from '../components/UsersCard.vue';
+import MacroVars from '../components/MacroVars.vue';
 import SystemLoads from '../components/SystemLoads.vue';
 import FileBrowser from '../components/FileBrowser.vue';
 import { state, S, gcode, toast, fmtBytes, useApiEvent, applyUpd, restartKlipper } from '../store';
 import { api } from '../api/moonraker';
+import { macroVars } from '../features';
 import { t } from '../i18n';
 const C = (state.cache.machine ||= {});
 const sys = ref(C.sys || null),
@@ -158,6 +160,9 @@ async function doUpdateAll() {
   loadUpd();
 }
 const logs = ['klippy.log', 'moonraker.log', 'crowsnest.log'];
+const hasVars = computed(() =>
+  state.objects.some((o) => o.startsWith('gcode_macro ') && Object.keys(macroVars(o.slice(12))).length),
+);
 const viewLog = ref(null);
 </script>
 <template>
@@ -240,6 +245,12 @@ const viewLog = ref(null);
             ><Icon name="download" :size="16"
           /></a>
         </div>
+      </section>
+      <section v-if="hasVars" class="card">
+        <div class="card-h">
+          <h2>{{ t('Macro variables') }}</h2>
+        </div>
+        <MacroVars />
       </section>
       <BackupCard />
       <UsersCard />

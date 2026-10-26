@@ -1989,5 +1989,22 @@
 "Green",
 "Blue",
 "White",
-"Brightness"
+"Brightness",
+"# ; and * cannot be sent to Klipper",
+"Not a number",
+"Empty value",
+"A change lasts until Klipper restarts. The config file keeps the starting value.",
+"Filter macro variables",
+"Open in the config",
+"This macro has no variables.",
+"Nothing matches",
+"No macro has variables",
+"Run with parameters…",
+"Variables",
+"Variables of {name}",
+"Picture at the end of each print",
+"When a print ends, the first camera’s picture is kept with the job in History, also when it failed. Taken by a Voyager page open at that moment; the last 60 are kept.",
+"{name} was not found in the config files",
+"Picture at the end",
+"Macro variables"
 ]
