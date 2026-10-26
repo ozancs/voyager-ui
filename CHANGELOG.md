@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.33.3
+
+- LEDs: colour picker with a colour wheel, brightness and red / green / blue (and white) values, in the LED tile and in the Devices card (Suggested by Raidy)
+- Spoolman tile: a long material name no longer pushes the weight out of the tile
+
 ## 0.33.0
 
 - Temperature graph: point at a sensor in the legend to see it on its own; a click keeps it that way and fits the scale to that sensor, a second click shows all again

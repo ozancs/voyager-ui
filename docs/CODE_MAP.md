@@ -335,11 +335,12 @@ Machine page: system loads, the file browser for config and logs, the update man
 confirm dialog that lists incoming commits) and endstop state.
 
 **[src/views/OznLabPage.vue](../src/views/OznLabPage.vue)**  
-The OznLab Sensor page, inside Voyager. The sensor's Klipper module links its own oznlab.html next to Mainsail and  
+The PA Sensei sensor page, inside Voyager. The sensor's Klipper module links its own page next to Mainsail and  
 Fluidd at every Klipper start, so the page shown here is always the one of the module that is installed: Voyager  
 keeps no copy, and a sensor update brings its new page with it. Looked for on Voyager's own address first (in case  
 the module ever links it there too), otherwise on the printer's port 80 where Mainsail / Fluidd live.  
-The side menu shows this page only when Klipper has an oznlab_sensor object.
+The module is [pa_sensei ...] with pa_sensei.html; before its rename (OznLab Sensor) it was [oznlab_sensor ...]  
+with oznlab.html. The side menu shows this page only when Klipper has one of the two.
 
 **[src/views/QuickConfig.vue](../src/views/QuickConfig.vue)**  
 Printer settings page: the config options the user picked (settings.quickConfig) as a form, read from the  
@@ -514,6 +515,12 @@ cancel. Used by the compact print pill in the top bar; the PrintBar band shows t
 LED effects card for klipper-led_effect: every [led_effect] in the config as a button, lit while the effect  
 runs. A click starts it (or stops it when it runs); the square stops them all. Found by itself, nothing to set up.
 
+**[src/components/LedPicker.vue](../src/components/LedPicker.vue)**  
+Colour picker for a Klipper LED (neopixel, dotstar, led, pca95xx): a wheel for hue and saturation, a brightness  
+slider and the red / green / blue (and white, when the LED has a white channel) values as numbers 0-255, the way  
+Mainsail shows them. While dragging the colour goes out at most a few times a second, the last one always.  
+The picker keeps its own values while it is being used and takes the printer's back a moment after.
+
 **[src/components/LimitsCard.vue](../src/components/LimitsCard.vue)**  
 The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor below them when the Print  
 controls card is not on the dashboard (flow too, unless the Extruder card shows it).
@@ -601,7 +608,8 @@ the printer has them. The pending layer is read back from the macro's variables.
 **[src/components/Popover.vue](../src/components/Popover.vue)**  
 Pop-up panel for buttons inside dashboard cards (sensor picker, presets). It is moved to <body> so the card's  
 scroll area, the page's scroll area and the side menu cannot cut it off or cover it, and it is placed under  
-its button, right edges lined up, kept inside the window. Closes on a click outside, Escape or scrolling.
+its button, right edges lined up, kept inside the window. Closes on a click outside, Escape or scrolling  
+the page under it.
 
 **[src/components/PowerCard.vue](../src/components/PowerCard.vue)**  
 Dashboard card listing Moonraker power devices ([power] sections) with on/off switches.
