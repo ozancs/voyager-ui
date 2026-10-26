@@ -3,7 +3,7 @@
 import { ref, computed } from 'vue';
 import Icon from '../components/Icon.vue';
 import ConsoleView from '../components/ConsoleView.vue';
-import { state, macroList } from '../store';
+import { state, macroList, clearConsole } from '../store';
 import { t } from '../i18n';
 const cv = ref(null);
 const q = ref('');
@@ -27,7 +27,7 @@ const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.descr
             @click="state.settings.consoleHideTemps = !state.settings.consoleHideTemps"
           >
             {{ t('Hide temps') }}</button
-          ><button class="btn" @click="state.console = []"><Icon name="trash" :size="16" />{{ t('Clear') }}</button>
+          ><button class="btn" @click="clearConsole"><Icon name="trash" :size="16" />{{ t('Clear') }}</button>
         </div>
       </div>
       <ConsoleView ref="cv" :limit="600" />

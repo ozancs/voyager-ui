@@ -802,6 +802,12 @@ export function cancelPrint() {
 }
 
 let consoleSeq = 0; // ids stay unique after the 600 line cap, several lines can share a timestamp
+// Clear empties the console and remembers when (per printer, in this browser): Moonraker keeps its own copy of
+// the last lines, so without this a reload brought the cleared lines back.
+export function clearConsole() {
+  state.console = [];
+  lsSet(APP + '-console-cleared', Date.now() / 1000);
+}
 export function pushConsole(message, type = 'response', time = Date.now() / 1000) {
   state.console.push({ message, type, time, id: ++consoleSeq });
   if (state.console.length > 600) state.console.splice(0, state.console.length - 600);
@@ -1248,8 +1254,9 @@ async function loadTempHistory() {
 async function loadGcodeStore() {
   try {
     const r = await api.call('server.gcode_store', { count: 200 });
+    const cleared = Number(lsGet(APP + '-console-cleared')) || 0;
     state.console = [];
-    for (const g of r.gcode_store) pushConsole(g.message, g.type, g.time);
+    for (const g of r.gcode_store) if (!(g.time <= cleared)) pushConsole(g.message, g.type, g.time);
   } catch {}
 }
 async function loadCommands() {
