@@ -1989,4 +1989,9 @@ export default {
   "Sensors drawn in the graph.": "Sensoren in de grafiek.",
   "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "Getoond vanuit Mainsail / Fluidd op deze printer (poort 80). Laadt het niet, dan is een van beide nodig.",
   "Open in a new tab": "Openen in nieuw tabblad",
+  "Red": "Rood",
+  "Green": "Groen",
+  "Blue": "Blauw",
+  "White": "Wit",
+  "Brightness": "Helderheid",
 }

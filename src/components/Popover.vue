@@ -1,7 +1,8 @@
 <script setup>
 // Pop-up panel for buttons inside dashboard cards (sensor picker, presets). It is moved to <body> so the card's
 // scroll area, the page's scroll area and the side menu cannot cut it off or cover it, and it is placed under
-// its button, right edges lined up, kept inside the window. Closes on a click outside, Escape or scrolling.
+// its button, right edges lined up, kept inside the window. Closes on a click outside, Escape or scrolling
+// the page under it.
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 const props = defineProps({ anchor: Object, width: { type: Number, default: 280 } });
 const emit = defineEmits(['close']);
@@ -29,8 +30,11 @@ function outside(e) {
   emit('close');
 }
 const key = (e) => e.key === 'Escape' && emit('close');
+// only a scroll that moves the button closes it: a console scrolling down to a new line elsewhere does not
 const scrolled = (e) => {
-  if (!el.value?.contains(e.target)) emit('close');
+  const t = e.target;
+  if (el.value?.contains(t)) return;
+  if (t === document || t === document.documentElement || t?.contains?.(props.anchor)) emit('close');
 };
 onMounted(async () => {
   await nextTick();

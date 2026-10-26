@@ -1989,4 +1989,9 @@ export default {
   "Sensors drawn in the graph.": "Датчики на графіку.",
   "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "Показано з Mainsail / Fluidd на цьому принтері (порт 80). Якщо не завантажується, потрібен один із них.",
   "Open in a new tab": "Відкрити в новій вкладці",
+  "Red": "Червоний",
+  "Green": "Зелений",
+  "Blue": "Синій",
+  "White": "Білий",
+  "Brightness": "Яскравість",
 }

@@ -8,6 +8,7 @@ import Icon from './Icon.vue';
 import Toggle from './Toggle.vue';
 import Modal from './Modal.vue';
 import RangeSlider from './RangeSlider.vue';
+import LedPicker from './LedPicker.vue';
 import {
   state,
   S,
@@ -220,14 +221,25 @@ function ledHex(id) {
 const ledOn = (id) => ledColor(id).some((x) => x > 0.001);
 const lastColor = {};
 function setLed(id, hex, white) {
-  const r = parseInt(hex.slice(1, 3), 16) / 255,
-    g = parseInt(hex.slice(3, 5), 16) / 255,
-    b = parseInt(hex.slice(5, 7), 16) / 255;
-  lastColor[id] = hex;
+  const n = (i) => parseInt(hex.slice(i, i + 2), 16) / 255;
+  setLedRgb(id, [n(1), n(3), n(5)], white);
+}
+// [r, g, b] 0..1, white 0..1 or null for an LED without a white channel
+function setLedRgb(id, [r, g, b], white) {
   const w = white != null ? ` WHITE=${white.toFixed(3)}` : '';
+  if (r + g + b + (white || 0) > 0)
+    lastColor[id] =
+      '#' +
+      [r, g, b]
+        .map((x) =>
+          Math.round(x * 255)
+            .toString(16)
+            .padStart(2, '0'),
+        )
+        .join('');
   gcode(
     `SET_LED LED=${shortName(id)} RED=${r.toFixed(3)} GREEN=${g.toFixed(3)} BLUE=${b.toFixed(3)}${w} SYNC=0 TRANSMIT=1`,
-  );
+  ).catch(() => {});
 }
 function ledToggle(id, on) {
   if (on) setLed(id, lastColor[id] || '#ffffff');
@@ -483,14 +495,7 @@ function sensorExtra(id) {
               @click="setLed(d.obj, c)"
             ></button>
           </div>
-          <label class="row"
-            ><input
-              type="color"
-              :value="ledHex(d.obj)"
-              @change="setLed(d.obj, $event.target.value)"
-              style="width: 48px; height: 36px; border: none; background: none; padding: 0"
-            /><span class="mu" style="font-size: 13px">{{ t('Custom') }}</span></label
-          >
+          <LedPicker :id="d.obj" @set="(c, w) => setLedRgb(d.obj, c, w)" />
           <button class="btn" @click="ledToggle(d.obj, false)">{{ t('Turn off') }}</button>
         </div>
       </template>

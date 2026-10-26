@@ -1989,4 +1989,9 @@ export default {
   "Sensors drawn in the graph.": "Grafikte çizilen sensörler.",
   "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "Bu yazıcıdaki Mainsail / Fluidd'den (port 80) gösteriliyor. Açılmazsa ikisinden biri gerekiyor.",
   "Open in a new tab": "Yeni sekmede aç",
+  "Red": "Kırmızı",
+  "Green": "Yeşil",
+  "Blue": "Mavi",
+  "White": "Beyaz",
+  "Brightness": "Parlaklık",
 }

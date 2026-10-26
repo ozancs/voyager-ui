@@ -1,10 +1,12 @@
 <script setup>
 // Fans, output pins, LEDs and filament sensors as a list (Mainsail's "Miscellaneous" panel).
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import Rng from './Rng.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import Toggle from './Toggle.vue';
+import Popover from './Popover.vue';
+import LedPicker from './LedPicker.vue';
 import { state, S, devices, prettyName, shortName, setFan, gcode } from '../store';
 import { t } from '../i18n';
 
@@ -30,6 +32,27 @@ const pinVal = (d) => Math.round((S(d.id).value || 0) * 100); // Klipper reports
 const ledOn = (id) => (S(id).color_data?.[0] || []).some((x) => x > 0.001);
 function led(id, on) {
   gcode(`SET_LED LED=${shortName(id)} RED=${on ? 1 : 0} GREEN=${on ? 1 : 0} BLUE=${on ? 1 : 0} SYNC=0 TRANSMIT=1`);
+}
+// the swatch next to an LED's switch shows its colour and opens the colour picker
+const ledHex = (id) => {
+  const [r = 0, g = 0, b = 0, w = 0] = S(id).color_data?.[0] || [];
+  return (
+    '#' +
+    [r, g, b]
+      .map((x) =>
+        Math.round(Math.min(1, x + w) * 255)
+          .toString(16)
+          .padStart(2, '0'),
+      )
+      .join('')
+  );
+};
+const picking = ref(null); // { id, el }
+function ledSet(id, [r, g, b], w) {
+  const wh = w != null ? ` WHITE=${w.toFixed(3)}` : '';
+  gcode(
+    `SET_LED LED=${shortName(id)} RED=${r.toFixed(3)} GREEN=${g.toFixed(3)} BLUE=${b.toFixed(3)}${wh} SYNC=0 TRANSMIT=1`,
+  ).catch(() => {});
 }
 function sensor(id, on) {
   gcode(`SET_FILAMENT_SENSOR SENSOR=${shortName(id)} ENABLE=${on ? 1 : 0}`);
@@ -73,6 +96,13 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
         </template>
         <template v-else-if="d.kind === 'led'"
           ><span class="grow"></span
+          ><button
+            class="swb"
+            :style="{ background: ledOn(d.id) ? ledHex(d.id) : 'var(--s2)' }"
+            :aria-label="t('Color')"
+            :title="t('Color')"
+            @click="picking = picking?.id === d.id ? null : { id: d.id, el: $event.currentTarget }"
+          ></button
           ><Toggle :model-value="ledOn(d.id)" :label="prettyName(d.id)" @update:model-value="(v) => led(d.id, v)"
         /></template>
         <template v-else-if="d.kind === 'filament'">
@@ -86,6 +116,10 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
           />
         </template>
       </div>
+      <Popover v-if="picking" :anchor="picking.el" :width="260" @close="picking = null">
+        <span class="lbl">{{ prettyName(picking.id) }}</span>
+        <LedPicker :id="picking.id" @set="(c, w) => ledSet(picking.id, c, w)" />
+      </Popover>
       <div v-if="!list.length" class="empty">{{ t('No fans, pins or LEDs found') }}</div>
     </div>
   </section>
@@ -110,6 +144,13 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
 }
 .dv:last-child {
   border-bottom: none;
+}
+.swb {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  border: 2px solid var(--bd);
 }
 .ic {
   flex-shrink: 0;

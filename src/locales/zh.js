@@ -1989,4 +1989,9 @@ export default {
   "Sensors drawn in the graph.": "图表中绘制的传感器。",
   "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "从此打印机上的 Mainsail / Fluidd(端口 80)显示。如果无法加载,需要其中之一。",
   "Open in a new tab": "在新标签页中打开",
+  "Red": "红",
+  "Green": "绿",
+  "Blue": "蓝",
+  "White": "白",
+  "Brightness": "亮度",
 }

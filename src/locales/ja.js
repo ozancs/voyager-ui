@@ -1989,4 +1989,9 @@ export default {
   "Sensors drawn in the graph.": "グラフに描くセンサー。",
   "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "このプリンターの Mainsail / Fluidd (ポート 80) から表示しています。読み込めない場合はどちらかが必要です。",
   "Open in a new tab": "新しいタブで開く",
+  "Red": "赤",
+  "Green": "緑",
+  "Blue": "青",
+  "White": "白",
+  "Brightness": "明るさ",
 }

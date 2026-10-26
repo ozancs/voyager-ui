@@ -1989,4 +1989,9 @@ export default {
   "Sensors drawn in the graph.": "Sensori disegnati nel grafico.",
   "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "Mostrato da Mainsail / Fluidd su questa stampante (porta 80). Se non si carica, ne serve uno dei due.",
   "Open in a new tab": "Apri in una nuova scheda",
+  "Red": "Rosso",
+  "Green": "Verde",
+  "Blue": "Blu",
+  "White": "Bianco",
+  "Brightness": "Luminosità",
 }

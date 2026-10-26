@@ -174,6 +174,7 @@ const status = {
     save_config_pending: true,
     settings: {
       mcu: { serial: '/dev/serial/by-id/usb-Klipper_stm32h723xx_2A0012345151313234353533-if00' },
+      'neopixel hotend_rgb': { chain_count: 3, color_order: ['GRBW'] },
       'mcu ebbcan': { canbus_uuid: '0e5f3b2a1c4d', canbus_interface: 'can0' },
       // Klipper-Backup's macro, so the Config backup card has something to run
       'gcode_macro update_git': { gcode: 'RUN_SHELL_COMMAND CMD=update_git_script' },
@@ -2194,6 +2195,17 @@ gcodeScript = function (sc) {
         res('ok');
       }, 24000),
     );
+  }
+  if ((m = S.match(/^SET_LED LED=(\S+)(.*)/))) {
+    const o = Object.keys(status).find(
+      (k) => /^(neopixel|dotstar|led|pca9533|pca9632) /.test(k) && k.split(' ')[1].toLowerCase() === m[1].toLowerCase(),
+    );
+    if (o) {
+      const v = (c) => Number((m[2].match(new RegExp(c + '=([\\d.]+)')) || [])[1] || 0);
+      const c = [v('RED'), v('GREEN'), v('BLUE'), v('WHITE')];
+      pushStatus({ [o]: { color_data: status[o].color_data.map(() => c) } });
+    }
+    return 'ok';
   }
   if ((m = S.match(/^SET_LED_EFFECT EFFECT=(\S+)( STOP=1)?/))) {
     const o = 'led_effect ' + m[1].toLowerCase();

@@ -1989,4 +1989,9 @@ export default {
   "Sensors drawn in the graph.": "그래프에 그릴 센서.",
   "Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.": "이 프린터의 Mainsail / Fluidd(포트 80)에서 표시합니다. 열리지 않으면 둘 중 하나가 필요합니다.",
   "Open in a new tab": "새 탭에서 열기",
+  "Red": "빨강",
+  "Green": "초록",
+  "Blue": "파랑",
+  "White": "흰색",
+  "Brightness": "밝기",
 }
