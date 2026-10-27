@@ -1,0 +1,650 @@
+<script setup>
+// The screen shown while the controls are locked (lock.js): the printer at a glance for a tablet next to it. The
+// first camera fills the background in grey, the temperatures and the other cards float over it on the right and
+// continue on the left when the right is full, the print sits in a bar along the bottom. Only Unlock (with the PIN
+// pad when a PIN is set), E-STOP and a small Customize for which cards show. Read only: nothing here sends G-code.
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import Icon from './Icon.vue';
+import WebcamView from './WebcamView.vue';
+import SensorIcon from './SensorIcon.vue';
+import {
+  state,
+  S,
+  hist,
+  tempSensors,
+  prettyName,
+  printerName,
+  printState,
+  progress,
+  printTimes,
+  layerInfo,
+  fmtTime,
+  toast,
+  devices,
+} from '../store';
+import { sortSensors, sensorColor } from '../sensorStyle';
+import { unlockUi, lockHasPin } from '../lock';
+import { api } from '../api/moonraker';
+import { t } from '../i18n';
+
+// ---------------------------------------------------------------- what shows (Customize, kept in settings)
+const conf = computed(() => state.settings.lockScreen || { cam: true, show: {} });
+const hiddenTemps = computed(() => state.settings.hiddenSensors || []);
+// a card shows when Customize says so; until then the sensors follow the Temperatures card, graph on, rest off
+const shown = (key, def) => conf.value.show?.[key] ?? def;
+function toggle(key, def) {
+  conf.value.show = { ...(conf.value.show || {}), [key]: !shown(key, def) };
+}
+const sensorList = computed(() => sortSensors(tempSensors.value, state.settings.sensorOrder));
+const fanList = computed(() => devices.value.filter((d) => d.kind === 'fan'));
+const items = computed(() => [
+  ...sensorList.value.map((n, i) => ({
+    key: 's:' + n,
+    kind: 'sensor',
+    name: n,
+    i,
+    label: prettyName(n),
+    def: !hiddenTemps.value.includes(n),
+  })),
+  { key: 'graph', kind: 'graph', label: t('Temperature graph'), def: true },
+  { key: 'fans', kind: 'fans', label: t('Fans'), def: false },
+  { key: 'speed', kind: 'speed', label: t('Speed and flow'), def: false },
+]);
+const cards = computed(() => items.value.filter((x) => shown(x.key, x.def)));
+const cust = ref(false);
+
+// ---------------------------------------------------------------- camera
+const cam = computed(() => state.webcams.find((w) => w.enabled !== false) || null);
+const camOn = computed(() => conf.value.cam !== false && !!cam.value);
+
+// ---------------------------------------------------------------- values
+const temp = (n) => S(n).temperature;
+const target = (n) => S(n).target;
+const col = (n, i) => sensorColor(state.settings.sensorColors, n, i);
+const active = computed(() => ['printing', 'paused'].includes(printState.value));
+const file = computed(() => (S('print_stats').filename || '').split('/').pop());
+const eta = computed(() =>
+  printTimes.value.eta
+    ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    : '--:--',
+);
+const pos = computed(() => S('gcode_move').gcode_position || S('toolhead').position || []);
+const homed = computed(() => S('toolhead').homed_axes || '');
+const stateText = computed(() => {
+  if (!state.connected) return t('Not connected');
+  if (state.klippy !== 'ready') return t('Klipper {state}', { state: state.klippy });
+  return t(printState.value);
+});
+const clock = ref('');
+const tick = () => (clock.value = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+let clk;
+onMounted(() => {
+  tick();
+  clk = setInterval(tick, 15000);
+});
+onBeforeUnmount(() => clearInterval(clk));
+
+// ---------------------------------------------------------------- the small graph: last 10 minutes
+// heaters only (hotend, bed, chamber): with 40° boards on the same scale their curves would be flat lines
+const W = 196,
+  H = 70;
+const graph = computed(() => {
+  void state.histTick;
+  const heaters = new Set(S('heaters').available_heaters || []);
+  const list = sensorList.value
+    .map((n, i) => ({ n, i }))
+    .filter(({ n }) => heaters.has(n) && shown('s:' + n, !hiddenTemps.value.includes(n)) && hist[n]?.t?.length);
+  const span = 600;
+  const lines = list.map(({ n, i }) => ({ n, c: col(n, i), v: hist[n].t.slice(-span) }));
+  const all = lines.flatMap((l) => l.v).filter((x) => x != null);
+  if (!all.length) return [];
+  const lo = Math.min(...all) - 2,
+    hi = Math.max(...all) + 2;
+  return lines.map((l) => ({
+    ...l,
+    d: l.v
+      .map(
+        (y, k) =>
+          `${k ? 'L' : 'M'}${((k + span - l.v.length) / (span - 1)) * W},${H - ((y - lo) / (hi - lo || 1)) * H}`,
+      )
+      .join(''),
+  }));
+});
+
+// ---------------------------------------------------------------- unlock and E-STOP
+const pinOpen = ref(false);
+const pin = ref('');
+const wrong = ref(false);
+async function startUnlock() {
+  if (!lockHasPin()) return unlockUi('');
+  pin.value = '';
+  wrong.value = false;
+  pinOpen.value = true;
+  await nextTick();
+  document.querySelector('.ls .pinin')?.focus();
+}
+function key(d) {
+  wrong.value = false;
+  if (d === 'del') pin.value = pin.value.slice(0, -1);
+  else if (pin.value.length < 12) pin.value += d;
+}
+async function tryPin() {
+  if (await unlockUi(pin.value)) return;
+  wrong.value = true;
+  pin.value = '';
+}
+async function estop() {
+  try {
+    await api.call('printer.emergency_stop');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+</script>
+
+<template>
+  <div class="ls" role="dialog" :aria-label="t('Locked')">
+    <div class="bg" :class="{ cam: camOn }">
+      <WebcamView v-if="camOn" :cam="cam" :overlay="false" class="wv" />
+    </div>
+    <div class="shade"></div>
+
+    <div class="ui">
+      <div class="top">
+        <span v-if="camOn" class="live">LIVE</span>
+        <Icon name="lock" :size="16" class="mu" />
+        <b class="pn">{{ printerName }}</b>
+        <span class="mu">{{ clock }}</span>
+        <span class="mu st">· {{ stateText }}</span>
+        <span class="grow"></span>
+        <button
+          class="gbtn ib"
+          :class="{ on: cust }"
+          :aria-label="t('Customize')"
+          :data-tip="t('Customize')"
+          @click="cust = !cust"
+        >
+          <Icon name="customize" :size="18" />
+        </button>
+        <button class="gbtn" @click="startUnlock"><Icon name="unlock" :size="16" />{{ t('Unlock') }}</button>
+        <button class="estop" @click="estop">{{ t('E-STOP') }}</button>
+      </div>
+
+      <!-- cards: right column first, more columns to the left when it is full -->
+      <div class="cards">
+        <template v-for="c in cards" :key="c.key">
+          <div v-if="c.kind === 'sensor'" class="glass card">
+            <span class="lbl"
+              ><SensorIcon :name="c.name" :color="col(c.name, c.i)" :size="14" class="si" />{{ c.label }}</span
+            >
+            <b class="mono v"
+              >{{ temp(c.name) != null ? temp(c.name).toFixed(1) + '°' : '--'
+              }}<small v-if="target(c.name) > 0"> / {{ Math.round(target(c.name)) }}</small></b
+            >
+          </div>
+          <div v-else-if="c.kind === 'graph'" class="glass card gr">
+            <span class="lbl">{{ t('Last 10 minutes') }}</span>
+            <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" class="gsvg">
+              <path v-for="l in graph" :key="l.n" :d="l.d" :stroke="l.c" fill="none" stroke-width="1.6" />
+            </svg>
+          </div>
+          <div v-else-if="c.kind === 'fans'" class="glass card">
+            <span class="lbl">{{ t('Fans') }}</span>
+            <div v-for="f in fanList" :key="f.id" class="fr">
+              <span>{{ prettyName(f.id) }}</span
+              ><b class="mono">{{ Math.round((S(f.id).speed || 0) * 100) }}%</b>
+            </div>
+          </div>
+          <div v-else-if="c.kind === 'speed'" class="glass card">
+            <span class="lbl">{{ t('Speed and flow') }}</span>
+            <div class="fr">
+              <span>{{ t('Speed') }}</span
+              ><b class="mono">{{ Math.round((S('gcode_move').speed_factor ?? 1) * 100) }}%</b>
+            </div>
+            <div class="fr">
+              <span>{{ t('Flow') }}</span
+              ><b class="mono">{{ Math.round((S('gcode_move').extrude_factor ?? 1) * 100) }}%</b>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div class="glass bottom" :class="{ idle: !active }">
+        <template v-if="active">
+          <b class="pct">{{ Math.floor(progress * 100) }}%</b>
+          <div class="job">
+            <span class="fn"
+              >{{ file }}<em v-if="printState === 'paused'" class="ps">{{ t('Paused') }}</em></span
+            >
+            <div class="bar"><i :style="{ width: progress * 100 + '%' }"></i></div>
+            <div class="meta mono">
+              <span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span
+              ><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span
+              ><span>{{ t('ETA {time}', { time: eta }) }}</span>
+            </div>
+          </div>
+        </template>
+        <div v-else class="job">
+          <b class="idt">{{ stateText }}</b>
+          <span class="mu sm">{{ homed ? t('Homed: {axes}', { axes: homed.toUpperCase() }) : t('Not homed') }}</span>
+        </div>
+        <div class="xyz mono">
+          <span>X</span>{{ pos[0] != null ? pos[0].toFixed(1) : '--' }} <span>Y</span
+          >{{ pos[1] != null ? pos[1].toFixed(1) : '--' }} <span>Z</span>{{ pos[2] != null ? pos[2].toFixed(2) : '--' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Customize: which cards show here -->
+    <div v-if="cust" class="glass cust">
+      <div class="ch">
+        <b>{{ t('Lock screen') }}</b
+        ><button class="gbtn ib sm" :aria-label="t('Close')" @click="cust = false"><Icon name="x" :size="15" /></button>
+      </div>
+      <label class="opt"
+        ><input v-model="conf.cam" type="checkbox" class="cb" :disabled="!cam" /><span>{{
+          t('Camera in the background')
+        }}</span></label
+      >
+      <span class="sec">{{ t('Cards') }}</span>
+      <label v-for="x in items" :key="x.key" class="opt"
+        ><input type="checkbox" class="cb" :checked="shown(x.key, x.def)" @change="toggle(x.key, x.def)" /><span>{{
+          x.label
+        }}</span></label
+      >
+    </div>
+
+    <!-- PIN pad -->
+    <div v-if="pinOpen" class="pinov" @click.self="pinOpen = false">
+      <div class="glass pad" :class="{ shake: wrong }">
+        <b>{{ t('Enter the PIN to unlock.') }}</b>
+        <input
+          v-model="pin"
+          class="pinin mono"
+          type="password"
+          inputmode="numeric"
+          autocomplete="off"
+          maxlength="12"
+          :aria-label="t('PIN')"
+          @keydown.enter="tryPin"
+          @keydown.esc="pinOpen = false"
+        />
+        <span class="wr">{{ wrong ? t('Wrong PIN') : '' }}</span>
+        <div class="keys">
+          <button v-for="d in ['1', '2', '3', '4', '5', '6', '7', '8', '9']" :key="d" class="k" @click="key(d)">
+            {{ d }}
+          </button>
+          <button class="k" :aria-label="t('Delete')" @click="key('del')"><Icon name="left" :size="18" /></button
+          ><button class="k" @click="key('0')">0</button
+          ><button class="k ok" :aria-label="t('Unlock')" @click="tryPin"><Icon name="check" :size="20" /></button>
+        </div>
+        <button class="gbtn" style="align-self: center" @click="pinOpen = false">{{ t('Cancel') }}</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* its own calm grey look whatever the theme: it sits on a camera picture */
+.ls {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: #18191b;
+  color: #e6e6e4;
+  font-family: var(--fd);
+  overflow: hidden;
+}
+.mu {
+  color: #9a9ca1;
+}
+.sm {
+  font-size: 13px;
+}
+.grow {
+  flex: 1;
+}
+.bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #2b2c30 0%, #1d1e21 60%, #141517 100%);
+}
+.bg.cam .wv {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  filter: grayscale(1) brightness(0.85);
+}
+.bg.cam :deep(img),
+.bg.cam :deep(video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 16, 18, 0.6), rgba(15, 16, 18, 0.15) 35%, rgba(15, 16, 18, 0.82));
+}
+.ui {
+  position: absolute;
+  inset: 0;
+  padding: max(16px, env(safe-area-inset-top)) 18px max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pn {
+  font-size: 17px;
+}
+.live {
+  font: 700 11px var(--fd);
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #cfd0d2;
+}
+.glass {
+  background: rgba(30, 31, 34, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+}
+.gbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 21px;
+  background: rgba(30, 31, 34, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e6e6e4;
+  font: 600 14px var(--fd);
+  cursor: pointer;
+}
+.gbtn.ib {
+  width: 42px;
+  padding: 0;
+  justify-content: center;
+}
+.gbtn.sm {
+  width: 30px;
+  height: 30px;
+}
+.gbtn.on {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.estop {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 21px;
+  border: 0;
+  background: #5a2a2a;
+  color: #f2c2c2;
+  font: 700 13px var(--fd);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+/* column-wise from the right: direction rtl puts the first column on the right, wrapping adds columns leftwards */
+.cards {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 10px;
+  direction: rtl;
+  overflow: hidden;
+}
+.card {
+  direction: ltr;
+  width: 220px;
+  padding: 11px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lbl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #9a9ca1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.si {
+  filter: saturate(0.45);
+}
+.v {
+  font-size: 24px;
+  font-weight: 600;
+}
+.v small {
+  font-size: 13px;
+  color: #6f7177;
+  font-weight: 500;
+}
+.gsvg {
+  width: 100%;
+  height: 70px;
+  margin-top: 6px;
+  opacity: 0.85;
+  filter: saturate(0.5);
+}
+.fr {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 2px 0;
+}
+.fr span {
+  color: #b9bbc0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bottom {
+  padding: 14px 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+.bottom.idle {
+  grid-template-columns: 1fr auto;
+}
+.pct {
+  font: 700 50px/1 var(--fd);
+}
+.job {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.fn {
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ps {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 12px;
+  color: #e3c27a;
+  margin-left: 10px;
+}
+.idt {
+  font-size: 22px;
+  text-transform: capitalize;
+}
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  background: color-mix(in srgb, var(--ac) 70%, #9a9ca1);
+  border-radius: 3px;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 13px;
+  color: #9a9ca1;
+}
+.xyz {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.xyz span {
+  color: #9a9ca1;
+  margin-left: 12px;
+  margin-right: 5px;
+}
+.cust {
+  position: absolute;
+  top: 70px;
+  right: 18px;
+  width: 270px;
+  max-height: calc(100% - 90px);
+  overflow: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 2;
+  background: rgba(28, 29, 32, 0.92);
+}
+.ch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.sec {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6f7177;
+}
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.pinov {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 12, 0.55);
+}
+.pad {
+  width: 300px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  background: rgba(28, 29, 32, 0.92);
+}
+.pinin {
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.3);
+  color: #e6e6e4;
+  font-size: 22px;
+  text-align: center;
+  letter-spacing: 0.3em;
+}
+.wr {
+  min-height: 18px;
+  font-size: 13px;
+  color: #f0a3a3;
+}
+.keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.k {
+  height: 54px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e6e6e4;
+  font: 600 22px var(--fd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.k:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+.k.ok {
+  background: color-mix(in srgb, var(--ac) 45%, #2a2b2f);
+}
+.shake {
+  animation: shake 0.35s;
+}
+@keyframes shake {
+  25% {
+    transform: translateX(-8px);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+  75% {
+    transform: translateX(-4px);
+  }
+}
+@media (max-width: 640px) {
+  .bottom {
+    grid-template-columns: auto 1fr;
+  }
+  .xyz {
+    grid-column: 1 / -1;
+  }
+  .card {
+    width: calc(50% - 5px);
+  }
+  .cards {
+    direction: ltr;
+    flex-direction: row;
+    align-content: flex-start;
+    overflow: auto;
+  }
+  .v {
+    font-size: 20px;
+  }
+}
+</style>

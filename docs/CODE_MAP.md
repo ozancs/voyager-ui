@@ -547,6 +547,12 @@ so a slow printer does not look like a broken page.
 **[src/components/LockButton.vue](../src/components/LockButton.vue)**  
 Lock button in the top bar (lock.js). Locking can set a PIN; unlocking asks for it.
 
+**[src/components/LockScreen.vue](../src/components/LockScreen.vue)**  
+The screen shown while the controls are locked (lock.js): the printer at a glance for a tablet next to it. The  
+first camera fills the background in grey, the temperatures and the other cards float over it on the right and  
+continue on the left when the right is full, the print sits in a bar along the bottom. Only Unlock (with the PIN  
+pad when a PIN is set), E-STOP and a small Customize for which cards show. Read only: nothing here sends G-code.
+
 **[src/components/LogViewer.vue](../src/components/LogViewer.vue)**  
 Reads the tail of a printer log (klippy.log, moonraker.log, crowsnest.log) in the browser: the last part of the  
 file is fetched with a Range request, errors and warnings are highlighted, a filter narrows the lines, and  

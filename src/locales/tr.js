@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "Eksen bükülmesi",
   "Probe and nozzle agree along the gantry": "Prob ve nozul tüm gantry boyunca aynı ölçsün",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "Biraz bükük bir gantry, prob ile nozulun bir eksen boyunca farklı ölçmesine yol açar. Her noktada önce prob ölçer, sonra nozulla kağıt testini yaparsın; Klipper farkı tutar ve her prob ölçümünü buna göre düzeltir.",
+  "Fans": "Fanlar",
+  "Speed and flow": "Hız ve akış",
+  "Not connected": "Bağlı değil",
+  "Last 10 minutes": "Son 10 dakika",
+  "Homed: {axes}": "Home'lu: {axes}",
+  "Lock screen": "Kilit ekranı",
+  "Camera in the background": "Arka planda kamera",
+  "Cards": "Kartlar",
 }

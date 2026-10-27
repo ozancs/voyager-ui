@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "Asverdraaiing",
   "Probe and nozzle agree along the gantry": "Probe en nozzle gelijk over de hele gantry",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "Een licht verdraaide gantry laat de probe langs een as anders meten dan waar de nozzle raakt. Op elk punt meet eerst de probe, dan doe je de papiertest met de nozzle; Klipper bewaart het verschil en corrigeert er elke probemeting mee.",
+  "Fans": "Ventilatoren",
+  "Speed and flow": "Snelheid en flow",
+  "Not connected": "Niet verbonden",
+  "Last 10 minutes": "Laatste 10 minuten",
+  "Homed: {axes}": "Gehomed: {axes}",
+  "Lock screen": "Vergrendelscherm",
+  "Camera in the background": "Camera op de achtergrond",
+  "Cards": "Kaarten",
 }

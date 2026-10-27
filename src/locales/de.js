@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "Achsenverdrehung",
   "Probe and nozzle agree along the gantry": "Sonde und Düse stimmen über die Brücke überein",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "Eine leicht verdrehte Brücke lässt die Sonde entlang einer Achse anders messen, als die Düse aufsetzt. An jedem Punkt misst zuerst die Sonde, dann machst du den Papiertest mit der Düse; Klipper merkt sich den Unterschied und korrigiert jede Sondenmessung damit.",
+  "Fans": "Lüfter",
+  "Speed and flow": "Geschwindigkeit und Fluss",
+  "Not connected": "Nicht verbunden",
+  "Last 10 minutes": "Letzte 10 Minuten",
+  "Homed: {axes}": "Referenziert: {axes}",
+  "Lock screen": "Sperrbildschirm",
+  "Camera in the background": "Kamera im Hintergrund",
+  "Cards": "Karten",
 }

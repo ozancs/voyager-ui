@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "轴扭曲",
   "Probe and nozzle agree along the gantry": "探针与喷嘴沿龙门一致",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "龙门稍有扭曲时，探针沿某个轴的测量会和喷嘴实际接触的位置不同。每个点先由探针测量，再用喷嘴做纸张测试；Klipper 记下差值并用它修正每次探针测量。",
+  "Fans": "风扇",
+  "Speed and flow": "速度和流量",
+  "Not connected": "未连接",
+  "Last 10 minutes": "最近 10 分钟",
+  "Homed: {axes}": "已归零：{axes}",
+  "Lock screen": "锁屏",
+  "Camera in the background": "背景显示摄像头",
+  "Cards": "卡片",
 }

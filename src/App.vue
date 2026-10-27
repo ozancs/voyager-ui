@@ -33,6 +33,7 @@ import { initTimelapse } from './timelapse';
 import { initZOffset } from './zoffset';
 import './lock';
 import FloatingCam from './components/FloatingCam.vue';
+import LockScreen from './components/LockScreen.vue';
 import './tablet';
 initFeatures();
 initTimelapse();
@@ -275,6 +276,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     >
     <Tooltip />
     <FloatingCam v-if="state.pip" />
+    <LockScreen v-if="state.locked" />
     <div class="toasts">
       <TransitionGroup name="tst">
         <div v-for="ts in state.toasts" :key="ts.id" class="toast" :class="ts.kind">

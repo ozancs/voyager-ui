@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "Скручування осі",
   "Probe and nozzle agree along the gantry": "Датчик і сопло збігаються вздовж порталу",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "Злегка скручений портал змушує датчик вимірювати вздовж осі інакше, ніж торкається сопло. У кожній точці спершу вимірює датчик, потім ви робите тест із папером соплом; Klipper запам'ятовує різницю й виправляє нею кожне вимірювання датчика.",
+  "Fans": "Вентилятори",
+  "Speed and flow": "Швидкість і потік",
+  "Not connected": "Немає з'єднання",
+  "Last 10 minutes": "Останні 10 хвилин",
+  "Homed: {axes}": "Запарковано: {axes}",
+  "Lock screen": "Екран блокування",
+  "Camera in the background": "Камера на тлі",
+  "Cards": "Картки",
 }

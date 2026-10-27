@@ -118,6 +118,7 @@ export const DEFAULT_SETTINGS = () => ({
   sensorOrder: [], // sensor names in the order the user put them (sensorStyle.js)
   sensorIcons: {}, // sensor name -> icon picked in the Edit menu (sensorStyle.js)
   camOrder: [], // camera names in the order picked in Settings > Webcams (sortCams)
+  lockScreen: { cam: true, show: {} }, // the lock screen: camera behind it and which cards show (LockScreen.vue)
   idleHeatOff: false, // heaters left on with no print are turned off after the warning (features.js)
   endShot: true, // keep the webcam's picture at the end of each print with the job (endShot.js)
   graphFill: true, // temperature graph: each line's area filled with a faint shade of its colour

@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "Torsione dell’asse",
   "Probe and nozzle agree along the gantry": "Sonda e ugello concordano lungo il portale",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "Un portale un po’ torto fa misurare alla sonda valori diversi lungo un asse rispetto a dove tocca l’ugello. In ogni punto misura prima la sonda, poi fai il test della carta con l’ugello; Klipper tiene la differenza e corregge ogni misura della sonda.",
+  "Fans": "Ventole",
+  "Speed and flow": "Velocità e flusso",
+  "Not connected": "Non connesso",
+  "Last 10 minutes": "Ultimi 10 minuti",
+  "Homed: {axes}": "Home fatto: {axes}",
+  "Lock screen": "Schermata di blocco",
+  "Camera in the background": "Webcam sullo sfondo",
+  "Cards": "Schede",
 }

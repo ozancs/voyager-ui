@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "Torsion d’axe",
   "Probe and nozzle agree along the gantry": "Sonde et buse d’accord sur toute la traverse",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "Une traverse un peu tordue fait mesurer la sonde différemment de ce que touche la buse le long d’un axe. À chaque point la sonde mesure d’abord, puis tu fais le test du papier avec la buse ; Klipper garde la différence et corrige chaque mesure de la sonde avec.",
+  "Fans": "Ventilateurs",
+  "Speed and flow": "Vitesse et débit",
+  "Not connected": "Non connecté",
+  "Last 10 minutes": "10 dernières minutes",
+  "Homed: {axes}": "Origine faite : {axes}",
+  "Lock screen": "Écran de verrouillage",
+  "Camera in the background": "Caméra en arrière-plan",
+  "Cards": "Cartes",
 }

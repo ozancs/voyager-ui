@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "Skręcenie osi",
   "Probe and nozzle agree along the gantry": "Sonda i dysza zgodne wzdłuż bramy",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "Lekko skręcona brama sprawia, że sonda mierzy wzdłuż osi inaczej, niż dotyka dysza. W każdym punkcie najpierw mierzy sonda, potem robisz test kartki dyszą; Klipper zapamiętuje różnicę i poprawia nią każdy pomiar sondy.",
+  "Fans": "Wentylatory",
+  "Speed and flow": "Prędkość i przepływ",
+  "Not connected": "Brak połączenia",
+  "Last 10 minutes": "Ostatnie 10 minut",
+  "Homed: {axes}": "Zbazowane: {axes}",
+  "Lock screen": "Ekran blokady",
+  "Camera in the background": "Kamera w tle",
+  "Cards": "Karty",
 }

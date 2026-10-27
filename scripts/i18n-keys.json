@@ -2032,5 +2032,13 @@
 "Print info",
 "Axis twist",
 "Probe and nozzle agree along the gantry",
-"A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it."
+"A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.",
+"Fans",
+"Speed and flow",
+"Not connected",
+"Last 10 minutes",
+"Homed: {axes}",
+"Lock screen",
+"Camera in the background",
+"Cards"
 ]

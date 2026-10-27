@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "軸のねじれ",
   "Probe and nozzle agree along the gantry": "ガントリー全体でプローブとノズルを一致させる",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "ガントリーが少しねじれていると、軸に沿ってプローブの測定値とノズルの接触位置がずれます。各点でまずプローブが測定し、次にノズルで紙テストをします。Klipper はその差を保存し、プローブの測定をすべて補正します。",
+  "Fans": "ファン",
+  "Speed and flow": "速度と流量",
+  "Not connected": "未接続",
+  "Last 10 minutes": "直近 10 分",
+  "Homed: {axes}": "ホーム済み: {axes}",
+  "Lock screen": "ロック画面",
+  "Camera in the background": "背景にカメラ",
+  "Cards": "カード",
 }

@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "Torção do eixo",
   "Probe and nozzle agree along the gantry": "Sonda e bico concordam ao longo do pórtico",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "Um pórtico um pouco torcido faz a sonda medir diferente ao longo de um eixo do que o bico toca. Em cada ponto a sonda mede primeiro, depois você faz o teste do papel com o bico; o Klipper guarda a diferença e corrige cada medição da sonda com ela.",
+  "Fans": "Ventoinhas",
+  "Speed and flow": "Velocidade e fluxo",
+  "Not connected": "Sem conexão",
+  "Last 10 minutes": "Últimos 10 minutos",
+  "Homed: {axes}": "Com home: {axes}",
+  "Lock screen": "Tela de bloqueio",
+  "Camera in the background": "Câmera no fundo",
+  "Cards": "Cartões",
 }

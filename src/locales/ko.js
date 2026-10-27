@@ -2037,4 +2037,12 @@ export default {
   "Axis twist": "축 비틀림",
   "Probe and nozzle agree along the gantry": "갠트리 전체에서 프로브와 노즐 일치",
   "A gantry that is a little twisted makes the probe read differently along an axis than the nozzle touches. At each point the probe measures first, then you do the paper test with the nozzle; Klipper keeps the difference and corrects every probe reading with it.": "갠트리가 조금 비틀려 있으면 축을 따라 프로브 측정값이 노즐이 닿는 위치와 달라집니다. 각 지점에서 먼저 프로브가 측정하고 노즐로 종이 테스트를 합니다. Klipper가 그 차이를 저장해 모든 프로브 측정을 보정합니다.",
+  "Fans": "팬",
+  "Speed and flow": "속도와 유량",
+  "Not connected": "연결 안 됨",
+  "Last 10 minutes": "최근 10분",
+  "Homed: {axes}": "홈 완료: {axes}",
+  "Lock screen": "잠금 화면",
+  "Camera in the background": "배경에 카메라",
+  "Cards": "카드",
 }
