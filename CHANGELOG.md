@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.34.1
+
+- G-code viewer: following the print shows the model printed down to the line being printed, the rest faded, and a cone where the nozzle is
+- Macro variables: Machine shows the variables of every macro and changes them (SET_GCODE_VARIABLE, until Klipper restarts)
+- Macros card: right click (long press on a phone) a macro for its parameters, its variables, or to open it in the config at its line
+- History: the webcam picture at the end of each print, also a failed one, is kept with the job (Settings > Webcams turns it off)
+- Update Manager: roll a component back to the version it had before its last update
+- Config files open again where they were left, also after reloading the page
+- Console page: search the output, and Errors shows only the error lines with the command before each
+- Guided calibrations: axis twist compensation, with the paper test at each point
+- Webcam settings: brightness, contrast, focus, exposure and the other controls the camera has, read from crowsnest.log
+- Webcam page: progress, layer, time left and temperatures over the picture while printing, also in full screen
+- Heaters left on: they can be turned off on their own a minute after the warning (Settings > Control)
+
 ## 0.33.4
 
 - Console: Clear stays cleared after reloading the page, the old lines no longer come back
