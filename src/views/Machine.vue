@@ -151,6 +151,7 @@ const canRollback = (v) =>
   v.rollback_version !== verText(v) &&
   v.rollback_version !== v.remote_version && // just rolled back: the update button brings it forward again
   !v.is_dirty;
+const anyRollback = computed(() => updates.value.some(([, v]) => canRollback(v)));
 const rb = ref(null); // name of the component to roll back
 const rbRisk = ref(false);
 watch(rb, () => (rbRisk.value = false));
@@ -223,22 +224,24 @@ const viewLog = ref(null);
               ><template v-if="v.detached"> · {{ t('detached') }}</template></span
             >
           </div>
+          <!-- roll back sits left of the status, in a slot every row keeps so the status buttons line up -->
+          <span v-if="anyRollback" class="rbs"
+            ><button
+              v-if="canRollback(v)"
+              class="btn clear ibtn sm"
+              :disabled="!!busy"
+              :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
+              :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
+              @click="rb = name"
+            >
+              <Icon name="rewind" :size="16" /></button
+          ></span>
           <button v-if="needs(v)" class="btn upb" :disabled="!!busy" @click="confirm = name">
             <Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}
           </button>
           <span v-else class="chip" :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"
             ><i></i>{{ v.detached ? t('Pinned') : t('Up to date') }}</span
           >
-          <button
-            v-if="canRollback(v)"
-            class="btn clear ibtn sm"
-            :disabled="!!busy"
-            :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
-            :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
-            @click="rb = name"
-          >
-            <Icon name="rewind" :size="16" />
-          </button>
         </div>
         <div v-if="sysUpd" class="it">
           <div class="grow col" style="gap: 2px">
@@ -382,6 +385,17 @@ const viewLog = ref(null);
 }
 .mu {
   color: var(--mu);
+}
+.rbs {
+  width: 32px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+.it > .chip,
+.it > .upb {
+  min-width: 112px;
+  justify-content: center;
 }
 .it {
   display: flex;
