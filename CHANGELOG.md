@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.35.0
+
+- Lock screen: while the controls are locked the page shows the first camera in grey behind the temperatures, the print and the toolhead position, made for a tablet next to the printer. Every temperature sensor is a card on the right, more cards go to the left when the right is full
+- Lock screen: Customize picks which cards show (each sensor, a temperature graph, fans, speed and flow) and whether the camera is behind them. Unlock opens a large PIN pad when a PIN is set; E-STOP keeps working
+- Update Manager: the roll back button sits left of the status, so Up to date and Update stay in one line
+
 ## 0.34.1
 
 - G-code viewer: following the print shows the model printed down to the line being printed, the rest faded, and a cone where the nozzle is

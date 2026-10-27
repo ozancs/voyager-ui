@@ -12,7 +12,7 @@ import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 
-export const VERSION = '0.34.1';
+export const VERSION = '0.35.0';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';
