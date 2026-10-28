@@ -1,9 +1,10 @@
 <script setup>
 // The screen shown while the controls are locked (lock.js): the printer at a glance for a tablet next to it. The
-// first camera fills the background in grey, the temperatures and the other cards float over it on the right and
-// continue on the left when the right is full, the print sits in a bar along the bottom. Only Unlock (with the PIN
-// pad when a PIN is set), E-STOP and a small Customize for which cards show. Read only: nothing here sends G-code.
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+// camera picked in Customize fills the background in grey, the cards float over it on both sides (the heaters and
+// the graph on the left, the other sensors on the right, evened out), the print sits in a bar along the bottom.
+// Everything is drawn large to be read from across the room, and Customize has a size of its own. Only Unlock
+// (with the PIN pad when a PIN is set), E-STOP and Customize. Read only: nothing here sends G-code.
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import WebcamView from './WebcamView.vue';
 import SensorIcon from './SensorIcon.vue';
@@ -29,6 +30,8 @@ import { t } from '../i18n';
 
 // ---------------------------------------------------------------- what shows (Customize, kept in settings)
 const conf = computed(() => state.settings.lockScreen || { cam: true, show: {} });
+const SCALES = [0.8, 1, 1.25, 1.5, 1.75];
+const scale = computed(() => conf.value.scale || 1);
 const hiddenTemps = computed(() => state.settings.hiddenSensors || []);
 // a card shows when Customize says so; until then the sensors follow the Temperatures card, graph on, rest off
 const shown = (key, def) => conf.value.show?.[key] ?? def;
@@ -51,11 +54,57 @@ const items = computed(() => [
   { key: 'speed', kind: 'speed', label: t('Speed and flow'), def: false },
 ]);
 const cards = computed(() => items.value.filter((x) => shown(x.key, x.def)));
+// two sides around the camera: the heaters and their graph on the left, everything else on the right; then the
+// longer side hands its last cards over until both are about as tall (the graph and the fan list count double)
+// the cards shrink together when a side is too long for the height (many sensors, a large size): one column per
+// side always, so the camera in the middle stays free
+const mid = ref(null);
+const fitK = ref(1);
+function fit() {
+  const el = mid.value;
+  if (!el || matchMedia('(max-width: 640px)').matches) return (fitK.value = 1);
+  let r = Infinity;
+  for (const sd of el.children) if (sd.scrollHeight) r = Math.min(r, sd.clientHeight / sd.scrollHeight);
+  if (!isFinite(r)) return;
+  const k = Math.max(0.4, Math.min(1, fitK.value * r * (r < 1 ? 0.99 : 1)));
+  if (Math.abs(k - fitK.value) > 0.005) {
+    fitK.value = k;
+    nextTick(() => requestAnimationFrame(fit)); // the cards rearrange after a change: measure once more
+  }
+}
+let ro;
+onMounted(() => {
+  ro = new ResizeObserver(() => requestAnimationFrame(fit));
+  if (mid.value) ro.observe(mid.value);
+});
+onBeforeUnmount(() => ro?.disconnect());
+const sides = computed(() => {
+  const heaters = new Set(S('heaters').available_heaters || []);
+  const L = [],
+    R = [];
+  for (const c of cards.value) (c.kind === 'graph' || (c.kind === 'sensor' && heaters.has(c.name)) ? L : R).push(c);
+  const h = (a) => a.reduce((n, x) => n + (x.kind === 'graph' || x.kind === 'fans' ? 2 : 1), 0);
+  while (h(R) - h(L) > 1 && R.length > 1) L.push(R.pop());
+  while (h(L) - h(R) > 1 && L.length > 1) R.unshift(L.pop());
+  return { L, R };
+});
+watch([sides, scale], () => nextTick(() => requestAnimationFrame(fit)), { deep: true });
 const cust = ref(false);
 
 // ---------------------------------------------------------------- camera
-const cam = computed(() => state.webcams.find((w) => w.enabled !== false) || null);
-const camOn = computed(() => conf.value.cam !== false && !!cam.value);
+// camName: a camera picked in Customize, '' for the first one; cam false: no camera
+const cams = computed(() => state.webcams.filter((w) => w.enabled !== false));
+const cam = computed(() =>
+  conf.value.cam === false ? null : cams.value.find((w) => w.name === conf.value.camName) || cams.value[0] || null,
+);
+const camOn = computed(() => !!cam.value);
+const camPick = computed({
+  get: () => (conf.value.cam === false ? '\u0000' : conf.value.camName || ''),
+  set: (v) => {
+    conf.value.cam = v !== '\u0000';
+    conf.value.camName = v === '\u0000' ? '' : v;
+  },
+});
 
 // ---------------------------------------------------------------- values
 const temp = (n) => S(n).temperature;
@@ -149,7 +198,7 @@ async function estop() {
     </div>
     <div class="shade"></div>
 
-    <div class="ui">
+    <div class="ui" :style="{ zoom: scale }">
       <div class="top">
         <span v-if="camOn" class="live">LIVE</span>
         <Icon name="lock" :size="16" class="mu" />
@@ -170,43 +219,45 @@ async function estop() {
         <button class="estop" @click="estop">{{ t('E-STOP') }}</button>
       </div>
 
-      <!-- cards: right column first, more columns to the left when it is full -->
-      <div class="cards">
-        <template v-for="c in cards" :key="c.key">
-          <div v-if="c.kind === 'sensor'" class="glass card">
-            <span class="lbl"
-              ><SensorIcon :name="c.name" :color="col(c.name, c.i)" :size="14" class="si" />{{ c.label }}</span
-            >
-            <b class="mono v"
-              >{{ temp(c.name) != null ? temp(c.name).toFixed(1) + '°' : '--'
-              }}<small v-if="target(c.name) > 0"> / {{ Math.round(target(c.name)) }}</small></b
-            >
-          </div>
-          <div v-else-if="c.kind === 'graph'" class="glass card gr">
-            <span class="lbl">{{ t('Last 10 minutes') }}</span>
-            <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" class="gsvg">
-              <path v-for="l in graph" :key="l.n" :d="l.d" :stroke="l.c" fill="none" stroke-width="1.6" />
-            </svg>
-          </div>
-          <div v-else-if="c.kind === 'fans'" class="glass card">
-            <span class="lbl">{{ t('Fans') }}</span>
-            <div v-for="f in fanList" :key="f.id" class="fr">
-              <span>{{ prettyName(f.id) }}</span
-              ><b class="mono">{{ Math.round((S(f.id).speed || 0) * 100) }}%</b>
+      <!-- cards on both sides, one column each; they shrink together when a side is too long -->
+      <div ref="mid" class="mid" :style="{ zoom: fitK }">
+        <div v-for="sd in ['L', 'R']" :key="sd" class="side" :class="sd">
+          <template v-for="c in sides[sd]" :key="c.key">
+            <div v-if="c.kind === 'sensor'" class="glass card">
+              <span class="lbl"
+                ><SensorIcon :name="c.name" :color="col(c.name, c.i)" :size="14" class="si" />{{ c.label }}</span
+              >
+              <b class="mono v"
+                >{{ temp(c.name) != null ? temp(c.name).toFixed(1) + '°' : '--'
+                }}<small v-if="target(c.name) > 0"> / {{ Math.round(target(c.name)) }}</small></b
+              >
             </div>
-          </div>
-          <div v-else-if="c.kind === 'speed'" class="glass card">
-            <span class="lbl">{{ t('Speed and flow') }}</span>
-            <div class="fr">
-              <span>{{ t('Speed') }}</span
-              ><b class="mono">{{ Math.round((S('gcode_move').speed_factor ?? 1) * 100) }}%</b>
+            <div v-else-if="c.kind === 'graph'" class="glass card gr">
+              <span class="lbl">{{ t('Last 10 minutes') }}</span>
+              <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" class="gsvg">
+                <path v-for="l in graph" :key="l.n" :d="l.d" :stroke="l.c" fill="none" stroke-width="1.6" />
+              </svg>
             </div>
-            <div class="fr">
-              <span>{{ t('Flow') }}</span
-              ><b class="mono">{{ Math.round((S('gcode_move').extrude_factor ?? 1) * 100) }}%</b>
+            <div v-else-if="c.kind === 'fans'" class="glass card">
+              <span class="lbl">{{ t('Fans') }}</span>
+              <div v-for="f in fanList" :key="f.id" class="fr">
+                <span>{{ prettyName(f.id) }}</span
+                ><b class="mono">{{ Math.round((S(f.id).speed || 0) * 100) }}%</b>
+              </div>
             </div>
-          </div>
-        </template>
+            <div v-else-if="c.kind === 'speed'" class="glass card">
+              <span class="lbl">{{ t('Speed and flow') }}</span>
+              <div class="fr">
+                <span>{{ t('Speed') }}</span
+                ><b class="mono">{{ Math.round((S('gcode_move').speed_factor ?? 1) * 100) }}%</b>
+              </div>
+              <div class="fr">
+                <span>{{ t('Flow') }}</span
+                ><b class="mono">{{ Math.round((S('gcode_move').extrude_factor ?? 1) * 100) }}%</b>
+              </div>
+            </div>
+          </template>
+        </div>
       </div>
 
       <div class="glass bottom" :class="{ idle: !active }">
@@ -241,11 +292,17 @@ async function estop() {
         <b>{{ t('Lock screen') }}</b
         ><button class="gbtn ib sm" :aria-label="t('Close')" @click="cust = false"><Icon name="x" :size="15" /></button>
       </div>
-      <label class="opt"
-        ><input v-model="conf.cam" type="checkbox" class="cb" :disabled="!cam" /><span>{{
-          t('Camera in the background')
-        }}</span></label
-      >
+      <span class="sec">{{ t('Camera in the background') }}</span>
+      <select v-model="camPick" class="sel" :aria-label="t('Camera in the background')">
+        <option v-for="w in cams" :key="w.name" :value="w.name === cams[0]?.name ? '' : w.name">{{ w.name }}</option>
+        <option value="\u0000">{{ t('None') }}</option>
+      </select>
+      <span class="sec">{{ t('Size') }}</span>
+      <div class="seg">
+        <button v-for="k in SCALES" :key="k" :class="{ on: scale === k }" @click="conf.scale = k">
+          {{ Math.round(k * 100) }}%
+        </button>
+      </div>
       <span class="sec">{{ t('Cards') }}</span>
       <label v-for="x in items" :key="x.key" class="opt"
         ><input type="checkbox" class="cb" :checked="shown(x.key, x.def)" @change="toggle(x.key, x.def)" /><span>{{
@@ -341,12 +398,12 @@ async function estop() {
   flex-wrap: wrap;
 }
 .pn {
-  font-size: 17px;
+  font-size: 21px;
 }
 .live {
-  font: 700 11px var(--fd);
+  font: 700 12px var(--fd);
   letter-spacing: 0.08em;
-  padding: 4px 8px;
+  padding: 5px 9px;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.5);
   color: #cfd0d2;
@@ -362,17 +419,17 @@ async function estop() {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 42px;
-  padding: 0 16px;
-  border-radius: 21px;
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 24px;
   background: rgba(30, 31, 34, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #e6e6e4;
-  font: 600 14px var(--fd);
+  font: 600 16px var(--fd);
   cursor: pointer;
 }
 .gbtn.ib {
-  width: 42px;
+  width: 48px;
   padding: 0;
   justify-content: center;
 }
@@ -384,32 +441,37 @@ async function estop() {
   border-color: rgba(255, 255, 255, 0.35);
 }
 .estop {
-  height: 42px;
-  padding: 0 16px;
-  border-radius: 21px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 24px;
   border: 0;
   background: #5a2a2a;
   color: #f2c2c2;
-  font: 700 13px var(--fd);
+  font: 700 15px var(--fd);
   letter-spacing: 0.04em;
   cursor: pointer;
 }
 /* column-wise from the right: direction rtl puts the first column on the right, wrapping adds columns leftwards */
-.cards {
+.mid {
   flex: 1;
   min-height: 0;
   display: flex;
+  gap: 12px;
+}
+.side {
+  display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 10px;
-  direction: rtl;
+  gap: 12px;
   overflow: hidden;
+  min-height: 0;
+}
+.side.R {
+  margin-left: auto;
 }
 .card {
   direction: ltr;
-  width: 220px;
-  padding: 11px 14px;
+  width: 260px;
+  padding: 13px 18px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -418,7 +480,7 @@ async function estop() {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 14px;
   color: #9a9ca1;
   min-width: 0;
   white-space: nowrap;
@@ -429,17 +491,17 @@ async function estop() {
   filter: saturate(0.45);
 }
 .v {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 600;
 }
 .v small {
-  font-size: 13px;
+  font-size: 16px;
   color: #6f7177;
   font-weight: 500;
 }
 .gsvg {
   width: 100%;
-  height: 70px;
+  height: 90px;
   margin-top: 6px;
   opacity: 0.85;
   filter: saturate(0.5);
@@ -448,8 +510,8 @@ async function estop() {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 13px;
-  padding: 2px 0;
+  font-size: 15px;
+  padding: 3px 0;
 }
 .fr span {
   color: #b9bbc0;
@@ -458,7 +520,7 @@ async function estop() {
   white-space: nowrap;
 }
 .bottom {
-  padding: 14px 20px;
+  padding: 16px 24px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 20px;
@@ -468,7 +530,7 @@ async function estop() {
   grid-template-columns: 1fr auto;
 }
 .pct {
-  font: 700 50px/1 var(--fd);
+  font: 700 64px/1 var(--fd);
 }
 .job {
   display: flex;
@@ -477,7 +539,7 @@ async function estop() {
   min-width: 0;
 }
 .fn {
-  font-size: 15px;
+  font-size: 18px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -490,12 +552,12 @@ async function estop() {
   margin-left: 10px;
 }
 .idt {
-  font-size: 22px;
+  font-size: 26px;
   text-transform: capitalize;
 }
 .bar {
-  height: 6px;
-  border-radius: 3px;
+  height: 8px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.12);
   overflow: hidden;
 }
@@ -508,12 +570,12 @@ async function estop() {
 .meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 18px;
-  font-size: 13px;
+  gap: 4px 20px;
+  font-size: 15px;
   color: #9a9ca1;
 }
 .xyz {
-  font-size: 15px;
+  font-size: 19px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -526,7 +588,7 @@ async function estop() {
   position: absolute;
   top: 70px;
   right: 18px;
-  width: 270px;
+  width: 300px;
   max-height: calc(100% - 90px);
   overflow: auto;
   padding: 14px;
@@ -548,6 +610,35 @@ async function estop() {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #6f7177;
+}
+.sel {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.3);
+  color: #e6e6e4;
+  padding: 0 10px;
+  font: 500 14px var(--fd);
+}
+.seg {
+  display: flex;
+  gap: 4px;
+}
+.seg button {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #c9cbcf;
+  font: 600 12px var(--fd);
+  cursor: pointer;
+}
+.seg button.on {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 .opt {
   display: flex;
@@ -634,17 +725,30 @@ async function estop() {
   .xyz {
     grid-column: 1 / -1;
   }
+  .mid {
+    flex-direction: column;
+    overflow: auto;
+    gap: 10px;
+  }
+  .side,
+  .side.R {
+    flex: none;
+    direction: ltr;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-left: 0;
+    gap: 10px;
+    overflow: visible;
+  }
   .card {
     width: calc(50% - 5px);
   }
-  .cards {
-    direction: ltr;
-    flex-direction: row;
-    align-content: flex-start;
-    overflow: auto;
-  }
   .v {
-    font-size: 20px;
+    font-size: 24px;
+  }
+  .pct {
+    font-size: 48px;
   }
 }
 </style>

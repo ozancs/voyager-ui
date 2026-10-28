@@ -549,9 +549,10 @@ Lock button in the top bar (lock.js). Locking can set a PIN; unlocking asks for 
 
 **[src/components/LockScreen.vue](../src/components/LockScreen.vue)**  
 The screen shown while the controls are locked (lock.js): the printer at a glance for a tablet next to it. The  
-first camera fills the background in grey, the temperatures and the other cards float over it on the right and  
-continue on the left when the right is full, the print sits in a bar along the bottom. Only Unlock (with the PIN  
-pad when a PIN is set), E-STOP and a small Customize for which cards show. Read only: nothing here sends G-code.
+camera picked in Customize fills the background in grey, the cards float over it on both sides (the heaters and  
+the graph on the left, the other sensors on the right, evened out), the print sits in a bar along the bottom.  
+Everything is drawn large to be read from across the room, and Customize has a size of its own. Only Unlock  
+(with the PIN pad when a PIN is set), E-STOP and Customize. Read only: nothing here sends G-code.
 
 **[src/components/LogViewer.vue](../src/components/LogViewer.vue)**  
 Reads the tail of a printer log (klippy.log, moonraker.log, crowsnest.log) in the browser: the last part of the  
