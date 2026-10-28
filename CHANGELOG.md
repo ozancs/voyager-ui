@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.35.1
+
+- Lock screen: Customize picks the camera behind the cards (or none) and a size from 80 to 175 %
+- Lock screen: the heaters and their graph on the left, the other sensors on the right; when there are many cards they shrink together instead of covering the camera
+- Lock screen: larger text and buttons, to be read from across the room
+
 ## 0.35.0
 
 - Lock screen: while the controls are locked the page shows the first camera in grey behind the temperatures, the print and the toolhead position, made for a tablet next to the printer. Every temperature sensor is a card on the right, more cards go to the left when the right is full
