@@ -2040,5 +2040,9 @@
 "Homed: {axes}",
 "Lock screen",
 "Camera in the background",
-"Cards"
+"Cards",
+"Input shaper X and Y set until Klipper restarts",
+"Apply both",
+"Save both",
+"Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart."
 ]

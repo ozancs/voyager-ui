@@ -2045,4 +2045,8 @@ export default {
   "Lock screen": "Vergrendelscherm",
   "Camera in the background": "Camera op de achtergrond",
   "Cards": "Kaarten",
+  "Input shaper X and Y set until Klipper restarts": "Input shaper X en Y ingesteld tot Klipper herstart",
+  "Apply both": "Beide toepassen",
+  "Save both": "Beide opslaan",
+  "Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.": "Toepassen gebruikt de shaper meteen, tot Klipper herstart, om te proberen. Opslaan schrijft hem in [input_shaper] in de config; hij blijft na een herstart.",
 }

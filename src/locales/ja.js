@@ -2045,4 +2045,8 @@ export default {
   "Lock screen": "ロック画面",
   "Camera in the background": "背景にカメラ",
   "Cards": "カード",
+  "Input shaper X and Y set until Klipper restarts": "インプットシェーパー X と Y を Klipper の再起動まで設定しました",
+  "Apply both": "両方適用",
+  "Save both": "両方保存",
+  "Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.": "適用はシェーパーをすぐに使います (Klipper の再起動まで、試すため)。保存は config の [input_shaper] に書き込み、再起動後も残ります。",
 }

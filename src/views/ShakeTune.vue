@@ -140,6 +140,30 @@ function applyNow(r) {
   gcode(`SET_INPUT_SHAPER SHAPER_TYPE_${A}=${r.type} SHAPER_FREQ_${A}=${r.freq}`);
   toast(t('Input shaper {axis} set until Klipper restarts', { axis: A }));
 }
+// both axes measured: the best shaper of each, applied or saved together (one write, one restart)
+const bestOf = (axis) => {
+  const l = recs.value.filter((r) => r.axis === axis);
+  return l.find((r) => /best/i.test(r.kind)) || l[0] || null; // older Shake&Tune: no "Best", the first one listed
+};
+const both = computed(() => {
+  const x = bestOf('x'),
+    y = bestOf('y');
+  return x && y ? [x, y] : null;
+});
+function applyBoth() {
+  const [x, y] = both.value;
+  gcode(
+    `SET_INPUT_SHAPER SHAPER_TYPE_X=${x.type} SHAPER_FREQ_X=${x.freq} SHAPER_TYPE_Y=${y.type} SHAPER_FREQ_Y=${y.freq}`,
+  );
+  toast(t('Input shaper X and Y set until Klipper restarts'));
+}
+function askSaveBoth() {
+  saveLog.value = null;
+  saveAsk.value = both.value.flatMap((r) => [
+    { section: 'input_shaper', key: 'shaper_type_' + r.axis, value: r.type },
+    { section: 'input_shaper', key: 'shaper_freq_' + r.axis, value: String(r.freq) },
+  ]);
+}
 const saveAsk = ref(null); // [{ section, key, value }]
 const saving = ref(false);
 const saveLog = ref(null);
@@ -358,6 +382,26 @@ const shortName = (n) => n.replace(/\.png$/i, '');
             </button>
             <button class="btn" :disabled="isPrinting" @click="askSave(r)">{{ t('Save to config') }}</button>
           </div>
+          <div v-if="both" class="rec bothr">
+            <div class="grow">
+              <b>{{ t('Both axes') }}</b>
+              <span class="mu sm"
+                >X {{ both[0].type.toUpperCase() }} {{ both[0].freq }} Hz · Y {{ both[1].type.toUpperCase() }}
+                {{ both[1].freq }} Hz</span
+              >
+            </div>
+            <button class="btn" :data-tip="t('SET_INPUT_SHAPER, until Klipper restarts')" @click="applyBoth">
+              {{ t('Apply both') }}
+            </button>
+            <button class="btn acc" :disabled="isPrinting" @click="askSaveBoth">{{ t('Save both') }}</button>
+          </div>
+          <p class="mu sm rhint">
+            {{
+              t(
+                'Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.',
+              )
+            }}
+          </p>
         </template>
         <div v-if="axesMap" class="rec">
           <div class="grow">
@@ -407,6 +451,10 @@ const shortName = (n) => n.replace(/\.png$/i, '');
 </template>
 
 <style scoped>
+.rhint {
+  margin: 0;
+  padding: 8px 0 0;
+}
 .st {
   min-height: calc(var(--main-h, 100vh) - 105px);
 }

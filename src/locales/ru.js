@@ -2045,4 +2045,8 @@ export default {
   "Lock screen": "Экран блокировки",
   "Camera in the background": "Камера на фоне",
   "Cards": "Карточки",
+  "Input shaper X and Y set until Klipper restarts": "Input shaper X и Y заданы до перезапуска Klipper",
+  "Apply both": "Применить оба",
+  "Save both": "Сохранить оба",
+  "Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.": "Применить сразу включает шейпер до перезапуска Klipper, чтобы попробовать. Сохранить записывает его в [input_shaper] в config; он остаётся после перезапуска.",
 }

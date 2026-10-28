@@ -2045,4 +2045,8 @@ export default {
   "Lock screen": "Schermata di blocco",
   "Camera in the background": "Webcam sullo sfondo",
   "Cards": "Schede",
+  "Input shaper X and Y set until Klipper restarts": "Input shaper X e Y impostati fino al riavvio di Klipper",
+  "Apply both": "Applica entrambi",
+  "Save both": "Salva entrambi",
+  "Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.": "Applica usa subito lo shaper, fino al riavvio di Klipper, per provarlo. Salva lo scrive in [input_shaper] nella config; resta dopo un riavvio.",
 }

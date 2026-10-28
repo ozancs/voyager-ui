@@ -2045,4 +2045,8 @@ export default {
   "Lock screen": "锁屏",
   "Camera in the background": "背景显示摄像头",
   "Cards": "卡片",
+  "Input shaper X and Y set until Klipper restarts": "已设置输入整形 X 和 Y，直到 Klipper 重启",
+  "Apply both": "两个都应用",
+  "Save both": "两个都保存",
+  "Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.": "应用会立即使用该整形器，直到 Klipper 重启，用于试用。保存会写入 config 的 [input_shaper]，重启后仍然有效。",
 }

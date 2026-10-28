@@ -2045,4 +2045,8 @@ export default {
   "Lock screen": "잠금 화면",
   "Camera in the background": "배경에 카메라",
   "Cards": "카드",
+  "Input shaper X and Y set until Klipper restarts": "Klipper 재시작 전까지 인풋 셰이퍼 X와 Y 적용됨",
+  "Apply both": "둘 다 적용",
+  "Save both": "둘 다 저장",
+  "Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.": "적용은 셰이퍼를 바로 사용합니다 (Klipper 재시작 전까지, 시험용). 저장은 config의 [input_shaper]에 기록하며 재시작 후에도 유지됩니다.",
 }

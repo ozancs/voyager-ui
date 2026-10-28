@@ -2045,4 +2045,8 @@ export default {
   "Lock screen": "Ekran blokady",
   "Camera in the background": "Kamera w tle",
   "Cards": "Karty",
+  "Input shaper X and Y set until Klipper restarts": "Input shaper X i Y ustawione do restartu Klippera",
+  "Apply both": "Zastosuj oba",
+  "Save both": "Zapisz oba",
+  "Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.": "Zastosuj używa shapera od razu, do restartu Klippera, żeby go wypróbować. Zapisz wpisuje go do [input_shaper] w config; zostaje po restarcie.",
 }

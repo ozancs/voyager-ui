@@ -2045,4 +2045,8 @@ export default {
   "Lock screen": "Kilit ekranı",
   "Camera in the background": "Arka planda kamera",
   "Cards": "Kartlar",
+  "Input shaper X and Y set until Klipper restarts": "Input shaper X ve Y, Klipper yeniden başlayana kadar ayarlandı",
+  "Apply both": "İkisini uygula",
+  "Save both": "İkisini kaydet",
+  "Apply uses the shaper now, until Klipper restarts, to try it. Save writes it into [input_shaper] in the config; it stays after a restart.": "Apply shaper'ı hemen, Klipper yeniden başlayana kadar kullanır; denemek içindir. Save config'teki [input_shaper] bölümüne yazar; yeniden başlatınca da kalır.",
 }
