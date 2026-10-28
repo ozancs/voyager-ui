@@ -2,6 +2,7 @@
 // Toolhead card: position (type a value to move), jog buttons per axis with the configured steps,
 // homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
 import { computed, ref } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode, isPrinting, toast } from '../store';
@@ -87,7 +88,21 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
 <template>
   <section class="card spread">
     <div class="card-h">
-      <h2>{{ t('Toolhead') }}</h2>
+      <CardTitle :text="t('Toolhead')" />
+      <!-- the G-code state the printer is in: where a typed G1 goes and how E counts (the jog buttons always move
+           by the step, whatever this says) -->
+      <span
+        class="gm mono"
+        :data-tip="
+          (gm.absolute_coordinates === false
+            ? t('G91: relative positioning, a move goes this far from where the toolhead is')
+            : t('G90: absolute positioning, a move goes to the coordinate given')) +
+          ' · ' +
+          (gm.absolute_extrude === false ? t('M83: relative extrusion') : t('M82: absolute extrusion'))
+        "
+        >{{ gm.absolute_coordinates === false ? 'G91 REL' : 'G90 ABS' }} ·
+        {{ gm.absolute_extrude === false ? 'M83' : 'M82' }}</span
+      >
       <div class="acts">
         <button class="btn acc" :disabled="isPrinting" @click="gcode('G28')">
           <Icon name="home" :size="16" :stroke="2.4" />{{ t('Home All') }}
@@ -217,6 +232,15 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   </section>
 </template>
 <style scoped>
+.gm {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mu);
+  padding: 2px 7px;
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  white-space: nowrap;
+}
 .ap {
   width: 7px;
   height: 7px;

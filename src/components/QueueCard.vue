@@ -3,6 +3,7 @@
 defineOptions({ inheritAttrs: false });
 import { ref, computed } from 'vue';
 import { isGcodeFile } from '../gcode3mf';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import Modal from './Modal.vue';
@@ -72,7 +73,7 @@ const thumb = (fn) => {
 <template>
   <section v-bind="$attrs" class="card qc">
     <div class="card-h">
-      <h2>{{ t('Job queue') }}</h2>
+      <CardTitle :text="t('Job queue')" />
       <div v-if="q.enabled" class="acts">
         <span class="chip" :style="{ color: q.state === 'ready' ? 'var(--mu)' : 'var(--wn)' }"
           ><i></i>{{ q.state === 'ready' ? t('running') : t(q.state || '…') }}</span

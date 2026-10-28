@@ -38,7 +38,17 @@ import './tablet';
 initFeatures();
 initTimelapse();
 initZOffset();
-import { state, gcode, VERSION, activeTasks, APP_NAME, closeToast, restartKlipper, isPrinting } from './store';
+import {
+  state,
+  gcode,
+  VERSION,
+  activeTasks,
+  APP_NAME,
+  closeToast,
+  restartKlipper,
+  isPrinting,
+  REPO_URL,
+} from './store';
 import { route, go } from './router';
 import { api } from './api/moonraker';
 import { t } from './i18n';
@@ -251,6 +261,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
           <span v-if="state.versions.host">{{ state.versions.host }}</span>
           <span class="grow"></span>
           <button class="ver" @click="state.reportOpen = true">{{ t('Report a problem') }}</button>
+          <a class="ver" :href="REPO_URL" target="_blank" rel="noopener">GitHub</a>
           <Handoff />
           <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">{{
             t('Open {name}', { name: 'Mainsail' })
@@ -435,6 +446,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
   color: inherit;
   font: inherit;
   cursor: pointer;
+  text-decoration: none;
 }
 .ver:hover {
   color: var(--tx);

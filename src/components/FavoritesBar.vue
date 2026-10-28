@@ -1,6 +1,7 @@
 <script setup>
 // Favorites bar. Pencil = edit right here: drag to reorder, click a button to change it, + to add.
 import { ref, computed } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import Toggle from './Toggle.vue';
@@ -80,7 +81,7 @@ function onDrop(i) {
 <template>
   <component :is="card ? 'section' : 'div'" :class="[card ? 'card fcard' : 'fb', { editing: state.favEdit }]">
     <div v-if="card" class="card-h">
-      <h2>{{ t('Favorites') }}</h2>
+      <CardTitle :text="t('Favorites')" />
       <div class="acts">
         <button class="btn ibtn" :aria-label="t('Add favorite')" @click="add">
           <Icon name="plus" :size="16" :stroke="2.4" /></button

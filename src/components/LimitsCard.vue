@@ -2,6 +2,7 @@
 // The printer's velocity and acceleration limits (SET_VELOCITY_LIMIT), and speed factor below them when the Print
 // controls card is not on the dashboard (flow too, unless the Extruder card shows it).
 import { computed, inject } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import NumField from './NumField.vue';
@@ -26,7 +27,7 @@ function reset() {
 <template>
   <section class="card spread">
     <div class="card-h">
-      <h2>{{ t('Machine Limits') }}</h2>
+      <CardTitle :text="t('Machine Limits')" />
       <button class="btn" :disabled="cfg.max_velocity == null" @click="reset">
         <Icon name="refresh" :size="16" :stroke="2.4" />{{ t('Reset') }}
       </button>

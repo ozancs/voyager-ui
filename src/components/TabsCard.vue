@@ -31,7 +31,9 @@ function pick(tb) {
 }
 const cur = computed(() => tabs.value.find((tb) => tb.id === active.value));
 const nameOf = (card) =>
-  card.startsWith('c_') ? state.settings.customCards?.[card]?.name || t('Custom') : t(modules[card]?.n || card);
+  card.startsWith('c_')
+    ? state.settings.customCards?.[card]?.name || t('Custom')
+    : state.settings.cardTitles?.[card]?.name || t(modules[card]?.n || card);
 </script>
 <template>
   <section class="card tc">
@@ -54,7 +56,7 @@ const nameOf = (card) =>
     <div v-if="!tabs.length" class="empty">{{ t('No tabs yet. Edit this card to add some.') }}</div>
     <div v-else-if="cur" class="body" :key="cur.id">
       <!-- the cards inside fold with the tabs card, not on their own -->
-      <CellScope :can="false">
+      <CellScope :id="cur.card" :can="false">
         <CustomCard v-if="cur.card.startsWith('c_')" :id="cur.card" class="inner" />
         <component v-else :is="modules[cur.card].c" class="inner" />
       </CellScope>

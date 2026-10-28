@@ -11,8 +11,17 @@ export function pathSteps(ctx) {
     /^(probe|bltouch|smart_effector|probe_eddy_current \w+|beacon|cartographer)$/.test(k),
   );
   const out = [];
-  if (heaters.includes('extruder') && has('PID_CALIBRATE'))
-    out.push({ key: 'pid_extruder', kind: 'pid', heater: 'extruder', name: 'Hotend PID', target: 245 });
+  // one PID step per hotend: [extruder], [extruder1] ... on printers with more than one
+  const hotends = heaters.filter((h) => /^extruder\d*$/.test(h));
+  if (has('PID_CALIBRATE'))
+    for (const h of hotends)
+      out.push({
+        key: 'pid_' + h,
+        kind: 'pid',
+        heater: h,
+        name: hotends.length > 1 ? 'Hotend PID ' + (h === 'extruder' ? 'T0' : 'T' + h.slice(8)) : 'Hotend PID',
+        target: 245,
+      });
   if (heaters.includes('heater_bed') && has('PID_CALIBRATE'))
     out.push({ key: 'pid_bed', kind: 'pid', heater: 'heater_bed', name: 'Bed PID', target: 80 });
   if (set.quad_gantry_level && has('QUAD_GANTRY_LEVEL'))

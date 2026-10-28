@@ -1,6 +1,7 @@
 <script setup>
 // Dashboard card with the console (ConsoleView) and its header buttons: hide temperature reports, clear,
 // open the full console page.
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import ConsoleView from './ConsoleView.vue';
@@ -11,7 +12,7 @@ import { t } from '../i18n';
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>{{ t('Console') }}</h2>
+      <CardTitle :text="t('Console')" />
       <div class="acts">
         <button
           class="btn"

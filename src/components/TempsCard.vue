@@ -3,6 +3,7 @@
 // presets and cooldown are in the header.
 import { heatEta, fmtEta } from '../heatEta';
 import { computed, ref } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import SensorPicker from './SensorPicker.vue';
@@ -30,7 +31,7 @@ const presets = allPresets;
 <template>
   <section class="card temps">
     <div class="card-h">
-      <h2>{{ t('Temperatures') }}</h2>
+      <CardTitle :text="t('Temperatures')" />
       <div class="acts">
         <SensorPicker />
         <div>

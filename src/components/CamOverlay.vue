@@ -2,7 +2,7 @@
 // The print over the camera picture: file, progress, layer, time left, ETA and the hotend and bed temperatures,
 // in a strip along the bottom. Shown while a print runs or is paused; also in full screen.
 import { computed } from 'vue';
-import { S, printState, progress, printTimes, layerInfo, fmtTime } from '../store';
+import { S, printState, progress, printTimes, layerInfo, fmtTime, activeExtruder } from '../store';
 import { t } from '../i18n';
 const active = computed(() => ['printing', 'paused'].includes(printState.value));
 const file = computed(() => (S('print_stats').filename || '').split('/').pop());
@@ -18,7 +18,7 @@ const temp = (o) => {
 };
 const temps = computed(() =>
   [
-    ['extruder', t('Hotend')],
+    [activeExtruder.value, t('Hotend')],
     ['heater_bed', t('Bed')],
   ]
     .map(([o, n]) => [n, temp(o)])

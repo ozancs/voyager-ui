@@ -3,11 +3,13 @@
 // Each control reads its state from a printer object (state.objects / S()), so a switch shows the real position
 // and a slider the value Klipper reports. Commands go through gcode(), so the print guard still applies.
 import { computed, ref } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import Toggle from './Toggle.vue';
 import Rng from './Rng.vue';
-import { state, gcode, toast } from '../store';
+import { state, gcode, toast, APP } from '../store';
+import { perPrinterKey } from '../printers';
 import { badParamValue, withArgs } from '../macros';
 import { readState, isOn } from '../controls';
 import { t } from '../i18n';
@@ -16,12 +18,46 @@ const c = computed(() => state.settings.customCards?.[props.id] || { type: 'ctl'
 const controls = computed(() => c.value.controls || []);
 
 const num = (v, d) => (v === '' || v == null || isNaN(+v) ? d : +v);
-// slider: the printer's value scaled for display (fan speed 0..1 shown as 0..100)
+// a slider without a state source keeps the last value it sent (in this browser, per printer), so it does not
+// jump back to its minimum after a reload
+const LAST_KEY = () => perPrinterKey(APP + '-ctl-last');
+const last = ref(
+  (() => {
+    try {
+      return JSON.parse(localStorage.getItem(LAST_KEY()) || '{}') || {};
+    } catch {
+      return {};
+    }
+  })(),
+);
+function remember(ct, v) {
+  last.value = { ...last.value, [props.id + ':' + ct.id]: v };
+  try {
+    localStorage.setItem(LAST_KEY(), JSON.stringify(last.value));
+  } catch {}
+}
+// slider: the printer's value scaled for display (fan speed 0..1 shown as 0..100). The read value has a scale of
+// its own when set (a macro variable kept as 0..1 behind a 0..100 slider)
 const sliderVal = (ct) => {
   const raw = readState(ct.obj, ct.field);
-  const sc = num(ct.scale, 1) || 1;
-  return typeof raw === 'number' ? Math.round(raw * sc * 1000) / 1000 : num(ct.min, 0);
+  const sc = num(ct.readScale, num(ct.scale, 1)) || 1;
+  if (typeof raw === 'number') return Math.round(raw * sc * 1000) / 1000;
+  return last.value[props.id + ':' + ct.id] ?? num(ct.min, 0);
 };
+// the value under the thumb while dragging, so the number next to it follows
+const live = ref({});
+// a value typed into the box next to the slider: kept inside min..max and on the step
+function typed(ct, e) {
+  const lo = num(ct.min, 0),
+    hi = num(ct.max, 100),
+    st = num(ct.step, 1) || 1;
+  let v = Number(String(e.target.value).replace(',', '.'));
+  if (!isFinite(v)) return (e.target.value = sliderVal(ct));
+  v = Math.min(hi, Math.max(lo, lo + Math.round((v - lo) / st) * st));
+  v = Math.round(v * 1e6) / 1e6;
+  e.target.value = v;
+  slide(ct, v);
+}
 // a switch without a state source remembers what it sent last, so its off command stays reachable
 const local = ref({});
 const toggleOn = (ct) => (ct.obj ? isOn(readState(ct.obj, ct.field), ct.when) : !!local.value[ct.id]);
@@ -48,6 +84,8 @@ async function run(cmd, key) {
 }
 // {v} in a slider command is the slider value divided by the scale (50 on a 0..100 fan slider -> 0.5)
 function slide(ct, v) {
+  if (state.editDash) return;
+  remember(ct, v);
   const sc = num(ct.scale, 1) || 1;
   const out = Math.round((v / sc) * 10000) / 10000;
   run(String(ct.cmd || '').replace(/\{v\}/g, String(out)), ct.id);
@@ -79,7 +117,7 @@ function runForm(ct) {
 <template>
   <section class="card cc">
     <div class="card-h">
-      <h2>{{ c.name || t('Controls') }}</h2>
+      <CardTitle :text="c.name || t('Controls')" :icon="c.icon" :color="c.color" />
       <CardCollapse />
     </div>
     <div v-if="!controls.length" class="mu" style="font-size: 13px">
@@ -91,7 +129,20 @@ function runForm(ct) {
         <template v-if="ct.kind === 'slider'">
           <div class="row" style="justify-content: space-between; gap: 8px">
             <span class="nl"><Icon v-if="ct.icon" :name="ct.icon" :size="15" />{{ ct.label }}</span>
-            <span class="mono val">{{ sliderVal(ct) }}{{ ct.unit || '' }}</span>
+            <span class="vbox"
+              ><input
+                class="input mono vin"
+                type="number"
+                inputmode="decimal"
+                :min="num(ct.min, 0)"
+                :max="num(ct.max, 100)"
+                :step="num(ct.step, 1)"
+                :value="live[ct.id] ?? sliderVal(ct)"
+                :aria-label="t('Value of {name}', { name: ct.label || '' })"
+                @keydown.enter="$event.target.blur()"
+                @change="typed(ct, $event)"
+              /><span v-if="ct.unit" class="mu val">{{ ct.unit }}</span></span
+            >
           </div>
           <Rng
             :value="sliderVal(ct)"
@@ -99,6 +150,7 @@ function runForm(ct) {
             :max="num(ct.max, 100)"
             :step="num(ct.step, 1)"
             :label="ct.label"
+            @live="live[ct.id] = $event"
             @commit="slide(ct, $event)"
           />
         </template>
@@ -218,6 +270,24 @@ function runForm(ct) {
 .fld .input {
   height: 32px;
   grid-column: 2 / 4;
+}
+/* fields of a macro stand out a little from the card */
+.fld .input,
+.vin {
+  background: color-mix(in srgb, var(--ac) 7%, var(--s1));
+  border-color: color-mix(in srgb, var(--ac) 25%, var(--bd));
+}
+.vbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.vin {
+  width: 76px;
+  height: 28px;
+  font-size: 13px;
+  text-align: right;
+  padding: 0 6px;
 }
 .fld .toggle {
   justify-self: start;

@@ -2,6 +2,7 @@
 // A card the user made in Customize: a single command button, a group of macro buttons or an extra
 // webcam. Its settings live in state.settings.customCards[id]; the pencil opens the editor in Dashboard.vue.
 import { computed, ref } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import WebcamCard from './WebcamCard.vue';
@@ -19,12 +20,13 @@ const busy = ref(null);
 const label = (b) => (b.name || '').trim() || (b.gcode || '').trim().split(/\s/)[0].replace(/_/g, ' ') || '?';
 // a button set to "ask when clicked" opens the parameters of its macro first
 const ask = ref(null); // { word, params, values, cmd, k }
-function press(b, k) {
+function press(b, k, e) {
   if (state.editDash || !b.gcode) return;
   if (b.ask) {
     const c = parseCmd(b.gcode);
     const params = c.word ? macroParams(c.word) : [];
-    if (params.length) return (ask.value = { word: c.word, params, values: c.args, cmd: b.gcode, k });
+    if (params.length)
+      return (ask.value = { word: c.word, params, values: c.args, cmd: b.gcode, k, el: e?.currentTarget });
   }
   run(b.gcode, k);
 }
@@ -57,7 +59,7 @@ async function run(g, k) {
   <ControlsCard v-else-if="c.type === 'ctl'" :id="id" />
   <section v-else class="card">
     <div class="card-h">
-      <h2>{{ c.name }}</h2>
+      <CardTitle :text="c.name" :icon="c.icon" :color="c.color" />
       <CardCollapse />
     </div>
     <div class="mg" :class="{ ml: c.view === 'list', mw: c.view === 'wide' }">
@@ -67,7 +69,7 @@ async function run(g, k) {
         class="mb"
         :class="{ hot: b.highlight, busy: busy === k }"
         :data-tip="b.gcode"
-        @click="press(b, k)"
+        @click="press(b, k, $event)"
       >
         <Icon
           :name="b.icon || 'star'"
@@ -88,6 +90,7 @@ async function run(g, k) {
     :params="ask.params"
     :values="ask.values"
     :cmd="ask.cmd"
+    :anchor="ask.el"
     @close="ask = null"
     @run="
       (cmd) => {

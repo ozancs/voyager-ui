@@ -4,11 +4,12 @@
 // retract with chosen length and speed, and the temperature check (Klipper refuses to extrude below
 // min_extrude_temp). The line at the bottom says what the chosen length and speed come out of the nozzle as.
 import { computed, ref, inject } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import NumField from './NumField.vue';
 import SpeedFlow from './SpeedFlow.vue';
-import { state, S, gcode, isPrinting } from '../store';
+import { state, S, gcode, isPrinting, extruders, activeExtruder, prettyName } from '../store';
 import { t } from '../i18n';
 const amounts = computed(() =>
   [...(state.settings.control?.extAmounts || [5, 10, 25, 50, 100])]
@@ -24,7 +25,14 @@ const feeds = computed(() =>
 );
 const len = ref(amounts.value[Math.floor(amounts.value.length / 2)] || 25);
 const feed = ref(feeds.value[Math.floor(feeds.value.length / 2)] || 5);
-const ext = computed(() => S('toolhead').extruder || 'extruder');
+const ext = activeExtruder;
+// more than one extruder: pick the one in use. A toolchanger's T0, T1 ... macros when they exist (they park and pick
+// up the tool), otherwise Klipper's ACTIVATE_EXTRUDER
+function useExtruder(name, i) {
+  if (name === ext.value) return;
+  const tool = 'gcode_macro T' + i;
+  gcode(state.objects.includes(tool) ? 'T' + i : `ACTIVATE_EXTRUDER EXTRUDER=${name}`).catch(() => {});
+}
 const e = computed(() => S(ext.value));
 const shown = inject('dashCards', null);
 const has = (c) => !!shown?.value?.includes(c);
@@ -59,11 +67,23 @@ function move(dir) {
 <template>
   <section class="card spread">
     <div class="card-h">
-      <h2>{{ t('Extruder') }}</h2>
+      <CardTitle :text="t('Extruder')" />
       <span class="chip" :style="{ color: e.can_extrude ? 'var(--mu)' : 'var(--wn)' }"
         ><i></i>{{ e.temperature?.toFixed(1) }}° / {{ e.target?.toFixed(0) }}°</span
       >
       <CardCollapse />
+    </div>
+    <div v-if="extruders.length > 1" class="seg exs" role="group" :aria-label="t('Active extruder')">
+      <button
+        v-for="(x, i) in extruders"
+        :key="x"
+        :class="{ on: x === ext }"
+        :aria-pressed="x === ext"
+        :data-tip="prettyName(x) + (S(x).temperature != null ? ' · ' + S(x).temperature.toFixed(0) + '°' : '')"
+        @click="useExtruder(x, i)"
+      >
+        T{{ i }}
+      </button>
     </div>
     <SpeedFlow v-if="showFlow" only="flow" />
     <div class="gf">

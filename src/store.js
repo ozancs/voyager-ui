@@ -111,6 +111,7 @@ export const DEFAULT_SETTINGS = () => ({
   migratedCarbon: false,
   cardOpts: {},
   cardColors: {}, // dashboard card -> tint name ('cool'...), '#rrggbb' or 'none' // per dashboard module options, e.g. macros: { scroll, showHidden, hidden: [] }
+  cardTitles: {}, // dashboard card -> { name, icon, color } of the user's own (CardTitle)
   heaterBase: {}, // 'extruder@250' -> { power, fan, t, heat, from } first measurement, compared on the Health page
   preprintCheck: true, // compare the file with the printer before a print starts (preprint.js)
   seenVersion: '', // the version whose changelog was shown; a new one opens What's new once
@@ -216,6 +217,7 @@ export const LAYOUT_KEYS = [
   'hiddenCardsPrint',
   'autoLayout',
   'cardColors',
+  'cardTitles',
   'mobileOrder',
   'collapsed',
 ];
@@ -529,6 +531,11 @@ export const layerInfo = computed(() => {
 
 // every temperature the UI can show: Klipper's sensors plus stepper drivers that report their own temperature
 // (TMC2240). Those are not temperature sensors in Klipper, so they are not in heaters.available_sensors.
+// every extruder Klipper has ([extruder], [extruder1] ...), in order, and the one the toolhead uses now
+export const extruders = computed(() =>
+  state.objects.filter((o) => /^extruder\d*$/.test(o)).sort((a, b) => (+a.slice(8) || 0) - (+b.slice(8) || 0)),
+);
+export const activeExtruder = computed(() => S('toolhead').extruder || 'extruder');
 export const tempSensors = computed(() => [
   ...(S('heaters').available_sensors || []),
   // TMC2240 drivers report a temperature only while the stepper is enabled; they are listed anyway (shown as --)
@@ -856,6 +863,7 @@ export const THROTTLE = {
 export function applyUpd(u) {
   if (!u?.version_info) return;
   state.updStatus = u;
+  reloadIfUpdated(u);
   const n = Object.entries(u.version_info)
     .filter(
       ([k, v]) =>
@@ -870,6 +878,36 @@ export function applyUpd(u) {
   const me = Object.entries(u.version_info).find(([k]) => k === APP || k.startsWith(APP + '-'));
   state.uiUpdate =
     me && n.includes(me[0]) ? { name: me[0], version: me[1].version, remote: me[1].remote_version } : null;
+}
+// the files on the printer are a newer Voyager than this page (updated from here, another browser or SSH): load
+// them. Once per version, so a cache that still serves the old files cannot make it reload again and again.
+const verNum = (v) =>
+  String(v || '')
+    .replace(/^v/, '')
+    .split(/[.-]/)
+    .slice(0, 3)
+    .map(Number);
+function newerThanPage(v) {
+  const a = verNum(v),
+    b = verNum(VERSION);
+  if (a.length < 3 || a.some(isNaN)) return false;
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i];
+  return false;
+}
+let reloading = false;
+function reloadIfUpdated(u) {
+  const me = Object.entries(u?.version_info || {}).find(([k]) => k === APP || k.startsWith(APP + '-'));
+  const v = me?.[1]?.version;
+  if (reloading || !newerThanPage(v)) return;
+  try {
+    if (sessionStorage.getItem(APP + '-reloaded-for') === v) return;
+    sessionStorage.setItem(APP + '-reloaded-for', v);
+  } catch {
+    return; // no session storage: no way to stop a loop, leave it to the user
+  }
+  reloading = true;
+  toast(t('Voyager UI {v} is installed, loading it…', { v }), 'info');
+  setTimeout(() => location.reload(), 2500);
 }
 async function checkHealth() {
   try {

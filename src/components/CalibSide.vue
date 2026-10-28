@@ -5,12 +5,12 @@
 import { computed } from 'vue';
 import Icon from './Icon.vue';
 import WebcamView from './WebcamView.vue';
-import { state, S, gcode, isPrinting, prettyName } from '../store';
+import { state, S, gcode, isPrinting, prettyName, extruders } from '../store';
 import { heatEta, fmtEta } from '../heatEta';
 import { t } from '../i18n';
 defineProps({ part: { type: String, default: 'status' } });
 const homed = computed(() => ['x', 'y', 'z'].every((a) => (S('toolhead').homed_axes || '').includes(a)));
-const heaters = computed(() => ['extruder', 'heater_bed'].filter((h) => state.objects.includes(h)));
+const heaters = computed(() => [...extruders.value, 'heater_bed'].filter((h) => state.objects.includes(h)));
 const cams = computed(() => state.webcams.filter((w) => w.enabled !== false));
 const cam = computed(() => cams.value.find((c) => c.name === state.settings.calibCam) || cams.value[0] || null);
 </script>

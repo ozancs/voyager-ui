@@ -11,6 +11,7 @@ import { smartResults, rawCommand } from '../smart';
 import { flipPower } from '../power';
 import { t } from '../i18n';
 import { setTablet } from '../tablet';
+import { macroDesc } from '../macros';
 
 const q = ref('');
 const idx = ref(0);
@@ -242,7 +243,7 @@ const results = computed(() => {
     add(
       {
         t: m,
-        s: S('gcode_macro ' + m).description || state.commands[m] || '',
+        s: macroDesc(m, state.settings.cardOpts?.macros?.descs, state.commands[m]),
         icon: 'play',
         cat: t('Macro'),
         dest: t('Runs macro'),

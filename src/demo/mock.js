@@ -247,6 +247,8 @@ const status = {
   motion_report: { live_velocity: 0, live_extruder_velocity: 0, live_position: [0, 0, 0, 0] },
   gcode_move: {
     speed_factor: 1,
+    absolute_coordinates: true,
+    absolute_extrude: false,
     extrude_factor: 0.98,
     homing_origin: [0, 0, -0.025, 0],
     gcode_position: [200, 177, 16.8, 0],
@@ -1257,20 +1259,32 @@ const PROFILE = {
       '// Filament change: paused',
     ],
     remove: /^(mmu|probe_eddy_current|adxl345|quad_gantry_level|smart_filament_sensor|gcode_macro PROBE_MENU)/,
-    add: ['cartographer', 'z_tilt'],
+    add: ['cartographer', 'z_tilt', 'extruder1'],
     helpRemove:
       /^(MMU_|CHANGE_TOOL|TOOL_UNLOAD|LANE_UNLOAD|PROBE_EDDY|LDC_|QUAD_GANTRY|SHAPER_CALIBRATE|MEASURE_AXES|ACCELEROMETER|AXES_|COMPARE_BELTS|CREATE_VIBRATIONS|EXCITATE)/,
     help: {
       CARTOGRAPHER_SCAN_CALIBRATE: 'Run the scan calibration',
       CARTOGRAPHER_TOUCH_CALIBRATE: 'Run the touch calibration',
       AUTOTUNE_TMC: 'Apply autotuning configuration to TMC stepper driver',
+      ACTIVATE_EXTRUDER: 'Change the active extruder',
     },
+    // a second hotend (IDEX style): the extruder switch in the Extruder card
+    heaters: ['extruder', 'extruder1', 'heater_bed', 'heater_generic chamber'],
     cams: 2,
     setup() {
       Object.assign(status.print_stats, { state: 'paused', filename: 'fan_duct.gcode' });
       status.virtual_sdcard.progress = 0.71;
       status.display_status.progress = 0.71;
       Object.assign(status.extruder, { target: 0 });
+      status.extruder1 = {
+        temperature: 150.2,
+        target: 150,
+        power: 0.2,
+        can_extrude: true,
+        pressure_advance: 0.04,
+        smooth_time: 0.04,
+      };
+      status.heaters.available_sensors = [...status.heaters.available_sensors, 'extruder1'];
       status.toolhead.axis_maximum = [300, 300, 250, 0];
       status.configfile.config.printer.max_accel = '8000';
     },
@@ -2250,6 +2264,11 @@ gcodeScript = function (sc) {
         res('ok');
       }, 24000),
     );
+  }
+  if ((m = S.match(/^ACTIVATE_EXTRUDER EXTRUDER=(\S+)/)) && status[m[1].toLowerCase()]) {
+    pushStatus({ toolhead: { extruder: m[1].toLowerCase() } });
+    emitLines([`// Activating extruder ${m[1].toLowerCase()}`]);
+    return 'ok';
   }
   if ((m = sc.trim().match(/^SET_GCODE_VARIABLE MACRO=(\S+) VARIABLE=(\S+) VALUE=(.+)$/i))) {
     const o = Object.keys(status).find((k) => k.toLowerCase() === 'gcode_macro ' + m[1].toLowerCase());

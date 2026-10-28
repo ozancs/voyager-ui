@@ -58,7 +58,7 @@ import IconPicker from '../components/IconPicker.vue';
 import LiveZCard from '../components/LiveZCard.vue';
 import FavoritesCard from '../components/FavoritesCard.vue';
 import { pushDown } from '../calc';
-import { orderMacros } from '../macros';
+import { orderMacros, macroDesc } from '../macros';
 import SortList from '../components/SortList.vue';
 import ButtonParams from '../components/ButtonParams.vue';
 import ControlEditor from '../components/ControlEditor.vue';
@@ -73,7 +73,14 @@ const MODULES = {
   livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 2], def: [3, 4], scale: true },
   extruder: { c: ExtruderCard, n: 'Extruder', min: [2, 3], def: [6, 10], scale: true },
   limits: { c: LimitsCard, n: 'Machine Limits', min: [2, 3], def: [6, 7], scale: true },
-  printctl: { c: PrintControlsCard, n: 'Print controls (speed, flow)', min: [2, 2], def: [4, 4], scale: true },
+  printctl: {
+    c: PrintControlsCard,
+    n: 'Print controls (speed, flow)',
+    min: [2, 2],
+    def: [4, 4],
+    scale: true,
+    opts: true,
+  },
   print: { c: PrintCard, n: 'Print Status', min: [5, 3], def: [12, 3] },
   thumb: { c: ThumbCard, n: 'Thumbnail', min: [2, 3], def: [4, 6] },
   ledfx: {
@@ -230,7 +237,10 @@ function toggleCollapse(i) {
   layout.value = [...layout.value];
   if (mode.value !== 'print' || state.settings.layoutPrint) persist(true); // never forks a print layout
 }
-const nameOf = (i) => (isCustom(i) ? state.settings.customCards?.[i]?.name || 'Custom' : MODULES[i]?.n);
+const nameOf = (i) =>
+  isCustom(i)
+    ? state.settings.customCards?.[i]?.name || 'Custom'
+    : state.settings.cardTitles?.[i]?.name || MODULES[i]?.n;
 
 const width = ref(window.innerWidth);
 const onResize = () => (width.value = window.innerWidth);
@@ -380,6 +390,38 @@ function removeCard(i) {
     for (const c of tabs) attachCard(c); // the cards shown in its tabs are not lost with it
   }
   persist();
+}
+// a copy of a custom card next to the bottom of the grid, with its own id: its colour, camera and size come along
+function duplicateCard(i) {
+  const src = state.settings.customCards?.[i];
+  if (!src) return;
+  const id = 'c_' + Date.now().toString(36);
+  const data = JSON.parse(JSON.stringify(src));
+  if (data.name) data.name = t('{name} copy', { name: data.name });
+  // the cards shown in a tabs card can be in one tabs card only: the copy starts without tabs
+  if (data.type === 'tabs') data.tabs = [];
+  state.settings.customCards = { ...state.settings.customCards, [id]: data };
+  const o = state.settings.cardOpts;
+  if (o?.cams?.[i]) o.cams = { ...o.cams, [id]: o.cams[i] };
+  if (state.settings.cardColors?.[i])
+    state.settings.cardColors = { ...state.settings.cardColors, [id]: state.settings.cardColors[i] };
+  const l = layout.value.find((x) => x.i === i);
+  layout.value = [...layout.value, { i: id, x: 0, y: bottom(), w: l?.w || 4, h: l?.h || 4 }];
+  persist();
+}
+// a name and an icon of one's own for a built-in card (custom cards have them in their editor)
+const titleFor = ref(null); // { id, name, icon, color }
+function openTitle(i) {
+  const o = state.settings.cardTitles?.[i] || {};
+  titleFor.value = { id: i, name: o.name || '', icon: o.icon || '', color: o.color || '' };
+}
+function saveTitle(clear) {
+  const { id, name, icon, color } = titleFor.value;
+  const all = { ...(state.settings.cardTitles || {}) };
+  if (clear || (!name.trim() && !icon)) delete all[id];
+  else all[id] = { name: name.trim(), icon, color: icon ? color : '' };
+  state.settings.cardTitles = all;
+  titleFor.value = null;
 }
 const available = computed(() =>
   Object.keys(MODULES).filter((k) => !layout.value.some((x) => x.i === k) && (!MODULES[k].need || MODULES[k].need())),
@@ -566,6 +608,10 @@ const mo = computed(() => {
   const o = state.settings.cardOpts || (state.settings.cardOpts = {});
   return o.macros || (o.macros = { scroll: false, showHidden: false, hidden: [] });
 });
+const pco = computed(() => {
+  const o = state.settings.cardOpts || (state.settings.cardOpts = {});
+  return o.printctl || (o.printctl = { stack: false });
+});
 const allMacros = computed(() =>
   orderMacros(
     state.objects
@@ -585,6 +631,13 @@ function setLabel(m, v) {
   if (v.trim()) l[m] = v.trim();
   else delete l[m];
   mo.value.labels = l;
+}
+// a description of one's own for the tooltip, when the config has none or says too little
+function setDesc(m, v) {
+  const d = { ...(mo.value.descs || {}) };
+  if (v.trim()) d[m] = v.trim();
+  else delete d[m];
+  mo.value.descs = d;
 }
 function toggleMacro(m) {
   const h = mo.value.hidden || (mo.value.hidden = []);
@@ -833,7 +886,7 @@ function detachCard(i) {
           :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i, collapsed: folded(it.i) }"
           :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null"
         >
-          <CellScope :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
+          <CellScope :id="it.i" :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
             <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
             <component v-else :is="MODULES[it.i].c" class="fill" />
           </CellScope>
@@ -849,6 +902,22 @@ function detachCard(i) {
               @click="editCard(it.i)"
             >
               <Icon name="pencil" :size="14" />
+            </button>
+            <button
+              v-if="isCustom(it.i)"
+              class="btn ibtn sm"
+              :aria-label="t('Duplicate {name}', { name: nameOf(it.i) })"
+              @click="duplicateCard(it.i)"
+            >
+              <Icon name="copy" :size="14" />
+            </button>
+            <button
+              v-else-if="it.i !== 'webcam'"
+              class="btn ibtn sm"
+              :aria-label="t('Title and icon of {name}', { name: t(nameOf(it.i)) })"
+              @click="openTitle(it.i)"
+            >
+              <Icon name="tag" :size="14" />
             </button>
             <button
               v-if="MODULES[it.i]?.opts"
@@ -935,7 +1004,7 @@ function detachCard(i) {
       </template>
       <template v-else v-for="it in column" :key="it.i">
         <div class="cell mcell" :class="{ collapsed: folded(it.i) }">
-          <CellScope :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
+          <CellScope :id="it.i" :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
             <CustomCard
               v-if="isCustom(it.i)"
               :id="it.i"
@@ -953,7 +1022,7 @@ function detachCard(i) {
     </div>
   </div>
 
-  <Modal v-if="optsFor === 'macros'" :title="t('Macros card')" width="620px" @close="optsFor = null">
+  <Modal v-if="optsFor === 'macros'" :title="t('Macros card')" width="780px" @close="optsFor = null">
     <div class="row" style="justify-content: space-between">
       <b>{{ t('View') }}</b>
       <div class="seg" style="width: 220px">
@@ -976,7 +1045,7 @@ function detachCard(i) {
     </div>
     <span class="lbl">{{
       t(
-        'Drag to change the order. A name typed here is shown instead of the macro name; leave it empty to keep the macro name.',
+        'Drag to change the order. A name typed here is shown instead of the macro name, a description is shown when pointing at the button; leave them empty to keep the macro name and the description from the config.',
       )
     }}</span>
     <div style="max-height: 46vh; overflow: auto">
@@ -989,6 +1058,13 @@ function detachCard(i) {
             :placeholder="m.replace(/_/g, ' ')"
             :aria-label="t('Name shown for {name}', { name: m })"
             @change="setLabel(m, $event.target.value)"
+            @keydown.enter="$event.target.blur()"
+          /><input
+            class="input mdesc"
+            :value="mo.descs?.[m] || ''"
+            :placeholder="macroDesc(m, null, state.commands[m]) || t('Description')"
+            :aria-label="t('Description of {name}', { name: m })"
+            @change="setDesc(m, $event.target.value)"
             @keydown.enter="$event.target.blur()"
           />
           <button
@@ -1005,6 +1081,41 @@ function detachCard(i) {
     <template #foot
       ><button class="btn lg acc" @click="optsFor = null">{{ t('Done') }}</button></template
     >
+  </Modal>
+
+  <Modal v-if="optsFor === 'printctl'" :title="t('Print controls')" width="460px" @close="optsFor = null">
+    <div class="row" style="justify-content: space-between">
+      <div class="col" style="gap: 2px">
+        <b>{{ t('Speed and flow one under the other') }}</b
+        ><span class="mu" style="font-size: 12.5px">{{
+          t('Off: side by side when the card is wide enough. On: always stacked.')
+        }}</span>
+      </div>
+      <Toggle v-model="pco.stack" :label="t('Stacked')" />
+    </div>
+  </Modal>
+
+  <Modal v-if="titleFor" :title="t('Card title')" width="420px" @close="titleFor = null">
+    <span class="lbl">{{ t('Shown instead of the name the card comes with. Leave it empty to keep that name.') }}</span>
+    <div class="row">
+      <button class="btn ibtn" :aria-label="t('Change icon')" @click="iconFor = titleFor">
+        <Icon :name="titleFor.icon || 'plus'" :size="20" :style="{ color: titleFor.color || 'var(--mu)' }" />
+      </button>
+      <input
+        v-model="titleFor.name"
+        class="input grow"
+        :placeholder="t(MODULES[titleFor.id]?.n || '')"
+        :aria-label="t('Title')"
+        @keydown.enter="saveTitle(false)"
+      />
+    </div>
+    <div class="row" style="justify-content: space-between">
+      <button class="btn clear" @click="saveTitle(true)">{{ t('Default') }}</button>
+      <div class="row">
+        <button v-if="titleFor.icon" class="btn clear" @click="titleFor.icon = ''">{{ t('No icon') }}</button>
+        <button class="btn acc" @click="saveTitle(false)">{{ t('Save') }}</button>
+      </div>
+    </div>
   </Modal>
 
   <Modal v-if="askReset" :title="t('Reset dashboard?')" @close="askReset = false">
@@ -1035,10 +1146,24 @@ function detachCard(i) {
     :width="editing.data.type === 'ctl' ? '760px' : '620px'"
     @close="editing = null"
   >
-    <label class="col"
-      ><span class="lbl">{{ editing.data.type === 'btn' ? t('Label') : t('Title') }}</span
-      ><input v-model="editing.data.name" class="input"
-    /></label>
+    <div class="col">
+      <span class="lbl">{{ editing.data.type === 'btn' ? t('Label') : t('Title') }}</span>
+      <div class="row">
+        <button
+          v-if="editing.data.type !== 'btn'"
+          class="btn ibtn"
+          :aria-label="t('Change icon')"
+          @click="iconFor = editing.data"
+        >
+          <Icon
+            :name="editing.data.icon || 'plus'"
+            :size="20"
+            :style="{ color: editing.data.color || (editing.data.icon ? 'var(--ac)' : 'var(--mu)') }"
+          />
+        </button>
+        <input v-model="editing.data.name" class="input grow" :aria-label="t('Title')" />
+      </div>
+    </div>
     <template v-if="editing.data.type === 'btn'">
       <div class="row">
         <button class="btn ibtn" :aria-label="t('Change icon')" @click="iconFor = editing.data">
@@ -1254,9 +1379,15 @@ function detachCard(i) {
   text-decoration: line-through;
 }
 .mlabel {
-  width: 180px;
+  width: 150px;
   height: 32px;
   font-size: 13px;
+}
+.mdesc {
+  flex: 1;
+  min-width: 120px;
+  height: 32px;
+  font-size: 12.5px;
 }
 .al {
   gap: 8px;

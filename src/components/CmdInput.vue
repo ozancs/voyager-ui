@@ -1,7 +1,12 @@
 <script setup>
-// Input with live command search from the printer (G-code help + macros).
+// Input with live command search from the printer (G-code help + macros). After the command word, a hint row lists
+// the parameters it takes (a macro's from its template, Klipper's own from gcodeParams.js): the ones already typed
+// are dimmed, a click or Tab adds the next one.
 import { ref, computed, watch } from 'vue';
 import { allCommands } from '../store';
+import { macroParams, macroSection } from '../macros';
+import { builtinParams, usedParams } from '../gcodeParams';
+import { t } from '../i18n';
 const props = defineProps({
   modelValue: String,
   placeholder: String,
@@ -37,6 +42,25 @@ const show = computed(
     matches.value.length > 0 &&
     !(matches.value.length === 1 && matches.value[0].name === word.value.toUpperCase()),
 );
+// the command on the line being typed, once a space follows it, and its parameters
+const hint = computed(() => {
+  const line = (props.modelValue || '').split('\n').pop();
+  const m = line.match(/^\s*(\S+)\s(.*)$/);
+  if (!m) return null;
+  const cmd = m[1].toUpperCase();
+  let params = macroSection(cmd) ? macroParams(cmd).map((p) => ({ ...p, letter: false })) : builtinParams(cmd);
+  if (!params?.length) return null;
+  const letter = params[0].letter;
+  const used = usedParams(m[2], letter);
+  return { cmd, params: params.map((p) => ({ ...p, used: used.has(p.name) })), endsSpace: /\s$/.test(line) };
+});
+const showHint = computed(() => open.value && !show.value && !!hint.value);
+function addParam(p) {
+  const v = props.modelValue || '';
+  const sep = /\s$/.test(v) ? '' : ' ';
+  emit('update:modelValue', v + sep + p.name + (p.letter ? '' : '='));
+  el.value?.focus();
+}
 function accept(c) {
   const v = props.modelValue || '';
   const lines = v.split('\n');
@@ -75,6 +99,17 @@ function key(e) {
     e.preventDefault();
     accept(matches.value[0]);
     return;
+  } else if (e.key === 'Escape' && showHint.value) {
+    open.value = false;
+    e.preventDefault();
+    return;
+  } else if (e.key === 'Tab' && !e.shiftKey && hint.value) {
+    const next = hint.value.params.find((p) => !p.used);
+    if (next) {
+      e.preventDefault();
+      addParam(next);
+      return;
+    }
   }
   emit('keydown', e);
   if (e.key === 'Enter' && !e.defaultPrevented) {
@@ -119,6 +154,20 @@ defineExpose({ focus: () => el.value?.focus() });
         ><span class="d">{{ c.desc }}</span>
       </button>
     </div>
+    <div v-if="showHint" class="ph" :class="{ up: dropUp }" :aria-label="t('Parameters of {name}', { name: hint.cmd })">
+      <button
+        v-for="p in hint.params"
+        :key="p.name"
+        type="button"
+        class="pp mono"
+        :class="{ used: p.used }"
+        :title="p.def !== '' ? t('Default {value}', { value: p.def }) : null"
+        @mousedown.prevent="addParam(p)"
+      >
+        {{ p.name }}<span v-if="!p.letter" class="eq">=</span
+        ><span v-if="p.def !== '' && !p.letter" class="df">{{ p.def }}</span>
+      </button>
+    </div>
   </div>
 </template>
 <style scoped>
@@ -149,6 +198,47 @@ defineExpose({ focus: () => el.value?.focus() });
 .dd.up {
   top: auto;
   bottom: calc(100% + 6px);
+}
+.ph {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 60;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.ph.up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.pp {
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  background: var(--s2);
+  color: var(--tx);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pp:hover {
+  border-color: var(--ac);
+}
+.pp.used {
+  opacity: 0.4;
+}
+.pp .eq,
+.pp .df {
+  color: var(--mu);
+  font-weight: 400;
 }
 .it {
   display: flex;

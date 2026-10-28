@@ -2,6 +2,7 @@
 // Small bed mesh preview for the dashboard: the probed heights as coloured cells, with range and
 // the active profile. The full view is the Heightmap page.
 import { computed } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode, isPrinting } from '../store';
@@ -25,7 +26,7 @@ const col = (z) => paletteColor(state.settings.heightmap?.palette, z / st.value.
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>{{ t('Bed Mesh') }}</h2>
+      <CardTitle :text="t('Bed Mesh')" />
       <div class="acts">
         <button class="btn" :disabled="isPrinting" @click="gcode('BED_MESH_CALIBRATE')">
           <Icon name="mesh" :size="16" />{{ t('Calibrate') }}</button

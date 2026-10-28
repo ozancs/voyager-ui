@@ -1,0 +1,87 @@
+// The parameters of common Klipper commands, for the hint under the console's command field. Klipper does not
+// tell a client which parameters a command takes (its help is one line of text), so they are listed here; a macro's
+// own parameters are read from its template instead (macros.js). Classic G-codes take letters (X10), the extended
+// commands take NAME=value.
+const K = {
+  SET_HEATER_TEMPERATURE: 'HEATER TARGET',
+  TEMPERATURE_WAIT: 'SENSOR MINIMUM MAXIMUM',
+  SET_TEMPERATURE_FAN_TARGET: 'TEMPERATURE_FAN TARGET MIN_SPEED MAX_SPEED',
+  SET_FAN_SPEED: 'FAN SPEED',
+  SET_LED: 'LED RED GREEN BLUE WHITE INDEX TRANSMIT SYNC',
+  SET_PIN: 'PIN VALUE CYCLE_TIME',
+  SET_SERVO: 'SERVO ANGLE WIDTH ENABLE',
+  SET_PRESSURE_ADVANCE: 'EXTRUDER ADVANCE SMOOTH_TIME',
+  SET_VELOCITY_LIMIT: 'VELOCITY ACCEL MINIMUM_CRUISE_RATIO SQUARE_CORNER_VELOCITY',
+  SET_GCODE_OFFSET: 'X Y Z X_ADJUST Y_ADJUST Z_ADJUST MOVE MOVE_SPEED',
+  SET_KINEMATIC_POSITION: 'X Y Z',
+  SET_INPUT_SHAPER:
+    'SHAPER_FREQ_X SHAPER_FREQ_Y DAMPING_RATIO_X DAMPING_RATIO_Y SHAPER_TYPE SHAPER_TYPE_X SHAPER_TYPE_Y',
+  SET_RETRACTION: 'RETRACT_LENGTH RETRACT_SPEED UNRETRACT_EXTRA_LENGTH UNRETRACT_SPEED',
+  ACTIVATE_EXTRUDER: 'EXTRUDER',
+  SYNC_EXTRUDER_MOTION: 'EXTRUDER MOTION_QUEUE',
+  SET_EXTRUDER_ROTATION_DISTANCE: 'EXTRUDER DISTANCE',
+  BED_MESH_CALIBRATE: 'PROFILE METHOD ADAPTIVE ADAPTIVE_MARGIN HORIZONTAL_MOVE_Z MESH_MIN MESH_MAX PROBE_COUNT',
+  BED_MESH_PROFILE: 'LOAD SAVE REMOVE',
+  BED_MESH_OUTPUT: 'PGP',
+  PID_CALIBRATE: 'HEATER TARGET WRITE_FILE',
+  PROBE: 'PROBE_SPEED LIFT_SPEED SAMPLES SAMPLE_RETRACT_DIST SAMPLES_TOLERANCE SAMPLES_RESULT',
+  PROBE_ACCURACY: 'PROBE_SPEED SAMPLES SAMPLE_RETRACT_DIST',
+  Z_TILT_ADJUST: 'HORIZONTAL_MOVE_Z RETRIES RETRY_TOLERANCE',
+  QUAD_GANTRY_LEVEL: 'HORIZONTAL_MOVE_Z RETRIES RETRY_TOLERANCE',
+  SCREWS_TILT_CALCULATE: 'DIRECTION MAX_DEVIATION',
+  SET_STEPPER_ENABLE: 'STEPPER ENABLE',
+  FORCE_MOVE: 'STEPPER DISTANCE VELOCITY ACCEL',
+  MANUAL_STEPPER: 'STEPPER ENABLE SET_POSITION SPEED ACCEL MOVE STOP_ON_ENDSTOP SYNC',
+  SET_IDLE_TIMEOUT: 'TIMEOUT',
+  SET_GCODE_VARIABLE: 'MACRO VARIABLE VALUE',
+  SAVE_GCODE_STATE: 'NAME',
+  RESTORE_GCODE_STATE: 'NAME MOVE MOVE_SPEED',
+  SET_PRINT_STATS_INFO: 'TOTAL_LAYER CURRENT_LAYER',
+  EXCLUDE_OBJECT: 'NAME CURRENT RESET',
+  SET_TMC_CURRENT: 'STEPPER CURRENT HOLDCURRENT',
+  SET_TMC_FIELD: 'STEPPER FIELD VALUE VELOCITY',
+  DUMP_TMC: 'STEPPER REGISTER',
+  SHAPER_CALIBRATE: 'AXIS',
+  TEST_RESONANCES: 'AXIS OUTPUT FREQ_START FREQ_END HZ_PER_SEC',
+  SET_FILAMENT_SENSOR: 'SENSOR ENABLE',
+  SET_DISPLAY_TEXT: 'MSG',
+  RESPOND: 'MSG TYPE PREFIX',
+  SDCARD_PRINT_FILE: 'FILENAME',
+  SET_SKEW: 'XY XZ YZ CLEAR',
+  SKEW_PROFILE: 'LOAD SAVE REMOVE',
+  SET_DUAL_CARRIAGE: 'CARRIAGE MODE',
+};
+const G = {
+  G0: 'X Y Z E F',
+  G1: 'X Y Z E F',
+  G4: 'P',
+  G28: 'X Y Z',
+  G92: 'X Y Z E',
+  M104: 'S T',
+  M109: 'S T',
+  M140: 'S',
+  M190: 'S',
+  M106: 'S',
+  M204: 'S',
+  M220: 'S',
+  M221: 'S',
+};
+// [{ name, def, letter }] for a command name (upper case), or null when it is not known
+export function builtinParams(cmd) {
+  if (G[cmd]) return G[cmd].split(' ').map((name) => ({ name, def: '', letter: true }));
+  if (K[cmd]) return K[cmd].split(' ').map((name) => ({ name, def: '', letter: false }));
+  return null;
+}
+// the parameters already on the line: NAME=… for extended commands, a leading letter for classic G-codes
+export function usedParams(rest, letter) {
+  const out = new Set();
+  for (const tok of rest.trim().split(/\s+/)) {
+    if (!tok) continue;
+    if (letter) out.add(tok[0].toUpperCase());
+    else {
+      const i = tok.indexOf('=');
+      if (i > 0) out.add(tok.slice(0, i).toUpperCase());
+    }
+  }
+  return out;
+}

@@ -114,6 +114,12 @@ What a console command does, for the tooltip on command lines in the console. St
 Klipper supports come from the list below (translated); Klipper's own commands and macros use the help text  
 Klipper reports (printer.gcode.help, in English) or the macro's description.
 
+**[src/gcodeParams.js](../src/gcodeParams.js)**  
+The parameters of common Klipper commands, for the hint under the console's command field. Klipper does not  
+tell a client which parameters a command takes (its help is one line of text), so they are listed here; a macro's  
+own parameters are read from its template instead (macros.js). Classic G-codes take letters (X10), the extended  
+commands take NAME=value.
+
 **[src/heatEta.js](../src/heatEta.js)**  
 How long until a heater reaches its target, or whether it will at all.  
   
@@ -402,15 +408,22 @@ in a strip along the bottom. Shown while a print runs or is paused; also in full
 The fold chevron at the end of a card header. Shown only for a card on the dashboard (CellScope provides the  
 context); the same card elsewhere (Machine page, inside a Tabs card) gets nothing.
 
+**[src/components/CardTitle.vue](../src/components/CardTitle.vue)**  
+A dashboard card's title. The user can give any card a name and an icon of their own in Customize  
+(settings.cardTitles, by card id); the card's own name is shown otherwise. The id comes from the CellScope around  
+the card. `icon`/`color` are the card's own icon (custom cards), used when none is set.
+
 **[src/components/CellScope.vue](../src/components/CellScope.vue)**  
 Wraps one dashboard card and tells the card's header (CardCollapse) whether the card can fold, whether it is  
-folded and how to toggle it. Renders no element of its own, so `.cell > .card` selectors keep working.
+folded and how to toggle it, and which card it is (for the card's own title). Renders no element of its own, so `.cell > .card` selectors keep working.
 
 **[src/components/ChipList.vue](../src/components/ChipList.vue)**  
 A list of numbers shown as chips: click the x to remove, type a value and press Enter to add.
 
 **[src/components/CmdInput.vue](../src/components/CmdInput.vue)**  
-Input with live command search from the printer (G-code help + macros).
+Input with live command search from the printer (G-code help + macros). After the command word, a hint row lists  
+the parameters it takes (a macro's from its template, Klipper's own from gcodeParams.js): the ones already typed  
+are dimmed, a click or Tab adds the next one.
 
 **[src/components/ConsoleCard.vue](../src/components/ConsoleCard.vue)**  
 Dashboard card with the console (ConsoleView) and its header buttons: hide temperature reports, clear,  
@@ -571,8 +584,9 @@ Dialogs Klipper asks for: macro prompts (action:prompt_*), manual probe (PROBE_C
 Z_ENDSTOP_CALIBRATE, manual bed mesh...), BED_SCREWS_ADJUST and SCREWS_TILT_CALCULATE results.
 
 **[src/components/MacroParamsDialog.vue](../src/components/MacroParamsDialog.vue)**  
-Asks for a macro's parameters before it runs (a button set to "ask when clicked"). Fields start with the values  
-saved on the button, or empty so the macro's own default applies.
+Asks for a macro's parameters before it runs (a button set to "ask when clicked", or the arrow next to a macro).  
+Fields start with the values saved on the button, or empty so the macro's own default applies. With an anchor it  
+opens as a drop-down under that button, without darkening the page, so the console stays usable next to it.
 
 **[src/components/MacroVars.vue](../src/components/MacroVars.vue)**  
 The variables of the printer's macros (variable_ lines of [gcode_macro]) as Klipper has them right now, and  
@@ -656,7 +670,8 @@ estimate (click it to see how it was worked out), pause / cancel / exclude, or r
 
 **[src/components/PrintControlsCard.vue](../src/components/PrintControlsCard.vue)**  
 Print controls: speed factor and flow, the two values that change during a print, with a quick way back to 100%.  
-While this card is on the dashboard the Machine Limits card leaves them out.
+While this card is on the dashboard the Machine Limits card leaves them out. Its option: the two one under the  
+other instead of side by side when the card is wide.
 
 **[src/components/PrinterIconPicker.vue](../src/components/PrinterIconPicker.vue)**  
 The icon of one printer in the Printers dialog: a button showing it, a pop-up with the Voyager mark, the  

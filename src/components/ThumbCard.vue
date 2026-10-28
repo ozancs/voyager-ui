@@ -2,6 +2,7 @@
 // Thumbnail card: the current (or last) file's picture as big as the card, with its name and progress. A click
 // shows it over the whole window.
 import { computed, ref } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import ImageZoom from './ImageZoom.vue';
@@ -22,7 +23,7 @@ const zoom = ref(false);
 <template>
   <section class="card tc">
     <div class="card-h">
-      <h2>{{ t('Thumbnail') }}</h2>
+      <CardTitle :text="t('Thumbnail')" />
       <span v-if="active" class="mono mu">{{ Math.round(progress * 100) }}%</span>
       <CardCollapse />
     </div>

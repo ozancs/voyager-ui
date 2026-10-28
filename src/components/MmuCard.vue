@@ -4,6 +4,7 @@
 //   AFC / Box Turtle                 -> printer objects "AFC" and "AFC_stepper <lane>" / "AFC_lane <lane>"
 // Gates show colour, material and which tool uses them. Anything that moves filament needs a second click.
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import GateFilament from './GateFilament.vue';
@@ -151,7 +152,7 @@ const hasPath = computed(() => kind.value === 'hh' && m.value.filament_pos != nu
 <template>
   <section class="card mmu">
     <div class="card-h">
-      <h2>{{ kind === 'afc' ? 'Box Turtle / AFC' : 'MMU' }}</h2>
+      <CardTitle :text="kind === 'afc' ? 'Box Turtle / AFC' : 'MMU'" />
       <div class="acts">
         <span v-if="kind === 'hh'" class="chip" :style="{ color: busy ? 'var(--wn)' : 'var(--mu)' }"
           ><i></i>{{ m.enabled === false ? t('Disabled') : t(m.action || 'Idle') }}</span

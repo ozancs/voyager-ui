@@ -2,6 +2,7 @@
 // Config backup to GitHub through Klipper-Backup (backup.js): the last result, Back up now, and backing up by
 // itself after config changes. Without Klipper-Backup it says where to get it.
 import { computed, ref } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import Toggle from './Toggle.vue';
 import { state, fmtDate } from '../store';
@@ -14,7 +15,7 @@ const showLog = ref(false);
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>{{ t('Config backup') }}</h2>
+      <CardTitle :text="t('Config backup')" />
       <button v-if="cmd" class="btn" :disabled="backup.running || backup.waiting" @click="runBackup()">
         <Icon :name="backup.running ? 'refresh' : 'upload'" :size="16" :class="{ spin: backup.running }" />{{
           backup.running ? t('Backing up…') : t('Back up now')

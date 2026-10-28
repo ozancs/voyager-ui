@@ -1,6 +1,7 @@
 <script setup>
 // Small dashboard card with the health issues found by features.js (MCU errors, throttling, driver
 // flags, due maintenance). Details are on the Health page.
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { healthIssues, dueMaintenance } from '../features';
@@ -12,7 +13,7 @@ const LV = { warn: 'var(--wn)', error: 'var(--dg)', info: 'var(--bl)' };
 <template>
   <section class="card" :class="healthIssues.some((i) => i.level !== 'info') ? 't-heat' : 't-sense'">
     <div class="card-h">
-      <h2>{{ t('Health') }}</h2>
+      <CardTitle :text="t('Health')" />
       <button class="btn clear" @click="go('health')">{{ t('Details') }}</button>
       <CardCollapse />
     </div>

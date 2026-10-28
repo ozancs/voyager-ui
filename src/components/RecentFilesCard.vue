@@ -2,6 +2,7 @@
 // The newest G-code files with thumbnail, estimated time and a print button.
 import { ref, onMounted } from 'vue';
 import { isGcodeFile } from '../gcode3mf';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { state, fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';
@@ -47,7 +48,7 @@ const print = (f) => startPrint(f.path);
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>{{ t('Recent files') }}</h2>
+      <CardTitle :text="t('Recent files')" />
       <button class="btn clear" @click="go('files')">{{ t('All files') }}</button>
       <CardCollapse />
     </div>

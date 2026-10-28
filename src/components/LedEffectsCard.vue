@@ -2,6 +2,7 @@
 // LED effects card for klipper-led_effect: every [led_effect] in the config as a button, lit while the effect
 // runs. A click starts it (or stops it when it runs); the square stops them all. Found by itself, nothing to set up.
 import { computed } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode, toast } from '../store';
@@ -18,7 +19,7 @@ const toggle = (e) => run(`SET_LED_EFFECT EFFECT=${e.name}${e.on ? ' STOP=1' : '
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>{{ t('LED effects') }}</h2>
+      <CardTitle :text="t('LED effects')" />
       <div class="acts">
         <button
           class="btn ibtn sm"

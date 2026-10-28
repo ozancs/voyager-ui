@@ -3,15 +3,17 @@
 // columns, tall card -> a column. "fit" mode shrinks buttons so everything is visible, "scroll" mode keeps a minimum
 // size and scrolls. Order, names and hidden macros come from the card options (Customize -> gear).
 defineOptions({ inheritAttrs: false });
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import Popover from './Popover.vue';
 import Modal from './Modal.vue';
 import MacroVars from './MacroVars.vue';
-import { state, S, gcode, macroList, isPrinting, dangerIn, toast } from '../store';
+import MacroParamsDialog from './MacroParamsDialog.vue';
+import { state, gcode, macroList, isPrinting, dangerIn } from '../store';
 const locked = (m) => isPrinting.value && !!dangerIn(m);
-import { macroParams, orderMacros, macroLabel } from '../macros';
+import { macroParams, orderMacros, macroLabel, macroDesc } from '../macros';
 import { macroVars, openMacroDef } from '../features';
 import { t } from '../i18n';
 
@@ -32,6 +34,8 @@ const all = computed(() => {
 const listView = computed(() => opts.value.view === 'list');
 const label = (m) => macroLabel(m, opts.value.labels);
 const own = (m) => !!(opts.value.labels?.[m] || '').trim(); // a name the user typed keeps its own capitals
+const tip = (m) =>
+  (locked(m) ? t('Locked while printing') + ': ' : '') + (macroDesc(m, opts.value.descs, state.commands[m]) || m);
 const q = ref('');
 const shown = computed(() => {
   const s = q.value.toLowerCase();
@@ -71,35 +75,21 @@ const grid = computed(() => {
 });
 
 // ---- params ----
-const pop = ref(null); // { name, params, vals }
+// the arrow next to a macro (or shift+click) opens its parameters in a drop-down under it
+const pop = ref(null); // { name, params, el }
 function click(m, e) {
   if (state.editDash) return;
   if (held) return void (held = false); // the end of a long press opened the menu, it does not run the macro
   // plain click runs with defaults, the arrow (or shift+click) asks for parameters
   if (e.shiftKey && macroParams(m).length) {
-    openParams(m);
+    openParams(m, e.currentTarget);
     return;
   }
   gcode(m).catch(() => {});
 }
-function openParams(m) {
+function openParams(m, el) {
   if (state.editDash) return;
-  const ps = macroParams(m);
-  pop.value = { name: m, params: ps, vals: Object.fromEntries(ps.map((p) => [p.name, ''])) };
-  nextTick(() => document.querySelector('.mp input')?.focus());
-}
-function runPop() {
-  const p = pop.value;
-  // Klipper cuts a line at # ; and * even inside quotes, and a " or a line break breaks the command: refuse
-  // instead of running the macro with a value it never gets
-  const bad = Object.entries(p.vals).find(([, v]) => /[#;*"\n\r]/.test(v));
-  if (bad) return toast(t('{name}: the characters # ; * and " cannot be sent to Klipper', { name: bad[0] }), 'warn');
-  const args = Object.entries(p.vals)
-    .filter(([, v]) => v !== '')
-    .map(([k, v]) => `${k}=${/\s/.test(v) ? '"' + v + '"' : v}`)
-    .join(' ');
-  gcode(p.name + (args ? ' ' + args : '')).catch(() => {});
-  pop.value = null;
+  pop.value = { name: m, params: macroParams(m), el };
 }
 const hasParams = (m) => macroParams(m).length > 0;
 
@@ -127,9 +117,9 @@ const pUp = () => clearTimeout(pressTm);
 onBeforeUnmount(pUp);
 const hasVars = (m) => Object.keys(macroVars(m)).length > 0;
 function pick(what) {
-  const m = menu.value.m;
+  const { m, el } = menu.value;
   menu.value = null;
-  if (what === 'params') openParams(m);
+  if (what === 'params') openParams(m, el);
   else if (what === 'vars') varsOf.value = m;
   else openMacroDef(m);
 }
@@ -138,7 +128,7 @@ function pick(what) {
 <template>
   <section v-bind="$attrs" class="card mc">
     <div class="card-h">
-      <h2>{{ t('Macros') }}</h2>
+      <CardTitle :text="t('Macros')" />
       <div class="acts">
         <label v-if="all.length > 12" class="sr"
           ><Icon name="search" :size="14" /><input
@@ -155,7 +145,7 @@ function pick(what) {
           <button
             class="lr"
             :class="{ locked: locked(m), raw: own(m) }"
-            :data-tip="(locked(m) ? t('Locked while printing') + ': ' : '') + (S('gcode_macro ' + m).description || m)"
+            :data-tip="tip(m)"
             @click="click(m, $event)"
             @contextmenu.prevent="ctx(m, $event)"
             @pointerdown="pDown(m, $event)"
@@ -169,7 +159,7 @@ function pick(what) {
             v-if="hasParams(m)"
             class="pm"
             :aria-label="t('Parameters for {name}', { name: m })"
-            @click="openParams(m)"
+            @click="openParams(m, $event.currentTarget)"
           >
             <Icon name="chev" :size="12" />
           </button>
@@ -188,7 +178,7 @@ function pick(what) {
           <button
             class="run"
             :class="{ locked: locked(m), raw: own(m) }"
-            :data-tip="(locked(m) ? t('Locked while printing') + ': ' : '') + (S('gcode_macro ' + m).description || m)"
+            :data-tip="tip(m)"
             @click="click(m, $event)"
             @contextmenu.prevent="ctx(m, $event)"
             @pointerdown="pDown(m, $event)"
@@ -202,7 +192,7 @@ function pick(what) {
             v-if="hasParams(m)"
             class="pm"
             :aria-label="t('Parameters for {name}', { name: m })"
-            @click="openParams(m)"
+            @click="openParams(m, $event.currentTarget)"
           >
             <Icon name="chev" :size="12" />
           </button>
@@ -211,38 +201,21 @@ function pick(what) {
       <div v-if="!shown.length" class="empty">{{ q ? t('No macro matches') : t('No macros in the config') }}</div>
     </div>
   </section>
-  <Teleport to="body"
-    ><div v-if="pop" class="ov" @mousedown.self="pop = null">
-      <div class="mp card" role="dialog" :aria-label="pop.name">
-        <div class="card-h">
-          <h2 class="code" style="font-size: 15px">{{ pop.name }}</h2>
-          <span class="grow"></span>
-          <button
-            class="btn clear ibtn sm"
-            :aria-label="t('Open in the config')"
-            :data-tip="t('Open in the config')"
-            @click="
-              openMacroDef(pop.name);
-              pop = null;
-            "
-          >
-            <Icon name="file" :size="16" />
-          </button>
-          <button class="btn clear ibtn sm" :aria-label="t('Close')" @click="pop = null">
-            <Icon name="x" :size="16" />
-          </button>
-        </div>
-        <label v-for="p in pop.params" :key="p.name" class="pr"
-          ><span class="code">{{ p.name }}</span
-          ><input v-model="pop.vals[p.name]" class="input code" :placeholder="p.def || ''" @keydown.enter="runPop"
-        /></label>
-        <div class="row" style="justify-content: flex-end">
-          <button class="btn lg" @click="pop = null">{{ t('Cancel') }}</button
-          ><button class="btn lg acc" @click="runPop"><Icon name="play" :size="16" />{{ t('Run') }}</button>
-        </div>
-      </div>
-    </div></Teleport
-  >
+  <MacroParamsDialog
+    v-if="pop"
+    :word="pop.name"
+    :params="pop.params"
+    :values="{}"
+    :cmd="pop.name"
+    :anchor="pop.el"
+    @close="pop = null"
+    @run="
+      (c) => {
+        pop = null;
+        gcode(c).catch(() => {});
+      }
+    "
+  />
   <Popover v-if="menu" :anchor="menu.el" :width="230" @close="menu = null">
     <b class="mono mn">{{ menu.m }}</b>
     <button v-if="hasParams(menu.m)" class="btn clear mi" @click="pick('params')">
@@ -418,27 +391,5 @@ function pick(what) {
   outline: none;
   font-size: 12.5px;
   color: var(--tx);
-}
-.ov {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 110;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-.mp {
-  width: 380px;
-  max-width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-}
-.pr {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
 }
 </style>

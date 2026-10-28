@@ -2,6 +2,7 @@
 // Small card for the first layer: live X / Y / Z, the Z offset and baby-step buttons. Meant for the print layout,
 // where the full Toolhead card takes too much room.
 import { computed, ref } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode } from '../store';
@@ -41,7 +42,7 @@ const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
 <template>
   <section class="card lz">
     <div class="card-h">
-      <h2>{{ t('Live Z') }}</h2>
+      <CardTitle :text="t('Live Z')" />
       <div class="acts">
         <button class="btn" :disabled="!zoff" @click="gcode('SET_GCODE_OFFSET Z=0 MOVE=1')">{{ t('Clear') }}</button
         ><button

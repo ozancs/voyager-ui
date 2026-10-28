@@ -4,6 +4,7 @@
 // Mouse wheel or pinch zooms the time axis around the pointer, drag pans into the past, "Live" (or a double
 // click) comes back to now. Hovering shows the values at that time in the legend. Sensors picked with the eye
 // button, dashed lines for targets.
+import CardTitle from './CardTitle.vue';
 import SensorPicker from './SensorPicker.vue';
 import SensorIcon from './SensorIcon.vue';
 import Icon from './Icon.vue';
@@ -269,7 +270,7 @@ onBeforeUnmount(() => ptrs.clear());
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>{{ t('Temperature Graph') }}</h2>
+      <CardTitle :text="t('Temperature Graph')" />
       <div class="seg rng">
         <!-- prettier-ignore -->
         <button v-for="r in RANGES" :key="r" :class="{ on: !zoom && range === r }" @click="pickRange(r)">{{ rangeLabel(r) }}</button>

@@ -5,6 +5,7 @@ import Icon from '../components/Icon.vue';
 import ConsoleView from '../components/ConsoleView.vue';
 import { state, macroList, clearConsole } from '../store';
 import { t } from '../i18n';
+import { macroDesc } from '../macros';
 const cv = ref(null);
 const q = ref('');
 const find = ref(''); // search in the console output
@@ -14,7 +15,7 @@ const list = computed(() => {
   const f = q.value.toUpperCase();
   return f ? all.filter((c) => c.toUpperCase().includes(f)) : all;
 });
-const desc = (c) => state.commands[c] || state.status['gcode_macro ' + c]?.description || '';
+const desc = (c) => macroDesc(c, state.settings.cardOpts?.macros?.descs, state.commands[c]) || state.commands[c] || '';
 </script>
 <template>
   <div class="split cp">

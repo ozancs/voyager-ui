@@ -8,7 +8,7 @@ import Rng from './Rng.vue';
 import Icon from './Icon.vue';
 import { S, gcode } from '../store';
 import { t } from '../i18n';
-defineProps({ resets: Boolean, only: { type: String, default: '' } }); // resets: "100%" buttons; only: 'speed' or 'flow'
+defineProps({ resets: Boolean, only: { type: String, default: '' }, stack: Boolean }); // resets: "100%" buttons; only: 'speed' or 'flow'; stack: one under the other however wide
 const lv = reactive({ speed: null, flow: null }); // value under the thumb while dragging
 const gm = computed(() => S('gcode_move'));
 const speed = computed(() => Math.round((gm.value.speed_factor ?? 1) * 100));
@@ -25,7 +25,7 @@ function setFlow(v) {
 }
 </script>
 <template>
-  <div class="sf">
+  <div class="sf" :class="{ stack }">
     <div v-if="only !== 'flow'" class="fac">
       <div class="row" style="justify-content: space-between; gap: 6px">
         <span class="nl" style="margin-right: auto">{{ t('Speed factor') }}</span
@@ -100,6 +100,9 @@ function setFlow(v) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
+}
+.sf.stack {
+  grid-template-columns: 1fr;
 }
 .rs {
   height: 26px;

@@ -32,6 +32,7 @@ import {
   dismissAll,
   prettyName,
   restartKlipper,
+  activeExtruder,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -114,7 +115,7 @@ const POWER = [
     run: () => api.call('machine.shutdown'),
   },
 ];
-const topHeaters = computed(() => ['extruder', 'heater_bed'].filter((h) => state.objects.includes(h)));
+const topHeaters = computed(() => [activeExtruder.value, 'heater_bed'].filter((h) => state.objects.includes(h)));
 // Other services Moonraker may restart (KlipperScreen, crowsnest, Obico...): read once when a power menu opens.
 // Klipper and Moonraker have their own entries above.
 const services = ref([]);
@@ -316,7 +317,7 @@ function runConfirmed() {
         class="th mono"
         :class="{ hot: S(h).target > 0 }"
         :data-tip="prettyName(h) + (S(h).target > 0 ? ' → ' + S(h).target.toFixed(0) + '°' : ' · ' + t('off'))"
-        ><Icon :name="h === 'extruder' ? 'nozzle' : 'bed'" :size="15" /><b>{{
+        ><Icon :name="h.startsWith('extruder') ? 'nozzle' : 'bed'" :size="15" /><b>{{
           S(h).temperature != null ? S(h).temperature.toFixed(0) + '°' : '--'
         }}</b
         ><small v-if="S(h).target > 0">/{{ S(h).target.toFixed(0) }}</small

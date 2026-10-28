@@ -8,6 +8,16 @@ export function macroSection(name) {
   const key = Object.keys(cfg).find((k) => k.toLowerCase() === want);
   return key ? cfg[key] : null;
 }
+// what a macro does, for its tooltip: a text typed in the card options first, then the description: line of its
+// [gcode_macro], then Klipper's help text (which is only "G-Code macro" when the macro has no description)
+export function macroDesc(name, custom, help) {
+  const own = String(custom?.[name] || '').trim();
+  if (own) return own;
+  const d = String(macroSection(name)?.description || '').trim();
+  if (d) return d;
+  const h = String(help || '').trim();
+  return h && !/^g-code macro$/i.test(h) ? h : '';
+}
 export function macroParams(name) {
   const sec = macroSection(name);
   const g = sec?.gcode || '';

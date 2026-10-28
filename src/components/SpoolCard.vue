@@ -3,6 +3,7 @@
 // a [spoolman] section.
 defineOptions({ inheritAttrs: false });
 import { ref, computed } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import Modal from './Modal.vue';
@@ -58,7 +59,7 @@ async function pick(s) {
 <template>
   <section v-bind="$attrs" class="card t-spool">
     <div class="card-h">
-      <h2>{{ t('Spool') }}</h2>
+      <CardTitle :text="t('Spool')" />
       <button class="btn" @click="openPick"><Icon name="spool" :size="16" />{{ t('Change') }}</button>
       <CardCollapse />
     </div>

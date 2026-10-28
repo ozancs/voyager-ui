@@ -2,6 +2,7 @@
 // Host and MCU information: CPU and memory load, temperatures, versions, network traffic. Polls
 // machine.proc_stats every 5 seconds while it is on screen.
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import Donut from './Donut.vue';
 import { state, S, fmtBytes, useApiEvent } from '../store';
@@ -117,7 +118,7 @@ const tiles = computed(() => [
   <!-- detailed: the Machine page, one row per MCU and one for the host with network counters -->
   <section v-if="detailed" class="card sld">
     <div class="card-h">
-      <h2 class="row"><Icon name="cpu" :size="18" />{{ t('System Loads') }}</h2>
+      <CardTitle :text="t('System Loads')" icon="cpu" />
     </div>
     <div v-for="m in mcus" :key="m.name" class="it">
       <div class="grow col" style="gap: 2px; min-width: 0">

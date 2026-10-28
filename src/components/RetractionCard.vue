@@ -1,6 +1,7 @@
 <script setup>
 // Firmware retraction settings ([firmware_retraction]): shows the live values and changes them with
 // SET_RETRACTION. Changes last until Klipper restarts.
+import CardTitle from './CardTitle.vue';
 import CardCollapse from './CardCollapse.vue';
 import { computed } from 'vue';
 import NumField from './NumField.vue';
@@ -19,7 +20,7 @@ const set = (k, v) => gcode(`SET_RETRACTION ${k}=${v}`);
 <template>
   <section class="card spread">
     <div class="card-h">
-      <h2>{{ t('Firmware retraction') }}</h2>
+      <CardTitle :text="t('Firmware retraction')" />
       <CardCollapse />
     </div>
     <div class="gr">

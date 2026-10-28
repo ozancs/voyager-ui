@@ -67,10 +67,16 @@ const FT = [
     <div v-if="ct.kind !== 'form'" class="src">
       <span class="lbl">{{ t('Reads its state from') }}</span>
       <div class="row" style="gap: 6px; flex-wrap: wrap">
-        <select v-model="ct.obj" class="input" style="flex: 1; min-width: 160px" :aria-label="t('Printer object')">
-          <option value="">{{ t('(none)') }}</option>
-          <option v-for="o in objects" :key="o" :value="o">{{ o }}</option>
-        </select>
+        <!-- type to search (gcode_macro names included), or open the list with the arrow; empty: none -->
+        <input
+          v-model.trim="ct.obj"
+          class="input code"
+          style="flex: 1; min-width: 160px"
+          :list="'ce-objs-' + ct.id"
+          :placeholder="t('(none), type to search')"
+          :aria-label="t('Printer object')"
+        />
+        <datalist :id="'ce-objs-' + ct.id"><option v-for="o in objects" :key="o" :value="o"></option></datalist>
         <input
           v-model="ct.field"
           class="input code"
@@ -107,6 +113,16 @@ const FT = [
           :data-tip="t('Shown value = printer value × scale. A fan reports 0..1, so 100 shows percent.')"
           ><span>{{ t('Scale') }}</span
           ><input v-model="ct.scale" class="input mono" type="number" placeholder="1"
+        /></label>
+        <label
+          class="nf"
+          :data-tip="
+            t(
+              'Shown value = value read × this. Empty: the same as Scale. For a macro variable kept as 0..1 on a 0..100 slider, set 100.',
+            )
+          "
+          ><span>{{ t('Read scale') }}</span
+          ><input v-model="ct.readScale" class="input mono" type="number" :placeholder="ct.scale || '1'"
         /></label>
       </div>
       <CmdInput

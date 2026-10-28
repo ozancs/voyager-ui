@@ -616,7 +616,7 @@ const RUNS = _reactive({});
               <feGaussianBlur stdDeviation="10" />
             </filter>
           </defs>
-          <template v-if="cur.heater === 'extruder'">
+          <template v-if="cur.heater.startsWith('extruder')">
             <rect x="140" y="20" width="80" height="54" rx="4" class="metal" />
             <rect
               x="130"

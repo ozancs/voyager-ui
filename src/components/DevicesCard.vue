@@ -1,6 +1,7 @@
 <script setup>
 // Fans, output pins, LEDs and filament sensors as a list (Mainsail's "Miscellaneous" panel).
 import { computed, reactive, ref } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Rng from './Rng.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
@@ -63,7 +64,7 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>{{ t('Devices') }}</h2>
+      <CardTitle :text="t('Devices')" />
       <CardCollapse />
     </div>
     <div class="list">

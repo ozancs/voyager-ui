@@ -1,6 +1,7 @@
 <script setup>
 // Dashboard card: is the timelapse recording, how many frames so far, the newest frame, and the last clips.
 import { computed } from 'vue';
+import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import Toggle from './Toggle.vue';
@@ -19,7 +20,7 @@ function openClip(f) {
 <template>
   <section class="card">
     <div class="card-h">
-      <h2>{{ t('Timelapse') }}</h2>
+      <CardTitle :text="t('Timelapse')" />
       <div class="acts">
         <Toggle
           :model-value="!!tl.settings?.enabled"
