@@ -1512,6 +1512,18 @@ function detachCard(i) {
 .tools .btn {
   background: var(--s1);
 }
+/* compact cards have a 34 px title bar: smaller edit buttons that stay inside it */
+:root.compact .tools {
+  top: 4px;
+  right: 6px;
+}
+:root.compact .tools .btn.ibtn.sm {
+  width: 26px;
+  height: 26px;
+}
+:root.compact .tools .cp {
+  top: 32px;
+}
 .sw i {
   width: 16px;
   height: 16px;
