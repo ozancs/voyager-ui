@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.36.0
+
+Suggested by ALEX-45 (issue #10):
+
+- Macros card: the arrow next to a macro opens its parameters in a drop-down under the button, a click still runs it with the defaults
+- Macros card: the tooltip shows the description: line of the macro, or a description of your own typed in the card options
+- Every card can have a title and an icon of its own (Customize, tag button); custom cards can be duplicated
+- More than one extruder: the Extruder card switches between T0, T1... (your T0/T1 macros, else ACTIVATE_EXTRUDER); the top bar, camera overlay and calibrations follow the active one, PID calibration has a step per hotend
+- Console: after a command and a space its parameters are listed under the field (macros with their defaults and the common Klipper commands), Tab or a click adds the next one
+- Controls card: a read scale for values read from the printer, a slider without a state keeps its last value, and the value can be typed in. The state field searches as you type
+- Toolhead card: the header shows G90 / G91 and M82 / M83
+- Print controls card: speed and flow can be stacked (card options)
+- The page reloads itself after Voyager UI is updated
+- GitHub link in the footer
+- Input fields in the macro and controls cards stand out from the card
+
 ## 0.35.2
 
 - Shake&Tune: when both axes are measured, Apply both and Save both set or write X and Y together, so one restart is enough
