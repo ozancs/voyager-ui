@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.35.2
+
+- Shake&Tune: when both axes are measured, Apply both and Save both set or write X and Y together, so one restart is enough
+- Shake&Tune: a line under the results says what Apply (until Klipper restarts, to try it) and Save (into [input_shaper], stays) do
+
 ## 0.35.1
 
 - Lock screen: Customize picks the camera behind the cards (or none) and a size from 80 to 175 %
