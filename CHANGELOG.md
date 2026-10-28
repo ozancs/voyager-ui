@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.36.1
+
+- Dashboard: in compact mode the Customize buttons of a card (title, colour, remove) fit inside its title bar
+
 ## 0.36.0
 
 Suggested by ALEX-45 (issue #10):
