@@ -1,0 +1,23 @@
+name: discord
+on:
+  push:
+    tags: ['v*']
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Send to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+          NAME: Voyager UI
+        run: |
+          if [ -z "$WEBHOOK" ]; then echo "DISCORD_WEBHOOK secret yok"; exit 0; fi
+          VER="${TAG#v}"
+          NOTES=$(awk -v v="$VER" '{ sub(/\r$/,"") } /^## / { h=$2; sub(/^v/,"",h); if (f) exit; f=(h==v); next } f' CHANGELOG.md)
+          if [ -z "$NOTES" ]; then NOTES="https://github.com/$REPO/blob/$TAG/CHANGELOG.md"; fi
+          jq -n --arg t "$NAME $TAG" --arg u "https://github.com/$REPO/releases/tag/$TAG" --arg d "${NOTES:0:3900}" \
+            '{username:"oznlab releases", embeds:[{title:$t, url:$u, description:$d, color:5814783}]}' \
+          | curl -sS -f -H "Content-Type: application/json" -d @- "$WEBHOOK"
