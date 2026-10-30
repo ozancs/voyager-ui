@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.38.0
+
+- E-STOP stays clickable while a dialog is open (calibrations, cancel, settings, search), and its label is easier to read
+- Dashboard: the print bar steps aside when the print card is on the dashboard, so the print is not shown twice
+- Phone: the print bar is one row with Pause and a menu for Cancel, Exclude and the rest; More opens the menu from the bottom
+- Config editor on a phone: the code comes first and fills the screen, the buttons sit in one row, the file list below
+- Config editor: comments are easier to read
+- Calibrations: the command tabs have a heading under the guided calibrations, and empty parameters say "optional"
+- Ctrl+K finds the guided calibrations (type "pid", "z offset", "mesh")
+- Card titles are no longer cut short when the header buttons need room; tile names have more room in Customize
+- History: the status column has a header
+- Machine: the Update buttons are easier to read
+- Error and warning messages are read out by screen readers
+
 ## 0.37.0
 
 - Lock screen: show two cameras side by side, four in a 2 × 2 grid, or one at a time switching every few seconds (Customize > Cameras)
