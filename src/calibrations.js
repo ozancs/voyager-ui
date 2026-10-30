@@ -373,8 +373,8 @@ const LOOKS_LIKE = /CALIBRAT|TUNE|(^|_)CAL(_|$)/i;
 export function availableGroups(commands) {
   const names = new Map(Object.keys(commands || {}).map((c) => [c.toUpperCase(), c]));
   const out = [];
-  // Shake&Tune is a plugin for the input shaper: its tab sits right after Klipper's own input shaper tab, not first
-  const shaketune = [...names.keys()].some((c) => /^_?AXES_SHAPER_CALIBRATION$/.test(c));
+  if ([...names.keys()].some((c) => /^_?AXES_SHAPER_CALIBRATION$/.test(c)))
+    out.push({ key: 'shaketune', name: 'Shake&Tune', icon: 'wave', items: [] });
   // the PA Sensei module before its rename had the same commands as OZNLAB_x instead of SENSEI_x
   const has = (cmd) =>
     names.has(cmd)
@@ -385,10 +385,7 @@ export function availableGroups(commands) {
   for (const g of GROUPS) {
     const items = g.items.map((i) => has(i.cmd) && { ...i, cmd: has(i.cmd) }).filter(Boolean);
     if (items.length) out.push({ ...g, items });
-    if (g.key === 'shaper' && shaketune) out.push({ key: 'shaketune', name: 'Shake&Tune', icon: 'wave', items: [] });
   }
-  if (shaketune && !out.some((g) => g.key === 'shaketune'))
-    out.splice(0, 0, { key: 'shaketune', name: 'Shake&Tune', icon: 'wave', items: [] });
   const other = [...names.keys()]
     .filter(
       (c) =>
