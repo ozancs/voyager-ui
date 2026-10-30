@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.37.0
+
+- Lock screen: show two cameras side by side, four in a 2 × 2 grid, or one at a time switching every few seconds (Customize > Cameras)
+- Lock screen: the camera picture can be grey or in colour (Customize > Picture)
+- Lock screen: E-STOP moved to the far left, away from Unlock
+
 ## 0.36.1
 
 - Dashboard: in compact mode the Customize buttons of a card (title, colour, remove) fit inside its title bar
