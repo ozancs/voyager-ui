@@ -7,7 +7,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import CardTitle from './CardTitle.vue';
 import CardCollapse from './CardCollapse.vue';
-import { ph, phoenixKnown, openWizard, openSetup } from '../phoenix';
+import { ph, phoenixKnown, openWizard, openSetup, demoOn, openDemo } from '../phoenix';
 import { t } from '../i18n';
 
 const p = ph;
@@ -40,6 +40,8 @@ const view = computed(() => {
     return { tone: 'dg', icon: 'warn', title: t('Needs attention'), sub: '', act: [t('Review recovery'), openWizard] };
   if (GOING.includes(s.phase))
     return { tone: 'ac', icon: 'refresh', title: t('Recovering'), sub: '', act: [t('Open'), openWizard] };
+  if (demoOn.value)
+    return { tone: 'ac', icon: 'play', title: t('Demo'), sub: t('Not a real print'), act: [t('Open'), openDemo] };
   if (s.phase === 'recording')
     return {
       tone: 'ok',
@@ -68,7 +70,7 @@ const view = computed(() => {
     </div>
     <div class="st" :class="view.tone" role="status">
       <span class="ic"
-        ><Icon :name="view.icon" :size="20" :stroke="2.4" :class="{ spin: view.icon === 'refresh' }"
+        ><Icon :name="view.icon" :size="18" :stroke="2.4" :class="{ spin: view.icon === 'refresh' }"
       /></span>
       <b class="ti">{{ view.title }}</b>
       <span v-if="view.sub" class="sub mono">{{ view.sub }}</span>
@@ -80,17 +82,20 @@ const view = computed(() => {
   </section>
 </template>
 <style scoped>
-.phx {
-  overflow: hidden;
+/* nothing else in the header: the title may use all of it at the smallest size */
+.phx :deep(.ctt) {
+  max-width: calc(100% - 28px);
 }
+/* the status block grows with its content instead of overflowing it, so the dashboard sees the real height and
+   shrinks the whole card (data-scale) when it is made small; centred only in the space that is left */
 .st {
-  flex: 1;
-  min-height: 0;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
+  padding: 2px 4px 4px;
   text-align: center;
   --tone: var(--mu);
 }
@@ -107,9 +112,9 @@ const view = computed(() => {
   --tone: var(--ac);
 }
 .ic {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
   display: grid;
   place-items: center;
   color: var(--tone);

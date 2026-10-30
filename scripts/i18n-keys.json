@@ -2210,5 +2210,12 @@
 "Print start and end",
 "Test print",
 "After your start code, before the model",
-"After the last layer, before your end code"
+"After the last layer, before your end code",
+"Demo",
+"Not a real print",
+"Finish the Phoenix demo before changing setup.",
+"Finish the current print before changing setup.",
+"Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.",
+"Open demo",
+"Run demo"
 ]

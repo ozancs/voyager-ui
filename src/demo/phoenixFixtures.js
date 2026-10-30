@@ -74,6 +74,15 @@ const setup = (o = {}) => ({
   ...o,
 });
 base.setup = setup();
+// the empty-bed demo object (backend 0.3), closed
+base.demo = {
+  phase: 'off',
+  home_xy_available: true,
+  park_source: 'saved_profile',
+  homed_axes: 'xyz',
+  heaters_off: true,
+  can_start: false,
+};
 const idleBase = {
   ...base,
   phase: 'idle',

@@ -4,7 +4,7 @@
 // opening a toast, the wizard or a step never moves, heats or resumes anything.
 // API v1 contract: phoenix-for-klipper/docs/API.md.
 import { computed, watch } from 'vue';
-import { state, S, toast, closeToast, notify, unnotify } from './store';
+import { state, S, gcode, toast, closeToast, notify, unnotify } from './store';
 import { currentHost } from './printers';
 import { t } from './i18n';
 
@@ -52,6 +52,16 @@ export function setupProfileCommand(s, { x, y, clearance, useCurrent = false, co
   return `PHOENIX_SETUP_PROFILE ${useCurrent ? 'USE_CURRENT=1' : `X=${x} Y=${y}`} CLEARANCE=${clearance} CONFIRM=1`;
 }
 export const openSetup = () => (state.phoenixSetupOpen = true);
+// empty-bed demo (backend 0.3): PHOENIX_DEMO itself does not move; the module shows its own guided dialog (the
+// action:prompt dialog Voyager already renders) and every movement waits for a button there. `demo` is separate from
+// the real recovery: the real phase stays idle, so no power-loss alert is ever raised for it.
+export const DEMO = 'PHOENIX_DEMO';
+export const demoOn = computed(() => !!ph.value.demo?.phase && ph.value.demo.phase !== 'off');
+export const canDemo = (s) => s?.api_version === API && !!s.demo && s.phase === 'idle' && !s.busy;
+export function openDemo() {
+  state.phoenixSetupOpen = false;
+  gcode(DEMO).catch(() => {}); // a refusal (printing, heaters on...) comes back from the module as an error toast
+}
 export const PREPARE = 'PHOENIX_PREPARE';
 export const RESUME = 'PHOENIX_RESUME CLEANED=1 PATH_CLEAR=1';
 export const DISCARD = 'PHOENIX_DISCARD CONFIRM=1';

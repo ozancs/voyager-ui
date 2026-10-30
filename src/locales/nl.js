@@ -2215,4 +2215,11 @@ export default {
  "Test print": "Testprint",
  "After your start code, before the model": "Na je startcode, voor het model",
  "After the last layer, before your end code": "Na de laatste laag, voor je eindcode",
+  "Demo": "Demo",
+  "Not a real print": "Geen echte print",
+  "Finish the Phoenix demo before changing setup.": "Rond de Phoenix-demo af voordat je de installatie wijzigt.",
+  "Finish the current print before changing setup.": "Rond de huidige print af voordat je de installatie wijzigt.",
+  "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "Demo met leeg bed: de printkop doorloopt een herstel. Er wordt niets verwarmd, geëxtrudeerd of geprint.",
+  "Open demo": "Demo openen",
+  "Run demo": "Demo starten",
 }

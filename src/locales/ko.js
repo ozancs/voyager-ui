@@ -2215,4 +2215,11 @@ export default {
  "Test print": "테스트 출력",
  "After your start code, before the model": "시작 코드 다음, 모델 앞",
  "After the last layer, before your end code": "마지막 레이어 다음, 종료 코드 앞",
+  "Demo": "데모",
+  "Not a real print": "실제 출력이 아님",
+  "Finish the Phoenix demo before changing setup.": "설정을 바꾸기 전에 Phoenix 데모를 끝내세요.",
+  "Finish the current print before changing setup.": "설정을 바꾸기 전에 현재 출력을 끝내세요.",
+  "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "빈 베드 데모: 툴헤드가 복구 과정을 따라 움직입니다. 가열, 압출, 출력은 하지 않습니다.",
+  "Open demo": "데모 열기",
+  "Run demo": "데모 실행",
 }

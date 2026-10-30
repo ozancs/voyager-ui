@@ -2215,4 +2215,11 @@ export default {
  "Test print": "Тестовая печать",
  "After your start code, before the model": "После стартового кода, перед моделью",
  "After the last layer, before your end code": "После последнего слоя, перед конечным кодом",
+  "Demo": "Демо",
+  "Not a real print": "Не настоящая печать",
+  "Finish the Phoenix demo before changing setup.": "Завершите демо Phoenix, прежде чем менять настройку.",
+  "Finish the current print before changing setup.": "Завершите текущую печать, прежде чем менять настройку.",
+  "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "Демо на пустом столе: голова проходит восстановление. Ничего не нагревается, не экструдирует и не печатает.",
+  "Open demo": "Открыть демо",
+  "Run demo": "Запустить демо",
 }

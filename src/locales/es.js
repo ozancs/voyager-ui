@@ -2215,4 +2215,11 @@ export default {
  "Test print": "Impresión de prueba",
  "After your start code, before the model": "Después de tu código de inicio, antes del modelo",
  "After the last layer, before your end code": "Después de la última capa, antes de tu código final",
+  "Demo": "Demo",
+  "Not a real print": "No es una impresión real",
+  "Finish the Phoenix demo before changing setup.": "Termina la demo de Phoenix antes de cambiar la configuración.",
+  "Finish the current print before changing setup.": "Termina la impresión actual antes de cambiar la configuración.",
+  "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "Demo con la cama vacía: el cabezal recorre una recuperación. Nada se calienta, extruye ni imprime.",
+  "Open demo": "Abrir demo",
+  "Run demo": "Ejecutar demo",
 }

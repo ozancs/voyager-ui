@@ -619,6 +619,122 @@ function pushStatus(o) {
   for (const [k, v] of Object.entries(o)) Object.assign(status[k], v);
   wsAll({ jsonrpc: '2.0', method: 'notify_status_update', params: [o, 1] });
 }
+// PHOENIX_DEMO in the demo: the same dialog lines and phases as the module (docs/DEMO.md), no real motion
+function phoenixDemoCmd(S) {
+  const p = status.phoenix;
+  const fail = (message) => {
+    throw { code: 400, message };
+  };
+  if (!p.demo) fail('Unknown command');
+  const d = () => p.demo;
+  const set = (o) => pushStatus({ phoenix: { demo: { ...d(), ...o }, revision: p.revision + 1 } });
+  const prompt = (...lines) =>
+    emitLines(
+      [
+        '// action:prompt_begin Phoenix demo - no real print',
+        ...lines.map((l) => '// action:prompt_' + l),
+        '// action:prompt_show',
+      ],
+      5,
+    );
+  const plan = { origin: [210, 165.0, 10], park: p.setup?.park || [30, 30] };
+  const show = () => {
+    const st = d().phase;
+    const L = [];
+    if (st === 'ready') {
+      L.push('text Remove all prints from the bed. This demo moves XYZ but never heats, extrudes or resumes a file.');
+      L.push(
+        `text Example interruption point: X=${plan.origin[0].toFixed(1)} Y=${plan.origin[1].toFixed(1)} Z=${plan.origin[2].toFixed(1)}`,
+      );
+      L.push(`text Saved park: X=${(+plan.park[0]).toFixed(1)} Y=${(+plan.park[1]).toFixed(1)}`);
+      L.push('button Bed and travel path are empty - start demo|_PHOENIX_DEMO_START BED_CLEAR=1 CONFIRM=1|primary');
+    } else if (st === 'interrupted') {
+      L.push('text Pretend power was lost here. The actual printer is still powered and its position is known.');
+      L.push(
+        `text Saved demo point: X=${plan.origin[0].toFixed(1)} Y=${plan.origin[1].toFixed(1)} Z=${plan.origin[2].toFixed(1)}`,
+      );
+      L.push('text Next: lift, home X/Y, park, simulate warm-up, signal with the fan, then return. Z is not homed.');
+      for (const [k, label] of [
+        ['position_ok', 'The nozzle is at the shown point; nothing moved'],
+        ['path_clear', 'The bed and parking/return path are clear'],
+      ]) {
+        const c = d().checks[k];
+        L.push(
+          `button ${c ? '[OK] ' : '[ ] '}${label}|_PHOENIX_DEMO_CHECK ITEM=${k} VALUE=${c ? 0 : 1}|${c ? 'success' : 'secondary'}`,
+        );
+      }
+      if (Object.values(d().checks).every(Boolean))
+        L.push('footer_button Simulate recovery|_PHOENIX_DEMO_RECOVER CONFIRM=1|primary');
+    } else if (st === 'complete') {
+      L.push('text Demo complete. Returned to the same XYZ point. No heat, extrusion or file resume was performed.');
+    } else if (st === 'blocked') L.push('text ' + (d().error || 'Exit the demo and check the printer.'));
+    L.push('footer_button Finish demo|_PHOENIX_DEMO_EXIT|secondary');
+    prompt(...L);
+  };
+  const progress = (phase, msg) => {
+    set({ phase, message: msg });
+    prompt('text ' + msg);
+  };
+  if (S === 'PHOENIX_DEMO') {
+    if (p.phase !== 'idle') fail('Demo requires an idle printer with no interrupted print waiting for recovery.');
+    if (d().phase === 'off')
+      set({ phase: 'ready', checks: { position_ok: false, path_clear: false }, error: null, can_start: true });
+    show();
+    return 'ok';
+  }
+  if (p.busy) fail('Wait for the current demo movement to finish. Emergency stop remains available.');
+  if (S === '_PHOENIX_DEMO_START BED_CLEAR=1 CONFIRM=1') {
+    if (d().phase !== 'ready') fail('Open PHOENIX_DEMO to start a new demonstration.');
+    p.busy = true;
+    progress('positioning', 'Moving to the example interruption point. Heaters remain off.');
+    return new Promise((res) =>
+      setTimeout(() => {
+        p.busy = false;
+        set({ phase: 'interrupted', plan, can_start: false });
+        show();
+        res('ok');
+      }, 3000),
+    );
+  }
+  let m;
+  if ((m = S.match(/^_PHOENIX_DEMO_CHECK ITEM=(\w+) VALUE=([01])$/))) {
+    if (d().phase !== 'interrupted') fail('Start the demo before confirming its recovery checks.');
+    const k = m[1].toLowerCase();
+    if (!(k in d().checks)) fail('Choose a check from the demo screen.');
+    set({ checks: { ...d().checks, [k]: m[2] === '1' } });
+    show();
+    return 'ok';
+  }
+  if (S === '_PHOENIX_DEMO_RECOVER CONFIRM=1') {
+    if (d().phase !== 'interrupted' || !Object.values(d().checks).every(Boolean))
+      fail('Complete the demo checks before simulating recovery.');
+    p.busy = true;
+    const steps = [
+      ['lifting', 'Lifting for clearance before homing X/Y.'],
+      ['homing', 'Homing X and Y. Z stays at the clearance height.'],
+      ['parking', `Moving to park X=${(+plan.park[0]).toFixed(1)} Y=${(+plan.park[1]).toFixed(1)}.`],
+      ['simulating_heat', 'Simulating warm-up. No heaters are being turned on.'],
+      ['signaling', 'Simulated warm-up complete. Part fan: three full-power signals, two seconds each.'],
+      ['returning', 'Returning to the saved interruption point. No extrusion or real print will start.'],
+    ];
+    return new Promise((res) => {
+      steps.forEach(([ph, msg], i) => setTimeout(() => progress(ph, msg), i * 1800));
+      setTimeout(() => {
+        p.busy = false;
+        set({ phase: 'complete', message: 'Demo complete. Returned to the same XYZ; printing would resume here.' });
+        show();
+        res('ok');
+      }, steps.length * 1800);
+    });
+  }
+  if (S === '_PHOENIX_DEMO_EXIT') {
+    pushStatus({ phoenix: { demo: { ...d(), phase: 'off', checks: undefined, plan: undefined, can_start: false } } });
+    emitLines(['// action:prompt_end']);
+    return 'ok';
+  }
+  fail('Unknown command');
+}
+
 // the Phoenix module's state machine, roughly: errors as RPC errors like Klipper, phases with delays
 function phoenixCmd(S) {
   const p = status.phoenix;
@@ -679,6 +795,8 @@ function phoenixCmd(S) {
     }, 7000);
     return 'ok';
   }
+  // empty-bed demo (backend 0.3): the module's own prompt dialog drives it; movements take a few seconds
+  if (/^_?PHOENIX_DEMO/.test(S)) return phoenixDemoCmd(S);
   // setup (backend 0.2): idle only, nothing moves
   const su = p.setup;
   const fixSteps = () =>
@@ -2402,7 +2520,7 @@ gcodeScript = function (sc) {
       }, 24000),
     );
   }
-  if (S.startsWith('PHOENIX_') && status.phoenix) return phoenixCmd(S);
+  if (/^_?PHOENIX_/.test(S) && status.phoenix) return phoenixCmd(S);
   if ((m = S.match(/^ACTIVATE_EXTRUDER EXTRUDER=(\S+)/)) && status[m[1].toLowerCase()]) {
     pushStatus({ toolhead: { extruder: m[1].toLowerCase() } });
     emitLines([`// Activating extruder ${m[1].toLowerCase()}`]);

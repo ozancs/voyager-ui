@@ -115,7 +115,7 @@ const MODULES = {
   phoenix: {
     c: PhoenixCard,
     n: 'Phoenix (print recovery)',
-    min: [2, 3],
+    min: [1, 3],
     def: [2, 4],
     scale: true,
     need: () => hasPhoenix.value,

@@ -6,8 +6,17 @@
 import { ref, computed, watch } from 'vue';
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
-import { state, gcode } from '../store';
-import { ph, phoenixKnown, setupProfileCommand, SETUP_RECHECK, SETUP_SLICER } from '../phoenix';
+import { state, gcode, isPrinting } from '../store';
+import {
+  ph,
+  phoenixKnown,
+  setupProfileCommand,
+  SETUP_RECHECK,
+  SETUP_SLICER,
+  canDemo,
+  demoOn,
+  openDemo,
+} from '../phoenix';
 import { t } from '../i18n';
 
 const p = ph;
@@ -29,6 +38,13 @@ async function send(cmd) {
     sending.value = false;
   }
 }
+
+// why changes are locked right now, in the user's terms
+const lockReason = computed(() => {
+  if (demoOn.value) return t('Finish the Phoenix demo before changing setup.');
+  if (isPrinting.value) return t('Finish the current print before changing setup.');
+  return t('Finish the current print or close the interrupted-print recovery before changing setup.');
+});
 
 const STEP = {
   module: 'Phoenix module',
@@ -66,6 +82,9 @@ async function copy(txt) {
 }
 
 // ---- park point ----
+// a saved park point stays folded behind Change until the user wants to move it
+const editing = ref(false);
+const showPark = computed(() => !su.value?.profile_ready || editing.value);
 const mode = ref('current');
 const fx = ref(''),
   fy = ref(''),
@@ -99,6 +118,7 @@ async function saveProfile() {
   if (!cmd.value || !editable.value) return;
   await send(cmd.value);
   reviewed.value = false;
+  editing.value = false;
 }
 const n1 = (v) => (v == null || isNaN(v) ? '--' : Number(v).toFixed(1));
 </script>
@@ -120,12 +140,21 @@ const n1 = (v) => (v == null || isNaN(v) ? '--' : Number(v).toFixed(1));
           }}</span
         >
         <span class="grow"></span>
+        <button
+          v-if="p.demo"
+          class="btn"
+          :disabled="!online || sending || (!demoOn && !canDemo(p))"
+          :title="t('Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.')"
+          @click="openDemo"
+        >
+          <Icon name="play" :size="15" />{{ demoOn ? t('Open demo') : t('Run demo') }}
+        </button>
         <button class="btn" :disabled="!online || sending" @click="send(SETUP_RECHECK)">
           <Icon name="refresh" :size="15" />{{ t('Check again') }}
         </button>
       </div>
       <div v-if="!su.can_edit" class="note">
-        <span>{{ t('Finish the current print or close the interrupted-print recovery before changing setup.') }}</span>
+        <span>{{ lockReason }}</span>
       </div>
 
       <ol class="steps">
@@ -170,58 +199,72 @@ const n1 = (v) => (v == null || isNaN(v) ? '--' : Number(v).toFixed(1));
             )
           }}
         </p>
-        <span v-if="su.profile_ready" class="sm"
-          >{{ t('Saved') }}: <b class="mono">X {{ n1(su.park?.[0]) }} · Y {{ n1(su.park?.[1]) }}</b> ·
-          {{ t('clearance {n} mm', { n: n1(su.clearance) }) }}</span
-        >
-        <span v-if="su.profile_error" class="note warn esc">{{ su.profile_error }}</span>
-        <div class="seg" role="tablist">
-          <button :class="{ on: mode === 'current' }" @click="mode = 'current'">{{ t('Use the current XY') }}</button>
-          <button :class="{ on: mode === 'typed' }" @click="mode = 'typed'">{{ t('Type the coordinates') }}</button>
-        </div>
-        <template v-if="mode === 'current'">
-          <p class="mu sm">
-            {{
-              t(
-                'Move the toolhead to the park point with the normal controls on an empty bed, then save. X and Y must be homed.',
-              )
-            }}
-          </p>
+        <div v-if="su.profile_ready" class="row saved">
           <span class="sm"
-            >{{ t('Now') }}:
-            <b class="mono">X {{ n1(su.current_position?.[0]) }} · Y {{ n1(su.current_position?.[1]) }}</b></span
+            >{{ t('Saved') }}: <b class="mono">X {{ n1(su.park?.[0]) }} · Y {{ n1(su.park?.[1]) }}</b> ·
+            {{ t('clearance {n} mm', { n: n1(su.clearance) }) }}</span
           >
-          <span v-if="!su.can_use_current && su.can_edit" class="note warn">{{ t('Home X and Y first.') }}</span>
-        </template>
-        <div v-else class="row nums">
-          <label
-            ><span class="lbl">X</span
-            ><input v-model="fx" class="input mono" type="number" step="0.1" :aria-label="t('Park X')"
-          /></label>
-          <label
-            ><span class="lbl">Y</span
-            ><input v-model="fy" class="input mono" type="number" step="0.1" :aria-label="t('Park Y')"
-          /></label>
+          <button v-if="!editing" class="btn sm" :disabled="!editable" @click="editing = true">
+            <Icon name="pencil" :size="14" />{{ t('Change') }}
+          </button>
+          <button v-else class="btn clear sm" @click="editing = false">{{ t('Cancel') }}</button>
         </div>
-        <label class="row nums"
-          ><span class="lbl">{{ t('Clearance (mm)') }}</span
-          ><input v-model="fc" class="input mono" type="number" step="0.5" min="0.5" :aria-label="t('Clearance (mm)')"
-        /></label>
-        <label class="ck"
-          ><input v-model="reviewed" type="checkbox" class="cb" :disabled="!editable" /><span>{{
-            t('The bed is empty and I checked the way to this point is clear')
-          }}</span></label
-        >
-        <button
-          class="btn acc"
-          style="align-self: flex-start"
-          :disabled="!editable || !cmd || (mode === 'current' && !su.can_use_current)"
-          @click="saveProfile"
-        >
-          <Icon name="save" :size="15" />{{
-            mode === 'current' ? t('Use this XY as the park point') : t('Save park point')
-          }}
-        </button>
+        <span v-if="su.profile_error" class="note warn esc">{{ su.profile_error }}</span>
+        <template v-if="showPark">
+          <div class="seg" role="tablist">
+            <button :class="{ on: mode === 'current' }" @click="mode = 'current'">{{ t('Use the current XY') }}</button>
+            <button :class="{ on: mode === 'typed' }" @click="mode = 'typed'">{{ t('Type the coordinates') }}</button>
+          </div>
+          <template v-if="mode === 'current'">
+            <p class="mu sm">
+              {{
+                t(
+                  'Move the toolhead to the park point with the normal controls on an empty bed, then save. X and Y must be homed.',
+                )
+              }}
+            </p>
+            <span class="sm"
+              >{{ t('Now') }}:
+              <b class="mono">X {{ n1(su.current_position?.[0]) }} · Y {{ n1(su.current_position?.[1]) }}</b></span
+            >
+            <span v-if="!su.can_use_current && su.can_edit" class="note warn">{{ t('Home X and Y first.') }}</span>
+          </template>
+          <div v-else class="row nums">
+            <label
+              ><span class="lbl">X</span
+              ><input v-model="fx" class="input mono" type="number" step="0.1" :aria-label="t('Park X')"
+            /></label>
+            <label
+              ><span class="lbl">Y</span
+              ><input v-model="fy" class="input mono" type="number" step="0.1" :aria-label="t('Park Y')"
+            /></label>
+          </div>
+          <label class="row nums"
+            ><span class="lbl">{{ t('Clearance (mm)') }}</span
+            ><input
+              v-model="fc"
+              class="input mono"
+              type="number"
+              step="0.5"
+              min="0.5"
+              :aria-label="t('Clearance (mm)')"
+          /></label>
+          <label class="ck"
+            ><input v-model="reviewed" type="checkbox" class="cb" :disabled="!editable" /><span>{{
+              t('The bed is empty and I checked the way to this point is clear')
+            }}</span></label
+          >
+          <button
+            class="btn acc"
+            style="align-self: flex-start"
+            :disabled="!editable || !cmd || (mode === 'current' && !su.can_use_current)"
+            @click="saveProfile"
+          >
+            <Icon name="save" :size="15" />{{
+              mode === 'current' ? t('Use this XY as the park point') : t('Save park point')
+            }}
+          </button>
+        </template>
       </section>
     </template>
     <template #foot>
@@ -333,6 +376,11 @@ h3 {
 }
 .seg {
   align-self: flex-start;
+}
+.saved {
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 .nums {
   gap: 10px;

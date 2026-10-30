@@ -2215,4 +2215,11 @@ export default {
  "Test print": "测试打印",
  "After your start code, before the model": "在开始代码之后、模型之前",
  "After the last layer, before your end code": "在最后一层之后、结束代码之前",
+  "Demo": "演示",
+  "Not a real print": "不是真实打印",
+  "Finish the Phoenix demo before changing setup.": "更改设置前请先结束 Phoenix 演示。",
+  "Finish the current print before changing setup.": "更改设置前请先完成当前打印。",
+  "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "空床演示：打印头会走一遍恢复流程。不会加热、挤出或打印。",
+  "Open demo": "打开演示",
+  "Run demo": "运行演示",
 }

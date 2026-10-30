@@ -2215,4 +2215,11 @@ export default {
  "Test print": "Test baskısı",
  "After your start code, before the model": "Başlangıç kodundan sonra, modelden önce",
  "After the last layer, before your end code": "Son katmandan sonra, bitiş kodundan önce",
+  "Demo": "Demo",
+  "Not a real print": "Gerçek baskı değil",
+  "Finish the Phoenix demo before changing setup.": "Kurulumu değiştirmeden önce Phoenix demosunu bitirin.",
+  "Finish the current print before changing setup.": "Kurulumu değiştirmeden önce mevcut baskıyı bitirin.",
+  "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "Boş tabla demosu: kafa bir kurtarmayı adım adım gezer. Hiçbir şey ısınmaz, ekstrüzyon ya da baskı yapılmaz.",
+  "Open demo": "Demoyu aç",
+  "Run demo": "Demoyu çalıştır",
 }
