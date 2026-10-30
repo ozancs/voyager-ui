@@ -172,10 +172,23 @@ function runConfirmed() {
   confirm.value = null;
   Promise.resolve(p.run()).catch((e) => toast(e.message, 'error'));
 }
+
+// A dialog (or Ctrl+K, a probe or bed screw dialog) dims the page and catches every click outside itself, the top
+// bar included. E-STOP must still work then: while any overlay is open the bar comes above it, dimmed by its own
+// shade, with only E-STOP lit and clickable.
+const ovOpen = ref(false);
+let ovObs;
+onMounted(() => {
+  const check = () => (ovOpen.value = !!document.querySelector('.ov'));
+  ovObs = new MutationObserver(check);
+  ovObs.observe(document.body, { childList: true, subtree: true });
+  check();
+});
+onBeforeUnmount(() => ovObs?.disconnect());
 </script>
 
 <template>
-  <header class="tb" :class="{ pilled: active && state.settings.printBar === 'top' }">
+  <header class="tb" :class="{ pilled: active && state.settings.printBar === 'top', ovup: ovOpen }">
     <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')">
       <Icon name="menu" :size="22" />
     </button>
@@ -843,6 +856,21 @@ function runConfirmed() {
 .estop {
   letter-spacing: 0.06em;
   font-size: 15px;
+}
+.tb.ovup {
+  position: relative;
+  z-index: 300; /* above every overlay (dialogs 100-200) */
+}
+.tb.ovup::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* the same shade as the dialog backdrop */
+  z-index: 1;
+}
+.tb.ovup .estop {
+  position: relative;
+  z-index: 2;
 }
 .menu {
   display: none;

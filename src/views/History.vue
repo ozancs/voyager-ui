@@ -361,7 +361,7 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
               </th>
               <th style="width: 56px"></th>
               <th class="s" @click="sortBy('filename')">{{ t('Filename') }}{{ arrow('filename') }}</th>
-              <th></th>
+              <th>{{ t('Status') }}</th>
               <th class="s" @click="sortBy('start_time')">{{ t('Start time') }}{{ arrow('start_time') }}</th>
               <th class="s" @click="sortBy('estimated')">{{ t('Estimated') }}{{ arrow('estimated') }}</th>
               <th class="s" @click="sortBy('print_duration')">{{ t('Print time') }}{{ arrow('print_duration') }}</th>

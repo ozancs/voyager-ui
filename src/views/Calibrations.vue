@@ -80,6 +80,11 @@ function applyShaper(r) {
 <template>
   <div class="cal">
     <CalibPath />
+    <!-- under the guided calibrations: every calibration command the printer has, by kind -->
+    <div v-if="groups.length" class="cmdh">
+      <h2>{{ t('Calibration commands') }}</h2>
+      <span class="mu">{{ t('Every calibration command on this printer, with its parameters.') }}</span>
+    </div>
     <div v-if="groups.length" class="seg tabs" role="tablist">
       <button
         v-for="g in groups"
@@ -133,7 +138,7 @@ function applyShaper(r) {
                 v-else
                 v-model="v[p.k]"
                 class="input mono"
-                :placeholder="p.def || t('default')"
+                :placeholder="p.def || t('optional')"
                 spellcheck="false"
                 :aria-label="p.k"
               />
@@ -215,6 +220,20 @@ function applyShaper(r) {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+.cmdh {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 10px 2px -4px;
+}
+.cmdh h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.cmdh .mu {
+  font-size: 13px;
 }
 .tabs {
   flex-wrap: wrap;

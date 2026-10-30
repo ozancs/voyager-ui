@@ -294,4 +294,28 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
     background: rgba(0, 0, 0, 0.5);
   }
 }
+/* phone: More at the bottom right opens the menu as a sheet from the bottom, where the thumb already is, sitting
+   on the bottom bar so More closes it again */
+@media (max-width: 720px) {
+  .sn.float {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: calc(61px + env(safe-area-inset-bottom));
+    width: auto;
+    max-height: 72vh;
+    border-right: 0;
+    border-top: 1px solid var(--bd);
+    border-radius: 18px 18px 0 0;
+    transform: translateY(calc(100% + 70px));
+    padding-bottom: 10px;
+  }
+  .sn.float.open {
+    transform: none;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+  }
+  .scrim {
+    bottom: calc(61px + env(safe-area-inset-bottom));
+  }
+}
 </style>

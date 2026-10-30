@@ -2084,4 +2084,8 @@ export default {
  "Side by side": "Поруч",
  "2 × 2": "2 × 2",
  "One at a time": "По черзі",
+ "Guided calibration": "Покрокове калібрування",
+ "Calibration commands": "Команди калібрування",
+ "Every calibration command on this printer, with its parameters.": "Усі команди калібрування цього принтера з їхніми параметрами.",
+ "optional": "необов'язково",
 }

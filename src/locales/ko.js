@@ -2084,4 +2084,8 @@ export default {
  "Side by side": "나란히",
  "2 × 2": "2 × 2",
  "One at a time": "하나씩",
+ "Guided calibration": "가이드 캘리브레이션",
+ "Calibration commands": "캘리브레이션 명령",
+ "Every calibration command on this printer, with its parameters.": "이 프린터의 모든 캘리브레이션 명령과 매개변수.",
+ "optional": "선택",
 }

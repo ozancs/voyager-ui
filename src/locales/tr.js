@@ -2084,4 +2084,8 @@ export default {
  "Side by side": "Yan yana",
  "2 × 2": "2 × 2",
  "One at a time": "Sırayla",
+ "Guided calibration": "Rehberli kalibrasyon",
+ "Calibration commands": "Kalibrasyon komutları",
+ "Every calibration command on this printer, with its parameters.": "Bu yazıcıdaki tüm kalibrasyon komutları ve parametreleri.",
+ "optional": "isteğe bağlı",
 }

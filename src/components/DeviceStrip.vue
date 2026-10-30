@@ -666,6 +666,14 @@ function sensorExtra(id) {
   height: 26px;
   background: var(--s1);
 }
+/* Customize: the edit buttons sit at the top right, so the name gets the rest of the header to itself (the auto
+   badge, the heat-up time and the switches step aside) */
+.dc.edit .hd > :not(.nm) {
+  display: none;
+}
+.dc.edit .hd {
+  padding-right: 54px;
+}
 .eta {
   margin-left: auto;
   flex-shrink: 0;

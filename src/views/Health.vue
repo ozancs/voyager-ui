@@ -793,4 +793,8 @@ function measureAgain(h) {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+/* explanations under a card stay a comfortable line length on wide screens */
+.card > p.mu {
+  max-width: 85ch;
+}
 </style>

@@ -5,6 +5,7 @@
 import { ref, computed } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
+import Popover from './Popover.vue';
 import {
   state,
   S,
@@ -22,6 +23,9 @@ import { go } from '../router';
 import { t } from '../i18n';
 const emit = defineEmits(['exclude']);
 const askCancel = ref(false);
+// phone: one row with Pause and a menu for the rest, so Cancel is never a thumb's width from Pause
+const moreOpen = ref(false);
+const moreBtn = ref(null);
 const paused = computed(() => printState.value === 'paused');
 const thumb = computed(() => {
   const m = state.currentMeta;
@@ -57,6 +61,10 @@ const fileName = computed(() => (S('print_stats').filename || '').split('/').pop
       </div>
       <div class="bar state" :style="{ height: '6px' }">
         <div :style="{ width: progress * 100 + '%' }"></div>
+      </div>
+      <div class="mmeta mono">
+        {{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }} ·
+        {{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}
       </div>
     </div>
     <div class="row mono meta">
@@ -105,6 +113,41 @@ const fileName = computed(() => (S('print_stats').filename || '').split('/').pop
         <Icon name="queue" :size="16" /><span class="mono cnt">{{ state.queue.jobs.length }}</span>
       </button>
     </div>
+    <button
+      ref="moreBtn"
+      class="btn pbtn pmore"
+      :aria-label="t('More')"
+      :aria-expanded="moreOpen"
+      @click="moreOpen = !moreOpen"
+    >
+      <Icon name="menu" :size="18" :stroke="2.4" />
+    </button>
+    <Popover v-if="moreOpen" :anchor="moreBtn" :width="250" @close="moreOpen = false">
+      <div class="pm">
+        <button class="btn clear dgt" @click="((moreOpen = false), (askCancel = true))">
+          <Icon name="sq" :size="16" :stroke="2.4" />{{ t('Cancel print') }}
+        </button>
+        <button class="btn clear" :disabled="!eo.objects?.length" @click="((moreOpen = false), emit('exclude'))">
+          <Icon name="excl" :size="16" :stroke="2.4" />{{ t('Exclude object') }}
+        </button>
+        <button
+          v-if="hasCmd('SET_PAUSE_NEXT_LAYER')"
+          class="btn clear"
+          @click="
+            moreOpen = false;
+            gcode(pauseNext ? 'SET_PAUSE_NEXT_LAYER ENABLE=0' : 'SET_PAUSE_NEXT_LAYER ENABLE=1');
+          "
+        >
+          <Icon name="layers" :size="16" />{{ pauseNext ? t('Cancel pause at next layer') : t('Pause at next layer') }}
+        </button>
+        <button v-if="state.queue.jobs?.length" class="btn clear" @click="((moreOpen = false), go('files'))">
+          <Icon name="queue" :size="16" />{{ t('{n} jobs queued', { n: state.queue.jobs.length }) }}
+        </button>
+        <button class="btn clear" @click="((moreOpen = false), (state.settings.printBar = 'top'))">
+          <Icon name="up" :size="16" />{{ t('Move the print up into the top bar') }}
+        </button>
+      </div>
+    </Popover>
     <button
       class="side"
       :aria-label="t('Move the print up into the top bar')"
@@ -260,32 +303,57 @@ const fileName = computed(() => (S('print_stats').filename || '').split('/').pop
     padding: 0;
   }
 }
+.mmeta,
+.pmore {
+  display: none;
+}
+.pm {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pm .btn {
+  justify-content: flex-start;
+  height: 44px;
+  color: var(--tx);
+}
+.pm .btn.dgt {
+  color: var(--dg);
+}
+/* phone: one row, Pause and a menu with Cancel and the rest, buttons a thumb wide */
 @media (max-width: 720px) {
   .pbar {
     height: auto;
-    flex-wrap: wrap;
     padding: 8px 10px;
-    row-gap: 8px;
+    gap: 10px;
+  }
+  .pth,
+  .meta,
+  .side,
+  .acts .pbtn:not(:first-child) {
+    display: none;
   }
   .info {
-    flex-basis: 0;
+    min-width: 0;
+    gap: 5px;
   }
-  .meta {
-    order: 3;
-    flex: 1;
+  .mmeta {
+    display: block;
     font-size: 11px;
+    color: var(--mu);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .acts {
-    order: 4;
+  .pbtn,
+  .pmore {
+    width: 44px;
+    height: 44px;
   }
-  .side {
-    order: 5;
-    margin-left: auto;
-    height: 36px;
-  }
-  .pbtn {
-    width: 36px;
-    height: 36px;
+  .pmore {
+    display: inline-flex;
+    padding: 0;
+    flex-shrink: 0;
   }
 }
 </style>

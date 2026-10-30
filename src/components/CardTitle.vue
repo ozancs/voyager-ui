@@ -23,7 +23,9 @@ const col = computed(() => (own.value.icon ? own.value.color : props.color) || n
   display: flex;
   align-items: center;
   gap: 7px;
-  min-width: 0;
+  /* the header buttons wrap before the title is cut short; only a title longer than 60% of the header is */
+  flex-shrink: 0;
+  max-width: 60%;
 }
 .ctt > span {
   overflow: hidden;

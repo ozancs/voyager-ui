@@ -4,7 +4,7 @@
 // it to fit (fit.js) instead of scrolling, so it can go down to a small minimum size. Customize mode: drag, resize (also from the bottom-left
 // corner), hide, colour and add cards, a separate layout while printing, undo and saved backups. On narrow
 // screens the cards stack in one column with their own order (mobileOrder).
-import { ref, computed, onMounted, onBeforeUnmount, watch, provide } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import { GridLayout, GridItem } from 'grid-layout-plus';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
@@ -298,6 +298,10 @@ function clean(l) {
   return out;
 }
 const layout = ref(applyCollapsed(clean(srcLayout())));
+// the print card on the grid already shows the running print, so the print bar under the top bar steps aside here
+// (App.vue); in the one-column phone layout the card is far down, so the bar stays
+watchEffect(() => (state.dashPrintCard = wide.value && layout.value.some((x) => x.i === 'print')));
+onBeforeUnmount(() => (state.dashPrintCard = false));
 // which cards are on the dashboard now (Machine Limits leaves speed and flow to the Print controls card)
 provide('dashModules', MODULES); // the tabs card shows other cards by id
 provide(

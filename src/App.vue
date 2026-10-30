@@ -187,7 +187,9 @@ onMounted(() => {
   if (main) ro.observe(main);
 });
 onBeforeUnmount(() => ro?.disconnect());
-watch([printActive, showFavBar, () => state.settings.printBar], () => nextTick(measureChrome));
+watch([printActive, showFavBar, () => state.settings.printBar, () => state.dashPrintCard], () =>
+  nextTick(measureChrome),
+);
 const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessage) : null));
 </script>
 
@@ -196,7 +198,10 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     <TopBar @exclude="state.showExclude = true" @menu="toggleNav" />
     <SettingsDialog v-if="state.settingsOpen" />
     <PrintersDialog v-if="state.printersOpen" @close="state.printersOpen = false" />
-    <PrintBar v-if="printActive && state.settings.printBar !== 'top'" @exclude="state.showExclude = true" />
+    <PrintBar
+      v-if="printActive && state.settings.printBar !== 'top' && !(route.name === 'dashboard' && state.dashPrintCard)"
+      @exclude="state.showExclude = true"
+    />
     <FavoritesBar v-if="showFavBar" />
     <div class="body">
       <SideNav
@@ -288,7 +293,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     <Tooltip />
     <FloatingCam v-if="state.pip" />
     <LockScreen v-if="state.locked" />
-    <div class="toasts">
+    <div class="toasts" role="status" aria-live="polite">
       <TransitionGroup name="tst">
         <div v-for="ts in state.toasts" :key="ts.id" class="toast" :class="ts.kind">
           <Icon v-if="ts.kind === 'error' || ts.kind === 'warn'" name="warn" :size="18" class="ti" :class="ts.kind" />

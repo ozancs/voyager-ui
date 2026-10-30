@@ -347,7 +347,7 @@ const shortName = (n) => n.replace(/\.png$/i, '');
               <input
                 v-model="vals[k]"
                 class="input mono"
-                :placeholder="def || t('default')"
+                :placeholder="def || t('optional')"
                 spellcheck="false"
                 :aria-label="k"
               /><span class="mu sm">{{ hint }}</span>

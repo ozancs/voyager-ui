@@ -473,14 +473,14 @@ onBeforeUnmount(() => ptrs.clear());
   width: 32px;
   text-align: right;
   transform: translateY(-50%);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--mu2);
 }
 .xl {
   position: absolute;
   bottom: -14px;
   transform: translateX(-50%);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--mu2);
   white-space: nowrap;
 }

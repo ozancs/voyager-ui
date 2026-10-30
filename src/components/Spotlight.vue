@@ -12,6 +12,7 @@ import { flipPower } from '../power';
 import { t } from '../i18n';
 import { setTablet } from '../tablet';
 import { macroDesc } from '../macros';
+import { pathSteps } from '../calibPath';
 
 const q = ref('');
 const idx = ref(0);
@@ -194,6 +195,19 @@ const smart = computed(() => {
   return raw ? [...r, raw] : r;
 });
 
+const calibSteps = computed(() =>
+  pathSteps({
+    commands: state.commands,
+    settings: Object.fromEntries(
+      [
+        ...Object.keys(S('configfile').settings || {}),
+        ...Object.keys(S('configfile').config || {}),
+        ...(state.objects || []),
+      ].map((k) => [k.toLowerCase(), {}]),
+    ),
+    heaters: S('heaters').available_heaters || [],
+  }),
+);
 const macroDef = (m) =>
   cfgIndex.items.find((c) => c.kind === 'section' && c.section.toLowerCase() === 'gcode_macro ' + m.toLowerCase());
 function openCfg(file, line) {
@@ -223,6 +237,24 @@ const results = computed(() => {
         { ...a, t: t(a.t), s: t(a.s), dest: t(a.dest), cat: t('Action') },
         a.t + ' ' + t(a.t) + ' ' + a.s + ' ' + t(a.s),
         10,
+      );
+  // the guided calibrations, ahead of the raw commands with the same name ("pid" finds Hotend PID first)
+  if (!isPrinting.value)
+    for (const st of calibSteps.value)
+      add(
+        {
+          t: t(st.name),
+          s: st.cmd || st.kind,
+          icon: 'sparkle',
+          cat: t('Guided calibration'),
+          dest: t('Calibrations'),
+          run: () => {
+            state.calibOpen = st.key;
+            go('calibrations');
+          },
+        },
+        st.name + ' ' + t(st.name) + ' ' + (st.cmd || '') + ' ' + st.kind + ' calibration calibrate',
+        14,
       );
   for (const [id, l, kw] of SETTINGS)
     add(

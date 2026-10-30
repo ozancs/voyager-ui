@@ -2084,4 +2084,8 @@ export default {
  "Side by side": "并排",
  "2 × 2": "2 × 2",
  "One at a time": "轮流",
+ "Guided calibration": "引导校准",
+ "Calibration commands": "校准命令",
+ "Every calibration command on this printer, with its parameters.": "此打印机的所有校准命令及其参数。",
+ "optional": "可选",
 }

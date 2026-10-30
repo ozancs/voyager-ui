@@ -2079,5 +2079,9 @@
 "Single",
 "Side by side",
 "2 × 2",
-"One at a time"
+"One at a time",
+"Guided calibration",
+"Calibration commands",
+"Every calibration command on this printer, with its parameters.",
+"optional"
 ]

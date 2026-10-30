@@ -2084,4 +2084,8 @@ export default {
  "Side by side": "横並び",
  "2 × 2": "2 × 2",
  "One at a time": "1台ずつ",
+ "Guided calibration": "ガイド付きキャリブレーション",
+ "Calibration commands": "キャリブレーションコマンド",
+ "Every calibration command on this printer, with its parameters.": "このプリンターのすべてのキャリブレーションコマンドとパラメーター。",
+ "optional": "任意",
 }

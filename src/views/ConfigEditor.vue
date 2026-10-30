@@ -1567,6 +1567,39 @@ function openSearch() {
     display: none;
   }
 }
+/* phone: the code first and as tall as the screen allows, the actions in one row that scrolls sideways, the file
+   list under the editor */
+@media (max-width: 720px) {
+  .ce {
+    gap: 12px;
+  }
+  .main-col {
+    order: 1;
+  }
+  .tree {
+    order: 2;
+  }
+  .ol {
+    order: 3;
+  }
+  .tbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tbar::-webkit-scrollbar {
+    display: none;
+  }
+  .tbar > * {
+    flex-shrink: 0;
+  }
+  .tbar .grow {
+    display: none;
+  }
+  .cm-host {
+    height: max(360px, calc(100dvh - 330px));
+  }
+}
 .disk {
   display: flex;
   align-items: center;

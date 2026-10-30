@@ -2084,4 +2084,8 @@ export default {
  "Side by side": "Obok siebie",
  "2 × 2": "2 × 2",
  "One at a time": "Po kolei",
+ "Guided calibration": "Kalibracja z przewodnikiem",
+ "Calibration commands": "Polecenia kalibracji",
+ "Every calibration command on this printer, with its parameters.": "Wszystkie polecenia kalibracji tej drukarki wraz z parametrami.",
+ "optional": "opcjonalnie",
 }

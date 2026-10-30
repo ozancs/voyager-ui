@@ -449,7 +449,8 @@ const viewLog = ref(null);
 /* an available update is the one place on this page that should catch the eye */
 .btn.upb {
   background: color-mix(in srgb, var(--ac) 18%, var(--s2));
-  color: var(--ac);
+  /* the accent pulled toward the text colour: still reads as the accent, with enough contrast on its tint */
+  color: color-mix(in srgb, var(--ac) 55%, var(--tx));
 }
 .btn.upb:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ac) 28%, var(--s2));
