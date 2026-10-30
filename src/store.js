@@ -828,9 +828,10 @@ let dismissed = new Set();
 try {
   dismissed = new Set(JSON.parse(localStorage.getItem(perPrinterKey(APP + '-dismissed')) || '[]'));
 } catch {}
-export function notify(key, msg, kind = 'warn') {
+// action: { label, run } shown as a button on the notification (it opens something, it never runs G-code)
+export function notify(key, msg, kind = 'warn', action = null) {
   if (dismissed.has(key) || state.notifications.some((n) => n.id === key)) return;
-  state.notifications.unshift({ id: key, msg, kind, time: Date.now() / 1000 });
+  state.notifications.unshift({ id: key, msg, kind, time: Date.now() / 1000, action });
 }
 export function unnotify(prefix) {
   state.notifications = state.notifications.filter((n) => !String(n.id).startsWith(prefix));

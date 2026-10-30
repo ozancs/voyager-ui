@@ -1,5 +1,6 @@
 // Browser-side fake Moonraker for the live demo (npm run build:demo). Replaces WebSocket and fetch so the UI runs
 // without a printer. Everything is in memory: settings reset on reload, g-code is only echoed to the console card.
+import { PHOENIX_FIXTURES } from './phoenixFixtures';
 import { currentHost, savePrinters, perPrinterKey } from '../printers';
 import { api } from '../api/moonraker';
 import demoMp4 from './timelapse.mp4?url';
@@ -617,6 +618,82 @@ function emitLines(lines, gap = 40) {
 function pushStatus(o) {
   for (const [k, v] of Object.entries(o)) Object.assign(status[k], v);
   wsAll({ jsonrpc: '2.0', method: 'notify_status_update', params: [o, 1] });
+}
+// the Phoenix module's state machine, roughly: errors as RPC errors like Klipper, phases with delays
+function phoenixCmd(S) {
+  const p = status.phoenix;
+  const fail = (message) => {
+    throw { code: 400, message };
+  };
+  if (p.api_version !== 1) fail('Unknown command');
+  let m;
+  const checksOff = Object.fromEntries(Object.keys(p.checks).map((k) => [k, false]));
+  if ((m = S.match(/^PHOENIX_SELECT INDEX=(\d+)$/))) {
+    if (p.phase !== 'detected') fail('PHOENIX_SELECT is only available while an interrupted print is detected');
+    if (+m[1] >= p.checkpoints.length) fail('No such checkpoint');
+    pushStatus({ phoenix: { selected_index: +m[1], checks: checksOff, revision: p.revision + 1 } });
+    return 'ok';
+  }
+  if ((m = S.match(/^PHOENIX_CHECK ITEM=(\w+) VALUE=([01])$/))) {
+    if (p.phase !== 'detected') fail('Checks can only change while an interrupted print is detected');
+    const k = m[1].toLowerCase();
+    if (!(k in p.checks)) fail('Unknown check');
+    pushStatus({ phoenix: { checks: { ...p.checks, [k]: m[2] === '1' }, revision: p.revision + 1 } });
+    return 'ok';
+  }
+  if (S === 'PHOENIX_PREPARE') {
+    if (p.phase !== 'detected') fail('Nothing to prepare');
+    if (!p.profile_ready) fail('Recovery profile is not ready: review park_x, park_y and clearance in phoenix.cfg');
+    if (!Object.values(p.checks).every(Boolean)) fail('All checks must be confirmed first');
+    const [x, y, z] = p.assumed_position;
+    const sel = p.checkpoints[p.selected_index].machine_position;
+    pushStatus({ phoenix: { phase: 'preparing', busy: true } });
+    emitLines(['// Phoenix: lifting and parking']);
+    setTimeout(() => {
+      pushStatus({
+        phoenix: {
+          phase: 'prepared',
+          busy: false,
+          plan: {
+            assumed: [x, y, z],
+            lift: [x, y, z + 5],
+            park: [10, 10, z + 5],
+            above_target: [sel[0], sel[1], z + 5],
+            target: sel,
+          },
+        },
+      });
+      emitLines(['// Phoenix: parked. Clean the nozzle, then resume.']);
+    }, 3000);
+    return new Promise((res) => setTimeout(() => res('ok'), 3000));
+  }
+  if ((m = S.match(/^PHOENIX_RESUME/))) {
+    if (p.phase !== 'prepared') fail('Recovery is not prepared');
+    if (!/CLEANED=1/.test(S) || !/PATH_CLEAR=1/.test(S)) fail('CLEANED=1 and PATH_CLEAR=1 are required');
+    pushStatus({ phoenix: { phase: 'heating', busy: true } });
+    setTimeout(() => pushStatus({ phoenix: { phase: 'returning' } }), 4000);
+    setTimeout(() => {
+      pushStatus({ phoenix: { phase: 'recording', busy: false, recovery_available: false } });
+      Object.assign(status.print_stats, { state: 'printing' });
+      pushStatus({ print_stats: { state: 'printing' } });
+    }, 7000);
+    return 'ok';
+  }
+  if (S === 'PHOENIX_DISCARD CONFIRM=1') {
+    pushStatus({
+      phoenix: {
+        phase: 'idle',
+        job_id: null,
+        filename: null,
+        recovery_available: false,
+        checkpoints: [],
+        plan: null,
+        error: null,
+      },
+    });
+    return 'ok';
+  }
+  return 'ok';
 }
 let twistSim = null; // the axis twist wizard: which point of how many
 let gcodeScript = function (sc) {
@@ -1298,6 +1375,20 @@ if (PROFILE.heaters) {
   status.heaters.available_sensors = status.heaters.available_sensors.filter((x) => objects.includes(x));
 }
 PROFILE.setup?.();
+// Phoenix print recovery: not part of the public demo. For testing the recovery wizard, set localStorage
+// voyager-ui-phoenix-demo to detected, prepared, blocked or unknown (an API version this UI does not know)
+let phoenixDemo = '';
+try {
+  phoenixDemo = localStorage.getItem('voyager-ui-phoenix-demo') || '';
+} catch {}
+if (PHOENIX_FIXTURES[phoenixDemo] || phoenixDemo === 'unknown') {
+  objects.push('phoenix');
+  status.phoenix = JSON.parse(JSON.stringify(PHOENIX_FIXTURES[phoenixDemo] || PHOENIX_FIXTURES.detected));
+  if (phoenixDemo === 'unknown') status.phoenix.api_version = 2;
+  idle(26, 24);
+  status.print_stats.state = 'error';
+  status.print_stats.filename = 'example.gcode';
+}
 // what the other demo printers answer on the All printers page (plain HTTP queries to their address)
 const h = (temperature, target) => ({ temperature, target });
 const FLEET = {
@@ -2265,6 +2356,7 @@ gcodeScript = function (sc) {
       }, 24000),
     );
   }
+  if (S.startsWith('PHOENIX_') && status.phoenix) return phoenixCmd(S);
   if ((m = S.match(/^ACTIVATE_EXTRUDER EXTRUDER=(\S+)/)) && status[m[1].toLowerCase()]) {
     pushStatus({ toolhead: { extruder: m[1].toLowerCase() } });
     emitLines([`// Activating extruder ${m[1].toLowerCase()}`]);

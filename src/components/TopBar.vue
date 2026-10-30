@@ -393,6 +393,15 @@ onBeforeUnmount(() => ovObs?.disconnect());
             }"
           /><span class="grow">{{ n.msg }}</span
           ><button
+            v-if="n.action"
+            class="btn sm"
+            @click="
+              n.action.run();
+              showBell = false;
+            "
+          >
+            {{ n.action.label }}</button
+          ><button
             class="btn clear ibtn sm"
             style="width: 24px; height: 24px"
             :aria-label="t('Dismiss')"

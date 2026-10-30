@@ -34,6 +34,8 @@ import { initZOffset } from './zoffset';
 import './lock';
 import FloatingCam from './components/FloatingCam.vue';
 import LockScreen from './components/LockScreen.vue';
+import PhoenixWizard from './components/PhoenixWizard.vue';
+import { hasPhoenix, startPhoenix } from './phoenix';
 import './tablet';
 initFeatures();
 initTimelapse();
@@ -191,6 +193,8 @@ watch([printActive, showFavBar, () => state.settings.printBar, () => state.dashP
   nextTick(measureChrome),
 );
 const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessage) : null));
+// Phoenix print recovery: an interrupted print found on a printer that has the module raises one alert
+startPhoenix();
 </script>
 
 <template>
@@ -292,6 +296,7 @@ const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessa
     >
     <Tooltip />
     <FloatingCam v-if="state.pip" />
+    <PhoenixWizard v-if="state.phoenixOpen && hasPhoenix" />
     <LockScreen v-if="state.locked" />
     <div class="toasts" role="status" aria-live="polite">
       <TransitionGroup name="tst">

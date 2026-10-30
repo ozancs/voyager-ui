@@ -184,6 +184,13 @@ and the mini mesh card. 'voyager' is the original orange / grey / blue.
 **[src/paths.js](../src/paths.js)**  
 Turning a selection in a file list into file paths (used for downloads).
 
+**[src/phoenix.js](../src/phoenix.js)**  
+Phoenix print recovery (a separate Klipper module, github: phoenix-for-klipper). Shown only on printers that  
+have the `phoenix` object; its status arrives with the rest of the subscription (every listed object is  
+subscribed in store.js). The UI only reads that status and sends the module's own commands, one per button:  
+opening a toast, the wizard or a step never moves, heats or resumes anything.  
+API v1 contract: phoenix-for-klipper/docs/API.md.
+
 **[src/power.js](../src/power.js)**  
 Switching Moonraker power devices, shared by the top bar menu and the dashboard card.  
 Turning something off while printing (or a device Moonraker locks during prints) asks first;  
@@ -642,6 +649,17 @@ Pause at a layer (colour change, insert a magnet): uses the SET_PAUSE_AT_LAYER /
 of the Mainsail / Fluidd client macros, which run PAUSE from the slicer's layer change G-code. Shown only when  
 the printer has them. The pending layer is read back from the macro's variables.
 
+**[src/components/PhoenixGuide.vue](../src/components/PhoenixGuide.vue)**  
+Explanatory drawing for the Phoenix recovery wizard (after phoenix-for-klipper's RecoveryGuide.vue): inspect,  
+clearance (a gap opens between nozzle and part), clean (at the park point), return. Not telemetry and not the  
+printer's real position, so it always says so. Colours come from the theme; no motion with reduced motion.
+
+**[src/components/PhoenixWizard.vue](../src/components/PhoenixWizard.vue)**  
+Phoenix print recovery wizard. Six steps over the module's own state: the printer's `phoenix` status decides  
+where we are (detected: steps 1-4, the operator walks them; prepared: 5-6; heating / returning: progress), so a  
+reload or a reconnect lands on the same step. Every button sends exactly one Phoenix command and waits for the  
+status; nothing is sent by opening, closing, a step change or an animation, nothing is retried after an error.
+
 **[src/components/Popover.vue](../src/components/Popover.vue)**  
 Pop-up panel for buttons inside dashboard cards (sensor picker, presets). It is moved to <body> so the card's  
 scroll area, the page's scroll area and the side menu cannot cut it off or cover it, and it is placed under  
@@ -861,4 +879,8 @@ Ctrl+click opens that section in the Config Reference. A plain click keeps editi
 **[src/demo/mock.js](../src/demo/mock.js)**  
 Browser-side fake Moonraker for the live demo (npm run build:demo). Replaces WebSocket and fetch so the UI runs  
 without a printer. Everything is in memory: settings reset on reload, g-code is only echoed to the console card.
+
+**[src/demo/phoenixFixtures.js](../src/demo/phoenixFixtures.js)**  
+Phoenix status objects for the demo (shapes from phoenix-for-klipper/integrations/voyager/fixtures). The  
+coordinates are examples, not a park or calibration setting for a real printer.
 
