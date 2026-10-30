@@ -2077,4 +2077,11 @@ export default {
  "Card title": "Kaarttitel",
  "No icon": "Geen pictogram",
  "Shown instead of the name the card comes with. Leave it empty to keep that name.": "Wordt getoond in plaats van de standaardnaam van de kaart. Laat leeg om die naam te houden.",
+ "Switch every": "Wisselen elke",
+ "Picture": "Beeld",
+ "Grey": "Grijs",
+ "Single": "Eén",
+ "Side by side": "Naast elkaar",
+ "2 × 2": "2 × 2",
+ "One at a time": "Om de beurt",
 }

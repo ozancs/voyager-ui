@@ -2077,4 +2077,11 @@ export default {
  "Card title": "Kart başlığı",
  "No icon": "Simge yok",
  "Shown instead of the name the card comes with. Leave it empty to keep that name.": "Kartın kendi adının yerine gösterilir. O adı korumak için boş bırak.",
+ "Switch every": "Geçiş süresi",
+ "Picture": "Görüntü",
+ "Grey": "Gri",
+ "Single": "Tek",
+ "Side by side": "Yan yana",
+ "2 × 2": "2 × 2",
+ "One at a time": "Sırayla",
 }

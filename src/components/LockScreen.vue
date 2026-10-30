@@ -1,6 +1,6 @@
 <script setup>
 // The screen shown while the controls are locked (lock.js): the printer at a glance for a tablet next to it. The
-// camera picked in Customize fills the background in grey, the cards float over it on both sides (the heaters and
+// camera picked in Customize fills the background (grey or in colour; or two or four cameras, or several taking turns), the cards float over it on both sides (the heaters and
 // the graph on the left, the other sensors on the right, evened out), the print sits in a bar along the bottom.
 // Everything is drawn large to be read from across the room, and Customize has a size of its own. Only Unlock
 // (with the PIN pad when a PIN is set), E-STOP and Customize. Read only: nothing here sends G-code.
@@ -97,7 +97,45 @@ const cams = computed(() => state.webcams.filter((w) => w.enabled !== false));
 const cam = computed(() =>
   conf.value.cam === false ? null : cams.value.find((w) => w.name === conf.value.camName) || cams.value[0] || null,
 );
-const camOn = computed(() => !!cam.value);
+// several cameras: side by side, 2 x 2, or one at a time switching every few seconds (one stream at a time, so a
+// slow tablet copes with any number). camList: the cameras picked for these, in camera order; empty means all.
+const LAYOUTS = [
+  ['one', 'Single'],
+  ['two', 'Side by side'],
+  ['four', '2 × 2'],
+  ['cycle', 'One at a time'],
+];
+const CYCLE = [5, 10, 20, 30];
+const layout = computed(() => (cams.value.length > 1 ? conf.value.camLayout || 'one' : 'one'));
+const picked = computed(() => {
+  const l = conf.value.camList || [];
+  const list = cams.value.filter((w) => l.includes(w.name));
+  return list.length ? list : cams.value;
+});
+function pickCam(name) {
+  const l = new Set(picked.value.map((w) => w.name));
+  l.has(name) ? l.delete(name) : l.add(name);
+  if (l.size) conf.value.camList = cams.value.filter((w) => l.has(w.name)).map((w) => w.name);
+}
+const cycleI = ref(0);
+let cycleTm;
+watch(
+  [layout, () => conf.value.cycleSec],
+  () => {
+    clearInterval(cycleTm);
+    if (layout.value === 'cycle') cycleTm = setInterval(() => cycleI.value++, (conf.value.cycleSec || 10) * 1000);
+  },
+  { immediate: true },
+);
+onBeforeUnmount(() => clearInterval(cycleTm));
+const shownCams = computed(() => {
+  if (conf.value.cam === false || !cams.value.length) return [];
+  if (layout.value === 'two') return picked.value.slice(0, 2);
+  if (layout.value === 'four') return picked.value.slice(0, 4);
+  if (layout.value === 'cycle') return [picked.value[cycleI.value % picked.value.length]];
+  return cam.value ? [cam.value] : [];
+});
+const camOn = computed(() => shownCams.value.length > 0);
 const camPick = computed({
   get: () => (conf.value.cam === false ? '\u0000' : conf.value.camName || ''),
   set: (v) => {
@@ -193,13 +231,19 @@ async function estop() {
 
 <template>
   <div class="ls" role="dialog" :aria-label="t('Locked')">
-    <div class="bg" :class="{ cam: camOn }">
-      <WebcamView v-if="camOn" :cam="cam" :overlay="false" class="wv" />
+    <div class="bg" :class="['g' + shownCams.length, { cam: camOn, color: conf.camColor }]">
+      <TransitionGroup name="cf">
+        <div v-for="w in shownCams" :key="w.name" class="tile">
+          <WebcamView :cam="w" :overlay="false" class="wv" />
+        </div>
+      </TransitionGroup>
     </div>
     <div class="shade"></div>
 
     <div class="ui" :style="{ zoom: scale }">
       <div class="top">
+        <!-- E-STOP on the far left, Unlock on the far right: a tap meant for one never lands on the other -->
+        <button class="estop" @click="estop">{{ t('E-STOP') }}</button>
         <span v-if="camOn" class="live">LIVE</span>
         <Icon name="lock" :size="16" class="mu" />
         <b class="pn">{{ printerName }}</b>
@@ -216,7 +260,6 @@ async function estop() {
           <Icon name="customize" :size="18" />
         </button>
         <button class="gbtn" @click="startUnlock"><Icon name="unlock" :size="16" />{{ t('Unlock') }}</button>
-        <button class="estop" @click="estop">{{ t('E-STOP') }}</button>
       </div>
 
       <!-- cards on both sides, one column each; they shrink together when a side is too long -->
@@ -297,6 +340,39 @@ async function estop() {
         <option v-for="w in cams" :key="w.name" :value="w.name === cams[0]?.name ? '' : w.name">{{ w.name }}</option>
         <option value="\u0000">{{ t('None') }}</option>
       </select>
+      <template v-if="cams.length > 1 && conf.cam !== false">
+        <span class="sec">{{ t('Cameras') }}</span>
+        <div class="seg two">
+          <button v-for="[k, n] in LAYOUTS" :key="k" :class="{ on: layout === k }" @click="conf.camLayout = k">
+            {{ t(n) }}
+          </button>
+        </div>
+        <template v-if="layout !== 'one'">
+          <label v-for="w in cams" :key="w.name" class="opt"
+            ><input
+              type="checkbox"
+              class="cb"
+              :checked="picked.some((x) => x.name === w.name)"
+              @change="pickCam(w.name)"
+            /><span>{{ w.name }}</span></label
+          >
+        </template>
+        <template v-if="layout === 'cycle'">
+          <span class="sec">{{ t('Switch every') }}</span>
+          <div class="seg">
+            <button v-for="k in CYCLE" :key="k" :class="{ on: (conf.cycleSec || 10) === k }" @click="conf.cycleSec = k">
+              {{ k }} s
+            </button>
+          </div>
+        </template>
+      </template>
+      <template v-if="conf.cam !== false && cams.length">
+        <span class="sec">{{ t('Picture') }}</span>
+        <div class="seg">
+          <button :class="{ on: !conf.camColor }" @click="conf.camColor = false">{{ t('Grey') }}</button>
+          <button :class="{ on: !!conf.camColor }" @click="conf.camColor = true">{{ t('Colour') }}</button>
+        </div>
+      </template>
       <span class="sec">{{ t('Size') }}</span>
       <div class="seg">
         <button v-for="k in SCALES" :key="k" :class="{ on: scale === k }" @click="conf.scale = k">
@@ -366,11 +442,52 @@ async function estop() {
   inset: 0;
   background: linear-gradient(180deg, #2b2c30 0%, #1d1e21 60%, #141517 100%);
 }
+.bg.cam {
+  display: grid;
+  gap: 2px;
+  background: #0d0e10;
+}
+.bg.g2 {
+  grid-template-columns: 1fr 1fr;
+}
+.bg.g3,
+.bg.g4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+@media (orientation: portrait) {
+  .bg.g2 {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+}
+.tile {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.bg.g1 .tile {
+  position: absolute;
+  inset: 0;
+}
 .bg.cam .wv {
   position: absolute;
   inset: 0;
   border-radius: 0;
   filter: grayscale(1) brightness(0.85);
+}
+.bg.cam.color .wv {
+  filter: brightness(0.9);
+}
+/* one at a time: the next camera fades in over the last */
+.cf-enter-active,
+.cf-leave-active {
+  transition: opacity 0.8s ease;
+}
+.cf-enter-from,
+.cf-leave-to {
+  opacity: 0;
 }
 .bg.cam :deep(img),
 .bg.cam :deep(video) {
@@ -623,6 +740,10 @@ async function estop() {
 .seg {
   display: flex;
   gap: 4px;
+}
+.seg.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 .seg button {
   flex: 1;

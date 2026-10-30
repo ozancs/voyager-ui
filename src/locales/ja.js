@@ -2077,4 +2077,11 @@ export default {
  "Card title": "カードのタイトル",
  "No icon": "アイコンなし",
  "Shown instead of the name the card comes with. Leave it empty to keep that name.": "カード本来の名前の代わりに表示されます。空欄ならその名前のままです。",
+ "Switch every": "切り替え間隔",
+ "Picture": "映像",
+ "Grey": "グレー",
+ "Single": "1台",
+ "Side by side": "横並び",
+ "2 × 2": "2 × 2",
+ "One at a time": "1台ずつ",
 }

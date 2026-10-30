@@ -2077,4 +2077,11 @@ export default {
  "Card title": "Titolo della scheda",
  "No icon": "Nessuna icona",
  "Shown instead of the name the card comes with. Leave it empty to keep that name.": "Mostrato al posto del nome originale della scheda. Lascia vuoto per tenere quel nome.",
+ "Switch every": "Cambia ogni",
+ "Picture": "Immagine",
+ "Grey": "Grigio",
+ "Single": "Una",
+ "Side by side": "Affiancate",
+ "2 × 2": "2 × 2",
+ "One at a time": "Una alla volta",
 }

@@ -2077,4 +2077,11 @@ export default {
  "Card title": "Заголовок картки",
  "No icon": "Без значка",
  "Shown instead of the name the card comes with. Leave it empty to keep that name.": "Показується замість початкової назви картки. Залиште порожнім, щоб лишити її.",
+ "Switch every": "Змінювати кожні",
+ "Picture": "Зображення",
+ "Grey": "Сіре",
+ "Single": "Одна",
+ "Side by side": "Поруч",
+ "2 × 2": "2 × 2",
+ "One at a time": "По черзі",
 }

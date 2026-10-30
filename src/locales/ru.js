@@ -2077,4 +2077,11 @@ export default {
  "Card title": "Заголовок карточки",
  "No icon": "Без значка",
  "Shown instead of the name the card comes with. Leave it empty to keep that name.": "Показывается вместо исходного названия карточки. Оставьте пустым, чтобы сохранить его.",
+ "Switch every": "Менять каждые",
+ "Picture": "Изображение",
+ "Grey": "Серое",
+ "Single": "Одна",
+ "Side by side": "Рядом",
+ "2 × 2": "2 × 2",
+ "One at a time": "По очереди",
 }

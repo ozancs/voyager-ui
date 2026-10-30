@@ -2077,4 +2077,11 @@ export default {
  "Card title": "카드 제목",
  "No icon": "아이콘 없음",
  "Shown instead of the name the card comes with. Leave it empty to keep that name.": "카드 원래 이름 대신 표시됩니다. 비워 두면 그 이름을 유지합니다.",
+ "Switch every": "전환 간격",
+ "Picture": "화면",
+ "Grey": "회색",
+ "Single": "하나",
+ "Side by side": "나란히",
+ "2 × 2": "2 × 2",
+ "One at a time": "하나씩",
 }

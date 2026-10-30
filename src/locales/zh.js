@@ -2077,4 +2077,11 @@ export default {
  "Card title": "卡片标题",
  "No icon": "无图标",
  "Shown instead of the name the card comes with. Leave it empty to keep that name.": "代替卡片原有名称显示。留空则保留原名称。",
+ "Switch every": "切换间隔",
+ "Picture": "画面",
+ "Grey": "灰色",
+ "Single": "单个",
+ "Side by side": "并排",
+ "2 × 2": "2 × 2",
+ "One at a time": "轮流",
 }
