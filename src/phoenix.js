@@ -39,6 +39,19 @@ export function canPrepare(s) {
 export function canResume(s, cleaned, pathClear) {
   return s?.api_version === API && s.phase === 'prepared' && !s.busy && cleaned === true && pathClear === true;
 }
+// setup (backend 0.2, same API): the park point and the slicer acknowledgement; idle only, no motion or heat
+export const SETUP_RECHECK = 'PHOENIX_SETUP PROMPT=0';
+export const SETUP_SLICER = 'PHOENIX_SETUP_SLICER CONFIRM=1';
+export function setupProfileCommand(s, { x, y, clearance, useCurrent = false, confirmed = false }) {
+  if (s?.api_version !== API || s.phase !== 'idle' || s.busy || confirmed !== true) {
+    throw new Error('Setup requires idle state and explicit profile confirmation');
+  }
+  const xy = useCurrent ? [] : [x, y];
+  if (xy.some((v) => !Number.isFinite(v))) throw new Error('Invalid park coordinates');
+  if (!Number.isFinite(clearance) || clearance <= 0) throw new Error('Invalid clearance');
+  return `PHOENIX_SETUP_PROFILE ${useCurrent ? 'USE_CURRENT=1' : `X=${x} Y=${y}`} CLEARANCE=${clearance} CONFIRM=1`;
+}
+export const openSetup = () => (state.phoenixSetupOpen = true);
 export const PREPARE = 'PHOENIX_PREPARE';
 export const RESUME = 'PHOENIX_RESUME CLEANED=1 PATH_CLEAR=1';
 export const DISCARD = 'PHOENIX_DISCARD CONFIRM=1';

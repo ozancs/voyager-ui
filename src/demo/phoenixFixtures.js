@@ -51,6 +51,40 @@ const base = {
     automatic_resume: false,
   },
 };
+const setup = (o = {}) => ({
+  complete: true,
+  profile_ready: true,
+  profile_error: null,
+  park: [10, 10],
+  clearance: 5,
+  hooks: { start: ['PRINT_START'], end: ['PRINT_END'] },
+  slicer_confirmed: false,
+  homed_axes: 'xyz',
+  can_edit: false,
+  can_use_current: false,
+  can_jog: false,
+  current_position: [130.4, 101.2, 20.6],
+  steps: [
+    { id: 'module', state: 'ok', message: 'Phoenix module loaded' },
+    { id: 'printer', state: 'ok', message: 'Printer configuration supported' },
+    { id: 'hooks', state: 'ok', message: 'Print hooks found/confirmed' },
+    { id: 'park', state: 'ok', message: 'Park point saved' },
+    { id: 'test', state: 'manual', message: 'Verify recording on a small supervised test print' },
+  ],
+  ...o,
+});
+base.setup = setup();
+const idleBase = {
+  ...base,
+  phase: 'idle',
+  recovery_available: false,
+  job_id: null,
+  filename: null,
+  file_size: null,
+  reason: '',
+  checkpoints: [],
+  assumed_position: null,
+};
 const all = Object.fromEntries(Object.keys(base.checks).map((k) => [k, true]));
 const plan = {
   assumed: [130.4, 101.2, 20.6],
@@ -72,3 +106,31 @@ export const PHOENIX_FIXTURES = {
   },
 };
 PHOENIX_FIXTURES.detected = { ...base, phase: 'detected' };
+// idle on an empty, homed printer with setup still to do (hooks missing, no park point)
+PHOENIX_FIXTURES.setup = {
+  ...idleBase,
+  profile_ready: false,
+  setup: setup({
+    complete: false,
+    profile_ready: false,
+    hooks: { start: ['PRINT_START'], end: [] },
+    can_edit: true,
+    can_use_current: true,
+    can_jog: true,
+    current_position: [12.5, 290.0, 30.0],
+    steps: [
+      { id: 'module', state: 'ok', message: 'Phoenix module loaded' },
+      { id: 'printer', state: 'ok', message: 'Printer configuration supported' },
+      {
+        id: 'hooks',
+        state: 'needs_action',
+        message: 'Rerun setup to connect macros, or add PHOENIX_START/PHOENIX_END in your slicer',
+      },
+      { id: 'park', state: 'needs_action', message: 'Choose a clear park point on an empty bed' },
+      { id: 'test', state: 'manual', message: 'Verify recording on a small supervised test print' },
+    ],
+  }),
+};
+PHOENIX_FIXTURES.ready = { ...idleBase, setup: setup({ can_edit: true, can_use_current: true, can_jog: true }) };
+// a print being recorded: the newest checkpoint is a few seconds old
+PHOENIX_FIXTURES.recording = { ...base, phase: 'recording', recovery_available: false, reason: '' };

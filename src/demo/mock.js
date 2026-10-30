@@ -679,6 +679,42 @@ function phoenixCmd(S) {
     }, 7000);
     return 'ok';
   }
+  // setup (backend 0.2): idle only, nothing moves
+  const su = p.setup;
+  const fixSteps = () =>
+    su.steps.map((x) =>
+      x.id === 'hooks'
+        ? { ...x, state: Object.values(su.hooks).every((h) => h.length) || su.slicer_confirmed ? 'ok' : 'needs_action' }
+        : x.id === 'park'
+          ? { ...x, state: su.profile_ready ? 'ok' : 'needs_action' }
+          : x,
+    );
+  const setupDone = () => {
+    su.steps = fixSteps();
+    su.complete = su.steps.every((x) => x.state !== 'needs_action' && x.state !== 'blocked');
+    pushStatus({ phoenix: { setup: { ...su }, profile_ready: su.profile_ready } });
+  };
+  if (S.startsWith('PHOENIX_SETUP PROMPT=0')) {
+    emitLines([
+      su.complete ? '// Phoenix setup is ready.' : '// Phoenix setup is not finished. Open PHOENIX_SETUP_GUIDE.',
+    ]);
+    return 'ok';
+  }
+  if (S === 'PHOENIX_SETUP_SLICER CONFIRM=1') {
+    if (!su.can_edit) fail('Setup can only change while idle');
+    su.slicer_confirmed = true;
+    setupDone();
+    return 'ok';
+  }
+  if ((m = S.match(/^PHOENIX_SETUP_PROFILE (?:USE_CURRENT=1|X=([-\d.]+) Y=([-\d.]+)) CLEARANCE=([\d.]+) CONFIRM=1$/))) {
+    if (!su.can_edit) fail('Setup can only change while idle');
+    su.park = m[1] != null ? [+m[1], +m[2]] : su.current_position.slice(0, 2);
+    su.clearance = +m[3];
+    su.profile_ready = true;
+    setupDone();
+    emitLines([`// Phoenix: park point saved X=${su.park[0]} Y=${su.park[1]}, clearance ${su.clearance} mm`]);
+    return 'ok';
+  }
   if (S === 'PHOENIX_DISCARD CONFIRM=1') {
     pushStatus({
       phoenix: {
@@ -1385,9 +1421,19 @@ if (PHOENIX_FIXTURES[phoenixDemo] || phoenixDemo === 'unknown') {
   objects.push('phoenix');
   status.phoenix = JSON.parse(JSON.stringify(PHOENIX_FIXTURES[phoenixDemo] || PHOENIX_FIXTURES.detected));
   if (phoenixDemo === 'unknown') status.phoenix.api_version = 2;
-  idle(26, 24);
-  status.print_stats.state = 'error';
-  status.print_stats.filename = 'example.gcode';
+  if (phoenixDemo === 'recording') {
+    // a fresh checkpoint every few seconds while the demo print runs
+    setInterval(() => {
+      const c = status.phoenix.checkpoints.map((x) => ({ ...x }));
+      c[0].saved_at = Date.now() / 1000;
+      pushStatus({ phoenix: { checkpoints: c } });
+    }, 4000);
+  } else if (['setup', 'ready'].includes(phoenixDemo)) idle(26, 24);
+  else {
+    idle(26, 24);
+    status.print_stats.state = 'error';
+    status.print_stats.filename = 'example.gcode';
+  }
 }
 // what the other demo printers answer on the All printers page (plain HTTP queries to their address)
 const h = (temperature, target) => ({ temperature, target });

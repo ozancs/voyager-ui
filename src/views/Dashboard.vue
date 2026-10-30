@@ -39,6 +39,8 @@ import RecentJobsCard from '../components/RecentJobsCard.vue';
 import SpoolCard from '../components/SpoolCard.vue';
 import RetractionCard from '../components/RetractionCard.vue';
 import HealthCard from '../components/HealthCard.vue';
+import PhoenixCard from '../components/PhoenixCard.vue';
+import { hasPhoenix } from '../phoenix';
 import { t } from '../i18n';
 import { useEdgeAutoScroll } from '../autoscroll';
 import interact from 'interactjs';
@@ -110,6 +112,14 @@ const MODULES = {
   power: { c: PowerCard, n: 'Power devices', min: [3, 3], def: [4, 4], need: () => state.power.length > 0 },
   mmu: { c: MmuCard, n: 'MMU (Happy Hare, Box Turtle)', min: [4, 5], def: [12, 7], need: () => hasMmu.value },
   timelapse: { c: TimelapseCard, n: 'Timelapse', min: [3, 3], def: [4, 4], need: () => tl.has },
+  phoenix: {
+    c: PhoenixCard,
+    n: 'Phoenix (print recovery)',
+    min: [2, 3],
+    def: [2, 4],
+    scale: true,
+    need: () => hasPhoenix.value,
+  },
 };
 const isCustom = (i) => i.startsWith('c_');
 // a multi material unit shows up on the dashboard by itself the first time it is found
@@ -317,6 +327,19 @@ watch(
     state.settings.mmuSeen = true;
     if (!layout.value.some((x) => x.i === 'mmu')) {
       layout.value = [{ i: 'mmu', x: 0, y: 0, w: 12, h: 7 }, ...layout.value.map((x) => ({ ...x, y: x.y + 7 }))];
+      if (mode.value !== 'print' || state.settings.layoutPrint) persist(true);
+    }
+  },
+  { immediate: true },
+);
+// Phoenix print recovery: its card comes onto the dashboard by itself, top right, the first time it is found
+watch(
+  () => hasPhoenix.value && state.settingsLoaded,
+  (on) => {
+    if (!on || state.settings.phoenixSeen) return;
+    state.settings.phoenixSeen = true;
+    if (!layout.value.some((x) => x.i === 'phoenix')) {
+      layout.value = pushDown([...layout.value, { i: 'phoenix', x: 10, y: 0, w: 2, h: 4 }], 'phoenix');
       if (mode.value !== 'print' || state.settings.layoutPrint) persist(true);
     }
   },

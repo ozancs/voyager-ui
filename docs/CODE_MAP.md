@@ -649,10 +649,22 @@ Pause at a layer (colour change, insert a magnet): uses the SET_PAUSE_AT_LAYER /
 of the Mainsail / Fluidd client macros, which run PAUSE from the slicer's layer change G-code. Shown only when  
 the printer has them. The pending layer is read back from the macro's variables.
 
+**[src/components/PhoenixCard.vue](../src/components/PhoenixCard.vue)**  
+Phoenix dashboard card: what print recovery is doing on this printer, in a tile as small as an MCU tile (the  
+dashboard scales it up with the card). Recording shows the last saved point (time and Z), the point a recovery  
+would continue from; the live toolhead position is the Toolhead card's job. An interrupted print or a recovery  
+under way opens the recovery window; an unfinished setup opens the setup window. Nothing here sends G-code.
+
 **[src/components/PhoenixGuide.vue](../src/components/PhoenixGuide.vue)**  
 Explanatory drawing for the Phoenix recovery wizard (after phoenix-for-klipper's RecoveryGuide.vue): inspect,  
 clearance (a gap opens between nozzle and part), clean (at the park point), return. Not telemetry and not the  
 printer's real position, so it always says so. Colours come from the theme; no motion with reduced motion.
+
+**[src/components/PhoenixSetup.vue](../src/components/PhoenixSetup.vue)**  
+Phoenix setup window, from the module's own setup report (status.setup, backend 0.2): the steps with what each  
+still needs, the two slicer lines with an explicit "I added them", and the park point (the current XY after the  
+toolhead was moved there with the normal controls, or typed machine coordinates), each saved only after a  
+confirmation. Nothing here moves, heats, homes or restarts; the settings apply at once, no SAVE_CONFIG.
 
 **[src/components/PhoenixWizard.vue](../src/components/PhoenixWizard.vue)**  
 Phoenix print recovery wizard. Six steps over the module's own state: the printer's `phoenix` status decides  

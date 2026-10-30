@@ -35,6 +35,7 @@ import './lock';
 import FloatingCam from './components/FloatingCam.vue';
 import LockScreen from './components/LockScreen.vue';
 import PhoenixWizard from './components/PhoenixWizard.vue';
+import PhoenixSetup from './components/PhoenixSetup.vue';
 import { hasPhoenix, startPhoenix } from './phoenix';
 import './tablet';
 initFeatures();
@@ -297,6 +298,7 @@ startPhoenix();
     <Tooltip />
     <FloatingCam v-if="state.pip" />
     <PhoenixWizard v-if="state.phoenixOpen && hasPhoenix" />
+    <PhoenixSetup v-if="state.phoenixSetupOpen && hasPhoenix" />
     <LockScreen v-if="state.locked" />
     <div class="toasts" role="status" aria-live="polite">
       <TransitionGroup name="tst">
