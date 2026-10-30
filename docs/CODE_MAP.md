@@ -197,10 +197,10 @@ Turning something off while printing (or a device Moonraker locks during prints)
 the question is shown by the top bar, which is always on screen.
 
 **[src/preprint.js](../src/preprint.js)**  
-Pre-print check: before a print starts, compare the file's slicer metadata with the printer. Only facts that  
-both sides report are compared; anything unknown (no Spoolman, no active spool, no weight, no metadata) is  
-skipped, never guessed. Problems open a dialog (PreprintDialog.vue) with "Print anyway" and "Cancel".  
-Every place that starts a print goes through startPrint().
+Starting a print: every place that starts one goes through startPrint(), which asks in the start dialog  
+(PreprintDialog.vue). The pre-print check compares the file's slicer metadata with the printer; only facts that  
+both sides report are compared, anything unknown (no Spoolman, no active spool, no weight, no metadata) is  
+skipped, never guessed.
 
 **[src/preprintCheck.js](../src/preprintCheck.js)**  
 The checks of the pre-print check (preprint.js), without any browser or store code so they can be tested.  
@@ -686,8 +686,10 @@ Moonraker [power] devices with an on/off switch. Turning something off while pri
 that Moonraker locks during prints, asks first.
 
 **[src/components/PreprintDialog.vue](../src/components/PreprintDialog.vue)**  
-Pre-print check result (preprint.js): what does not fit between the file and the printer, and the choice  
-to print anyway or cancel. "Don't check again" turns the check off (Settings > General turns it back on).
+Start dialog (preprint.js), shown before every print like Mainsail's: the thumbnail and the file's numbers, the  
+timelapse switch when moonraker-timelapse is installed (the same setting as the Timelapse card, saved at once),  
+a reminder to clear the bed for a reprint, and what the pre-print check found that does not fit. "Don't check  
+again" turns the check off (Settings > General turns it back on).
 
 **[src/components/PrintBar.vue](../src/components/PrintBar.vue)**  
 Print bar: while a print runs (or is paused) the job moves out of the top bar into its own band under it, like  

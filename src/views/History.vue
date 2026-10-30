@@ -7,7 +7,7 @@ import Modal from '../components/Modal.vue';
 import { state, fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
-import { startPrint, askReprint } from '../preprint';
+import { startPrint } from '../preprint';
 import { undoable, isHidden } from '../undo';
 import { shots, loadShots, getShot, dropShots } from '../endShot';
 const jobs = ref(state.cache.jobs || []);
@@ -174,7 +174,7 @@ function thumb(j) {
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path);
 }
 async function reprint(j) {
-  if (await askReprint(j.filename)) await startPrint(j.filename);
+  await startPrint(j.filename, { reprint: true });
 }
 function remove() {
   const list = del.value;

@@ -2222,4 +2222,8 @@ export default {
   "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "빈 베드 데모: 툴헤드가 복구 과정을 따라 움직입니다. 가열, 압출, 출력은 하지 않습니다.",
   "Open demo": "데모 열기",
   "Run demo": "데모 실행",
+  "Time": "시간",
+  "Layer height": "레이어 높이",
+  "Start print": "출력 시작",
+  "Take the last print off the bed first.": "먼저 지난 출력물을 베드에서 떼어 내세요.",
 }

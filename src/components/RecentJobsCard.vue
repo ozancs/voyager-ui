@@ -8,7 +8,7 @@ import { fmtTime, fmtDate, toast, isPrinting, useApiEvent } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
-import { startPrint, askReprint } from '../preprint';
+import { startPrint } from '../preprint';
 
 const jobs = ref([]);
 async function load() {
@@ -26,7 +26,7 @@ const COL = {
   in_progress: 'var(--tx)',
   interrupted: 'var(--wn)',
 };
-const reprint = async (j) => (await askReprint(j.filename)) && startPrint(j.filename);
+const reprint = (j) => startPrint(j.filename, { reprint: true });
 </script>
 
 <template>

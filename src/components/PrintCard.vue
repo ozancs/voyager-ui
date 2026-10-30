@@ -22,7 +22,7 @@ import {
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
-import { startPrint, askReprint } from '../preprint';
+import { startPrint } from '../preprint';
 const emit = () => {
   state.showExclude = true;
 };
@@ -91,7 +91,7 @@ function cancel() {
 }
 async function reprint() {
   const f = ps.value.filename;
-  if (f && (await askReprint(f))) startPrint(f);
+  if (f) startPrint(f, { reprint: true });
 }
 </script>
 <template>

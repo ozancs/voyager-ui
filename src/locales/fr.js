@@ -2222,4 +2222,8 @@ export default {
   "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "Démo plateau vide : la tête parcourt une reprise. Rien ne chauffe, n'extrude ni n'imprime.",
   "Open demo": "Ouvrir la démo",
   "Run demo": "Lancer la démo",
+  "Time": "Durée",
+  "Layer height": "Hauteur de couche",
+  "Start print": "Lancer l'impression",
+  "Take the last print off the bed first.": "Retirez d'abord la dernière impression du plateau.",
 }

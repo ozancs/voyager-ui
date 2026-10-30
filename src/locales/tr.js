@@ -2222,4 +2222,8 @@ export default {
   "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "Boş tabla demosu: kafa bir kurtarmayı adım adım gezer. Hiçbir şey ısınmaz, ekstrüzyon ya da baskı yapılmaz.",
   "Open demo": "Demoyu aç",
   "Run demo": "Demoyu çalıştır",
+  "Time": "Süre",
+  "Layer height": "Katman yüksekliği",
+  "Start print": "Baskıyı başlat",
+  "Take the last print off the bed first.": "Önce son baskıyı tabladan alın.",
 }

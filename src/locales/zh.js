@@ -2222,4 +2222,8 @@ export default {
   "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "空床演示：打印头会走一遍恢复流程。不会加热、挤出或打印。",
   "Open demo": "打开演示",
   "Run demo": "运行演示",
+  "Time": "时间",
+  "Layer height": "层高",
+  "Start print": "开始打印",
+  "Take the last print off the bed first.": "请先把上一次的打印件从热床上取下。",
 }

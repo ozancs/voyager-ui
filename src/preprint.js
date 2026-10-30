@@ -1,7 +1,7 @@
-// Pre-print check: before a print starts, compare the file's slicer metadata with the printer. Only facts that
-// both sides report are compared; anything unknown (no Spoolman, no active spool, no weight, no metadata) is
-// skipped, never guessed. Problems open a dialog (PreprintDialog.vue) with "Print anyway" and "Cancel".
-// Every place that starts a print goes through startPrint().
+// Starting a print: every place that starts one goes through startPrint(), which asks in the start dialog
+// (PreprintDialog.vue). The pre-print check compares the file's slicer metadata with the printer; only facts that
+// both sides report are compared, anything unknown (no Spoolman, no active spool, no weight, no metadata) is
+// skipped, never guessed.
 import { state, S, toast, askConfirm } from './store';
 import { api } from './api/moonraker';
 import { t } from './i18n';
@@ -53,23 +53,27 @@ async function start(filename) {
   }
 }
 
-// check the file, ask when something does not fit, then start. Resolves to true when the print started.
-export async function startPrint(filename) {
+// Every start opens the start dialog (PreprintDialog.vue, like Mainsail's): the thumbnail and the file's numbers,
+// the timelapse switch when moonraker-timelapse is installed, and whatever the check found that does not fit. A
+// reprint also says to clear the bed. `confirm: false` (Upload & Print, like Mainsail) skips the dialog unless the
+// check found something. Resolves to true when the print started.
+export async function startPrint(filename, { reprint = false, confirm = true } = {}) {
   if (!filename) return false;
-  if (state.settings.preprintCheck === false) return start(filename);
   let meta = null;
   try {
     meta = await api.call('server.files.metadata', { filename });
   } catch {
-    // no metadata (file not scanned yet): nothing to compare, start as before
+    // no metadata (file not scanned yet): nothing to show or compare
   }
-  const issues = meta ? checkPrint(context(meta)) : [];
-  if (!issues.length) return start(filename);
+  const issues = meta && state.settings.preprintCheck !== false ? checkPrint(context(meta)) : [];
+  if (!confirm && !issues.length) return start(filename);
   state.preprint?.resolve(false); // an older question still open counts as "no"
   const go = await new Promise((resolve) => {
     const q = {
       id: Math.random(),
       filename,
+      meta,
+      reprint,
       issues,
       resolve: (v) => {
         if (state.preprint?.id === q.id) state.preprint = null;
@@ -79,15 +83,6 @@ export async function startPrint(filename) {
     state.preprint = q;
   });
   return go ? start(filename) : false;
-}
-
-// Reprint starts the same file again with one click: ask first, the last part may still be on the bed
-export function askReprint(filename) {
-  return askConfirm({
-    title: t('Print again?'),
-    text: t('{file} starts again. Take the last print off the bed first.', { file: filename.split('/').pop() }),
-    ok: t('Print'),
-  });
 }
 
 // Uploading over a file that is already there: ask first, or give the new one a numbered name. Returns the name

@@ -2222,4 +2222,8 @@ export default {
   "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "Демо на порожньому столі: голова проходить відновлення. Нічого не нагрівається, не екструдує й не друкує.",
   "Open demo": "Відкрити демо",
   "Run demo": "Запустити демо",
+  "Time": "Час",
+  "Layer height": "Висота шару",
+  "Start print": "Почати друк",
+  "Take the last print off the bed first.": "Спершу зніміть попередній друк зі столу.",
 }

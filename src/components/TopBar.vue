@@ -37,7 +37,7 @@ import {
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
-import { startPrint, askReprint, uploadName } from '../preprint';
+import { startPrint, uploadName } from '../preprint';
 
 const emit = defineEmits(['exclude', 'menu']);
 const fileInput = ref(null);
@@ -56,7 +56,7 @@ const thumb = computed(() => {
 });
 async function reprint() {
   const f = S('print_stats').filename;
-  if (f && (await askReprint(f))) startPrint(f);
+  if (f) startPrint(f, { reprint: true });
 }
 
 const stateColor = computed(() => (printState.value === 'paused' ? 'var(--wn)' : 'var(--ac)'));
@@ -88,7 +88,7 @@ async function onFile(e) {
     await api.upload(f, { name, onProgress: (p) => (uploading.value = p) });
     toast(t('{name} uploaded', { name }));
     uploading.value = null;
-    await startPrint(name);
+    await startPrint(name, { confirm: false });
   } catch (err) {
     toast(t('Upload failed: {msg}', { msg: err.message }), 'error');
   }

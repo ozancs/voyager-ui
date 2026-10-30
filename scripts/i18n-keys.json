@@ -2217,5 +2217,9 @@
 "Finish the current print before changing setup.",
 "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.",
 "Open demo",
-"Run demo"
+"Run demo",
+"Time",
+"Layer height",
+"Start print",
+"Take the last print off the bed first."
 ]

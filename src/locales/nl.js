@@ -2222,4 +2222,8 @@ export default {
   "Empty-bed demo: the toolhead moves through a recovery. Nothing heats, extrudes or prints.": "Demo met leeg bed: de printkop doorloopt een herstel. Er wordt niets verwarmd, geëxtrudeerd of geprint.",
   "Open demo": "Demo openen",
   "Run demo": "Demo starten",
+  "Time": "Tijd",
+  "Layer height": "Laaghoogte",
+  "Start print": "Print starten",
+  "Take the last print off the bed first.": "Haal eerst de vorige print van het bed.",
 }
