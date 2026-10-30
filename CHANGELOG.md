@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.4
+
+- Starting a print opens a start dialog with the thumbnail, print time, filament and a timelapse switch (when timelapse is installed)
+- Reprints and pre-print warnings show in the same dialog
+
 ## 0.38.0
 
 - E-STOP stays clickable while a dialog is open (calibrations, cancel, settings, search), and its label is easier to read
