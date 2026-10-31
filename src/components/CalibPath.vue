@@ -1144,7 +1144,7 @@ const RUNS = _reactive({});
   fill: #f2f0e8;
 }
 .big {
-  font: 700 26px var(--fd);
+  font: 600 26px var(--fd);
   fill: var(--tx);
 }
 .mu2 {
@@ -1152,11 +1152,11 @@ const RUNS = _reactive({});
   fill: var(--mu);
 }
 .sm2 {
-  font: 700 11px var(--fd);
+  font: 600 11px var(--fd);
   fill: var(--tx);
 }
 .lbl2 {
-  font: 700 12px var(--fm);
+  font: 600 12px var(--fm);
   fill: var(--tx);
 }
 .spk {

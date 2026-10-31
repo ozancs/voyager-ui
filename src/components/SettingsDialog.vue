@@ -698,7 +698,7 @@ function reset() {
                   ><input
                     v-model="p.name"
                     class="input"
-                    style="width: 120px; font-weight: 700"
+                    style="width: 120px; font-weight: 600"
                     :aria-label="t('Preset name')"
                 /></label>
                 <label v-for="h in heaters" :key="h" class="col" style="gap: 4px"
@@ -1415,10 +1415,8 @@ function reset() {
   gap: 8px;
   margin: 18px 0 2px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--mu);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .sec :deep(svg) {
   color: var(--ac);

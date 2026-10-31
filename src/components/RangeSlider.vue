@@ -18,7 +18,7 @@ const live = ref(null);
   <div class="col" style="gap: 6px">
     <div v-if="label" class="row" style="justify-content: space-between">
       <span class="lbl">{{ label }}</span
-      ><span class="mono" style="font-size: 14px; font-weight: 700">{{
+      ><span class="mono" style="font-size: 14px; font-weight: 600">{{
         live != null && unit ? live + unit : (display ?? live ?? modelValue)
       }}</span>
     </div>

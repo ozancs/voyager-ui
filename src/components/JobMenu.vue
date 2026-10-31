@@ -87,7 +87,7 @@ function pick(fn) {
 }
 .dots {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 1px;
   line-height: 1;
   margin-top: -4px;

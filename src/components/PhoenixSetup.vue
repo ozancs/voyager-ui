@@ -367,7 +367,7 @@ h3 {
   background: var(--s2);
 }
 .ln code {
-  font-weight: 700;
+  font-weight: 600;
 }
 .btn.sm {
   height: 30px;

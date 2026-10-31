@@ -207,7 +207,7 @@ async function run(g, k) {
   background: var(--s2);
   border: 1px solid var(--bd);
   border-radius: 10px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 13px;
 }
 .mb :deep(svg) {

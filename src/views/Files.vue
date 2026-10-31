@@ -450,7 +450,7 @@ function onDrop(e) {
   color: var(--ac);
 }
 .nm {
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
   min-width: 200px;
 }

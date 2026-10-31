@@ -176,7 +176,7 @@ const presets = allPresets;
 }
 .nm {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .nm .ic {
@@ -184,7 +184,7 @@ const presets = allPresets;
 }
 .v {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .tg {
   width: 76px;
@@ -194,7 +194,7 @@ const presets = allPresets;
   border-radius: 10px;
   padding: 0 10px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   outline: none;
   -moz-appearance: textfield;
 }

@@ -119,7 +119,7 @@ function setFlow(v) {
 }
 .nl {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .nb {
   display: flex;
@@ -138,7 +138,7 @@ function setFlow(v) {
   border-radius: 8px;
   padding: 0 8px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   outline: none;
   -moz-appearance: textfield;
 }

@@ -687,7 +687,7 @@ function sensorExtra(id) {
 }
 .tbig {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
 }
 .tt {
@@ -755,7 +755,7 @@ function sensorExtra(id) {
 }
 .big {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .big small {
   font-size: 13px;
@@ -763,7 +763,7 @@ function sensorExtra(id) {
 }
 .sm {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .sw {
   width: 28px;

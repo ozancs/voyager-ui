@@ -336,7 +336,7 @@ function open(c) {
 }
 .st {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .st.ac {
   color: var(--ac);

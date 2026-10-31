@@ -104,7 +104,7 @@ const desc = (c) => macroDesc(c, state.settings.cardOpts?.macros?.descs, state.c
 }
 .ci .mono {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .ci .d {
   font-size: 11px;

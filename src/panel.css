@@ -12,14 +12,14 @@
 [data-look='panel'] .card-h h2 {
   font-family: var(--fx);
   font-stretch: 118%;
-  font-weight: 760;
+  font-weight: 600;
   font-size: 16px;
   letter-spacing: 0.005em;
 }
 [data-look='panel'] .brand b {
   font-family: var(--fx);
   font-stretch: 120%;
-  font-weight: 800;
+  font-weight: 650;
   letter-spacing: 0;
 }
 [data-look='panel'] .ds .tbig,
@@ -28,8 +28,8 @@
 [data-look='panel'] .zv {
   font-family: var(--fx);
   font-stretch: 125%;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 640;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 [data-look='panel'] .ds .tbig {
@@ -52,7 +52,7 @@
 [data-look='panel'] .fav {
   font-family: var(--fx);
   font-stretch: 108%;
-  font-weight: 650;
+  font-weight: 600;
   font-size: 13px;
 }
 

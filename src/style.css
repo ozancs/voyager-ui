@@ -109,6 +109,10 @@
   box-sizing: border-box;
 }
 html,
+b,
+strong {
+  font-weight: 600;
+}
 body {
   margin: 0;
   height: 100%;

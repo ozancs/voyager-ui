@@ -338,7 +338,7 @@ async function removeProfile(p) {
   align-items: center;
   justify-content: center;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   color: #f2f2ef;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }

@@ -414,7 +414,7 @@ startPhoenix();
   border: 1px solid var(--wn);
   border-radius: var(--r);
   color: var(--wn);
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
 }
 /* the buttons keep their full label; when the page is narrow (the config editor beside it) they go below the text */

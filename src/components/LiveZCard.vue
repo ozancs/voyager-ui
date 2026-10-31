@@ -100,7 +100,7 @@ const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
   justify-content: space-between;
   gap: 8px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .pos span {
   display: flex;

@@ -122,7 +122,7 @@ async function doExclude() {
 }
 .ask .nm {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .ask p {

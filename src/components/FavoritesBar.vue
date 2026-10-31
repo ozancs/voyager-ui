@@ -158,7 +158,7 @@ function onDrop(i) {
         >
           <Icon :name="form.icon" :size="22" :style="{ color: form.color || 'var(--ac)' }" />
         </button>
-        <input v-model="form.name" class="input grow" :placeholder="t('Button name')" style="font-weight: 700" />
+        <input v-model="form.name" class="input grow" :placeholder="t('Button name')" style="font-weight: 600" />
         <Toggle v-model="form.highlight" :label="t('Highlight')" /><span class="mu sm">{{ t('Highlight') }}</span>
       </div>
       <IconPicker

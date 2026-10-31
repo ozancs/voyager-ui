@@ -535,7 +535,7 @@ onBeforeUnmount(() => ptrs.clear());
   flex-wrap: wrap;
   gap: 6px 16px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--mu);
 }
 .lg .si {

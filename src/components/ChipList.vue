@@ -95,6 +95,6 @@ function add() {
 }
 .add::placeholder {
   color: var(--mu2);
-  font-weight: 700;
+  font-weight: 600;
 }
 </style>

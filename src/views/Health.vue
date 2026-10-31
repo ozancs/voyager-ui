@@ -350,7 +350,7 @@ function measureAgain(h) {
       </section>
 
       <!-- heaters -->
-      <section id="h-heat" class="card tint" style="--tint: var(--tn-heat)">
+      <section id="h-heat" class="card">
         <div class="card-h">
           <h2>{{ t('Heaters') }}</h2>
           <Icon name="flame" :size="18" style="color: var(--mu)" />
@@ -678,7 +678,7 @@ function measureAgain(h) {
 }
 .hb > div {
   height: 100%;
-  background: var(--k);
+  background: var(--k, var(--tn-heat));
 }
 .ring {
   width: 52px;

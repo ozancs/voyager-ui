@@ -261,7 +261,7 @@ onMounted(() => {
 }
 .stats .n {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.1;
 }
 .strip {

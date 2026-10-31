@@ -283,7 +283,7 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--mu);
 }
 .ax i {
@@ -298,7 +298,7 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   border: 1px solid transparent;
   border-radius: 6px;
   font-size: 21px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 2px 6px;
   outline: none;
 }
@@ -351,7 +351,7 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   background: var(--s3);
   color: var(--mu);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -103,7 +103,7 @@ function openClip(f) {
   align-items: center;
   gap: 5px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   padding: 2px 6px;
   border-radius: 6px;
@@ -129,7 +129,7 @@ function openClip(f) {
 }
 .st .n {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.1;
 }
 .rc {

@@ -89,7 +89,7 @@ const temps = computed(() =>
 }
 .ps {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: #f5c451;
 }
 .sm {

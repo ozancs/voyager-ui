@@ -129,7 +129,7 @@ function onKey(e) {
   border: none;
   color: var(--mu);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
 }
 .nf-b button:hover {

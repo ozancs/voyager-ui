@@ -518,7 +518,7 @@ async function estop() {
   font-size: 21px;
 }
 .live {
-  font: 700 12px var(--fd);
+  font: 600 12px var(--fd);
   letter-spacing: 0.08em;
   padding: 5px 9px;
   border-radius: 6px;
@@ -564,7 +564,7 @@ async function estop() {
   border: 0;
   background: #5a2a2a;
   color: #f2c2c2;
-  font: 700 15px var(--fd);
+  font: 600 15px var(--fd);
   letter-spacing: 0.04em;
   cursor: pointer;
 }
@@ -647,7 +647,7 @@ async function estop() {
   grid-template-columns: 1fr auto;
 }
 .pct {
-  font: 700 64px/1 var(--fd);
+  font: 600 64px/1 var(--fd);
 }
 .job {
   display: flex;
@@ -663,7 +663,7 @@ async function estop() {
 }
 .ps {
   font-style: normal;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 12px;
   color: #e3c27a;
   margin-left: 10px;
@@ -723,9 +723,7 @@ async function estop() {
 }
 .sec {
   margin-top: 10px;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 12px;
   color: #6f7177;
 }
 .sel {

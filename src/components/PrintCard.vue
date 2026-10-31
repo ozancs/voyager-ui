@@ -223,7 +223,7 @@ async function reprint() {
 }
 .fn {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

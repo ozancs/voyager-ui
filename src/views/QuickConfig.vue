@@ -227,7 +227,7 @@ function addField() {
 }
 .k {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -263,7 +263,7 @@ function addField() {
   outline: none;
   font-family: var(--fm);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .u {
   font-family: var(--fm);

@@ -451,7 +451,7 @@ defineExpose({ retry: start });
   color: #fff;
   border-radius: 4px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .info {
   position: absolute;

@@ -229,7 +229,7 @@ mark {
   border: 1px solid var(--bd);
   background: var(--s2);
   color: var(--mu);
-  font: 700 11px/1 var(--fb, inherit);
+  font: 600 11px/1 var(--fb, inherit);
   cursor: pointer;
   vertical-align: 1px;
 }
@@ -266,7 +266,7 @@ mark {
   background: var(--ac);
   color: var(--oa);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
 }
@@ -348,6 +348,6 @@ mark {
 .p {
   font-family: var(--fm);
   color: var(--ac);
-  font-weight: 700;
+  font-weight: 600;
 }
 </style>

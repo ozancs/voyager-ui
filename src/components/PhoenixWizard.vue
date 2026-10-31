@@ -522,7 +522,7 @@ h3 {
   display: grid;
   place-items: center;
   background: var(--s3);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 11px;
 }
 .steps li.on {

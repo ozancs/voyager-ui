@@ -615,7 +615,7 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
   object-fit: contain;
 }
 .fn {
-  font-weight: 700;
+  font-weight: 600;
   word-break: break-all;
   min-width: 170px; /* the table scrolls sideways before the name is squeezed into a few letters per line */
 }

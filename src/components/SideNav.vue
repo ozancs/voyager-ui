@@ -176,7 +176,7 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
   border-radius: 10px;
   color: #111;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
