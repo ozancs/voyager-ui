@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.6
+
+- Without a print, the top bar says what the printer is doing: homing, heating with the temperature, a macro running, or busy
+- Settings > Control shows only the move steps of the toolhead style in use
+
 ## 0.38.5
 
 - Toolhead card has a circle jog style, as in Mainsail, and it is the new default: positions above a round pad with one ring per step and a Z strip next to it. Switch between Circle and Buttons on the card or in Settings > Control
