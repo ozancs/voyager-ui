@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.38.5
+
+- Toolhead card has a circle jog style, as in Mainsail, and it is the new default: positions above a round pad with one ring per step and a Z strip next to it. Switch between Circle and Buttons on the card or in Settings > Control
+- Circle rings have their own steps (1, 10, 50, 100 by default)
+- The G-code viewer shows the nozzle at the toolhead position while the file prints, with a Show nozzle switch
+- Lighter type across the interface, and the Health heaters panel no longer has an orange background
+
 ## 0.38.4
 
 - Starting a print opens a start dialog with the thumbnail, print time, filament and a timelapse switch (when timelapse is installed)
