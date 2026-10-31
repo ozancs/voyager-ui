@@ -82,6 +82,11 @@ const view = computed(() => {
   </section>
 </template>
 <style scoped>
+/* the card shrinks as a whole (data-scale); a leftover pixel must not bring up a scrollbar (the grid's own rule
+   for cards is overflow: auto, so this needs the same weight) */
+:global(.vgl-item .cell > .card.phx) {
+  overflow: hidden;
+}
 /* nothing else in the header: the title may use all of it at the smallest size */
 .phx :deep(.ctt) {
   max-width: calc(100% - 28px);

@@ -656,7 +656,8 @@ function reset() {
                   /><span>mm/s</span></label
                 >
               </div>
-              <div class="rw">
+              <!-- only the steps of the style in use: the circle has its own rings -->
+              <div v-if="state.settings.toolheadStyle === 'buttons'" class="rw">
                 <div class="k">
                   <b>{{ t('Move distance increments X & Y axes (in mm)') }}</b
                   ><span>{{ t('Buttons left and right of the axis letter, up to 4.') }}</span>
@@ -669,7 +670,7 @@ function reset() {
                   :label="t('Move distance increments X & Y axes (in mm)')"
                 />
               </div>
-              <div class="rw">
+              <div v-if="state.settings.toolheadStyle === 'buttons'" class="rw">
                 <div class="k">
                   <b>{{ t('Move distance increments Z axis (in mm)') }}</b>
                 </div>
@@ -681,7 +682,7 @@ function reset() {
                   :label="t('Move distance increments Z axis (in mm)')"
                 />
               </div>
-              <div class="rw">
+              <div v-if="state.settings.toolheadStyle !== 'buttons'" class="rw">
                 <div class="k">
                   <b>{{ t('Circle rings X & Y axes (in mm)') }}</b
                   ><span>{{ t('One ring per step, the smallest inside. Up to 4.') }}</span>
@@ -694,13 +695,13 @@ function reset() {
                   :label="t('Circle rings X & Y axes (in mm)')"
                 />
               </div>
-              <div class="rw">
+              <div v-if="state.settings.toolheadStyle !== 'buttons'" class="rw">
                 <div class="k">
                   <b>{{ t('Circle rings Z axis (in mm)') }}</b>
                 </div>
                 <ChipList v-model="ctl.circleZ" class="v" :max="4" desc :label="t('Circle rings Z axis (in mm)')" />
               </div>
-              <div class="rw">
+              <div v-if="state.settings.toolheadStyle === 'buttons'" class="rw">
                 <div class="k">
                   <b>{{ t('D-pad steps (in mm)') }}</b
                   ><span>{{ t('Step choices next to the arrow pad.') }}</span>
