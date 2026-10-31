@@ -2229,5 +2229,16 @@
 "Circle rings X & Y axes (in mm)",
 "One ring per step, the smallest inside. Up to 4.",
 "Circle rings Z axis (in mm)",
-"Show nozzle"
+"Show nozzle",
+"Levelling the gantry",
+"Levelling Z",
+"Probing the bed mesh",
+"Probing",
+"Measuring the bed screws",
+"Measuring resonances",
+"Moving",
+"Running {cmd}",
+"{heater} {temp}° / {target}°",
+"Busy",
+"A command is running"
 ]

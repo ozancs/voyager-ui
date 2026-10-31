@@ -10,6 +10,12 @@ Root component: top bar, side menu, favorites bar and the page the router points
 on demand (LOADERS) and kept alive, so switching back is instant. Also hosts the app-wide overlays: toasts,  
 Ctrl+K search, settings, update log, macro prompts, first-run setup and the login screen.
 
+**[src/activity.js](../src/activity.js)**  
+What the printer is doing when no print runs, for the top bar in place of "Standby": the command this page sent  
+that is still running (homing, levelling, a macro such as a PA test), a heater on its way to its target, or  
+Klipper busy with something another client started. Read from the live status only, never guessed: null when  
+there is nothing to say.
+
 **[src/autoscroll.js](../src/autoscroll.js)**  
 While dragging on the dashboard, keep scrolling when the pointer sits near the top or bottom edge  
 of the page. After each scroll step the last pointer event is replayed so the dragged card follows.

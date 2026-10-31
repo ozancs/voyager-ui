@@ -278,6 +278,7 @@ export const state = reactive({
   connected: false,
   klippy: 'disconnected', // ready | startup | shutdown | error | disconnected
   klippyMessage: '',
+  running: null, // { cmd, script, at }: a command this page sent that is still running (shown in the top bar when idle)
   objects: [],
   status: {},
   macros: [],
@@ -762,12 +763,18 @@ export const gcode = async (script, { quiet = false, force = false } = {}) => {
     if (cmd && !(await askGuard(script, cmd))) return;
   }
   pushConsole(script, 'command');
+  // a command still running after a moment (G28, a macro, a heater wait): the top bar says what the printer is doing
+  const run = { cmd: cmdWord(lines[0] || ''), script, at: now };
+  const tm = setTimeout(() => (state.running = run), 500);
   try {
     await api.gcode(script);
   } catch (e) {
     if (lastSent === mine) lastSent = { s: '', at: 0 }; // a failed send can be retried at once
     if (!quiet) toast(e.message, 'error');
     throw e;
+  } finally {
+    clearTimeout(tm);
+    if (state.running === run || state.running?.at === run.at) state.running = null;
   }
 };
 

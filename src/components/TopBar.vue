@@ -38,6 +38,7 @@ import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
 import { startPrint, uploadName } from '../preprint';
+import { activity } from '../activity';
 
 const emit = defineEmits(['exclude', 'menu']);
 const fileInput = ref(null);
@@ -63,6 +64,7 @@ const stateColor = computed(() => (printState.value === 'paused' ? 'var(--wn)' :
 const label = computed(() => {
   if (!state.connected) return t('Disconnected');
   if (state.klippy !== 'ready') return t('Klipper {state}', { state: state.klippy });
+  if (activity.value) return activity.value.title; // no print, but homing, heating, a macro running...
   return t(printState.value.charAt(0).toUpperCase() + printState.value.slice(1));
 });
 const savePending = computed(() => S('configfile').save_config_pending);
@@ -287,7 +289,8 @@ onBeforeUnmount(() => ovObs?.disconnect());
     <div v-else-if="active" class="grow"></div>
     <div v-else class="pill">
       <div class="pth">
-        <img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
+        <Icon v-if="activity" name="refresh" :size="18" :stroke="2" class="spin" />
+        <img v-else-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
           v-else
           name="cube"
           :size="20"
@@ -301,7 +304,9 @@ onBeforeUnmount(() => ovObs?.disconnect());
         <span class="mono fn">{{
           state.klippy !== 'ready' && state.klippyMessage
             ? state.klippyMessage.split('\n')[0]
-            : S('print_stats').filename || t('No file loaded')
+            : activity
+              ? activity.detail
+              : S('print_stats').filename || t('No file loaded')
         }}</span>
       </div>
       <div class="grow"></div>
