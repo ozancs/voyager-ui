@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "Pierścienie okręgu osie X i Y (w mm)",
   "One ring per step, the smallest inside. Up to 4.": "Jeden pierścień na krok, najmniejszy w środku. Maksymalnie 4.",
   "Circle rings Z axis (in mm)": "Pierścienie okręgu oś Z (w mm)",
+  "Show nozzle": "Pokaż dyszę",
 }

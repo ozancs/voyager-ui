@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "Anillos del círculo ejes X e Y (en mm)",
   "One ring per step, the smallest inside. Up to 4.": "Un anillo por paso, el más pequeño dentro. Hasta 4.",
   "Circle rings Z axis (in mm)": "Anillos del círculo eje Z (en mm)",
+  "Show nozzle": "Mostrar boquilla",
 }

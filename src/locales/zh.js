@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "圆形各圈 X 和 Y 轴（毫米）",
   "One ring per step, the smallest inside. Up to 4.": "每个步长一圈，最小的在内。最多 4 个。",
   "Circle rings Z axis (in mm)": "圆形各圈 Z 轴（毫米）",
+  "Show nozzle": "显示喷嘴",
 }

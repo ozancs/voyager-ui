@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "Anneaux du cercle axes X et Y (en mm)",
   "One ring per step, the smallest inside. Up to 4.": "Un anneau par pas, le plus petit à l'intérieur. Jusqu'à 4.",
   "Circle rings Z axis (in mm)": "Anneaux du cercle axe Z (en mm)",
+  "Show nozzle": "Afficher la buse",
 }

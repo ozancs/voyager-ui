@@ -2228,5 +2228,6 @@
 "Circle",
 "Circle rings X & Y axes (in mm)",
 "One ring per step, the smallest inside. Up to 4.",
-"Circle rings Z axis (in mm)"
+"Circle rings Z axis (in mm)",
+"Show nozzle"
 ]

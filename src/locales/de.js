@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "Kreisringe X- und Y-Achse (in mm)",
   "One ring per step, the smallest inside. Up to 4.": "Ein Ring pro Schritt, der kleinste innen. Bis zu 4.",
   "Circle rings Z axis (in mm)": "Kreisringe Z-Achse (in mm)",
+  "Show nozzle": "Düse anzeigen",
 }

@@ -22,6 +22,12 @@ const loading = ref('');
 const layers = ref(0);
 const layer = ref(0);
 const follow = ref(true);
+// the nozzle at the toolhead position while the loaded file prints (remembered in this browser)
+let nozzlePref = '1';
+try {
+  nozzlePref = localStorage.getItem('voyager-ui-viewer-nozzle') ?? '1';
+} catch {}
+const showNozzle = ref(nozzlePref !== '0');
 const travel = ref(false);
 const tab = ref('3d');
 // colour: one colour with a height gradient (as before), by feature type (;TYPE: comments) or by speed
@@ -176,17 +182,49 @@ function firstLine(group) {
   group?.traverse((o) => !found && o.isLineSegments && (found = o));
   return found;
 }
+// the nozzle at real size (mm): the cone at the tip, the hex above it and the heater block, drawn as lines in a
+// hotend orange so it stands out from the model at any zoom
 function ensureMarker(like) {
   if (marker || !like) return marker;
   const pts = [];
-  const N = 12,
-    R = 2.5,
-    H = 7;
-  const ring = (k) => [Math.cos((k / N) * 2 * Math.PI) * R, H, Math.sin((k / N) * 2 * Math.PI) * R];
-  for (let k = 0; k < N; k++) pts.push(0, 0, 0, ...ring(k), ...ring(k), ...ring(k + 1)); // tip down, like a nozzle
+  const seg = (a, b) => pts.push(...a, ...b);
+  const ring = (r, y, n, k, rot = 0) => {
+    const a = (k / n) * 2 * Math.PI + rot;
+    return [Math.cos(a) * r, y, Math.sin(a) * r];
+  };
+  const N = 16;
+  for (let k = 0; k < N; k++) {
+    seg(ring(0.4, 0, N, k), ring(0.4, 0, N, k + 1)); // tip
+    seg(ring(3, 5, N, k), ring(3, 5, N, k + 1)); // top of the cone
+    if (k % 2 === 0) seg(ring(0.4, 0, N, k), ring(3, 5, N, k));
+  }
+  for (let k = 0; k < 6; k++) {
+    // hex
+    for (const y of [5, 9]) seg(ring(4.2, y, 6, k, Math.PI / 6), ring(4.2, y, 6, k + 1, Math.PI / 6));
+    seg(ring(4.2, 5, 6, k, Math.PI / 6), ring(4.2, 9, 6, k, Math.PI / 6));
+  }
+  // heater block, 20 x 16 x 10, the nozzle a little off centre as on most hotends
+  const bx = [-7, 13],
+    bz = [-8, 8],
+    by = [9, 19];
+  const c = (i, j, l) => [bx[i], by[j], bz[l]];
+  for (const j of [0, 1]) {
+    seg(c(0, j, 0), c(1, j, 0));
+    seg(c(1, j, 0), c(1, j, 1));
+    seg(c(1, j, 1), c(0, j, 1));
+    seg(c(0, j, 1), c(0, j, 0));
+  }
+  for (const [i, l] of [
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [0, 1],
+  ])
+    seg(c(i, 0, l), c(i, 1, l));
   const g = new like.geometry.constructor();
   g.setAttribute('position', new like.geometry.attributes.position.constructor(new Float32Array(pts), 3));
-  marker = new like.constructor(g, new like.material.constructor({ color: 0xffffff }));
+  marker = new like.constructor(g, new like.material.constructor({ color: 0xff8a3d }));
+  marker.renderOrder = 10;
   return marker;
 }
 function placeMarker() {
@@ -228,8 +266,9 @@ function renderLive(p, at) {
     l.commands = all;
   }
   p.scene.add(ghost);
-  const m = ensureMarker(firstLine(p.group) || firstLine(ghost));
+  const m = showNozzle.value && ensureMarker(firstLine(p.group) || firstLine(ghost));
   if (m) p.scene.add(m);
+  else if (marker) p.scene.remove(marker);
   placeMarker();
   p.renderer.render(p.scene, p.camera);
 }
@@ -244,6 +283,14 @@ async function update() {
   p.startLayer = undefined;
   p.endLayer = Math.max(1, layer.value);
   p.render();
+  // not following, the nozzle still shows where it is, on the file being printed
+  if (showNozzle.value && active.value && file.value === curPrint.value) {
+    const m = ensureMarker(firstLine(p.group));
+    if (m) {
+      p.scene.add(m);
+      placeMarker();
+    }
+  }
 }
 const curPrint = computed(() => S('print_stats').filename);
 const active = computed(() => ['printing', 'paused'].includes(printState.value));
@@ -297,9 +344,15 @@ watch(
 // the nozzle cone moves with every position report, without drawing the model again
 watch(
   () => S('gcode_move').gcode_position,
-  () => live.value && placeMarker(),
+  () => marker?.parent && placeMarker(),
 );
 watch(travel, update);
+watch(showNozzle, () => {
+  try {
+    localStorage.setItem('voyager-ui-viewer-nozzle', showNozzle.value ? '1' : '0');
+  } catch {}
+  update();
+});
 function onResize() {
   preview.value?.resize();
 }
@@ -402,6 +455,10 @@ onBeforeUnmount(() => {
             :label="t('Follow print')"
             @update:model-value="$event && printLayer && ((layer = printLayer), update())"
           />
+        </div>
+        <div class="row" style="justify-content: space-between">
+          <span>{{ t('Show nozzle') }}</span
+          ><Toggle v-model="showNozzle" :label="t('Show nozzle')" />
         </div>
         <div class="row" style="justify-content: space-between">
           <span>{{ t('Show travel moves') }}</span

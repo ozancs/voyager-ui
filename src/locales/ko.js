@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "원형 링 X·Y축 (mm)",
   "One ring per step, the smallest inside. Up to 4.": "단계마다 링 하나, 가장 작은 것이 안쪽. 최대 4개.",
   "Circle rings Z axis (in mm)": "원형 링 Z축 (mm)",
+  "Show nozzle": "노즐 표시",
 }

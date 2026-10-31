@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "サークルのリング X・Y軸（mm）",
   "One ring per step, the smallest inside. Up to 4.": "ステップごとに1つのリング、最小が内側。最大4つ。",
   "Circle rings Z axis (in mm)": "サークルのリング Z軸（mm）",
+  "Show nozzle": "ノズルを表示",
 }

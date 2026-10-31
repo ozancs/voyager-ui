@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "Cirkelringen X- en Y-as (in mm)",
   "One ring per step, the smallest inside. Up to 4.": "Eén ring per stap, de kleinste binnenin. Maximaal 4.",
   "Circle rings Z axis (in mm)": "Cirkelringen Z-as (in mm)",
+  "Show nozzle": "Nozzle tonen",
 }

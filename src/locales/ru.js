@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "Кольца круга, оси X и Y (мм)",
   "One ring per step, the smallest inside. Up to 4.": "Одно кольцо на шаг, самое маленькое внутри. До 4.",
   "Circle rings Z axis (in mm)": "Кольца круга, ось Z (мм)",
+  "Show nozzle": "Показать сопло",
 }

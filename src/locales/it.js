@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "Anelli del cerchio assi X e Y (in mm)",
   "One ring per step, the smallest inside. Up to 4.": "Un anello per passo, il più piccolo all'interno. Fino a 4.",
   "Circle rings Z axis (in mm)": "Anelli del cerchio asse Z (in mm)",
+  "Show nozzle": "Mostra ugello",
 }

@@ -2233,4 +2233,5 @@ export default {
   "Circle rings X & Y axes (in mm)": "Daire halkaları X ve Y eksenleri (mm)",
   "One ring per step, the smallest inside. Up to 4.": "Her adım için bir halka, en küçüğü içte. En fazla 4.",
   "Circle rings Z axis (in mm)": "Daire halkaları Z ekseni (mm)",
+  "Show nozzle": "Nozzle göster",
 }
