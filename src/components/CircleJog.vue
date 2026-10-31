@@ -1,6 +1,6 @@
 <script setup>
 // Circle jog pad (Toolhead card, "Circle" style, as Mainsail's): X and Y around a round pad, one ring per step
-// (the smallest inside), a Z strip next to it, home buttons in the corners (X, Y, XY, Z) and Home all in the middle. The steps
+// (the smallest inside) inside a dial of ticks with the axis directions on it, a Z strip next to it, home buttons in the corners (X, Y, XY, Z) and Home all in the middle. The steps
 // are the circle's own X/Y and Z steps from Settings > Control. It only emits; the card sends the G-code.
 import { computed } from 'vue';
 import { t } from '../i18n';
@@ -14,8 +14,9 @@ const props = defineProps({
 const emit = defineEmits(['jog', 'home']);
 
 const C = 38, // pad centre
-  R = 36, // outer radius
-  RC = 8.5, // centre button
+  R = 36, // dial radius
+  RP = 32.6, // outer radius of the rings, inside the dial
+  RC = 7.5, // centre button
   GAP = 1.4; // between rings
 const up = (a) =>
   [...a]
@@ -46,7 +47,7 @@ const DIRS = [
 ];
 const rings = computed(() => {
   const n = xy.value.length || 1;
-  const w = (R - RC - GAP) / n;
+  const w = (RP - RC - GAP) / n;
   return xy.value.map((step, i) => {
     const r0 = RC + GAP + i * w,
       r1 = r0 + w - GAP;
@@ -81,6 +82,25 @@ const zbands = computed(() => {
     ];
   });
 });
+// the dial: a tick every 5°, longer on the diagonals, none on the axes where their names are
+const xyp = (r, deg) => {
+  const a = (deg * Math.PI) / 180;
+  return [+(C + r * Math.cos(a)).toFixed(3), +(C - r * Math.sin(a)).toFixed(3)];
+};
+const TICKS = Array.from({ length: 72 }, (_, k) => k * 5)
+  .filter((a) => a % 90 !== 0)
+  .map((a) => {
+    const big = a % 45 === 0;
+    const [x1, y1] = xyp(big ? R - 1.7 : R - 1.1, a),
+      [x2, y2] = xyp(R, a);
+    return { a, x1, y1, x2, y2, big };
+  });
+const AXES = [
+  ['X+', 0],
+  ['Y+', 90],
+  ['X−', 180],
+  ['Y−', 270],
+].map(([l, a]) => ({ l, a, p: xyp(R - 1, a) }));
 const fill = (i, n) => `color-mix(in srgb, var(--tx) ${16 - (12 * i) / Math.max(1, n - 1 || 1)}%, var(--s2))`;
 const CORNERS = computed(() => [
   { key: 'x', x: 0, y: 0, cmd: 'G28 X', label: 'X', homed: can('X'), tip: t('Home {axis}', { axis: 'X' }) },
@@ -99,6 +119,18 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
 </script>
 <template>
   <svg class="cj" viewBox="0 0 100 76" role="group" :aria-label="t('Toolhead jog pad')">
+    <!-- the dial around the rings -->
+    <line
+      v-for="k in TICKS"
+      :key="'k' + k.a"
+      class="tk"
+      :class="{ big: k.big }"
+      :x1="k.x1"
+      :y1="k.y1"
+      :x2="k.x2"
+      :y2="k.y2"
+    />
+    <text v-for="a in AXES" :key="a.l" class="axl" :x="a.p[0]" :y="a.p[1]">{{ a.l }}</text>
     <!-- X / Y rings -->
     <g
       v-for="p in pieces"
@@ -211,6 +243,23 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
   dominant-baseline: central;
   pointer-events: none;
   font-variant-numeric: tabular-nums;
+}
+.tk {
+  stroke: var(--mu);
+  stroke-width: 0.22;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.tk.big {
+  stroke-width: 0.35;
+  opacity: 0.85;
+}
+.axl {
+  font: 600 2.9px var(--fd);
+  fill: var(--mu);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
 }
 .lb.dim {
   opacity: 0.5;
