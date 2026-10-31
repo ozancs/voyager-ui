@@ -1,7 +1,7 @@
 <script setup>
 // Circle jog pad (Toolhead card, "Circle" style, as Mainsail's): X and Y around a round pad, one ring per step
-// (the smallest inside), a Z strip next to it, home buttons in the corners and Home X Y in the middle. The steps
-// are the card's own X/Y and Z steps from Settings > Control. It only emits; the card sends the G-code.
+// (the smallest inside), a Z strip next to it, home buttons in the corners (X, Y, XY, Z) and Home all in the middle. The steps
+// are the circle's own X/Y and Z steps from Settings > Control. It only emits; the card sends the G-code.
 import { computed } from 'vue';
 import { t } from '../i18n';
 const props = defineProps({
@@ -85,7 +85,7 @@ const fill = (i, n) => `color-mix(in srgb, var(--tx) ${16 - (12 * i) / Math.max(
 const CORNERS = computed(() => [
   { key: 'x', x: 0, y: 0, cmd: 'G28 X', label: 'X', homed: can('X'), tip: t('Home {axis}', { axis: 'X' }) },
   { key: 'y', x: 64, y: 0, cmd: 'G28 Y', label: 'Y', homed: can('Y'), tip: t('Home {axis}', { axis: 'Y' }) },
-  { key: 'a', x: 0, y: 64, cmd: 'G28', label: '', homed: can('X') && can('Y') && can('Z'), tip: t('Home All') },
+  { key: 'xy', x: 0, y: 64, cmd: 'G28 X Y', label: 'XY', homed: can('X') && can('Y'), tip: t('Home X Y') },
   { key: 'z', x: 64, y: 64, cmd: 'G28 Z', label: 'Z', homed: can('Z'), tip: t('Home {axis}', { axis: 'Z' }) },
 ]);
 const key = (fn) => (e) => {
@@ -119,17 +119,17 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
     <text v-for="r in rings" :key="'t' + r.i" class="lb" :x="C" :y="C - r.rm" :class="{ dim: !can('Y') }">
       {{ fmt(r.step) }}
     </text>
-    <!-- Home X Y in the middle -->
+    <!-- Home all in the middle, as Mainsail's -->
     <g
       class="hm"
-      :class="{ homed: can('X') && can('Y'), off: busy }"
+      :class="{ homed: can('X') && can('Y') && can('Z'), off: busy }"
       role="button"
       :tabindex="busy ? -1 : 0"
-      :aria-label="t('Home X Y')"
-      @click="!busy && emit('home', 'G28 X Y')"
-      @keydown="key(() => !busy && emit('home', 'G28 X Y'))($event)"
+      :aria-label="t('Home All')"
+      @click="!busy && emit('home', 'G28')"
+      @keydown="key(() => !busy && emit('home', 'G28'))($event)"
     >
-      <title>{{ t('Home X Y') }}</title>
+      <title>{{ t('Home All') }}</title>
       <circle :cx="C" :cy="C" :r="RC" />
       <path :d="HOUSE" :transform="`translate(${C - 4.2} ${C - 4.2}) scale(0.35)`" class="ic" />
     </g>
@@ -147,8 +147,7 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
     >
       <title>{{ c.tip }}</title>
       <rect :x="c.x" :y="c.y" width="12" height="12" rx="3" />
-      <text v-if="c.label" class="cl" :x="c.x + 6" :y="c.y + 6.3">{{ c.label }}</text>
-      <path v-else :d="HOUSE" :transform="`translate(${c.x + 2.4} ${c.y + 2.4}) scale(0.3)`" class="ic" />
+      <text class="cl" :class="{ two: c.label.length > 1 }" :x="c.x + 6" :y="c.y + 6.3">{{ c.label }}</text>
     </g>
     <!-- Z strip -->
     <g
@@ -234,6 +233,9 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
   text-anchor: middle;
   dominant-baseline: central;
   pointer-events: none;
+}
+.hm .cl.two {
+  font-size: 4.2px;
 }
 .hm .ic {
   fill: none;
