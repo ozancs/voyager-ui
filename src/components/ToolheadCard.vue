@@ -182,8 +182,8 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
       </div>
       <div v-if="circle" class="pad">
         <CircleJog
-          :steps-x-y="ctl.stepsXY || []"
-          :steps-z="ctl.stepsZ || []"
+          :steps-x-y="ctl.circleXY || []"
+          :steps-z="ctl.circleZ || []"
           :homed="homed"
           :busy="isPrinting"
           :zdir="zdir"
@@ -431,43 +431,55 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
   color: var(--tx);
   box-shadow: inset 3px 0 0 var(--ac);
 }
-/* circle style: the position fields next to the round pad, both as tall as the pad */
+/* circle style, as Mainsail's: the three positions in a row above the pad. On the dashboard grid the pad takes
+   the height the card has left, so a square card holds it; elsewhere (phone) it is as wide as the card */
 .body.circ {
-  --h: 56px;
-  --g: 10px;
+  flex-direction: column;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
-  gap: 16px 28px;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.body.circ .pos3 {
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  grid-template-rows: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.body.circ .pos {
+  height: 44px;
+  padding: 0 4px 0 10px;
+  min-width: 0;
+}
+.body.circ .pin {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 2px;
+  font-size: clamp(13px, 3.6cqw, 18px);
+}
+.body.circ .ax {
+  gap: 4px;
 }
 .pad {
-  height: calc(var(--h) * 3 + var(--g) * 2 + 24px);
+  width: 100%;
   aspect-ratio: 100 / 76;
+  display: flex;
+  justify-content: center;
+}
+.vgl-item .pad {
+  aspect-ratio: auto;
+  flex: 1 1 0;
+  min-height: 190px;
+}
+.pad :deep(.cj) {
+  height: 100%;
+  width: auto;
   max-width: 100%;
 }
 .sty button {
   padding: 0 8px;
-}
-/* narrow: the three positions side by side above a pad as wide as the card */
-@container (max-width: 520px) {
-  .body.circ .pos3 {
-    width: 100%;
-    height: auto;
-    grid-template-rows: none;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .body.circ .pos {
-    height: 44px;
-    padding: 0 6px 0 10px;
-  }
-  .body.circ .pin {
-    width: 100%;
-    min-width: 0;
-    font-size: 16px;
-  }
-  .body.circ .pad {
-    width: 100%;
-    height: auto;
-  }
 }
 /* narrow card: the per-axis rows already do everything the D-pad does, so drop the D-pad instead of wrapping
    it to a second line (which made the card scroll inside the page). 580px: above it the D-pad still fits once

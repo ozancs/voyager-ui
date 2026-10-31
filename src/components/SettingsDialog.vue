@@ -659,9 +659,7 @@ function reset() {
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Move distance increments X & Y axes (in mm)') }}</b
-                  ><span>{{
-                    t('Buttons left and right of the axis letter, or the rings of the circle. Up to 4.')
-                  }}</span>
+                  ><span>{{ t('Buttons left and right of the axis letter, up to 4.') }}</span>
                 </div>
                 <ChipList
                   v-model="ctl.stepsXY"
@@ -682,6 +680,25 @@ function reset() {
                   desc
                   :label="t('Move distance increments Z axis (in mm)')"
                 />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Circle rings X & Y axes (in mm)') }}</b
+                  ><span>{{ t('One ring per step, the smallest inside. Up to 4.') }}</span>
+                </div>
+                <ChipList
+                  v-model="ctl.circleXY"
+                  class="v"
+                  :max="4"
+                  desc
+                  :label="t('Circle rings X & Y axes (in mm)')"
+                />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Circle rings Z axis (in mm)') }}</b>
+                </div>
+                <ChipList v-model="ctl.circleZ" class="v" :max="4" desc :label="t('Circle rings Z axis (in mm)')" />
               </div>
               <div class="rw">
                 <div class="k">

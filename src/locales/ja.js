@@ -2230,5 +2230,7 @@ export default {
   "Control style": "操作スタイル",
   "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "サークル：ステップごとにリングがある丸いパッド。ボタン：軸ごとのステップ列と十字パッド。",
   "Circle": "サークル",
-  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "軸の文字の左右のボタン、またはサークルのリング。最大4つ。",
+  "Circle rings X & Y axes (in mm)": "サークルのリング X・Y軸（mm）",
+  "One ring per step, the smallest inside. Up to 4.": "ステップごとに1つのリング、最小が内側。最大4つ。",
+  "Circle rings Z axis (in mm)": "サークルのリング Z軸（mm）",
 }

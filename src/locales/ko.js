@@ -2230,5 +2230,7 @@ export default {
   "Control style": "조작 스타일",
   "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "원형: 단계마다 링이 있는 둥근 패드. 버튼: 축별 단계 줄과 방향 패드.",
   "Circle": "원형",
-  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "축 글자 좌우의 버튼 또는 원형의 링. 최대 4개.",
+  "Circle rings X & Y axes (in mm)": "원형 링 X·Y축 (mm)",
+  "One ring per step, the smallest inside. Up to 4.": "단계마다 링 하나, 가장 작은 것이 안쪽. 최대 4개.",
+  "Circle rings Z axis (in mm)": "원형 링 Z축 (mm)",
 }

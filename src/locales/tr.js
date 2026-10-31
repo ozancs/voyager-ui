@@ -2230,5 +2230,7 @@ export default {
   "Control style": "Kontrol stili",
   "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Daire: her adım için bir halkası olan yuvarlak ped. Butonlar: eksen başına adım satırları ve bir D-pad.",
   "Circle": "Daire",
-  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Eksen harfinin solundaki ve sağındaki butonlar ya da dairenin halkaları. En fazla 4.",
+  "Circle rings X & Y axes (in mm)": "Daire halkaları X ve Y eksenleri (mm)",
+  "One ring per step, the smallest inside. Up to 4.": "Her adım için bir halka, en küçüğü içte. En fazla 4.",
+  "Circle rings Z axis (in mm)": "Daire halkaları Z ekseni (mm)",
 }

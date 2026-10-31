@@ -2226,5 +2226,7 @@
 "Control style",
 "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.",
 "Circle",
-"Buttons left and right of the axis letter, or the rings of the circle. Up to 4."
+"Circle rings X & Y axes (in mm)",
+"One ring per step, the smallest inside. Up to 4.",
+"Circle rings Z axis (in mm)"
 ]

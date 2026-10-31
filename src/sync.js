@@ -93,6 +93,8 @@ function shared() {
     ['control.feedrateZ', 'uiSettings.general.defaultToolheadZSpeed', Number(c.feedZ) || 25],
     ['control.stepsXY', null, desc(c.stepsXY)],
     ['control.stepsZ', null, desc(c.stepsZ)],
+    ['control.stepsCircleXY', null, asc(c.circleXY)],
+    ['control.stepsCircleZ', null, asc(c.circleZ)],
     [
       null,
       'uiSettings.general.toolheadMoveDistances',
@@ -194,6 +196,8 @@ export async function importFrom(which) {
     if (ct.feedrateZ) c.feedZ = Number(ct.feedrateZ);
     if (num(ct.stepsXY)?.length) c.stepsXY = num(ct.stepsXY);
     if (num(ct.stepsZ)?.length) c.stepsZ = num(ct.stepsZ);
+    if (num(ct.stepsCircleXY)?.length) c.circleXY = num(ct.stepsCircleXY).slice(0, 4);
+    if (num(ct.stepsCircleZ)?.length) c.circleZ = num(ct.stepsCircleZ).slice(0, 4);
     if (num(ct.extruder?.feedamounts)?.length) c.extAmounts = num(ct.extruder.feedamounts);
     if (num(ct.extruder?.feedrates)?.length) c.extFeeds = num(ct.extruder.feedrates);
     if (ct.feedrateXY || ct.stepsXY || ct.extruder) took.push('control');

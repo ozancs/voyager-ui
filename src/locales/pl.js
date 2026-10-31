@@ -2230,5 +2230,7 @@ export default {
   "Control style": "Styl sterowania",
   "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Okrąg: okrągły pad z jednym pierścieniem na krok. Przyciski: rzędy kroków dla każdej osi i krzyżak.",
   "Circle": "Okrąg",
-  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Przyciski po lewej i prawej od litery osi albo pierścienie okręgu. Maksymalnie 4.",
+  "Circle rings X & Y axes (in mm)": "Pierścienie okręgu osie X i Y (w mm)",
+  "One ring per step, the smallest inside. Up to 4.": "Jeden pierścień na krok, najmniejszy w środku. Maksymalnie 4.",
+  "Circle rings Z axis (in mm)": "Pierścienie okręgu oś Z (w mm)",
 }

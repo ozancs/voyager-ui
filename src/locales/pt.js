@@ -2230,5 +2230,7 @@ export default {
   "Control style": "Estilo de controle",
   "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Círculo: um painel redondo com um anel por passo. Botões: fileiras de passos por eixo e um direcional.",
   "Circle": "Círculo",
-  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Botões à esquerda e à direita da letra do eixo, ou os anéis do círculo. Até 4.",
+  "Circle rings X & Y axes (in mm)": "Anéis do círculo eixos X e Y (em mm)",
+  "One ring per step, the smallest inside. Up to 4.": "Um anel por passo, o menor por dentro. Até 4.",
+  "Circle rings Z axis (in mm)": "Anéis do círculo eixo Z (em mm)",
 }

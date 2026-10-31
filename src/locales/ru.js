@@ -2230,5 +2230,7 @@ export default {
   "Control style": "Стиль управления",
   "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Круг: круглая панель с кольцом на каждый шаг. Кнопки: ряды шагов по осям и крестовина.",
   "Circle": "Круг",
-  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Кнопки слева и справа от буквы оси или кольца круга. До 4.",
+  "Circle rings X & Y axes (in mm)": "Кольца круга, оси X и Y (мм)",
+  "One ring per step, the smallest inside. Up to 4.": "Одно кольцо на шаг, самое маленькое внутри. До 4.",
+  "Circle rings Z axis (in mm)": "Кольца круга, ось Z (мм)",
 }

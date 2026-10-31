@@ -2230,5 +2230,7 @@ export default {
   "Control style": "Steuerungsstil",
   "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Kreis: ein rundes Pad mit einem Ring pro Schritt. Tasten: Schrittreihen pro Achse und ein D-Pad.",
   "Circle": "Kreis",
-  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Tasten links und rechts vom Achsbuchstaben oder die Ringe des Kreises. Bis zu 4.",
+  "Circle rings X & Y axes (in mm)": "Kreisringe X- und Y-Achse (in mm)",
+  "One ring per step, the smallest inside. Up to 4.": "Ein Ring pro Schritt, der kleinste innen. Bis zu 4.",
+  "Circle rings Z axis (in mm)": "Kreisringe Z-Achse (in mm)",
 }

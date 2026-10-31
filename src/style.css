@@ -108,11 +108,11 @@
 * {
   box-sizing: border-box;
 }
-html,
 b,
 strong {
   font-weight: 600;
 }
+html,
 body {
   margin: 0;
   height: 100%;

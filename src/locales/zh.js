@@ -2230,5 +2230,7 @@ export default {
   "Control style": "控制样式",
   "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "圆形：每个步长一圈的圆形控制盘。按钮：每个轴一行步长按钮和方向键。",
   "Circle": "圆形",
-  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "轴字母左右两侧的按钮，或圆形的各圈。最多 4 个。",
+  "Circle rings X & Y axes (in mm)": "圆形各圈 X 和 Y 轴（毫米）",
+  "One ring per step, the smallest inside. Up to 4.": "每个步长一圈，最小的在内。最多 4 个。",
+  "Circle rings Z axis (in mm)": "圆形各圈 Z 轴（毫米）",
 }
