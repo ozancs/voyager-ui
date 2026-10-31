@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "Hauteur de couche",
   "Start print": "Lancer l'impression",
   "Take the last print off the bed first.": "Retirez d'abord la dernière impression du plateau.",
+  "Toolhead jog pad": "Pavé de déplacement de la tête",
+  "Control style": "Style de contrôle",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Cercle : un pavé rond avec un anneau par pas. Boutons : des rangées de pas par axe et une croix directionnelle.",
+  "Circle": "Cercle",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Boutons à gauche et à droite de la lettre de l'axe, ou les anneaux du cercle. Jusqu'à 4.",
 }

@@ -5,6 +5,7 @@ import { computed, ref } from 'vue';
 import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
+import CircleJog from './CircleJog.vue';
 import { state, S, gcode, isPrinting, toast } from '../store';
 import { t } from '../i18n';
 const th = computed(() => S('toolhead'));
@@ -84,6 +85,9 @@ function setFlow(v) {
 }
 const dstep = ref(dpadSteps.value.includes(10) ? 10 : dpadSteps.value[Math.floor(dpadSteps.value.length / 2)] || 10);
 const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
+// jog style: the round pad (default, as Mainsail's circle) or rows of buttons; Settings > Control has the same choice
+const circle = computed(() => state.settings.toolheadStyle !== 'buttons');
+const setStyle = (v) => (state.settings.toolheadStyle = v);
 </script>
 <template>
   <section class="card spread">
@@ -120,10 +124,32 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
         <button class="btn" :disabled="isPrinting" @click="gcode('M84')">
           <Icon name="power" :size="16" :stroke="2.4" />{{ t('Motors off') }}
         </button>
+        <div class="seg sty" role="radiogroup" :aria-label="t('Control style')">
+          <button
+            role="radio"
+            :aria-checked="circle"
+            :class="{ on: circle }"
+            :data-tip="t('Circle')"
+            :aria-label="t('Circle')"
+            @click="setStyle('circle')"
+          >
+            <Icon name="l:circle-dot" :size="15" />
+          </button>
+          <button
+            role="radio"
+            :aria-checked="!circle"
+            :class="{ on: !circle }"
+            :data-tip="t('Buttons')"
+            :aria-label="t('Buttons')"
+            @click="setStyle('buttons')"
+          >
+            <Icon name="l:rows-3" :size="15" />
+          </button>
+        </div>
       </div>
       <CardCollapse />
     </div>
-    <div class="body">
+    <div class="body" :class="{ circ: circle }">
       <div class="grp pos3">
         <div
           v-for="(a, i) in ['X', 'Y', 'Z']"
@@ -154,80 +180,93 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
           />
         </div>
       </div>
-      <div class="grp jog">
-        <div
-          v-for="r in AX"
-          :key="r.a"
-          class="jr"
-          :data-tip="!can(r.a) ? t('{axis} must be homed first', { axis: r.a }) : ''"
-        >
-          <!-- prettier-ignore -->
-          <!-- prettier-ignore -->
-          <button v-for="st in r.steps" :key="'-' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, -st)">−{{ st }}</button>
-          <button
-            class="axb"
-            :class="{ homed: can(r.a) }"
-            :aria-label="t('Home {axis}', { axis: r.a })"
-            :disabled="isPrinting"
-            @click="gcode('G28 ' + r.a)"
+      <div v-if="circle" class="pad">
+        <CircleJog
+          :steps-x-y="ctl.stepsXY || []"
+          :steps-z="ctl.stepsZ || []"
+          :homed="homed"
+          :busy="isPrinting"
+          :zdir="zdir"
+          @jog="jog"
+          @home="gcode"
+        />
+      </div>
+      <template v-else>
+        <div class="grp jog">
+          <div
+            v-for="r in AX"
+            :key="r.a"
+            class="jr"
+            :data-tip="!can(r.a) ? t('{axis} must be homed first', { axis: r.a }) : ''"
           >
-            {{ r.a }}
+            <!-- prettier-ignore -->
+            <!-- prettier-ignore -->
+            <button v-for="st in r.steps" :key="'-' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, -st)">−{{ st }}</button>
+            <button
+              class="axb"
+              :class="{ homed: can(r.a) }"
+              :aria-label="t('Home {axis}', { axis: r.a })"
+              :disabled="isPrinting"
+              @click="gcode('G28 ' + r.a)"
+            >
+              {{ r.a }}
+            </button>
+            <!-- prettier-ignore -->
+            <!-- prettier-ignore -->
+            <button v-for="st in [...r.steps].reverse()" :key="'+' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, st)">+{{ st }}</button>
+          </div>
+        </div>
+        <div class="grp dpad" :data-tip="!can('X') || !can('Y') ? t('Home X and Y first') : ''">
+          <span></span
+          ><button class="jb" aria-label="Y+" :disabled="!can('Y') || isPrinting" @click="jog('Y', dstep)">
+            <Icon name="up" :stroke="2.6" /></button
+          ><span></span>
+          <button class="jb" aria-label="X-" :disabled="!can('X') || isPrinting" @click="jog('X', -dstep)">
+            <Icon name="left" :stroke="2.6" />
+          </button>
+          <button class="axb homed" :aria-label="t('Home X Y')" :disabled="isPrinting" @click="gcode('G28 X Y')">
+            <Icon name="home" :size="18" :stroke="2.6" />
+          </button>
+          <button class="jb" aria-label="X+" :disabled="!can('X') || isPrinting" @click="jog('X', dstep)">
+            <Icon name="right" :stroke="2.6" />
+          </button>
+          <span></span
+          ><button class="jb" aria-label="Y-" :disabled="!can('Y') || isPrinting" @click="jog('Y', -dstep)">
+            <Icon name="down" :stroke="2.6" /></button
+          ><span></span>
+        </div>
+        <div class="grp zcol" :data-tip="!can('Z') ? t('{axis} must be homed first', { axis: 'Z' }) : ''">
+          <button
+            class="jb"
+            :aria-label="state.settings.invertZ ? t('Bed up (Z-{n})', { n: dstep }) : 'Z+' + dstep"
+            :disabled="!can('Z') || isPrinting"
+            @click="jog('Z', zdir * Math.min(dstep, 25))"
+          >
+            <Icon name="up" :stroke="2.6" />
           </button>
           <!-- prettier-ignore -->
-          <!-- prettier-ignore -->
-          <button v-for="st in [...r.steps].reverse()" :key="'+' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, st)">+{{ st }}</button>
+          <button class="axb" :class="{ homed: can('Z') }" :aria-label="t('Home {axis}', { axis: 'Z' })" :disabled="isPrinting" @click="gcode('G28 Z')">Z</button>
+          <button
+            class="jb"
+            :aria-label="state.settings.invertZ ? t('Bed down (Z+{n})', { n: dstep }) : 'Z-' + dstep"
+            :disabled="!can('Z') || isPrinting"
+            @click="jog('Z', -zdir * Math.min(dstep, 25))"
+          >
+            <Icon name="down" :stroke="2.6" />
+          </button>
         </div>
-      </div>
-      <div class="grp dpad" :data-tip="!can('X') || !can('Y') ? t('Home X and Y first') : ''">
-        <span></span
-        ><button class="jb" aria-label="Y+" :disabled="!can('Y') || isPrinting" @click="jog('Y', dstep)">
-          <Icon name="up" :stroke="2.6" /></button
-        ><span></span>
-        <button class="jb" aria-label="X-" :disabled="!can('X') || isPrinting" @click="jog('X', -dstep)">
-          <Icon name="left" :stroke="2.6" />
-        </button>
-        <button class="axb homed" :aria-label="t('Home X Y')" :disabled="isPrinting" @click="gcode('G28 X Y')">
-          <Icon name="home" :size="18" :stroke="2.6" />
-        </button>
-        <button class="jb" aria-label="X+" :disabled="!can('X') || isPrinting" @click="jog('X', dstep)">
-          <Icon name="right" :stroke="2.6" />
-        </button>
-        <span></span
-        ><button class="jb" aria-label="Y-" :disabled="!can('Y') || isPrinting" @click="jog('Y', -dstep)">
-          <Icon name="down" :stroke="2.6" /></button
-        ><span></span>
-      </div>
-      <div class="grp zcol" :data-tip="!can('Z') ? t('{axis} must be homed first', { axis: 'Z' }) : ''">
-        <button
-          class="jb"
-          :aria-label="state.settings.invertZ ? t('Bed up (Z-{n})', { n: dstep }) : 'Z+' + dstep"
-          :disabled="!can('Z') || isPrinting"
-          @click="jog('Z', zdir * Math.min(dstep, 25))"
-        >
-          <Icon name="up" :stroke="2.6" />
-        </button>
-        <!-- prettier-ignore -->
-        <button class="axb" :class="{ homed: can('Z') }" :aria-label="t('Home {axis}', { axis: 'Z' })" :disabled="isPrinting" @click="gcode('G28 Z')">Z</button>
-        <button
-          class="jb"
-          :aria-label="state.settings.invertZ ? t('Bed down (Z+{n})', { n: dstep }) : 'Z-' + dstep"
-          :disabled="!can('Z') || isPrinting"
-          @click="jog('Z', -zdir * Math.min(dstep, 25))"
-        >
-          <Icon name="down" :stroke="2.6" />
-        </button>
-      </div>
-      <div class="steps" role="group" :aria-label="t('D-pad step (mm)')">
-        <button
-          v-for="v in dpadSteps"
-          :key="v"
-          :class="{ on: dstep === v }"
-          :aria-label="t('Step {n} mm', { n: v })"
-          @click="dstep = v"
-        >
-          {{ v }}
-        </button>
-      </div>
+        <div class="steps" role="group" :aria-label="t('D-pad step (mm)')">
+          <button
+            v-for="v in dpadSteps"
+            :key="v"
+            :class="{ on: dstep === v }"
+            :aria-label="t('Step {n} mm', { n: v })"
+            @click="dstep = v"
+          >
+            {{ v }}
+          </button>
+        </div>
+      </template>
     </div>
   </section>
 </template>
@@ -391,6 +430,44 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
   background: var(--s3);
   color: var(--tx);
   box-shadow: inset 3px 0 0 var(--ac);
+}
+/* circle style: the position fields next to the round pad, both as tall as the pad */
+.body.circ {
+  --h: 56px;
+  --g: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px 28px;
+}
+.pad {
+  height: calc(var(--h) * 3 + var(--g) * 2 + 24px);
+  aspect-ratio: 100 / 76;
+  max-width: 100%;
+}
+.sty button {
+  padding: 0 8px;
+}
+/* narrow: the three positions side by side above a pad as wide as the card */
+@container (max-width: 520px) {
+  .body.circ .pos3 {
+    width: 100%;
+    height: auto;
+    grid-template-rows: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .body.circ .pos {
+    height: 44px;
+    padding: 0 6px 0 10px;
+  }
+  .body.circ .pin {
+    width: 100%;
+    min-width: 0;
+    font-size: 16px;
+  }
+  .body.circ .pad {
+    width: 100%;
+    height: auto;
+  }
 }
 /* narrow card: the per-axis rows already do everything the D-pad does, so drop the D-pad instead of wrapping
    it to a second line (which made the card scroll inside the page). 580px: above it the D-pad still fits once

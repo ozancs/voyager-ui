@@ -2221,5 +2221,10 @@
 "Time",
 "Layer height",
 "Start print",
-"Take the last print off the bed first."
+"Take the last print off the bed first.",
+"Toolhead jog pad",
+"Control style",
+"Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.",
+"Circle",
+"Buttons left and right of the axis letter, or the rings of the circle. Up to 4."
 ]

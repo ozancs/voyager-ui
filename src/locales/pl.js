@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "Wysokość warstwy",
   "Start print": "Rozpocznij wydruk",
   "Take the last print off the bed first.": "Najpierw zdejmij ostatni wydruk ze stołu.",
+  "Toolhead jog pad": "Pad ruchu głowicy",
+  "Control style": "Styl sterowania",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Okrąg: okrągły pad z jednym pierścieniem na krok. Przyciski: rzędy kroków dla każdej osi i krzyżak.",
+  "Circle": "Okrąg",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Przyciski po lewej i prawej od litery osi albo pierścienie okręgu. Maksymalnie 4.",
 }

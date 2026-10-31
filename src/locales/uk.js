@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "Висота шару",
   "Start print": "Почати друк",
   "Take the last print off the bed first.": "Спершу зніміть попередній друк зі столу.",
+  "Toolhead jog pad": "Панель переміщення голови",
+  "Control style": "Стиль керування",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Коло: кругла панель з кільцем на кожен крок. Кнопки: ряди кроків для кожної осі та хрестовина.",
+  "Circle": "Коло",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Кнопки ліворуч і праворуч від літери осі або кільця кола. До 4.",
 }

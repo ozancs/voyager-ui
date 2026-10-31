@@ -427,6 +427,11 @@ folded and how to toggle it, and which card it is (for the card's own title). Re
 **[src/components/ChipList.vue](../src/components/ChipList.vue)**  
 A list of numbers shown as chips: click the x to remove, type a value and press Enter to add.
 
+**[src/components/CircleJog.vue](../src/components/CircleJog.vue)**  
+Circle jog pad (Toolhead card, "Circle" style, as Mainsail's): X and Y around a round pad, one ring per step  
+(the smallest inside), a Z strip next to it, home buttons in the corners and Home X Y in the middle. The steps  
+are the card's own X/Y and Z steps from Settings > Control. It only emits; the card sends the G-code.
+
 **[src/components/CmdInput.vue](../src/components/CmdInput.vue)**  
 Input with live command search from the printer (G-code help + macros). After the command word, a hint row lists  
 the parameters it takes (a macro's from its template, Klipper's own from gcodeParams.js): the ones already typed  

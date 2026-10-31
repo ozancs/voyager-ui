@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "层高",
   "Start print": "开始打印",
   "Take the last print off the bed first.": "请先把上一次的打印件从热床上取下。",
+  "Toolhead jog pad": "打印头移动盘",
+  "Control style": "控制样式",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "圆形：每个步长一圈的圆形控制盘。按钮：每个轴一行步长按钮和方向键。",
+  "Circle": "圆形",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "轴字母左右两侧的按钮，或圆形的各圈。最多 4 个。",
 }

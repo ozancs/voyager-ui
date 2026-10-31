@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "Altura da camada",
   "Start print": "Iniciar impressão",
   "Take the last print off the bed first.": "Retire primeiro a última impressão da mesa.",
+  "Toolhead jog pad": "Painel de movimento do cabeçote",
+  "Control style": "Estilo de controle",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Círculo: um painel redondo com um anel por passo. Botões: fileiras de passos por eixo e um direcional.",
+  "Circle": "Círculo",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Botões à esquerda e à direita da letra do eixo, ou os anéis do círculo. Até 4.",
 }

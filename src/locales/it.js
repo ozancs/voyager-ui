@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "Altezza layer",
   "Start print": "Avvia stampa",
   "Take the last print off the bed first.": "Togli prima l'ultima stampa dal piatto.",
+  "Toolhead jog pad": "Pad di movimento della testina",
+  "Control style": "Stile dei controlli",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Cerchio: un pad rotondo con un anello per passo. Pulsanti: file di passi per asse e un D-pad.",
+  "Circle": "Cerchio",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Pulsanti a sinistra e a destra della lettera dell'asse, o gli anelli del cerchio. Fino a 4.",
 }

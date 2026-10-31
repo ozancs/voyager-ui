@@ -61,6 +61,7 @@ export const DEFAULT_SETTINGS = () => ({
   layout: null,
   hiddenCards: [],
   invertZ: true,
+  toolheadStyle: 'circle', // Toolhead card jog: circle (round pad, as Mainsail's) | buttons (rows per axis and a D-pad)
   hiddenCfgs: [],
   printerName: '',
   customCards: {},

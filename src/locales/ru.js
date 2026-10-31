@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "Высота слоя",
   "Start print": "Начать печать",
   "Take the last print off the bed first.": "Сначала снимите прошлую печать со стола.",
+  "Toolhead jog pad": "Панель перемещения головы",
+  "Control style": "Стиль управления",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Круг: круглая панель с кольцом на каждый шаг. Кнопки: ряды шагов по осям и крестовина.",
+  "Circle": "Круг",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Кнопки слева и справа от буквы оси или кольца круга. До 4.",
 }

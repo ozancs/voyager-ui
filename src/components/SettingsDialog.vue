@@ -596,6 +596,32 @@ function reset() {
               <h3 class="sec"><Icon name="move" :size="16" />{{ t('Toolhead') }}</h3>
               <div class="rw">
                 <div class="k">
+                  <b>{{ t('Control style') }}</b
+                  ><span>{{
+                    t('Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.')
+                  }}</span>
+                </div>
+                <div class="seg v" role="radiogroup" :aria-label="t('Control style')">
+                  <button
+                    role="radio"
+                    :aria-checked="state.settings.toolheadStyle !== 'buttons'"
+                    :class="{ on: state.settings.toolheadStyle !== 'buttons' }"
+                    @click="state.settings.toolheadStyle = 'circle'"
+                  >
+                    {{ t('Circle') }}
+                  </button>
+                  <button
+                    role="radio"
+                    :aria-checked="state.settings.toolheadStyle === 'buttons'"
+                    :class="{ on: state.settings.toolheadStyle === 'buttons' }"
+                    @click="state.settings.toolheadStyle = 'buttons'"
+                  >
+                    {{ t('Buttons') }}
+                  </button>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
                   <b>{{ t('Invert Z jog buttons (bed moves in Z)') }}</b>
                 </div>
                 <Toggle v-model="state.settings.invertZ" :label="t('Invert Z')" />
@@ -633,7 +659,9 @@ function reset() {
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Move distance increments X & Y axes (in mm)') }}</b
-                  ><span>{{ t('Buttons left and right of the axis letter, up to 4.') }}</span>
+                  ><span>{{
+                    t('Buttons left and right of the axis letter, or the rings of the circle. Up to 4.')
+                  }}</span>
                 </div>
                 <ChipList
                   v-model="ctl.stepsXY"

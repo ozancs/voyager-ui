@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "레이어 높이",
   "Start print": "출력 시작",
   "Take the last print off the bed first.": "먼저 지난 출력물을 베드에서 떼어 내세요.",
+  "Toolhead jog pad": "툴헤드 이동 패드",
+  "Control style": "조작 스타일",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "원형: 단계마다 링이 있는 둥근 패드. 버튼: 축별 단계 줄과 방향 패드.",
+  "Circle": "원형",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "축 글자 좌우의 버튼 또는 원형의 링. 최대 4개.",
 }

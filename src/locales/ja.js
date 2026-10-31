@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "レイヤー高さ",
   "Start print": "印刷を開始",
   "Take the last print off the bed first.": "先に前回の造形物をベッドから取り外してください。",
+  "Toolhead jog pad": "ツールヘッド移動パッド",
+  "Control style": "操作スタイル",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "サークル：ステップごとにリングがある丸いパッド。ボタン：軸ごとのステップ列と十字パッド。",
+  "Circle": "サークル",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "軸の文字の左右のボタン、またはサークルのリング。最大4つ。",
 }

@@ -2226,4 +2226,9 @@ export default {
   "Layer height": "Laaghoogte",
   "Start print": "Print starten",
   "Take the last print off the bed first.": "Haal eerst de vorige print van het bed.",
+  "Toolhead jog pad": "Jogpad printkop",
+  "Control style": "Bedieningsstijl",
+  "Circle: a round pad with one ring per step. Buttons: rows of steps per axis and a D-pad.": "Cirkel: een rond pad met één ring per stap. Knoppen: rijen stappen per as en een D-pad.",
+  "Circle": "Cirkel",
+  "Buttons left and right of the axis letter, or the rings of the circle. Up to 4.": "Knoppen links en rechts van de asletter, of de ringen van de cirkel. Maximaal 4.",
 }
