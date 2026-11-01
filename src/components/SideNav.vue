@@ -18,6 +18,7 @@ const NAV = [
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
   ['calibrations', 'target', 'Calibrations'],
+  ['solver', 'l:scan-search', 'Problem Solver'],
   ['oznlab', 'sensor', 'PA Sensei'],
   ['files', 'file', 'G-code Files'],
   ['viewer', 'cube', 'G-code Viewer'],
