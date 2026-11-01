@@ -724,6 +724,13 @@ bundled logos and an own image. The open printer changes right away; another pri
 The printer list: printers this copy of the UI can switch between, each with a nickname and an address.  
 Kept in this browser (printers.js). Saving and picking a printer reloads the page on that printer.
 
+**[src/components/ProblemSolver.vue](../src/components/ProblemSolver.vue)**  
+Calibrations > Problem Solver: from what the print looks like to the likely causes and the next test. Pick or  
+search the problem, optionally the print it happened on (History or a file), answer up to three questions, then  
+see the causes with what each rests on (an answer, the file, the print's history record, the printer today) and  
+what is missing, and one change to try. The result of a try is kept in Settings (solverLog). Nothing here moves,  
+heats or changes the printer; the test buttons only open the calibration or page that does it.
+
 **[src/components/QueueCard.vue](../src/components/QueueCard.vue)**  
 Moonraker job queue: queued files, start or pause the queue, remove a job or move it to the front, add files.
 

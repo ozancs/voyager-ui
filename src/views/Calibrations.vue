@@ -9,6 +9,7 @@ import ShakeTune from './ShakeTune.vue';
 import ShaperGraphs from '../components/ShaperGraphs.vue';
 import CalibPath from '../components/CalibPath.vue';
 import CalibSide from '../components/CalibSide.vue';
+import ProblemSolver from '../components/ProblemSolver.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
 import { availableGroups, buildCommand, missingParams, invalidParams, parseResult } from '../calibrations';
 import { route, go } from '../router';
@@ -79,139 +80,151 @@ function applyShaper(r) {
 
 <template>
   <div class="cal">
-    <CalibPath />
-    <!-- under the guided calibrations: every calibration command the printer has, by kind -->
-    <div v-if="groups.length" class="cmdh">
-      <h2>{{ t('Calibration commands') }}</h2>
-      <span class="mu">{{ t('Every calibration command on this printer, with its parameters.') }}</span>
-    </div>
-    <div v-if="groups.length" class="seg tabs" role="tablist">
-      <button
-        v-for="g in groups"
-        :key="g.key"
-        role="tab"
-        :aria-selected="tab?.key === g.key"
-        :class="{ on: tab?.key === g.key }"
-        @click="setTab(g.key)"
-      >
-        <Icon :name="g.icon" :size="15" />{{ t(g.name) }}
+    <!-- the calibrations, or the Problem Solver that leads from a print problem to one of them -->
+    <div class="seg mode" role="tablist">
+      <button role="tab" :class="{ on: route.arg !== 'solver' }" @click="go('calibrations')">
+        <Icon name="target" :size="15" />{{ t('Calibrations') }}
+      </button>
+      <button role="tab" :class="{ on: route.arg === 'solver' }" @click="go('calibrations', 'solver')">
+        <Icon name="l:scan-search" :size="15" />{{ t('Problem Solver') }}
       </button>
     </div>
-    <div v-else class="card empty">{{ t('No calibration commands found on this printer.') }}</div>
-
-    <ShakeTune v-if="tab?.key === 'shaketune'" />
-
-    <div v-else-if="tab" class="split">
-      <section class="card grow">
-        <div class="card-h">
-          <h2>{{ t(tab.name) }}</h2>
-        </div>
-        <div class="items">
-          <button
-            v-for="i in tab.items"
-            :key="i.cmd"
-            class="it"
-            :class="{ on: item?.cmd === i.cmd }"
-            @click="chosen[tab.key] = i.cmd"
-          >
-            <b>{{ i.free ? i.name : t(i.name) }}</b>
-            <span v-if="!i.free" class="mono sm mu">{{ i.cmd }}</span>
-            <span v-if="i.desc" class="sm mu">{{ i.free ? i.desc : t(i.desc) }}</span>
-          </button>
-        </div>
-      </section>
-
-      <div class="side-col">
-        <CalibSide part="status" />
-        <section v-if="item" class="card">
-          <div class="card-h">
-            <h2>{{ item.free ? item.name : t(item.name) }}</h2>
-          </div>
-          <div v-if="shown.length || item.free" class="params">
-            <label v-for="p in shown" :key="item.cmd + p.k" class="pr">
-              <span class="mono">{{ p.k }}<i v-if="p.req" class="mu">*</i></span>
-              <select v-if="p.opts && p.opts(ctx).length" v-model="v[p.k]" class="input mono" :aria-label="p.k">
-                <option v-if="!p.req" value="">{{ p.def || t('default') }}</option>
-                <option v-for="o in p.opts(ctx).filter(Boolean)" :key="o" :value="o">{{ o }}</option>
-              </select>
-              <input
-                v-else
-                v-model="v[p.k]"
-                class="input mono"
-                :placeholder="p.def || t('optional')"
-                spellcheck="false"
-                :aria-label="p.k"
-              />
-              <span class="mu sm">{{ p.hint }}</span>
-            </label>
-            <label v-if="item.free" class="pr wide">
-              <span class="mu sm">{{ t('Parameters') }}</span>
-              <input
-                v-model="extra[item.cmd]"
-                class="input mono"
-                placeholder="KEY=value"
-                spellcheck="false"
-                :aria-label="t('Parameters')"
-              />
-            </label>
-          </div>
-          <code class="cl">{{ cmdLine }}</code>
-          <div v-if="item.home && !homed" class="warnrow sm">
-            <span class="mu">{{ t('The printer is not homed.') }}</span>
-            <button class="btn" :disabled="isPrinting" @click="gcode('G28')">
-              <Icon name="home" :size="16" />{{ t('Home all') }}
-            </button>
-          </div>
-          <button
-            class="btn lg acc"
-            :disabled="isPrinting || run?.running || missing.length > 0 || invalid.length > 0"
-            @click="start"
-          >
-            <Icon :name="run?.running ? 'refresh' : 'play'" :class="{ spin: run?.running }" :size="18" />{{
-              run?.running ? t('Running…') : t('Run')
-            }}
-          </button>
-          <p v-if="invalid.length" class="mu sm" style="margin: 0; color: var(--dg)">
-            {{ t('Only letters, numbers, dot, minus and underscore: {list}', { list: invalid.join(', ') }) }}
-          </p>
-          <p v-if="missing.length" class="mu sm" style="margin: 0">
-            {{ t('Fill in: {list}', { list: missing.join(', ') }) }}
-          </p>
-        </section>
-
-        <section v-if="run" class="card">
-          <div class="card-h">
-            <h2>{{ t('Result') }}</h2>
-            <span class="mono mu sm">{{ run.cmd }}</span>
-          </div>
-          <div v-for="(r, i) in result.shapers" :key="'s' + i" class="rec">
-            <div class="grow">
-              <b class="mono">{{ r.axis.toUpperCase() }} · {{ r.type.toUpperCase() }} @ {{ r.freq }} Hz</b>
-              <span v-if="r.maxAccel" class="mu sm">max_accel ≤ {{ r.maxAccel }}</span>
-            </div>
-            <button class="btn" :data-tip="t('SET_INPUT_SHAPER, until Klipper restarts')" @click="applyShaper(r)">
-              {{ t('Apply') }}
-            </button>
-          </div>
-          <table v-if="result.rows.length" class="rows">
-            <tr v-for="(r, i) in result.rows" :key="i">
-              <td class="mu">{{ r[0] }}</td>
-              <td class="mono">{{ r[1] }}</td>
-            </tr>
-          </table>
-          <pre class="log">{{ runLines.slice(-14).join('\n') || (run.running ? t('Waiting for output…') : '') }}</pre>
-        </section>
-
-        <ShaperGraphs v-if="tab.key === 'shaper'" />
-        <section v-if="savePending" class="card">
-          <p class="sm" style="margin: 0">{{ t('Klipper has new values waiting for SAVE_CONFIG.') }}</p>
-          <button class="btn lg" :disabled="isPrinting" @click="gcode('SAVE_CONFIG')">
-            <Icon name="save" :size="16" />{{ t('Save config and restart') }}
-          </button>
-        </section>
-        <CalibSide part="cam" />
+    <ProblemSolver v-if="route.arg === 'solver'" />
+    <template v-else>
+      <CalibPath />
+      <!-- under the guided calibrations: every calibration command the printer has, by kind -->
+      <div v-if="groups.length" class="cmdh">
+        <h2>{{ t('Calibration commands') }}</h2>
+        <span class="mu">{{ t('Every calibration command on this printer, with its parameters.') }}</span>
       </div>
-    </div>
+      <div v-if="groups.length" class="seg tabs" role="tablist">
+        <button
+          v-for="g in groups"
+          :key="g.key"
+          role="tab"
+          :aria-selected="tab?.key === g.key"
+          :class="{ on: tab?.key === g.key }"
+          @click="setTab(g.key)"
+        >
+          <Icon :name="g.icon" :size="15" />{{ t(g.name) }}
+        </button>
+      </div>
+      <div v-else class="card empty">{{ t('No calibration commands found on this printer.') }}</div>
+
+      <ShakeTune v-if="tab?.key === 'shaketune'" />
+
+      <div v-else-if="tab" class="split">
+        <section class="card grow">
+          <div class="card-h">
+            <h2>{{ t(tab.name) }}</h2>
+          </div>
+          <div class="items">
+            <button
+              v-for="i in tab.items"
+              :key="i.cmd"
+              class="it"
+              :class="{ on: item?.cmd === i.cmd }"
+              @click="chosen[tab.key] = i.cmd"
+            >
+              <b>{{ i.free ? i.name : t(i.name) }}</b>
+              <span v-if="!i.free" class="mono sm mu">{{ i.cmd }}</span>
+              <span v-if="i.desc" class="sm mu">{{ i.free ? i.desc : t(i.desc) }}</span>
+            </button>
+          </div>
+        </section>
+
+        <div class="side-col">
+          <CalibSide part="status" />
+          <section v-if="item" class="card">
+            <div class="card-h">
+              <h2>{{ item.free ? item.name : t(item.name) }}</h2>
+            </div>
+            <div v-if="shown.length || item.free" class="params">
+              <label v-for="p in shown" :key="item.cmd + p.k" class="pr">
+                <span class="mono">{{ p.k }}<i v-if="p.req" class="mu">*</i></span>
+                <select v-if="p.opts && p.opts(ctx).length" v-model="v[p.k]" class="input mono" :aria-label="p.k">
+                  <option v-if="!p.req" value="">{{ p.def || t('default') }}</option>
+                  <option v-for="o in p.opts(ctx).filter(Boolean)" :key="o" :value="o">{{ o }}</option>
+                </select>
+                <input
+                  v-else
+                  v-model="v[p.k]"
+                  class="input mono"
+                  :placeholder="p.def || t('optional')"
+                  spellcheck="false"
+                  :aria-label="p.k"
+                />
+                <span class="mu sm">{{ p.hint }}</span>
+              </label>
+              <label v-if="item.free" class="pr wide">
+                <span class="mu sm">{{ t('Parameters') }}</span>
+                <input
+                  v-model="extra[item.cmd]"
+                  class="input mono"
+                  placeholder="KEY=value"
+                  spellcheck="false"
+                  :aria-label="t('Parameters')"
+                />
+              </label>
+            </div>
+            <code class="cl">{{ cmdLine }}</code>
+            <div v-if="item.home && !homed" class="warnrow sm">
+              <span class="mu">{{ t('The printer is not homed.') }}</span>
+              <button class="btn" :disabled="isPrinting" @click="gcode('G28')">
+                <Icon name="home" :size="16" />{{ t('Home all') }}
+              </button>
+            </div>
+            <button
+              class="btn lg acc"
+              :disabled="isPrinting || run?.running || missing.length > 0 || invalid.length > 0"
+              @click="start"
+            >
+              <Icon :name="run?.running ? 'refresh' : 'play'" :class="{ spin: run?.running }" :size="18" />{{
+                run?.running ? t('Running…') : t('Run')
+              }}
+            </button>
+            <p v-if="invalid.length" class="mu sm" style="margin: 0; color: var(--dg)">
+              {{ t('Only letters, numbers, dot, minus and underscore: {list}', { list: invalid.join(', ') }) }}
+            </p>
+            <p v-if="missing.length" class="mu sm" style="margin: 0">
+              {{ t('Fill in: {list}', { list: missing.join(', ') }) }}
+            </p>
+          </section>
+
+          <section v-if="run" class="card">
+            <div class="card-h">
+              <h2>{{ t('Result') }}</h2>
+              <span class="mono mu sm">{{ run.cmd }}</span>
+            </div>
+            <div v-for="(r, i) in result.shapers" :key="'s' + i" class="rec">
+              <div class="grow">
+                <b class="mono">{{ r.axis.toUpperCase() }} · {{ r.type.toUpperCase() }} @ {{ r.freq }} Hz</b>
+                <span v-if="r.maxAccel" class="mu sm">max_accel ≤ {{ r.maxAccel }}</span>
+              </div>
+              <button class="btn" :data-tip="t('SET_INPUT_SHAPER, until Klipper restarts')" @click="applyShaper(r)">
+                {{ t('Apply') }}
+              </button>
+            </div>
+            <table v-if="result.rows.length" class="rows">
+              <tr v-for="(r, i) in result.rows" :key="i">
+                <td class="mu">{{ r[0] }}</td>
+                <td class="mono">{{ r[1] }}</td>
+              </tr>
+            </table>
+            <pre class="log">{{ runLines.slice(-14).join('\n') || (run.running ? t('Waiting for output…') : '') }}</pre>
+          </section>
+
+          <ShaperGraphs v-if="tab.key === 'shaper'" />
+          <section v-if="savePending" class="card">
+            <p class="sm" style="margin: 0">{{ t('Klipper has new values waiting for SAVE_CONFIG.') }}</p>
+            <button class="btn lg" :disabled="isPrinting" @click="gcode('SAVE_CONFIG')">
+              <Icon name="save" :size="16" />{{ t('Save config and restart') }}
+            </button>
+          </section>
+          <CalibSide part="cam" />
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -234,6 +247,14 @@ function applyShaper(r) {
 }
 .cmdh .mu {
   font-size: 13px;
+}
+.mode {
+  align-self: flex-start;
+}
+.mode button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .tabs {
   flex-wrap: wrap;

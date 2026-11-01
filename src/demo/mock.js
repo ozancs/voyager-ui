@@ -178,6 +178,7 @@ const status = {
       mcu: { serial: '/dev/serial/by-id/usb-Klipper_stm32h723xx_2A0012345151313234353533-if00' },
       'neopixel hotend_rgb': { chain_count: 3, color_order: ['GRBW'] },
       'mcu ebbcan': { canbus_uuid: '0e5f3b2a1c4d', canbus_interface: 'can0' },
+      input_shaper: { shaper_freq_x: 58.2, shaper_type_x: 'mzv', shaper_freq_y: 38.4, shaper_type_y: 'mzv' },
       // Klipper-Backup's macro, so the Config backup card has something to run
       'gcode_macro update_git': { gcode: 'RUN_SHELL_COMMAND CMD=update_git_script' },
       'gcode_shell_command update_git_script': { command: 'bash -c "bash $HOME/klipper-backup/script.sh"' },
@@ -1956,7 +1957,22 @@ function handle(m) {
             filament_weight_total: 705,
             nozzle_diameter: 0.4,
           }
-        : { estimated_time: 7400, layer_height: 0.2, object_height: 42, thumbnails: [] };
+        : /bracket_v3/.test(p.filename || '')
+          ? {
+              estimated_time: 6780,
+              layer_height: 0.2,
+              object_height: 42,
+              thumbnails: [],
+              slicer: 'OrcaSlicer',
+              slicer_version: '2.2.0',
+              filament_type: 'PETG',
+              first_layer_extr_temp: 255,
+              first_layer_bed_temp: 80,
+              nozzle_diameter: 0.4,
+              modified: BRACKET_MODIFIED,
+              size: 2300000,
+            }
+          : { estimated_time: 7400, layer_height: 0.2, object_height: 42, thumbnails: [] };
     case 'server.database.get_item': {
       if (p.namespace === 'mainsail') return { value: { printername: 'Voyager Demo' } };
       const k = p.namespace + '/' + p.key;
@@ -2065,7 +2081,15 @@ function handle(m) {
             print_duration: 6800,
             filament_used: 16000,
             exists: true,
-            metadata: {},
+            metadata: {
+              slicer: 'OrcaSlicer',
+              slicer_version: '2.2.0',
+              filament_type: 'PETG',
+              first_layer_extr_temp: 255,
+              first_layer_bed_temp: 80,
+              modified: BRACKET_MODIFIED,
+            },
+            auxiliary_data: [{ provider: 'spoolman', name: 'spool_ids', value: [12] }],
           },
           {
             job_id: '2',
@@ -2800,6 +2824,34 @@ const camSvg = (n, v = 1) =>
       ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#15181c"/><rect x="80" y="40" width="480" height="280" rx="8" fill="#3b3a34"/><g fill="#f5b23a" opacity=".9"><rect x="${150 + (n % 40)}" y="120" width="60" height="60" rx="4"/><rect x="330" y="140" width="90" height="40" rx="4"/></g><text x="20" y="345" fill="#8b919b" font-family="monospace" font-size="16">bed cam · frame ${n}</text></svg>`
       : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2027"/><stop offset="1" stop-color="#0d0f12"/></linearGradient></defs><rect width="640" height="360" fill="url(#g)"/><rect x="120" y="230" width="400" height="14" rx="3" fill="#3a3f47"/><rect x="250" y="150" width="140" height="80" rx="6" fill="#f5b23a" opacity=".85"/><rect x="300" y="60" width="40" height="90" fill="#4a5058"/><path d="M310 150 h20 l-10 14z" fill="#8b919b"/><text x="20" y="340" fill="#8b919b" font-family="monospace" font-size="16">demo camera · ${new Date().toLocaleTimeString()} · frame ${n}</text></svg>`;
 let frame = 0;
+const BRACKET_MODIFIED = Math.floor(Date.now() / 1000) - 3 * 86400;
+// the settings block OrcaSlicer writes at the end of a file, read by the Problem Solver
+const SLICER_BLOCK = `
+; CONFIG_BLOCK_START
+; default_acceleration = 10000
+; enable_pressure_advance = 0
+; filament_max_volumetric_speed = 18
+; filament_type = PETG
+; hot_plate_temp = 80
+; inner_wall_speed = 300
+; layer_height = 0.2
+; line_width = 0.45
+; nozzle_temperature = 255
+; outer_wall_acceleration = 10000
+; outer_wall_speed = 200
+; retraction_length = 0.8
+; retraction_speed = 35
+; seam_position = aligned
+; sparse_infill_speed = 300
+; travel_speed = 300
+; fan_min_speed = 20
+; fan_max_speed = 50
+; overhang_fan_speed = 90
+; z_hop = 0.2
+; brim_width = 0
+; elefant_foot_compensation = 0.1
+; CONFIG_BLOCK_END
+`;
 function gcodeFile() {
   let g = ';gcode\nG28\nG90\nM83\n';
   for (let z = 1; z <= 40; z++) {
@@ -2812,7 +2864,7 @@ function gcodeFile() {
       g += `G1 X${150 + r} Y150 F${f}\nG1 X${150 + r} Y${150 + r} E1\nG1 X150 Y${150 + r} E1\nG1 X150 Y150 E1\n`;
     }
   }
-  return g;
+  return g + SLICER_BLOCK;
 }
 // a .gcode.3mf like OrcaSlicer makes: a stored (uncompressed) zip with the plate's G-code in Metadata/
 function zip3mf(text) {
