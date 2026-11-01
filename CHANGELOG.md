@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.7
+
+- Problem Solver, a new page under Calibrations: pick or search a print problem (ringing, stringing, first layer, layer shift, under-extrusion, corners, blobs, warping, elephant foot, overhangs), choose the print it happened on, answer a few questions and get the likely causes with what each is based on, the next test and one change to try
+- The guide reads the file's slicer settings, the print history and the printer's current config, and keeps them apart
+- Results of each try can be saved to follow what helped
+
 ## 0.38.6
 
 - Without a print, the top bar says what the printer is doing: homing, heating with the temperature, a macro running, or busy
