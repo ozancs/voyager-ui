@@ -418,6 +418,25 @@ let db = {
   },
   'voyager-ui/settings': {
     setupDone: true,
+    // errors the printer "ran into", so the Problem Solver page has something to show
+    issues: [
+      {
+        id: 'idemo1',
+        msg: "MCU 'ebbcan' shutdown: Timer too close\nThis often indicates the host computer is overloaded.",
+        source: 'klippy',
+        problem: 'k_timer',
+        at: Date.now() - 26 * 3600e3,
+        count: 2,
+      },
+      {
+        id: 'idemo2',
+        msg: "TMC 'stepper_y' reports error: GSTAT: 00000004 uv_cp=1(Undervoltage!)",
+        source: 'console',
+        problem: 'k_tmc',
+        at: Date.now() - 3 * 86400e3,
+        count: 1,
+      },
+    ],
     lang: 'en',
     autoLayout: true,
     uiScale: 100,

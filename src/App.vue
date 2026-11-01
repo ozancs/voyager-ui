@@ -37,6 +37,7 @@ import LockScreen from './components/LockScreen.vue';
 import PhoenixWizard from './components/PhoenixWizard.vue';
 import PhoenixSetup from './components/PhoenixSetup.vue';
 import { hasPhoenix, startPhoenix } from './phoenix';
+import { startIssues } from './solver/issues';
 import './tablet';
 initFeatures();
 initTimelapse();
@@ -197,6 +198,8 @@ watch([printActive, showFavBar, () => state.settings.printBar, () => state.dashP
 const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessage) : null));
 // Phoenix print recovery: an interrupted print found on a printer that has the module raises one alert
 startPhoenix();
+// errors the printer runs into, for the Problem Solver
+startIssues();
 </script>
 
 <template>

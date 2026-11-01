@@ -24,6 +24,7 @@ import { startBackupWatch } from './backup';
 import { expandPaths } from './paths';
 import { go } from './router';
 import { startEndShots } from './endShot';
+import { recordIssue } from './solver/issues';
 import { counterGrowth } from './calc';
 export { counterGrowth };
 
@@ -114,9 +115,10 @@ export const hintFor = (msg) => {
   return h ? t(h) : '';
 };
 function onErrorLine(line) {
-  if (!state.settings.errorToasts) return;
   const msg = line.replace(/^!!\s*/, '').trim();
   if (!msg || msg.startsWith('action:')) return;
+  recordIssue(msg, 'console'); // kept for the Problem Solver when a guide knows it
+  if (!state.settings.errorToasts) return;
   toast(msg, 'error', { hint: hintFor(msg), console: true });
 }
 

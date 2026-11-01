@@ -1,38 +1,67 @@
 <script setup>
-// Problem Solver page (under Calibrations in the menu): from what the print looks like to the likely causes and the next test. Pick or
-// search the problem, optionally the print it happened on (History or a file), answer up to three questions, then
-// see the causes with what each rests on (an answer, the file, the print's history record, the printer today) and
-// what is missing, and one change to try. The result of a try is kept in Settings (solverLog). Nothing here moves,
-// heats or changes the printer; the test buttons only open the calibration or page that does it.
+// Problem Solver page (under Calibrations in the menu): from a problem to its likely causes and the next test.
+// Search covers print quality, the machine and Klipper errors; a pasted error message finds its guide. Errors the
+// printer ran into (solver/issues.js) are listed first and open their guide with the message as evidence; marking
+// one solved removes its notification. A print problem can read the print it happened on (History or a file), then
+// up to three questions, then the causes with what each rests on (an answer, the error, the file, the print's
+// history record, the printer today) and what is missing, and one change to try. Tries are kept in Settings
+// (solverLog). Nothing here moves, heats or changes the printer; test buttons only open the page that does it.
 import { ref, computed, onMounted, watch } from 'vue';
 import Icon from './Icon.vue';
 import { state, S, fmtTime, fmtDate } from '../store';
 import { api } from '../api/moonraker';
-import { go } from '../router';
+import { go, route } from '../router';
 import { t } from '../i18n';
 import { isGcodeFile } from '../gcode3mf';
 import { pathSteps } from '../calibPath';
-import { PROBLEMS, findProblems, nextQuestion, rankCauses } from '../solver/problems';
-import { buildFacts } from '../solver/facts';
+import { cmpVer } from '../firmware';
+import { PROBLEMS, findProblems, forError, nextQuestion, rankCauses } from '../solver/problems';
+import { buildFacts, systemToday } from '../solver/facts';
 import { readFile } from '../solver/load';
+import { openIssues, solveIssue } from '../solver/issues';
 
 const step = ref('pick'); // pick | print | ask | result
 const q = ref('');
 const found = computed(() => findProblems(q.value));
 const problem = ref(null);
+const issue = ref(null); // the error the guide was opened for
+const KIND = { print: 'Print quality', machine: 'Machine', klipper: 'Klipper error' };
 function pick(p) {
   problem.value = p;
   answers.value = {};
-  step.value = 'print';
+  choice.value = null;
+  // a pasted error message is evidence too (not kept as an issue: it has no Solved button)
+  if (p.match?.test(q.value)) issue.value = { id: null, msg: q.value.trim() };
+  else if (!issue.value?.id) issue.value = null;
+  step.value = p.kind === 'print' ? 'print' : nextQuestion(p, {}) ? 'ask' : 'result';
 }
+function openIssue(it) {
+  issue.value = it;
+  const p = forError(it.msg) || PROBLEMS.find((x) => x.id === it.problem) || null;
+  answers.value = {};
+  choice.value = null;
+  problem.value = p;
+  step.value = p && nextQuestion(p, {}) ? 'ask' : 'result';
+}
+const issues = computed(() => openIssues());
+// opened from a notification: #/solver/<issue id>
+watch(
+  () => [route.arg, state.settingsLoaded],
+  ([id]) => {
+    const it = id && (state.settings.issues || []).find((x) => x.id === id);
+    if (it && issue.value?.id !== it.id) openIssue(it);
+  },
+  { immediate: true },
+);
 
 // ---- the print: from History or a file on the printer, or none
 const jobs = ref([]);
 const files = ref([]);
+const proc = ref(null);
 onMounted(async () => {
   try {
     const r = await api.call('server.history.list', { limit: 30, order: 'desc' });
-    jobs.value = (r.jobs || []).sort((a, b) => b.start_time - a.start_time).slice(0, 8);
+    jobs.value = (r.jobs || []).sort((a, b) => b.start_time - a.start_time).slice(0, 6);
   } catch {}
   try {
     const r = await api.call('server.files.list', { root: 'gcodes' });
@@ -40,6 +69,9 @@ onMounted(async () => {
       .filter((f) => isGcodeFile(f.path))
       .sort((a, b) => b.modified - a.modified)
       .slice(0, 10);
+  } catch {}
+  try {
+    proc.value = await api.call('machine.proc_stats');
   } catch {}
 });
 const choice = ref(null); // { job } | { path }
@@ -65,6 +97,8 @@ const facts = computed(() =>
     job: choice.value?.job || null,
     fileModified: read.value?.modified ?? null,
     status: state.status,
+    sys: systemToday(state.status, proc.value, state.versions.klipper, cmpVer),
+    error: issue.value?.msg || '',
   }),
 );
 const chosenName = computed(() => {
@@ -122,6 +156,9 @@ const asked = computed(() =>
         .map((x) => x.opts.find((o) => o.v === answers.value[x.id])?.label)
     : [],
 );
+const total = computed(() =>
+  problem.value ? problem.value.questions.filter((x) => !x.when || x.when(answers.value)).length : 0,
+);
 function startQuestions() {
   step.value = cur.value ? 'ask' : 'result';
 }
@@ -131,7 +168,7 @@ function answer(o) {
 }
 function back() {
   const ids = problem.value.questions.filter((x) => x.id in answers.value).map((x) => x.id);
-  if (!ids.length) return (step.value = 'print');
+  if (!ids.length) return (step.value = problem.value.kind === 'print' ? 'print' : 'pick');
   const a = { ...answers.value };
   delete a[ids[ids.length - 1]];
   answers.value = a;
@@ -141,7 +178,13 @@ function back() {
 const causes = computed(() => (problem.value ? rankCauses(problem.value, answers.value, facts.value) : []));
 const top = computed(() => causes.value[0] || null);
 const LEVEL = { 3: 'Likely', 2: 'Possible', 1: 'Less likely' };
-const SRC = { answer: 'Your answer', file: 'In the file', print: 'This print', today: 'Printer today' };
+const SRC = {
+  answer: 'Your answer',
+  error: 'The error',
+  file: 'In the file',
+  print: 'This print',
+  today: 'Printer today',
+};
 // where a test can be opened on this printer
 const calibSteps = computed(() =>
   pathSteps({
@@ -153,17 +196,34 @@ const calibSteps = computed(() =>
   }),
 );
 const hasSensei = computed(() => (state.objects || []).some((o) => /^(pa_sensei|oznlab_sensor)( |$)/.test(o)));
+const PAGE = {
+  health: 'Open Health',
+  machine: 'Open Machine',
+  config: 'Open the config',
+  console: 'Open the console',
+  viewer: 'Open the G-code viewer',
+  dashboard: 'Open the dashboard',
+};
 function opener(test) {
   if (!test) return null;
-  if (test.calib && calibSteps.value.some((s) => s.key === test.calib))
-    return () => {
-      state.calibOpen = test.calib;
-      go('calibrations');
+  let calib = test.calib;
+  if (calib === 'pid') calib = answers.value.which === 'heater_bed' ? 'pid_bed' : 'pid_extruder';
+  if (calib && calibSteps.value.some((s) => s.key === calib))
+    return {
+      label: 'Open the calibration',
+      run: () => {
+        state.calibOpen = calib;
+        go('calibrations');
+      },
     };
   if (test.tab === 'shaketune' && state.commands && 'COMPARE_BELTS_RESPONSES' in state.commands)
-    return () => go('calibrations', 'shaketune');
-  if (test.pa && hasSensei.value) return () => go('oznlab');
-  if (test.page) return () => go(test.page);
+    return { label: 'Open Shake&Tune', run: () => go('calibrations', 'shaketune') };
+  if (test.pa && hasSensei.value) return { label: 'Open PA Sensei', run: () => go('oznlab') };
+  if (test.problem) {
+    const p = PROBLEMS.find((x) => x.id === test.problem);
+    if (p) return { label: 'Open that guide', run: () => pick(p) };
+  }
+  if (test.page) return { label: PAGE[test.page] || 'Open', run: () => go(test.page) };
   return null;
 }
 const openTop = computed(() => opener(top.value?.test));
@@ -179,31 +239,42 @@ function saveTry() {
   if (!res.value) return;
   const entry = {
     at: Date.now(),
-    problem: problem.value.id,
+    problem: problem.value?.id || '',
     file: chosenName.value || '',
     change: note.value.trim() || t(top.value?.test.label || ''),
     result: res.value,
   };
   state.settings.solverLog = [entry, ...(state.settings.solverLog || [])].slice(0, 50);
+  if (res.value === 'fixed' && issue.value) markSolved();
   res.value = '';
   note.value = '';
 }
+function markSolved() {
+  if (!issue.value?.id) return;
+  solveIssue(issue.value.id);
+  issue.value = { ...issue.value, solved: Date.now() };
+}
 function restart() {
   problem.value = null;
+  issue.value = null;
   answers.value = {};
   choice.value = null;
   q.value = '';
   step.value = 'pick';
+  if (route.arg) go('solver');
 }
 
-const STEPS = [
-  ['pick', 'Problem'],
-  ['print', 'Print'],
-  ['ask', 'Questions'],
-  ['result', 'Causes'],
-];
-const idx = computed(() => STEPS.findIndex(([k]) => k === step.value));
+const STEPS = computed(() =>
+  [
+    ['pick', 'Problem'],
+    problem.value?.kind === 'print' && ['print', 'Print'],
+    problem.value?.questions.length && ['ask', 'Questions'],
+    ['result', 'Causes'],
+  ].filter(Boolean),
+);
+const idx = computed(() => STEPS.value.findIndex(([k]) => k === step.value));
 const when = (ts) => fmtDate(ts / 1000);
+const firstLine = (m) => String(m || '').split('\n')[0];
 </script>
 
 <template>
@@ -212,14 +283,14 @@ const when = (ts) => fmtDate(ts / 1000);
       <div class="col" style="gap: 4px; min-width: 0">
         <h2>{{ t('Problem Solver') }}</h2>
         <span class="mu">{{
-          t('Start from what you see on the print. A few answers narrow it down to the next test.')
+          t('Print quality, the machine or a Klipper error: describe it or paste the error, then follow the steps.')
         }}</span>
       </div>
       <button v-if="step !== 'pick'" class="btn clear sm" @click="restart">
         <Icon name="refresh" :size="14" />{{ t('Start over') }}
       </button>
     </div>
-    <ol class="crumbs">
+    <ol v-if="step !== 'pick'" class="crumbs">
       <li v-for="([k, l], i) in STEPS" :key="k" :class="{ on: i === idx, done: i < idx }">
         <button :disabled="i > idx" :aria-current="i === idx ? 'step' : null" @click="i < idx && (step = k)">
           <span class="n">{{ i + 1 }}</span
@@ -228,31 +299,64 @@ const when = (ts) => fmtDate(ts / 1000);
       </li>
     </ol>
 
-    <!-- 1: the problem -->
+    <!-- 1: search, and the errors this printer ran into -->
     <template v-if="step === 'pick'">
       <label class="search">
-        <Icon name="search" :size="16" />
+        <Icon name="search" :size="18" />
         <input
           v-model="q"
           class="input"
-          :placeholder="t('Search a problem: ringing, stringing, warping…')"
+          :placeholder="t('Describe the problem or paste an error message')"
           :aria-label="t('Search a problem')"
         />
       </label>
-      <div class="grid">
-        <button v-for="{ p, hit } in found" :key="p.id" class="pb" @click="pick(p)">
-          <span class="ib"><Icon :name="p.icon" :size="18" /></span>
-          <span class="col" style="gap: 2px; min-width: 0">
+      <div v-if="q.trim()" class="results">
+        <button v-for="{ p, hit } in found" :key="p.id" class="rr" @click="pick(p)">
+          <span class="ib"><Icon :name="p.icon" :size="17" /></span>
+          <span class="col grow" style="gap: 2px; min-width: 0">
             <b>{{ t(p.name) }}</b>
             <span class="mu sm">{{ t(p.desc) }}</span>
-            <span v-if="hit && hit !== p.name" class="hit sm">{{ t('matches “{w}”', { w: hit }) }}</span>
           </span>
+          <span v-if="hit && hit !== p.name" class="hit sm">“{{ hit }}”</span>
+          <span class="kind sm">{{ t(KIND[p.kind]) }}</span>
         </button>
+        <p v-if="!found.length" class="mu">
+          {{ t('No guide fits these words yet. Try other words, or paste the exact error message.') }}
+        </p>
       </div>
-      <p v-if="!found.length" class="mu">{{ t('Nothing matches. Try another word, in English or Turkish.') }}</p>
+      <template v-else>
+        <div v-if="issues.length" class="col" style="gap: 8px">
+          <span class="lbl">{{ t('Errors on this printer') }}</span>
+          <div v-for="it in issues" :key="it.id" class="iss">
+            <Icon name="warn" :size="18" class="wi" />
+            <span class="col grow" style="gap: 3px; min-width: 0">
+              <b class="mono im">{{ firstLine(it.msg) }}</b>
+              <span class="mu sm"
+                >{{ when(it.at) }}<template v-if="it.count > 1"> · {{ t('{n} times', { n: it.count }) }}</template> ·
+                {{
+                  it.source === 'print'
+                    ? t('the print stopped')
+                    : it.source === 'klippy'
+                      ? t('Klipper stopped')
+                      : t('in the console')
+                }}</span
+              >
+            </span>
+            <button class="btn sm" @click="solveIssue(it.id)">{{ t('Solved') }}</button>
+            <button class="btn acc sm" @click="openIssue(it)">{{ t('Solve') }}</button>
+          </div>
+        </div>
+        <p v-else class="mu sm empty">
+          {{
+            t(
+              'Covers print quality, mechanical problems and Klipper errors. Errors this printer runs into show up here with a way to solve them.',
+            )
+          }}
+        </p>
+      </template>
     </template>
 
-    <!-- 2: the print it happened on (optional) -->
+    <!-- 2: the print it happened on (print problems only, optional) -->
     <div v-else-if="step === 'print'" class="two">
       <div class="col" style="gap: 10px; min-width: 0">
         <h3>{{ t('Which print did it happen on?') }}</h3>
@@ -350,11 +454,13 @@ const when = (ts) => fmtDate(ts / 1000);
     <div v-else-if="step === 'ask' && cur" class="ask">
       <div class="ctx">
         <span class="chip2"><Icon :name="problem.icon" :size="14" />{{ t(problem.name) }}</span>
-        <span class="chip2 mono"><Icon name="file" :size="14" />{{ chosenName || t('No file') }}</span>
+        <span v-if="problem.kind === 'print'" class="chip2 mono"
+          ><Icon name="file" :size="14" />{{ chosenName || t('No file') }}</span
+        >
         <span v-for="(a, k) in asked" :key="k" class="chip2">{{ t(a) }}</span>
       </div>
       <div class="qcard">
-        <span class="mu sm">{{ t('Question {n} of {m}', { n: asked.length + 1, m: problem.questions.length }) }}</span>
+        <span class="mu sm">{{ t('Question {n} of {m}', { n: asked.length + 1, m: total }) }}</span>
         <h3 class="qq">{{ t(cur.q) }}</h3>
         <span v-if="cur.hint" class="mu">{{ t(cur.hint) }}</span>
         <div class="opts">
@@ -370,74 +476,101 @@ const when = (ts) => fmtDate(ts / 1000);
     </div>
 
     <!-- 4: causes and the next test -->
-    <div v-else class="two res">
-      <div class="col" style="gap: 10px; min-width: 0">
-        <div class="ctx">
-          <span class="chip2"><Icon :name="problem.icon" :size="14" />{{ t(problem.name) }}</span>
-          <span class="chip2 mono"><Icon name="file" :size="14" />{{ chosenName || t('No file') }}</span>
-          <span v-for="(a, k) in asked" :key="k" class="chip2">{{ t(a) }}</span>
-        </div>
-        <h3>{{ t('Likely causes, most likely first') }}</h3>
-        <article v-for="c in causes" :key="c.id" class="cause">
-          <div class="row" style="gap: 8px; align-items: center">
-            <span class="lv" :aria-label="t(LEVEL[c.level])"
-              ><i v-for="k in 3" :key="k" :class="{ f: k <= c.level }"></i
-            ></span>
-            <span class="mu sm">{{ t(LEVEL[c.level]) }}</span>
-          </div>
-          <b class="ct">{{ t(c.title) }}</b>
-          <span class="mu">{{ t(c.why) }}</span>
-          <div v-if="c.evidence.length || c.missing.length" class="ev">
-            <div v-for="(e, k) in c.evidence" :key="k" class="evr">
-              <span class="src" :class="e[0]">{{ t(SRC[e[0]]) }}</span
-              ><span>{{ t(e[1]) }}</span>
-            </div>
-            <div v-for="(m, k) in c.missing" :key="'m' + k" class="evr miss">
-              <span class="src">{{ t('Not known') }}</span
-              ><span>{{ t(m) }}</span>
-            </div>
-          </div>
-        </article>
-        <p v-if="!causes.length" class="mu">{{ t('Nothing in the answers or the file points to a cause.') }}</p>
+    <template v-else>
+      <div v-if="issue" class="errbox">
+        <Icon name="warn" :size="18" class="wi" />
+        <span class="col grow" style="gap: 3px; min-width: 0">
+          <span class="lbl">{{ t('The error') }}</span>
+          <code class="mono em">{{ issue.msg }}</code>
+        </span>
+        <span v-if="issue.solved" class="ok sm"><Icon name="check" :size="14" />{{ t('Marked as solved') }}</span>
+        <button v-else-if="issue.id" class="btn sm" @click="markSolved">{{ t('Mark as solved') }}</button>
       </div>
-      <div v-if="top" class="col" style="gap: 12px; min-width: 0">
-        <div class="panel col next" style="gap: 10px">
+      <div v-if="problem" class="ctx">
+        <span class="chip2"><Icon :name="problem.icon" :size="14" />{{ t(problem.name) }}</span>
+        <span v-if="problem.kind === 'print'" class="chip2 mono"
+          ><Icon name="file" :size="14" />{{ chosenName || t('No file') }}</span
+        >
+        <span v-for="(a, k) in asked" :key="k" class="chip2">{{ t(a) }}</span>
+      </div>
+      <p v-if="!problem" class="mu">
+        {{
+          t(
+            'There is no guide for this error yet. Its text above is what Klipper reported; the Klipper documentation and the Report a problem link below can help.',
+          )
+        }}
+      </p>
+      <div v-else class="two res">
+        <div class="col" style="gap: 10px; min-width: 0">
+          <span class="lbl">{{ t('Likely causes, most likely first') }}</span>
+          <article v-for="c in causes" :key="c.id" class="cause">
+            <div class="row" style="gap: 8px; align-items: center">
+              <span class="lv" :aria-label="t(LEVEL[c.level])"
+                ><i v-for="k in 3" :key="k" :class="{ f: k <= c.level }"></i
+              ></span>
+              <span class="mu sm">{{ t(LEVEL[c.level]) }}</span>
+            </div>
+            <b class="ct">{{ t(c.title) }}</b>
+            <span class="mu">{{ t(c.why) }}</span>
+            <div v-if="c.evidence.length || c.missing.length" class="ev">
+              <div v-for="(e, k) in c.evidence" :key="k" class="evr">
+                <span class="src" :class="e[0]">{{ t(SRC[e[0]]) }}</span
+                ><span class="et">{{ t(e[1]) }}</span>
+              </div>
+              <div v-for="(m, k) in c.missing" :key="'m' + k" class="evr miss">
+                <span class="src">{{ t('Not known') }}</span
+                ><span class="et">{{ t(m) }}</span>
+              </div>
+            </div>
+          </article>
+          <p v-if="!causes.length" class="mu">{{ t('Nothing in the answers or the file points to a cause.') }}</p>
+        </div>
+        <div v-if="top" class="col side" style="gap: 12px; min-width: 0">
           <span class="lbl">{{ t('Next test') }}</span>
-          <h3>{{ t(top.test.label) }}</h3>
-          <span class="mu">{{ t(top.test.how) }}</span>
-          <button v-if="openTop" class="btn acc" style="align-self: flex-start" @click="openTop()">
-            <Icon name="play" :size="15" />{{ t('Open') }}
-          </button>
-          <div class="one">
-            <b>{{ t('One change at a time') }}</b>
-            <span class="mu sm">{{ t(top.test.change) }} {{ t('Then print the same file again and compare.') }}</span>
+          <div class="panel col next" style="gap: 10px">
+            <h3>{{ t(top.test.label) }}</h3>
+            <span class="mu">{{ t(top.test.how) }}</span>
+            <button v-if="openTop" class="btn acc" style="align-self: flex-start" @click="openTop.run()">
+              <Icon name="ext" :size="15" />{{ t(openTop.label) }}
+            </button>
+            <div v-if="top.test.change" class="one">
+              <b>{{ t('One change at a time') }}</b>
+              <span class="mu sm"
+                >{{ t(top.test.change) }}
+                {{
+                  problem.kind === 'print'
+                    ? t('Then print the same file again and compare.')
+                    : t('Then check again before changing anything else.')
+                }}</span
+              >
+            </div>
           </div>
-        </div>
-        <div class="panel col" style="gap: 10px">
-          <span class="lbl">{{ t('How did it go?') }}</span>
-          <div class="seg">
-            <button v-for="(l, k) in RES" :key="k" :class="{ on: res === k }" @click="res = k">{{ t(l) }}</button>
+          <div class="panel col" style="gap: 10px">
+            <span class="lbl">{{ t('How did it go?') }}</span>
+            <div class="seg">
+              <button v-for="(l, k) in RES" :key="k" :class="{ on: res === k }" @click="res = k">{{ t(l) }}</button>
+            </div>
+            <input
+              v-model="note"
+              class="input"
+              :placeholder="t('What you changed')"
+              :aria-label="t('What you changed')"
+            />
+            <button class="btn" style="align-self: flex-start" :disabled="!res" @click="saveTry">
+              {{ t('Save the result') }}
+            </button>
+            <div v-for="(tr, k) in tries" :key="k" class="try">
+              <span class="mono mu sm">{{ when(tr.at) }}</span
+              ><span class="grow">{{ tr.change }}</span
+              ><span class="rs" :class="tr.result">{{ t(RES[tr.result]) }}</span>
+            </div>
+            <span v-if="tries.length && tries[0].result !== 'fixed'" class="mu sm">{{
+              t('Not fixed yet: try the next cause on the left, one change at a time.')
+            }}</span>
           </div>
-          <input
-            v-model="note"
-            class="input"
-            :placeholder="t('What you changed')"
-            :aria-label="t('What you changed')"
-          />
-          <button class="btn" style="align-self: flex-start" :disabled="!res" @click="saveTry">
-            {{ t('Save the result') }}
-          </button>
-          <div v-for="(tr, k) in tries" :key="k" class="try">
-            <span class="mono mu sm">{{ when(tr.at) }}</span
-            ><span class="grow">{{ tr.change }}</span
-            ><span class="rs" :class="tr.result">{{ t(RES[tr.result]) }}</span>
-          </div>
-          <span v-if="tries.some((x) => x.result !== 'fixed')" class="mu sm">{{
-            t('Not fixed yet: try the next cause on the left, one change at a time.')
-          }}</span>
         </div>
       </div>
-    </div>
+    </template>
   </section>
 </template>
 
@@ -517,7 +650,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 10px;
-  max-width: 560px;
+  max-width: 860px;
   padding-left: 12px;
   border-radius: 10px;
   background: var(--s2);
@@ -527,7 +660,8 @@ h3 {
   flex: 1;
   background: transparent;
   border: 0;
-  height: 44px;
+  height: 52px;
+  font-size: 15px;
   padding-left: 0;
 }
 .grid {
@@ -562,10 +696,91 @@ h3 {
 .hit {
   color: var(--ac);
 }
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 860px;
+}
+.rr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--s2);
+  color: var(--tx);
+}
+.rr:hover {
+  background: var(--s3);
+}
+.kind {
+  flex: none;
+  color: var(--mu);
+  padding: 2px 8px;
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.iss,
+.errbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--dg) 9%, var(--s2));
+}
+.iss {
+  max-width: 860px;
+  flex-wrap: wrap;
+}
+.iss .grow {
+  min-width: min(100%, 240px);
+}
+.errbox {
+  align-items: flex-start;
+}
+.wi {
+  flex: none;
+  color: var(--dg);
+}
+.im,
+.em {
+  font-weight: 600;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.em {
+  white-space: pre-wrap;
+  font-weight: 400;
+}
+.ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ok);
+  flex: none;
+}
+.empty {
+  max-width: 560px;
+}
+.side {
+  position: sticky;
+  top: 12px;
+  align-self: start;
+}
+.et {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .two {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
+  align-items: start;
 }
 .lbl {
   font-size: 12.5px;

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { PROBLEMS, findProblems, nextQuestion, rankCauses } from '../src/solver/problems';
+import { PROBLEMS, findProblems, forError, nextQuestion, rankCauses } from '../src/solver/problems';
+import { systemToday } from '../src/solver/facts';
 import { parseSlicerConfig, slicerSettings, buildFacts, material, flowOf } from '../src/solver/facts';
 
 const P = (id) => PROBLEMS.find((p) => p.id === id);
@@ -12,17 +13,24 @@ const status = (o = {}) => ({
 
 describe('problem search', () => {
   it('finds Turkish words without accents and English words', () => {
-    expect(findProblems('sacak').map((x) => x.p.id)).toEqual(['stringing']);
-    expect(findProblems('yapisma').map((x) => x.p.id)).toEqual(['firstlayer']);
+    expect(findProblems('sacak')[0].p.id).toBe('stringing');
+    expect(findProblems('yapisma')[0].p.id).toBe('firstlayer');
     expect(findProblems('stringing')[0].p.id).toBe('stringing');
-    expect(findProblems('').length).toBe(PROBLEMS.length);
+    expect(findProblems('fan dönmüyor')[0].p.id).toBe('m_fan');
+    expect(findProblems('')).toEqual([]);
+  });
+  it('a pasted Klipper error finds its guide', () => {
+    expect(findProblems("MCU 'mcu' shutdown: Timer too close")[0].p.id).toBe('k_timer');
+    expect(forError("TMC 'stepper_x' reports error: GSTAT: 00000001 reset=1")?.id).toBe('k_tmc');
+    expect(forError('Thermocouple reader fault')?.kind).toBe('klipper');
+    expect(forError('something unrelated')).toBe(null);
   });
   it('every problem has questions with options and causes with a test', () => {
     for (const p of PROBLEMS) {
-      expect(p.questions.length).toBeGreaterThan(0);
+      if (p.kind === 'print') expect(p.questions.length).toBeGreaterThan(0);
       expect(p.questions.length).toBeLessThanOrEqual(3);
       for (const q of p.questions) expect(q.opts.length).toBeGreaterThan(1);
-      for (const c of p.causes) expect(c.test?.label && c.test?.change).toBeTruthy();
+      for (const c of p.causes) expect(c.test?.label && c.test?.how).toBeTruthy();
     }
   });
 });
@@ -80,5 +88,25 @@ describe('ranking', () => {
       status: status(),
     });
     expect(f.print.fileChanged).toBe(true);
+  });
+});
+
+describe('machine and Klipper guides', () => {
+  it('timer too close points at link errors when the board resends', () => {
+    const st = {
+      mcu: { mcu_version: 'v0.13.0-1', last_stats: { bytes_retransmit: 800, bytes_invalid: 4 } },
+      ...status(),
+    };
+    const sys = systemToday(st, { throttled_state: { bits: 0 } }, 'v0.13.0-1', () => 0);
+    const f = buildFacts({ status: st, sys, error: 'Timer too close' });
+    const r = rankCauses(P('k_timer'), { when: 'random' }, f);
+    expect(r[0].id).toBe('bus');
+    expect(r[0].evidence[0]).toEqual(['error', 'Timer too close']);
+  });
+  it('Z banding finds a layer height off the full step', () => {
+    const st = status({ stepper_z: { rotation_distance: 8 } });
+    const f = buildFacts({ cfg: { layer_height: '0.25' }, status: st });
+    expect(f.sys.zFullStep).toBe(0.04);
+    expect(rankCauses(P('zband'), { even: 'even' }, f)[0].id).toBe('step');
   });
 });

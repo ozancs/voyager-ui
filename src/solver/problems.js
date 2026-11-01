@@ -4,6 +4,8 @@
 // answer, the file, the print's history record or the printer today, plus what is missing. Each cause ends in
 // one test or one change to try. General material ranges are guidance, never this printer's numbers.
 import { RANGES, flowOf } from './facts';
+import { MACHINE } from './machine';
+import { EXPLAINS } from '../explain';
 
 const has = (v) => v != null && v !== '';
 const deg = (v) => `${Math.round(v)}°`;
@@ -26,7 +28,7 @@ const below = (f, kind) => {
 const pick = (...xs) => xs.filter(Boolean);
 const shaperText = (s) => (s ? `${s.type} ${s.freq} Hz` : 'not set');
 
-export const PROBLEMS = [
+export const PRINT_PROBLEMS = [
   // ------------------------------------------------------------------ ringing
   {
     id: 'ringing',
@@ -923,14 +925,71 @@ export const PROBLEMS = [
   },
 ];
 
-// accents and dotless i do not matter: "sacak" finds "saçaklanma", "yapisma" finds "yapışmama"
-export const fold = (s) => String(s).toLocaleLowerCase('tr').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ı/g, 'i');
-export function findProblems(q, list = PROBLEMS) {
-  const f = fold(q).trim();
-  if (!f) return list.map((p) => ({ p, hit: null }));
-  return list.map((p) => ({ p, hit: [p.name, ...p.words].find((w) => fold(w).includes(f)) })).filter((x) => x.hit);
-}
+// Klipper errors without a guide of their own get one from the error explanations: what it means and what to do
+const covered = (re) => MACHINE.some((m) => m.match && String(m.match) === String(re));
+const FROM_EXPLAIN = EXPLAINS.filter((e) => !covered(e.re)).map((e, i) => ({
+  id: 'x' + i,
+  kind: 'klipper',
+  icon: 'warn',
+  name: e.title,
+  desc: e.cause,
+  words: [],
+  match: e.re,
+  questions: [],
+  causes: [
+    {
+      id: 'x',
+      title: e.title,
+      why: e.cause,
+      score: () => 3,
+      evidence: ({ f }) => (f.error ? [['error', f.error.split('\n')[0].slice(0, 160)]] : []),
+      test: { label: 'What to do', how: e.fix, change: '' },
+    },
+  ],
+}));
+export const PROBLEMS = [
+  ...PRINT_PROBLEMS.map((p) => ({ kind: 'print', ...p })),
+  ...MACHINE.filter((p) => p.kind === 'print'),
+  ...MACHINE.filter((p) => p.kind !== 'print'),
+  ...FROM_EXPLAIN,
+];
 
+// accents and dotless i do not matter: "sacak" finds "saçaklanma", "yapisma" finds "yapışmama"
+export const fold = (s) =>
+  String(s)
+    .toLocaleLowerCase('tr')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ı/g, 'i');
+// the guide for a Klipper error message, null when none fits
+export const forError = (msg, list = PROBLEMS) => (msg ? list.find((p) => p.match?.test(msg)) || null : null);
+// search: a pasted error finds its guide first, then names, then the words people use, then the descriptions;
+// every word typed counts, so "z lines" and "lines z" find the same
+export function findProblems(q, list = PROBLEMS) {
+  const raw = String(q || '').trim();
+  const f = fold(raw);
+  if (!f) return [];
+  const words = f.split(/[^a-z0-9_]+/).filter((w) => w.length > 1);
+  return list
+    .map((p) => {
+      let score = 0,
+        hit = null;
+      if (p.match?.test(raw)) score += 100;
+      const name = fold(p.name);
+      if (name.includes(f)) score += 60;
+      const w = p.words.find((x) => fold(x).includes(f) || f.includes(fold(x)));
+      if (w) {
+        score += 40;
+        hit = w;
+      }
+      const hay = fold([p.name, p.desc, ...p.words].join(' '));
+      const n = words.filter((x) => hay.includes(x)).length;
+      if (words.length) score += Math.round((25 * n) / words.length);
+      return { p, hit, score };
+    })
+    .filter((x) => x.score >= 20)
+    .sort((a, b) => b.score - a.score);
+}
 // the next question for these answers (in order, at most three), null when all are answered
 export function nextQuestion(p, a) {
   return p.questions.find((q) => !(q.id in a) && (!q.when || q.when(a))) || null;

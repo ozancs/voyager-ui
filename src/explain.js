@@ -2,7 +2,7 @@
 // check. Used under the Klipper error banner and behind the ? on error lines in the console. The texts are
 // general advice for the error as Klipper words it; they do not know the printer, so they say "usually".
 
-const E = [
+export const EXPLAINS = [
   {
     re: /Timer too close|Rescheduled timer in the past|Stepper too far in past|Missed scheduling of next/i,
     title: 'The host or a board could not keep up',
@@ -151,7 +151,7 @@ const E = [
 
 // { title, cause, fix } in English (ExplainBox translates them), or null when the message is not known
 export function explain(msg) {
-  const e = E.find((x) => x.re.test(String(msg || '')));
+  const e = EXPLAINS.find((x) => x.re.test(String(msg || '')));
   return e ? { title: e.title, cause: e.cause, fix: e.fix } : null;
 }
-export const EXPLAIN_TEXTS = E.flatMap((e) => [e.title, e.cause, e.fix]);
+export const EXPLAIN_TEXTS = EXPLAINS.flatMap((e) => [e.title, e.cause, e.fix]);

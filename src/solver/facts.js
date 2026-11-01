@@ -129,8 +129,17 @@ export function flowOf(speed, layer, width) {
 }
 
 // everything known about one print, by source. meta: Moonraker's file metadata (now); cfg: the parsed slicer
-// settings block; job: the history entry when the print was picked from History; status: the live printer status
-export function buildFacts({ meta = null, cfg = {}, job = null, fileModified = null, status = {} }) {
+// settings block; job: the history entry when the print was picked from History; status: the live printer status;
+// sys: systemToday() (host and boards); error: the Klipper error the guide was opened for
+export function buildFacts({
+  meta = null,
+  cfg = {},
+  job = null,
+  fileModified = null,
+  status = {},
+  sys = null,
+  error = '',
+}) {
   const s = slicerSettings(cfg);
   const m = meta || {};
   const file = {
@@ -164,5 +173,56 @@ export function buildFacts({ meta = null, cfg = {}, job = null, fileModified = n
     };
   }
   const mat = material(file.filament ?? print?.filament);
-  return { file, print, today: printerToday(status), mat, range: mat ? RANGES[mat] : null };
+  return {
+    file,
+    print,
+    today: printerToday(status),
+    sys: sys || systemToday(status),
+    error,
+    mat,
+    range: mat ? RANGES[mat] : null,
+  };
+}
+
+// the host and the boards now: load, throttling (from machine.proc_stats, may be null), every MCU with its firmware
+// version against Klipper's and its link errors, and the heaters' control settings
+export function systemToday(status, proc, klipperVer, cmpVer) {
+  const set = status.configfile?.settings || {};
+  const bits = proc?.throttled_state?.bits;
+  const mcus = Object.keys(status)
+    .filter((k) => k === 'mcu' || k.startsWith('mcu '))
+    .map((k) => {
+      const s = status[k] || {};
+      const st = s.last_stats || {};
+      const c = set[k] || {};
+      return {
+        name: k === 'mcu' ? 'mcu' : k.slice(4),
+        ver: s.mcu_version || '',
+        old: cmpVer && klipperVer && s.mcu_version ? cmpVer(s.mcu_version, klipperVer) < 0 : null,
+        retrans: st.bytes_retransmit ?? null,
+        invalid: st.bytes_invalid ?? null,
+        can: !!c.canbus_uuid,
+      };
+    });
+  const heater = (n) => {
+    const c = set[n] || {};
+    return { control: c.control || null, maxPower: c.max_power ?? null, sensor: c.sensor_type || null };
+  };
+  const zs = set.stepper_z || {};
+  return {
+    load: status.system_stats?.sysload ?? null,
+    memAvail: status.system_stats?.memavail ?? null,
+    throttledNow: bits == null ? null : !!(bits & 0xf),
+    throttledEver: bits == null ? null : !!(bits & 0xf0000),
+    underVoltage: bits == null ? null : !!(bits & 0x1),
+    underVoltageEver: bits == null ? null : !!(bits & 0x10000),
+    mcus,
+    extruder: heater('extruder'),
+    bed: heater('heater_bed'),
+    zFullStep:
+      zs.rotation_distance && (zs.full_steps_per_rotation || 200)
+        ? zs.rotation_distance / (zs.full_steps_per_rotation || 200)
+        : null,
+    sensorless: Object.values(set).some((c) => /virtual_endstop/.test(String(c?.endstop_pin || ''))),
+  };
 }
