@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.12
+
+- On a phone, Customize reorders the cards by dragging their grip; holding a card near the top or bottom edge scrolls the list
+- On a phone, the Console card keeps its height instead of growing with every new line
+
 ## 0.38.11
 
 - New Connected hardware card for the dashboard (Customize → Add card): serial ports with their by-id path, USB devices, cameras and CAN boards waiting for a UUID, each path or UUID copies with one click

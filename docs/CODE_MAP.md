@@ -790,7 +790,8 @@ slow requests, "new version" hint that opens the update manager). Can be pinned,
 **[src/components/SortList.vue](../src/components/SortList.vue)**  
 A list whose rows can be dragged into a new order by their handle (mouse, touch and pen through pointer events,  
 so it also works on a phone where HTML drag and drop does not). The keyboard can move the focused handle with  
-the arrow keys. v-model is the array; each row is the default slot with { item, index }.
+the arrow keys. v-model is the array; each row is the default slot with { item, index }. Held near the top or  
+bottom edge of the scrolling area, the list scrolls so a row can be taken past what is on screen.
 
 **[src/components/SpeedFlow.vue](../src/components/SpeedFlow.vue)**  
 Speed factor (M220) and flow (M221): slider, -/+ and a typed value. The slider shows the value while dragging and  

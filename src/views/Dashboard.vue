@@ -67,7 +67,7 @@ import ButtonParams from '../components/ButtonParams.vue';
 import ControlEditor from '../components/ControlEditor.vue';
 
 const MODULES = {
-  console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7] },
+  console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7], fixed: true }, // fixed: keeps its height in one column
   temps: { c: TempsCard, n: 'Temperatures', min: [2, 3], def: [6, 8], scale: true },
   tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [2, 3], def: [12, 6] },
   webcam: { c: WebcamCard, n: 'Webcam', min: [2, 3], def: [6, 8] },
@@ -381,14 +381,6 @@ const column = computed(() => {
   const ids = [...ord.filter(has), ...sorted.value.map((x) => x.i).filter((i) => !ord.includes(i))];
   return ids.map((i) => layout.value.find((x) => x.i === i));
 });
-function moveCol(i, d) {
-  const ids = column.value.map((x) => x.i),
-    k = ids.indexOf(i),
-    j = k + d;
-  if (k < 0 || j < 0 || j >= ids.length) return;
-  [ids[k], ids[j]] = [ids[j], ids[k]];
-  state.settings.mobileOrder = ids;
-}
 // grid-layout-plus also emits layout-updated on mount and on resize; only a Customize session writes settings
 function persist(force = false) {
   if (!state.editDash && !force) return;
@@ -1017,28 +1009,23 @@ function detachCard(i) {
       </GridItem>
     </GridLayout>
     <div v-else class="col" style="gap: 20px">
-      <template v-if="state.editDash">
-        <div v-for="(it, k) in column" :key="it.i" class="mrow">
+      <SortList
+        v-if="state.editDash"
+        class="mlist"
+        :model-value="column"
+        :item-key="(it) => it.i"
+        @update:model-value="(a) => (state.settings.mobileOrder = a.map((x) => x.i))"
+      >
+        <template #default="{ item: it }">
           <span class="grow">{{ isCustom(it.i) ? nameOf(it.i) : t(nameOf(it.i)) }}</span>
           <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit')" @click="editCard(it.i)">
             <Icon name="pencil" :size="16" />
           </button>
-          <button class="btn ibtn sm" :disabled="k === 0" :aria-label="t('Move up')" @click="moveCol(it.i, -1)">
-            <Icon name="up" :size="18" :stroke="2.4" />
-          </button>
-          <button
-            class="btn ibtn sm"
-            :disabled="k === column.length - 1"
-            :aria-label="t('Move down')"
-            @click="moveCol(it.i, 1)"
-          >
-            <Icon name="down" :size="18" :stroke="2.4" />
-          </button>
           <button class="btn ibtn sm" :aria-label="t('Remove card')" @click="removeCard(it.i)">
             <Icon name="x" :size="18" :stroke="2.4" />
           </button>
-        </div>
-      </template>
+        </template>
+      </SortList>
       <template v-else v-for="it in column" :key="it.i">
         <div class="cell mcell" :class="{ collapsed: folded(it.i) }">
           <CellScope :id="it.i" :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
@@ -1051,7 +1038,11 @@ function detachCard(i) {
             <component
               v-else
               :is="MODULES[it.i].c"
-              :style="folded(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
+              :style="
+                folded(it.i)
+                  ? null
+                  : { [MODULES[it.i].fixed ? 'height' : 'minHeight']: (fullH[it.i] || it.h) * 40 + 'px' }
+              "
             />
           </CellScope>
         </div>
@@ -1360,15 +1351,24 @@ function detachCard(i) {
   gap: 8px;
   flex-wrap: wrap;
 }
-.mrow {
-  display: flex;
-  align-items: center;
+/* phone Customize: the cards as a list, dragged by the grip into their order */
+.mlist {
+  gap: 10px;
+}
+.mlist :deep(.sr) {
   gap: 6px;
-  padding: 8px 8px 8px 14px;
+  padding: 8px 8px 8px 4px;
   background: var(--s1);
   border-radius: 12px;
   font-weight: 600;
   font-size: 14px;
+}
+.mlist :deep(.sr.drag) {
+  background: var(--s2);
+}
+.mlist :deep(.hd) {
+  width: 40px;
+  height: 40px;
 }
 /* device tiles: a strip of their own, separated from the cards below by an accent hairline */
 .top {
