@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.11
+
+- New Connected hardware card for the dashboard (Customize → Add card): serial ports with their by-id path, USB devices, cameras and CAN boards waiting for a UUID, each path or UUID copies with one click
+
 ## 0.38.10
 
 - The Spoolman tile above the dashboard chooses the active spool: click it (it says Change on hover); the arrow in its corner opens Spoolman
