@@ -2327,4 +2327,5 @@ export default {
   "Open the console": "打开控制台",
   "Open the G-code viewer": "打开 G-code 查看器",
   "Open the dashboard": "打开仪表盘",
+  "Open Spoolman": "打开 Spoolman",
 }

@@ -2327,4 +2327,5 @@ export default {
   "Open the console": "Konsole öffnen",
   "Open the G-code viewer": "G-Code-Viewer öffnen",
   "Open the dashboard": "Dashboard öffnen",
+  "Open Spoolman": "Spoolman öffnen",
 }

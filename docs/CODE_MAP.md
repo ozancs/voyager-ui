@@ -796,6 +796,10 @@ and the Extruder card (flow).
 Active Spoolman spool: filament name, colour, remaining weight. Only shown when Moonraker has  
 a [spoolman] section.
 
+**[src/components/SpoolPicker.vue](../src/components/SpoolPicker.vue)**  
+Choose the active Spoolman spool (or clear it). Opened from the Spool card and the Spoolman tile above the  
+dashboard through state.spoolPick; rendered once in App.vue.
+
 **[src/components/Spotlight.vue](../src/components/Spotlight.vue)**  
 Ctrl/Cmd+K: one search box for pages, actions, macros, config files (down to the line), g-code files, commands and settings.
 

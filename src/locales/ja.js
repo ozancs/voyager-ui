@@ -2327,4 +2327,5 @@ export default {
   "Open the console": "コンソールを開く",
   "Open the G-code viewer": "G-code ビューアを開く",
   "Open the dashboard": "ダッシュボードを開く",
+  "Open Spoolman": "Spoolman を開く",
 }

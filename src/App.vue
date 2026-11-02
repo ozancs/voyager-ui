@@ -36,6 +36,7 @@ import FloatingCam from './components/FloatingCam.vue';
 import LockScreen from './components/LockScreen.vue';
 import PhoenixWizard from './components/PhoenixWizard.vue';
 import PhoenixSetup from './components/PhoenixSetup.vue';
+import SpoolPicker from './components/SpoolPicker.vue';
 import { hasPhoenix, startPhoenix } from './phoenix';
 import { startIssues } from './solver/issues';
 import './tablet';
@@ -291,6 +292,7 @@ startIssues();
     <ExcludeModal v-if="state.showExclude" @close="state.showExclude = false" />
     <UpdateModal />
     <PreprintDialog />
+    <SpoolPicker v-if="state.spoolPick" />
     <GuardDialog />
     <WhatsNew />
     <ReportDialog v-if="state.reportOpen" @close="state.reportOpen = false" />

@@ -536,8 +536,28 @@ function sensorExtra(id) {
       </template>
       <!-- SPOOLMAN -->
       <template v-else-if="d.kind === 'spoolman'">
-        <a class="spl" :href="spoolUrl || undefined" target="_blank" rel="noopener" @click.stop>
-          <div class="hd"><span class="lbl">Spoolman</span><Icon name="ext" :size="14" :stroke="2.4" class="mu" /></div>
+        <!-- the tile chooses the spool; the arrow opens Spoolman itself -->
+        <div
+          class="spl"
+          role="button"
+          :tabindex="state.editDash ? -1 : 0"
+          :aria-label="t('Choose spool')"
+          @click.stop="!state.editDash && state.spoolman.server && (state.spoolPick = true)"
+          @keydown.enter="!state.editDash && (state.spoolPick = true)"
+        >
+          <div class="hd">
+            <span class="lbl">Spoolman</span><span class="chg"><Icon name="spool" :size="13" />{{ t('Change') }}</span
+            ><a
+              class="ext"
+              :href="spoolUrl || undefined"
+              target="_blank"
+              rel="noopener"
+              :aria-label="t('Open Spoolman')"
+              :data-tip="t('Open Spoolman')"
+              @click.stop
+              ><Icon name="ext" :size="14" :stroke="2.4"
+            /></a>
+          </div>
           <div v-if="spool" class="row" style="gap: 10px; min-width: 0">
             <span class="spool" :style="{ background: '#' + (spool.filament?.color_hex || '333') }"></span>
             <div class="col" style="gap: 0; min-width: 0">
@@ -560,7 +580,7 @@ function sensorExtra(id) {
             </div>
             <b class="mono" style="font-size: 12px">{{ Math.round(spool.remaining_weight || 0) }} g</b>
           </div>
-        </a>
+        </div>
       </template>
     </div>
   </TransitionGroup>
@@ -799,6 +819,37 @@ function sensorExtra(id) {
   color: var(--tx);
   text-decoration: none;
   gap: 4px;
+  cursor: pointer;
+}
+/* on hover the label turns into "Change"; the Spoolman link keeps its corner */
+.spl .chg {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tx);
+  white-space: nowrap;
+}
+.dc:hover .spl .chg,
+.spl:focus-visible .chg {
+  display: inline-flex;
+}
+.dc:hover .spl .hd > .lbl,
+.spl:focus-visible .hd > .lbl {
+  display: none;
+}
+.spl .ext {
+  display: grid;
+  place-items: center;
+  color: var(--mu);
+  padding: 2px;
+  margin: -2px;
+  border-radius: 4px;
+}
+.spl .ext:hover {
+  color: var(--tx);
+  background: var(--s3);
 }
 .spool {
   width: 28px;

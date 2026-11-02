@@ -2038,7 +2038,7 @@ function handle(m) {
     case 'server.spoolman.get_spool_id':
       return { spool_id: 12 };
     case 'server.spoolman.proxy':
-      return /^\/v1\/spool\?/.test(p.path || '') ? { response: SPOOLS } : { response: SPOOLS[0] };
+      return /^\/v1\/spool(\?|$)/.test(p.path || '') ? { response: SPOOLS } : { response: SPOOLS[0] };
     case 'server.files.list':
       if (p.root === 'timelapse') return TL_FILES;
       if (p.root === 'timelapse_frames')
