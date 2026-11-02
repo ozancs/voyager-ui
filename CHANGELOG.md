@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.10
+
+- The Spoolman tile above the dashboard chooses the active spool: click it (it says Change on hover); the arrow in its corner opens Spoolman
+
 ## 0.38.9
 
 - More dashboard cards narrow down to two columns and can be made square: Toolhead, Spoolman, Devices, Temperatures and others shrink to fit
