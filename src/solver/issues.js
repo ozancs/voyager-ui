@@ -3,6 +3,8 @@
 // raises one notification with a Solve button, and stays listed on the Problem Solver page until it is marked as
 // solved, which also takes the notification away. Kept in the settings (Moonraker's database), so every browser
 // sees the same list. Errors that are only a wrong command (Unknown command, Must home first...) are not kept.
+// Dismissing the notification keeps the issue listed but quiet: it is raised again only when the error happens
+// again, not when a page is reloaded while Klipper still shows the same error.
 import { watch } from 'vue';
 import { state, S, notify, unnotify } from '../store';
 import { go } from '../router';
@@ -10,7 +12,7 @@ import { t } from '../i18n';
 import { forError } from './problems';
 
 const SKIP =
-  /Unknown command|Must home axis first|must home|Move out of range|Extrude below minimum temp|Extrude only move too long|Shutdown due to webhooks request|Emergency stop/i;
+  /^(disconnected|error|shutdown|startup|ready)$|Unknown command|Must home axis first|must home|Move out of range|Extrude below minimum temp|Extrude only move too long|Shutdown due to webhooks request|Emergency stop/i;
 const MAX = 30;
 // one id per message, numbers and quoted names kept (an MCU name tells boards apart), timestamps dropped
 export function issueId(msg) {
@@ -25,7 +27,8 @@ export function issueId(msg) {
 const list = () => state.settings.issues || [];
 export const openIssues = () => list().filter((x) => !x.solved);
 
-export function recordIssue(msg, source) {
+// again: false when the error is only seen again (a page loaded while Klipper still shows it), not a new time
+export function recordIssue(msg, source, again = true) {
   msg = String(msg || '').trim();
   if (!msg || SKIP.test(msg)) return null;
   const p = forError(msg);
@@ -36,8 +39,10 @@ export function recordIssue(msg, source) {
   const all = list();
   const old = all.find((x) => x.id === id);
   if (old && !old.solved) {
-    if (now - old.at < 5000) return old; // the same error reported by two paths at once
-    state.settings.issues = all.map((x) => (x.id === id ? { ...x, at: now, count: (x.count || 1) + 1 } : x));
+    if (!again || now - old.at < 5000) return old; // still the same one, or reported by two paths at once
+    state.settings.issues = all.map((x) =>
+      x.id === id ? { ...x, at: now, count: (x.count || 1) + 1, quiet: undefined } : x,
+    );
   } else {
     const it = { id, msg: msg.slice(0, 600), source, problem: p?.id || null, at: now, count: 1 };
     state.settings.issues = [it, ...all.filter((x) => x.id !== id)].slice(0, MAX);
@@ -46,6 +51,7 @@ export function recordIssue(msg, source) {
   return id;
 }
 function raise(it) {
+  if (it.quiet) return;
   const p = forError(it.msg);
   notify('issue:' + it.id, (p ? t(p.name) + ': ' : '') + it.msg.split('\n')[0].slice(0, 160), 'error', {
     label: t('Solve'),
@@ -59,16 +65,21 @@ export function solveIssue(id) {
 
 // watch the printer: Klipper stopping with a message, and a print ending in an error
 export function startIssues() {
+  // the error Klipper shows when the page connects is not a new one when it is already listed: only after Klipper
+  // was seen running (ready or starting) does an error count as happening again
+  let ran = false;
   watch(
     () => [state.klippy, state.klippyMessage],
     ([k, m]) => {
-      if ((k === 'shutdown' || k === 'error') && m) recordIssue(m, 'klippy');
+      if ((k === 'shutdown' || k === 'error') && m) recordIssue(m, 'klippy', ran);
+      if (k === 'ready' || k === 'startup') ran = true;
     },
   );
   watch(
     () => [S('print_stats').state, S('print_stats').message],
     ([st, m], old) => {
-      if (st === 'error' && m && old?.[0] !== 'error') recordIssue(m, 'print');
+      if (st === 'error' && m && old?.[0] !== 'error')
+        recordIssue(m, 'print', ['printing', 'paused'].includes(old?.[0]));
     },
   );
   // the open ones come back as notifications after a reload

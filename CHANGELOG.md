@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.13
+
+- Dismissed error notifications stay dismissed after a reload and on every browser; they come back only when the error happens again (the error stays listed on the Problem Solver page until marked solved)
+- A bare "disconnected" is no longer kept as an error
+
 ## 0.38.12
 
 - On a phone, Customize reorders the cards by dragging their grip; holding a card near the top or bottom edge scrolls the list

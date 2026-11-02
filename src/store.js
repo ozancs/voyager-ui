@@ -12,7 +12,7 @@ import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 
-export const VERSION = '0.38.12';
+export const VERSION = '0.38.13';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';
@@ -849,6 +849,13 @@ export function unnotify(prefix) {
 }
 export function dismiss(n) {
   state.notifications = state.notifications.filter((x) => x !== n);
+  // an error the Problem Solver keeps: dismissed on the issue itself (in Moonraker's database), so no browser
+  // raises it again until it happens again (solver/issues.js)
+  if (String(n.id).startsWith('issue:')) {
+    const id = n.id.slice(6);
+    state.settings.issues = (state.settings.issues || []).map((x) => (x.id === id ? { ...x, quiet: Date.now() } : x));
+    return;
+  }
   if (!String(n.id).startsWith('klippy:')) {
     dismissed.add(n.id);
     try {
