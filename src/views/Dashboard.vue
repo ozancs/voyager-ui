@@ -67,10 +67,10 @@ import ControlEditor from '../components/ControlEditor.vue';
 
 const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7] },
-  temps: { c: TempsCard, n: 'Temperatures', min: [3, 3], def: [6, 8] },
-  tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [3, 4], def: [12, 6] },
+  temps: { c: TempsCard, n: 'Temperatures', min: [2, 3], def: [6, 8], scale: true },
+  tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [2, 3], def: [12, 6] },
   webcam: { c: WebcamCard, n: 'Webcam', min: [2, 3], def: [6, 8] },
-  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [3, 2], def: [12, 5], scale: true },
+  toolhead: { c: ToolheadCard, n: 'Toolhead', min: [2, 2], def: [12, 5], scale: true },
   favorites: { c: FavoritesCard, n: 'Favorites', min: [2, 2], def: [6, 3] },
   livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 2], def: [3, 4], scale: true },
   extruder: { c: ExtruderCard, n: 'Extruder', min: [2, 3], def: [6, 10], scale: true },
@@ -88,30 +88,38 @@ const MODULES = {
   ledfx: {
     c: LedEffectsCard,
     n: 'LED effects',
-    min: [3, 3],
+    min: [2, 3],
     def: [6, 5],
     need: () => state.objects.some((o) => o.startsWith('led_effect ')),
   },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
   system: { c: SystemLoads, n: 'System Loads', min: [2, 2], def: [6, 3], scale: true },
-  queue: { c: QueueCard, n: 'Job Queue', min: [3, 4], def: [4, 6] },
+  queue: { c: QueueCard, n: 'Job Queue', min: [2, 3], def: [4, 6] },
   macros: { c: MacrosCard, n: 'Macros', min: [2, 3], def: [6, 4], opts: true },
-  devices: { c: DevicesCard, n: 'Devices (fans, pins, LEDs)', min: [3, 4], def: [6, 7] },
-  files: { c: RecentFilesCard, n: 'Recent files', min: [3, 4], def: [6, 7] },
-  jobs: { c: RecentJobsCard, n: 'Recent prints', min: [3, 4], def: [6, 7] },
-  spool: { c: SpoolCard, n: 'Spoolman', min: [3, 3], def: [4, 4], need: () => !!state.spoolman.server },
+  devices: { c: DevicesCard, n: 'Devices (fans, pins, LEDs)', min: [2, 3], def: [6, 7], scale: true },
+  files: { c: RecentFilesCard, n: 'Recent files', min: [2, 3], def: [6, 7] },
+  jobs: { c: RecentJobsCard, n: 'Recent prints', min: [2, 3], def: [6, 7] },
+  spool: { c: SpoolCard, n: 'Spoolman', min: [2, 2], def: [4, 4], scale: true, need: () => !!state.spoolman.server },
   retraction: {
     c: RetractionCard,
     n: 'Firmware retraction',
-    min: [3, 3],
+    min: [2, 2],
+    scale: true,
     def: [6, 4],
     need: () => state.objects.includes('firmware_retraction'),
   },
   health: { c: HealthCard, n: 'Health', min: [2, 2], def: [4, 4], scale: true },
-  power: { c: PowerCard, n: 'Power devices', min: [3, 3], def: [4, 4], need: () => state.power.length > 0 },
+  power: {
+    c: PowerCard,
+    n: 'Power devices',
+    min: [2, 2],
+    def: [4, 4],
+    scale: true,
+    need: () => state.power.length > 0,
+  },
   mmu: { c: MmuCard, n: 'MMU (Happy Hare, Box Turtle)', min: [4, 5], def: [12, 7], need: () => hasMmu.value },
-  timelapse: { c: TimelapseCard, n: 'Timelapse', min: [3, 3], def: [4, 4], need: () => tl.has },
+  timelapse: { c: TimelapseCard, n: 'Timelapse', min: [2, 3], def: [4, 4], scale: true, need: () => tl.has },
   phoenix: {
     c: PhoenixCard,
     n: 'Phoenix (print recovery)',
@@ -1505,6 +1513,11 @@ function detachCard(i) {
   display: none;
 }
 
+/* customizing: the card's own header buttons step aside for the edit tools (they would sit under them) */
+.editing .cell > :deep(.card > .card-h > :not(:first-child)),
+.editing .cell > :deep(.fill > .card-h > :not(:first-child)) {
+  visibility: hidden;
+}
 .tools {
   position: absolute;
   top: 8px;
@@ -1550,6 +1563,22 @@ function detachCard(i) {
 }
 :root.compact .tools .cp {
   top: 32px;
+}
+/* a small card: smaller edit buttons, so they do not cover what is inside */
+@container cell (max-width: 260px) {
+  .tools {
+    top: 4px;
+    right: 4px;
+    gap: 2px;
+  }
+  .tools .btn.ibtn.sm {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .tools .btn.ibtn.sm :deep(svg) {
+    width: 12px;
+    height: 12px;
+  }
 }
 .sw i {
   width: 16px;
