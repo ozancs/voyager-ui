@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.38.8
+
+- Problem Solver now covers machine problems and Klipper errors too: describe the problem or paste an error message to find its guide
+- Errors the printer runs into (Klipper stops, a print ends in an error, known console errors) are listed on the Problem Solver page and in notifications with a Solve button; marking one solved clears it
+- Machine and Klipper guides use the printer's own data as evidence: host load and under-voltage, board link errors, board firmware age, the Z full step
+- Result page columns line up
+
 ## 0.38.7
 
 - Problem Solver, a new page under Calibrations: pick or search a print problem (ringing, stringing, first layer, layer shift, under-extrusion, corners, blobs, warping, elephant foot, overhangs), choose the print it happened on, answer a few questions and get the likely causes with what each is based on, the next test and one change to try
