@@ -2035,6 +2035,70 @@ function handle(m) {
       };
     case 'server.config':
       return { config: PROFILE.noSpoolman ? {} : { spoolman: { server: 'http://127.0.0.1:7912' } } };
+    case 'machine.peripherals.serial':
+      return {
+        serial_devices: [
+          {
+            device_type: 'usb',
+            device_path: '/dev/ttyACM0',
+            device_name: 'ttyACM0',
+            driver_name: 'cdc_acm',
+            path_by_id: '/dev/serial/by-id/usb-Klipper_stm32h723xx_2A0012345151313234353533-if00',
+            usb_location: '1:2',
+          },
+          {
+            device_type: 'hardware',
+            device_path: '/dev/ttyAMA0',
+            device_name: 'ttyAMA0',
+            driver_name: 'uart-pl011',
+            path_by_id: null,
+            usb_location: null,
+          },
+        ],
+      };
+    case 'machine.peripherals.usb':
+      return {
+        usb_devices: [
+          {
+            bus_num: 1,
+            device_num: 2,
+            vendor_id: '1d50',
+            product_id: '614e',
+            manufacturer: 'Klipper',
+            product: 'stm32h723xx',
+            usb_location: '1:2',
+          },
+          {
+            bus_num: 1,
+            device_num: 3,
+            vendor_id: '1d50',
+            product_id: '606f',
+            manufacturer: 'Geschwister Schneider',
+            product: 'candleLight USB to CAN adapter',
+            usb_location: '1:3',
+          },
+          {
+            bus_num: 1,
+            device_num: 4,
+            vendor_id: '046d',
+            product_id: '0825',
+            manufacturer: 'Logitech, Inc.',
+            product: 'Webcam C270',
+            usb_location: '1:4',
+          },
+        ],
+      };
+    case 'machine.peripherals.video':
+      return {
+        v4l2_devices: [
+          { device_name: 'video0', path: '/dev/video0', camera_name: 'C270 HD WEBCAM', driver_name: 'uvcvideo' },
+        ],
+        libcamera_devices: [],
+      };
+    case 'machine.peripherals.canbus':
+      return new Promise((res) =>
+        setTimeout(() => res({ can_uuids: [{ uuid: '7a19c2e4b0f3', application: 'Katapult' }] }), 1500),
+      );
     case 'server.spoolman.get_spool_id':
       return { spool_id: 12 };
     case 'server.spoolman.proxy':

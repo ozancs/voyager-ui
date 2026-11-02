@@ -21,6 +21,7 @@ import LimitsCard from '../components/LimitsCard.vue';
 import PrintCard from '../components/PrintCard.vue';
 import MmuCard from '../components/MmuCard.vue';
 import PowerCard from '../components/PowerCard.vue';
+import HardwareCard from '../components/HardwareCard.vue';
 import ObjectsCard from '../components/ObjectsCard.vue';
 import MiniMeshCard from '../components/MiniMeshCard.vue';
 import SystemLoads from '../components/SystemLoads.vue';
@@ -109,6 +110,7 @@ const MODULES = {
     def: [6, 4],
     need: () => state.objects.includes('firmware_retraction'),
   },
+  hardware: { c: HardwareCard, n: 'Connected hardware (serial, USB, CAN, cameras)', min: [2, 3], def: [6, 6] },
   health: { c: HealthCard, n: 'Health', min: [2, 2], def: [4, 4], scale: true },
   power: {
     c: PowerCard,

@@ -2323,5 +2323,17 @@
 "Open the console",
 "Open the G-code viewer",
 "Open the dashboard",
-"Open Spoolman"
+"Open Spoolman",
+"This Moonraker is too old to list devices. Update it on the Machine page.",
+"Connected hardware",
+"CAN interface",
+"Asking the bus…",
+"Query CAN bus",
+"Lists CAN boards that do not have a canbus_uuid in the config yet, for setting up a new board.",
+"Serial",
+"No serial ports found.",
+"No USB devices found.",
+"No CAN boards are waiting for a UUID. Boards Klipper already uses do not answer the query.",
+"No cameras found.",
+"Connected hardware (serial, USB, CAN, cameras)"
 ]

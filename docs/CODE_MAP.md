@@ -530,6 +530,12 @@ changes)
 **[src/components/Handoff.vue](../src/components/Handoff.vue)**  
 "Open on phone": a QR code of this exact page (same tab, same printer), made in the browser, no internet needed.
 
+**[src/components/HardwareCard.vue](../src/components/HardwareCard.vue)**  
+Dashboard card "Connected hardware": what is plugged into the host, as Moonraker sees it (machine.peripherals):  
+serial ports with their /dev/serial/by-id path (what [mcu] serial: wants), USB devices, CAN boards waiting for a  
+canbus_uuid and cameras. A path or UUID copies with one click. Reading only; the CAN query asks the bus which  
+boards answer, boards Klipper already uses do not show up there.
+
 **[src/components/HealthCard.vue](../src/components/HealthCard.vue)**  
 Small dashboard card with the health issues found by features.js (MCU errors, throttling, driver  
 flags, due maintenance). Details are on the Health page.
