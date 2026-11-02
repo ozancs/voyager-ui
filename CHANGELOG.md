@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.9
+
+- More dashboard cards narrow down to two columns and can be made square: Toolhead, Spoolman, Devices, Temperatures and others shrink to fit
+- While customizing, the card buttons make room for the edit tools, which also get smaller on small cards
+
 ## 0.38.8
 
 - Problem Solver now covers machine problems and Klipper errors too: describe the problem or paste an error message to find its guide
