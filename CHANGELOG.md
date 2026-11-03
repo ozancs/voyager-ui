@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.15
+
+- Narrow dashboard cards keep their header on one row: the header buttons turn into icons first, so the card keeps its room (also while customizing)
+- Toolhead: the X, Y, Z boxes get thinner as the card narrows, leaving more room for the dial
+- Narrow cards read better: temperature names no longer touch their values, Machine Limits values are not cut, graph time labels no longer overlap, file and queue details stay on one line
+
 ## 0.38.14
 
 - Phoenix has a small tile above the dashboard with the same status (Ready, Recording, Interrupted print...); click it for Setup or the recovery window. The Phoenix card is still there to add, but no longer placed on the dashboard by itself
