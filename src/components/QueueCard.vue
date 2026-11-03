@@ -136,9 +136,11 @@ const thumb = (fn) => {
         </div>
       </div>
       <div v-if="jobs.length" class="row">
-        <span class="mono mu grow" style="font-size: 12px">{{
-          t('{n} jobs · {time}', { n: jobs.length, time: fmtTime(total) })
-        }}</span>
+        <span
+          class="mono mu grow"
+          style="font-size: 12px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
+          >{{ t('{n} jobs · {time}', { n: jobs.length, time: fmtTime(total) }) }}</span
+        >
         <button class="btn clear" :disabled="busy" @click="run(queueApi.clear())">{{ t('Clear') }}</button>
         <button v-if="q.state === 'ready'" class="btn" :disabled="busy" @click="run(queueApi.pause())">
           <Icon name="pause" :size="16" />{{ t('Pause queue') }}

@@ -9,7 +9,7 @@ import SensorPicker from './SensorPicker.vue';
 import SensorIcon from './SensorIcon.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
-import { computed, ref, onBeforeUnmount } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { state, graphSensors as sensors, hist } from '../store';
 import { longHist, STEP, MAX_AGE, oldestLong } from '../temphist';
 import { tempEvents } from '../tempEvents';
@@ -149,7 +149,9 @@ const lines = computed(() =>
 const xticks = computed(() => {
   state.histTick;
   const sp = span.value;
-  const step = [60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200].find((s) => sp / s <= 6) || 43200;
+  const most = Math.max(2, Math.min(6, Math.floor(plotW.value / 64)));
+  const step =
+    [60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400].find((s) => sp / s <= most) || 86400;
   const now = Date.now() / 1000;
   const tEnd = now - end.value,
     tStart = tEnd - sp;
@@ -207,6 +209,14 @@ const fmt = (v) => (v != null ? v.toFixed(1) + '°' : '--');
 
 // zoom and pan
 const plot = ref(null);
+// the plot's width on screen: as many time labels as fit next to each other (about 64 px each)
+const plotW = ref(600);
+let plotRo;
+onMounted(() => {
+  plotRo = new ResizeObserver(([e]) => (plotW.value = e.contentRect.width || 600));
+  if (plot.value) plotRo.observe(plot.value);
+});
+onBeforeUnmount(() => plotRo?.disconnect());
 const maxAgo = () => {
   const o = oldestLong();
   return Math.max(SHORT, o ? Math.min(MAX_AGE, Date.now() / 1000 - o + STEP) : 0);

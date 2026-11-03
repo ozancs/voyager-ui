@@ -1490,6 +1490,29 @@ function detachCard(i) {
     overflow: hidden; /* text-only buttons that still do not fit are cut, the chevron stays */
   }
 }
+/* the same when the buttons would wrap to a second row at any width (fit.js: hd-tight) */
+.cell :deep(.hd-tight > .card-h .acts .btn:has(> svg)) {
+  font-size: 0 !important; /* beats the compact look's header button size */
+  gap: 0 !important;
+  min-width: 30px;
+  padding: 0 7px !important;
+  justify-content: center;
+}
+.cell :deep(.hd-tight > .card-h h2) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.cell :deep(.hd-tight > .card-h .acts) {
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow: hidden; /* text-only buttons that still do not fit are cut, the chevron stays */
+}
+/* still too wide: the header's optional extras go too */
+.cell :deep(.hd-tighter > .card-h [data-opt]) {
+  display: none;
+}
 /* the header buttons give way before the fold chevron does: they wrap (or get cut in a narrow card), the
    chevron never leaves the card */
 .cell :deep(.card-h > .acts) {

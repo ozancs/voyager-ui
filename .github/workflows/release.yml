@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the tags, to tell which version is the newest
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -16,8 +18,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: bash scripts/pack.sh "${GITHUB_REF_NAME}"
+      # several tags pushed at once build side by side: only the highest version may become Latest (Moonraker
+      # updates to Latest), whichever finishes last
+      - id: latest
+        run: echo "make=$([ "$(git tag -l 'v*' --sort=-v:refname | head -1)" = "${GITHUB_REF_NAME}" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - uses: softprops/action-gh-release@v2
         with:
+          make_latest: ${{ steps.latest.outputs.make }}
           files: |
             voyager-ui.zip
             voyager-ui.zip.sha256

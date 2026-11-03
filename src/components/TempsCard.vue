@@ -178,6 +178,7 @@ const presets = allPresets;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
+  padding-right: 10px !important; /* a long name never runs into the value */
 }
 .nm .ic {
   margin-right: 8px;

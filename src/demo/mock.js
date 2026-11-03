@@ -502,6 +502,8 @@ let db = {
     ],
   },
 };
+// screenshots of other layouts (tests only): set before the page loads
+if (globalThis.__demoLayout) db['voyager-ui/settings'].layout = globalThis.__demoLayout;
 // Shake&Tune graphs in the demo config folder (the images are drawn by graphSvg)
 const stFiles = [
   'ShakeTune_results/belts/belts_20260920_101000.png',

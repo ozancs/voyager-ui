@@ -97,6 +97,7 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
            by the step, whatever this says) -->
       <span
         class="gm mono"
+        data-opt
         :data-tip="
           (gm.absolute_coordinates === false
             ? t('G91: relative positioning, a move goes this far from where the toolhead is')
@@ -449,7 +450,7 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .body.circ .pos {
-  height: 44px;
+  height: clamp(30px, 8cqw, 44px); /* thinner as the card narrows, so the dial keeps the room */
   padding: 0 4px 0 10px;
   min-width: 0;
 }
@@ -457,7 +458,7 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
   width: 100%;
   min-width: 0;
   padding: 2px 2px;
-  font-size: clamp(13px, 3.6cqw, 18px);
+  font-size: clamp(10px, 4.2cqw, 18px);
 }
 .body.circ .ax {
   gap: 4px;

@@ -332,4 +332,10 @@ const tiles = computed(() => [
     justify-self: start;
   }
 }
+/* very narrow: one tile per row, so the names stay readable (the card shrinks as a whole to fit them) */
+@container sl (max-width: 300px) {
+  .tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 </style>

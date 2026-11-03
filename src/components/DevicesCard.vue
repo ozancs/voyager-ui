@@ -79,7 +79,7 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
             @input="fan(d, $event)"
             @live="live[d.id] = $event"
           />
-          <span v-else class="grow mu sm">{{ t('auto') }}</span>
+          <span v-else class="grow mu sm au">{{ t('auto') }}</span>
           <b class="mono v">{{ live[d.id] ?? pct(S(d.id).speed) }}%</b>
         </template>
         <template v-else-if="d.kind === 'pin'">
@@ -160,7 +160,7 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
 
 .nm {
   width: 36%;
-  min-width: 90px;
+  min-width: 70px;
   font-weight: 600;
   font-size: 13.5px;
   white-space: nowrap;
@@ -178,6 +178,13 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
 }
 .mu {
   color: var(--mu);
+}
+/* a narrow card: "auto" gives way to the value instead of running into it */
+.au {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .sm {
   font-size: 12.5px;

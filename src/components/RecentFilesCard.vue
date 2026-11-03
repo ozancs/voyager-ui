@@ -64,7 +64,7 @@ const print = (f) => startPrint(f.path);
         </div>
         <div class="col grow" style="gap: 1px; min-width: 0">
           <b class="fn">{{ f.path.split('/').pop() }}</b
-          ><span class="mono mu">{{ fmtTime(f.meta?.estimated_time) }} · {{ fmtDate(f.modified) }}</span>
+          ><span class="mono mu ell">{{ fmtTime(f.meta?.estimated_time) }} · {{ fmtDate(f.modified) }}</span>
         </div>
         <button
           v-if="state.queue.enabled"
@@ -84,6 +84,11 @@ const print = (f) => startPrint(f.path);
 </template>
 
 <style scoped>
+.ell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .list {
   display: flex;
   flex-direction: column;

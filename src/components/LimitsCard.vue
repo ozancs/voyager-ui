@@ -90,6 +90,16 @@ function reset() {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+  container: g2 / inline-size;
+}
+/* narrow card: smaller − / + and no unit, so a value like 10000 is not cut */
+@container g2 (max-width: 340px) {
+  .g2 :deep(.nf-b button) {
+    width: 24px;
+  }
+  .g2 :deep(.u) {
+    display: none;
+  }
 }
 .mu {
   color: var(--mu);
