@@ -3,64 +3,13 @@
 // dashboard scales it up with the card). Recording shows the last saved point (time and Z), the point a recovery
 // would continue from; the live toolhead position is the Toolhead card's job. An interrupted print or a recovery
 // under way opens the recovery window; an unfinished setup opens the setup window. Nothing here sends G-code.
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import CardTitle from './CardTitle.vue';
 import CardCollapse from './CardCollapse.vue';
-import { ph, phoenixKnown, openWizard, openSetup, demoOn, openDemo } from '../phoenix';
+import { usePhoenixView, openSetup } from '../phoenix';
 import { t } from '../i18n';
 
-const p = ph;
-const now = ref(Date.now() / 1000);
-let tm;
-onMounted(() => (tm = setInterval(() => (now.value = Date.now() / 1000), 1000)));
-onBeforeUnmount(() => clearInterval(tm));
-const last = computed(() => (p.value.checkpoints || [])[0] || null);
-const since = computed(() => {
-  if (!last.value?.saved_at) return '';
-  const s = Math.max(0, now.value - last.value.saved_at);
-  return s < 90 ? t('{n} s ago', { n: Math.round(s) }) : t('{n} min ago', { n: Math.round(s / 60) });
-});
-const setupDone = computed(() => p.value.setup?.complete !== false);
-const GOING = ['preparing', 'prepared', 'heating', 'returning'];
-// one view per situation: tone (colour + icon, never colour alone), title, the line under it, the button
-const view = computed(() => {
-  const s = p.value;
-  if (!phoenixKnown.value)
-    return { tone: 'mu', icon: 'info', title: t('Unsupported version'), sub: 'API ' + (s.api_version ?? '?') };
-  if (s.phase === 'detected')
-    return {
-      tone: 'wn',
-      icon: 'warn',
-      title: t('Interrupted print'),
-      sub: s.filename || '',
-      act: [t('Review recovery'), openWizard],
-    };
-  if (s.phase === 'blocked')
-    return { tone: 'dg', icon: 'warn', title: t('Needs attention'), sub: '', act: [t('Review recovery'), openWizard] };
-  if (GOING.includes(s.phase))
-    return { tone: 'ac', icon: 'refresh', title: t('Recovering'), sub: '', act: [t('Open'), openWizard] };
-  if (demoOn.value)
-    return { tone: 'ac', icon: 'play', title: t('Demo'), sub: t('Not a real print'), act: [t('Open'), openDemo] };
-  if (s.phase === 'recording')
-    return {
-      tone: 'ok',
-      icon: 'check',
-      title: t('Recording'),
-      sub: last.value
-        ? t('Saved {when}', { when: since.value }) + ' · Z ' + Number(last.value.gcode_position?.[2] ?? 0).toFixed(2)
-        : t('Waiting for the first save'),
-    };
-  if (!setupDone.value)
-    return {
-      tone: 'wn',
-      icon: 'wrench',
-      title: t('Setup needed'),
-      sub: t('Prints are not protected yet'),
-      act: [t('Finish setup'), openSetup],
-    };
-  return { tone: 'ok', icon: 'check', title: t('Ready'), sub: t('Records your next print'), link: true };
-});
+const view = usePhoenixView(); // the same status as the Phoenix tile above the dashboard
 </script>
 <template>
   <section class="card phx">

@@ -3,7 +3,7 @@
 // subscribed in store.js). The UI only reads that status and sends the module's own commands, one per button:
 // opening a toast, the wizard or a step never moves, heats or resumes anything.
 // API v1 contract: phoenix-for-klipper/docs/API.md.
-import { computed, watch } from 'vue';
+import { computed, watch, ref, onMounted, onBeforeUnmount } from 'vue';
 import { state, S, gcode, toast, closeToast, notify, unnotify } from './store';
 import { currentHost } from './printers';
 import { t } from './i18n';
@@ -86,6 +86,67 @@ function remember(key) {
 }
 let toastId = null;
 export const openWizard = () => (state.phoenixOpen = true);
+// what the Phoenix card and the Phoenix tile above the dashboard show: one view per situation, tone (colour + icon,
+// never colour alone), title, the line under it, and the action (act) or the Setup link. Call in a component's setup.
+export function usePhoenixView() {
+  const p = ph;
+  const now = ref(Date.now() / 1000);
+  let tm;
+  onMounted(() => (tm = setInterval(() => (now.value = Date.now() / 1000), 1000)));
+  onBeforeUnmount(() => clearInterval(tm));
+  const last = computed(() => (p.value.checkpoints || [])[0] || null);
+  const since = computed(() => {
+    if (!last.value?.saved_at) return '';
+    const s = Math.max(0, now.value - last.value.saved_at);
+    return s < 90 ? t('{n} s ago', { n: Math.round(s) }) : t('{n} min ago', { n: Math.round(s / 60) });
+  });
+  const setupDone = computed(() => p.value.setup?.complete !== false);
+  const GOING = ['preparing', 'prepared', 'heating', 'returning'];
+  // one view per situation: tone (colour + icon, never colour alone), title, the line under it, the button
+  return computed(() => {
+    const s = p.value;
+    if (!phoenixKnown.value)
+      return { tone: 'mu', icon: 'info', title: t('Unsupported version'), sub: 'API ' + (s.api_version ?? '?') };
+    if (s.phase === 'detected')
+      return {
+        tone: 'wn',
+        icon: 'warn',
+        title: t('Interrupted print'),
+        sub: s.filename || '',
+        act: [t('Review recovery'), openWizard],
+      };
+    if (s.phase === 'blocked')
+      return {
+        tone: 'dg',
+        icon: 'warn',
+        title: t('Needs attention'),
+        sub: '',
+        act: [t('Review recovery'), openWizard],
+      };
+    if (GOING.includes(s.phase))
+      return { tone: 'ac', icon: 'refresh', title: t('Recovering'), sub: '', act: [t('Open'), openWizard] };
+    if (demoOn.value)
+      return { tone: 'ac', icon: 'play', title: t('Demo'), sub: t('Not a real print'), act: [t('Open'), openDemo] };
+    if (s.phase === 'recording')
+      return {
+        tone: 'ok',
+        icon: 'check',
+        title: t('Recording'),
+        sub: last.value
+          ? t('Saved {when}', { when: since.value }) + ' · Z ' + Number(last.value.gcode_position?.[2] ?? 0).toFixed(2)
+          : t('Waiting for the first save'),
+      };
+    if (!setupDone.value)
+      return {
+        tone: 'wn',
+        icon: 'wrench',
+        title: t('Setup needed'),
+        sub: t('Prints are not protected yet'),
+        act: [t('Finish setup'), openSetup],
+      };
+    return { tone: 'ok', icon: 'check', title: t('Ready'), sub: t('Records your next print'), link: true };
+  });
+}
 
 export function startPhoenix() {
   watch(

@@ -12,7 +12,7 @@ import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 
-export const VERSION = '0.38.13';
+export const VERSION = '0.38.14';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';
@@ -594,6 +594,8 @@ export const devices = computed(() => {
     }
   }
   if (state.spoolman.server) out.push({ id: 'spoolman', kind: 'spoolman' });
+  // Phoenix print recovery (phoenix.js): its status as a tile; the dashboard card is optional
+  if (state.objects.includes('phoenix')) out.push({ id: 'phoenix', kind: 'phoenix' });
   return out;
 });
 

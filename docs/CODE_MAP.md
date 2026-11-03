@@ -472,7 +472,7 @@ webcam. Its settings live in state.settings.customCards[id]; the pencil opens th
 
 **[src/components/DeviceStrip.vue](../src/components/DeviceStrip.vue)**  
 The row of small tiles above the dashboard: heaters and sensors, fans, pins and LEDs, filament  
-sensors, Spoolman. Clicking a tile opens a popover to set a target, speed or colour. In Customize the tiles  
+sensors, Spoolman, Phoenix. Clicking a tile opens a popover to set a target, speed or colour. In Customize the tiles  
 can be dragged to swap places and hidden with the eye. Which tiles exist comes from stripAll in the store.
 
 **[src/components/DevicesCard.vue](../src/components/DevicesCard.vue)**  

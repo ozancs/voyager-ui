@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.14
+
+- Phoenix has a small tile above the dashboard with the same status (Ready, Recording, Interrupted print...); click it for Setup or the recovery window. The Phoenix card is still there to add, but no longer placed on the dashboard by itself
+
 ## 0.38.13
 
 - Dismissed error notifications stay dismissed after a reload and on every browser; they come back only when the error happens again (the error stays listed on the Problem Solver page until marked solved)

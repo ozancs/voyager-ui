@@ -342,19 +342,6 @@ watch(
   },
   { immediate: true },
 );
-// Phoenix print recovery: its card comes onto the dashboard by itself, top right, the first time it is found
-watch(
-  () => hasPhoenix.value && state.settingsLoaded,
-  (on) => {
-    if (!on || state.settings.phoenixSeen) return;
-    state.settings.phoenixSeen = true;
-    if (!layout.value.some((x) => x.i === 'phoenix')) {
-      layout.value = pushDown([...layout.value, { i: 'phoenix', x: 10, y: 0, w: 2, h: 4 }], 'phoenix');
-      if (mode.value !== 'print' || state.settings.layoutPrint) persist(true);
-    }
-  },
-  { immediate: true },
-);
 // hook the auto scroll into interact once the grid items exist
 watch(
   () => [state.editDash, layout.value.length],

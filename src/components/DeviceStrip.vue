@@ -1,6 +1,6 @@
 <script setup>
 // The row of small tiles above the dashboard: heaters and sensors, fans, pins and LEDs, filament
-// sensors, Spoolman. Clicking a tile opens a popover to set a target, speed or colour. In Customize the tiles
+// sensors, Spoolman, Phoenix. Clicking a tile opens a popover to set a target, speed or colour. In Customize the tiles
 // can be dragged to swap places and hidden with the eye. Which tiles exist comes from stripAll in the store.
 import { heatEta, fmtEta } from '../heatEta';
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
@@ -23,6 +23,10 @@ import {
   allPresets,
 } from '../store';
 import { t } from '../i18n';
+import { usePhoenixView, openSetup } from '../phoenix';
+const phx = usePhoenixView();
+// the Phoenix tile does what the card's button does, the Setup window when there is nothing to act on
+const phxRun = () => !state.editDash && (phx.value.act ? phx.value.act[1]() : openSetup());
 const open = ref(null);
 const close = () => (open.value = null);
 // tiles come in the user's order (drag them in Customize). Until an order is set they are grouped by kind:
@@ -34,7 +38,7 @@ const RANK = (d) =>
       : canTarget(d)
         ? 0
         : 1
-    : ({ fan: 2, pin: 3, led: 3, filament: 4, spoolman: 5 }[d.kind] ?? 6);
+    : ({ fan: 2, pin: 3, led: 3, filament: 4, spoolman: 5, phoenix: 5 }[d.kind] ?? 6);
 const items = computed(() => {
   const list = state.editDash ? stripAll.value : stripVisible.value;
   if ((state.settings.strip?.order || []).length) return list;
@@ -190,7 +194,11 @@ function tint(d) {
 // category of a tile, coloured by Settings > Appearance > Accent strength (normal and strong, style.css)
 function kind(d) {
   if (d.kind === 'temp') return canTarget(d) ? 'k-heat' : '';
-  return { fan: 'k-cool', pin: 'k-light', led: 'k-light', filament: 'k-sense', spoolman: 'k-spool' }[d.kind] || '';
+  return (
+    { fan: 'k-cool', pin: 'k-light', led: 'k-light', filament: 'k-sense', spoolman: 'k-spool', phoenix: 'k-phx' }[
+      d.kind
+    ] || ''
+  );
 }
 const canTarget = (d) => (S('heaters').available_heaters || []).includes(d.obj) || d.obj.startsWith('temperature_fan ');
 onMounted(() => document.addEventListener('click', close));
@@ -337,7 +345,7 @@ function sensorExtra(id) {
     >
       <div v-if="state.editDash" class="etools">
         <button
-          v-if="d.kind !== 'spoolman'"
+          v-if="d.kind !== 'spoolman' && d.kind !== 'phoenix'"
           class="btn clear ibtn sm"
           :aria-label="t('Rename card')"
           @click.stop="startRename(d)"
@@ -533,6 +541,26 @@ function sensorExtra(id) {
                 .map(([k, v]) => `${k}: ${typeof v === 'number' ? +v.toFixed(2) : v}`)
                 .join(' · ') || t('enabled')
         }}</span>
+      </template>
+      <!-- PHOENIX -->
+      <template v-else-if="d.kind === 'phoenix'">
+        <div
+          class="spl"
+          role="button"
+          :tabindex="state.editDash ? -1 : 0"
+          :aria-label="'Phoenix: ' + phx.title + '. ' + (phx.act ? phx.act[0] : t('Setup'))"
+          @click.stop="phxRun"
+          @keydown.enter="phxRun"
+        >
+          <div class="hd">
+            <span class="lbl">Phoenix</span><span class="chg">{{ phx.act ? phx.act[0] : t('Setup') }}</span>
+          </div>
+          <div class="row pst" :class="phx.tone" style="gap: 8px; min-width: 0" role="status">
+            <Icon :name="phx.icon" :size="20" :stroke="2.4" :class="{ spin: phx.icon === 'refresh' }" />
+            <b class="ell" style="font-size: 16px">{{ phx.title }}</b>
+          </div>
+          <span class="mu ell" style="font-size: 11.5px" :title="phx.sub">{{ phx.sub || '\u00a0' }}</span>
+        </div>
       </template>
       <!-- SPOOLMAN -->
       <template v-else-if="d.kind === 'spoolman'">
@@ -850,6 +878,25 @@ function sensorExtra(id) {
 .spl .ext:hover {
   color: var(--tx);
   background: var(--s3);
+}
+.pst {
+  --tone: var(--mu);
+}
+.pst.ok {
+  --tone: var(--ok);
+}
+.pst.wn {
+  --tone: var(--wn);
+}
+.pst.dg {
+  --tone: var(--dg);
+}
+.pst.ac {
+  --tone: var(--ac);
+}
+.pst :deep(svg) {
+  color: var(--tone);
+  flex-shrink: 0;
 }
 .spool {
   width: 28px;
