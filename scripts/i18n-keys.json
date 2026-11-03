@@ -2335,5 +2335,6 @@
 "No USB devices found.",
 "No CAN boards are waiting for a UUID. Boards Klipper already uses do not answer the query.",
 "No cameras found.",
-"Connected hardware (serial, USB, CAN, cameras)"
+"Connected hardware (serial, USB, CAN, cameras)",
+"No match"
 ]

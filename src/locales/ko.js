@@ -2340,4 +2340,5 @@ export default {
   "No CAN boards are waiting for a UUID. Boards Klipper already uses do not answer the query.": "UUID를 기다리는 CAN 보드가 없습니다. Klipper가 이미 사용하는 보드는 응답하지 않습니다.",
   "No cameras found.": "카메라가 없습니다.",
   "Connected hardware (serial, USB, CAN, cameras)": "연결된 하드웨어 (시리얼, USB, CAN, 카메라)",
+  "No match": "일치 항목 없음",
 }

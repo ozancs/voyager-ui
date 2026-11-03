@@ -2340,4 +2340,5 @@ export default {
   "No CAN boards are waiting for a UUID. Boards Klipper already uses do not answer the query.": "没有等待 UUID 的 CAN 板。Klipper 已在使用的板不会响应查询。",
   "No cameras found.": "未找到摄像头。",
   "Connected hardware (serial, USB, CAN, cameras)": "已连接硬件（串口、USB、CAN、摄像头）",
+  "No match": "无匹配",
 }

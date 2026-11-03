@@ -2340,4 +2340,5 @@ export default {
   "No CAN boards are waiting for a UUID. Boards Klipper already uses do not answer the query.": "Нет плат CAN, ожидающих UUID. Платы, которые Klipper уже использует, не отвечают.",
   "No cameras found.": "Камеры не найдены.",
   "Connected hardware (serial, USB, CAN, cameras)": "Подключённое оборудование (последовательные, USB, CAN, камеры)",
+  "No match": "Нет совпадений",
 }

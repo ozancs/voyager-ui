@@ -765,6 +765,11 @@ A bare range input that follows the pointer while dragging: the fill and the liv
 the printer's value is only taken over again once it has caught up (or after a short wait), so the thumb never  
 jumps back while a command is on its way.
 
+**[src/components/SearchSelect.vue](../src/components/SearchSelect.vue)**  
+A select whose list can be searched: type to narrow it (every word must appear, in any order), arrows to move,  
+Enter to pick, Esc to close. The list opens under the field, in the page flow, so a modal never cuts it off.  
+v-model is the picked option (a string from options).
+
 **[src/components/SensorIcon.vue](../src/components/SensorIcon.vue)**  
 A temperature sensor's icon in its colour (sensorStyle.js), the same in the Temperatures card, the graph legend  
 and the Edit menu. A fan icon turns while its fan runs, faster the faster it runs.

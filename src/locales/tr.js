@@ -2378,4 +2378,5 @@ export default {
   "No CAN boards are waiting for a UUID. Boards Klipper already uses do not answer the query.": "UUID bekleyen CAN kartı yok. Klipper'ın zaten kullandığı kartlar sorguya cevap vermez.",
   "No cameras found.": "Kamera bulunamadı.",
   "Connected hardware (serial, USB, CAN, cameras)": "Bağlı donanım (seri, USB, CAN, kameralar)",
+  "No match": "Eşleşme yok",
 }

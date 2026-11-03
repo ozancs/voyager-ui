@@ -1,6 +1,7 @@
 <script setup>
 // Printer settings page: the config options the user picked (settings.quickConfig) as a form, read from the
 // live config. Saving finds each option in the config files, writes it (backup first) and can restart Klipper.
+import SearchSelect from '../components/SearchSelect.vue';
 import { ref, computed } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
@@ -170,20 +171,25 @@ function addField() {
     >
   </Modal>
   <Modal v-if="adding" :title="t('Add field')" @close="adding = null">
-    <label class="col"
-      ><span class="lbl">{{ t('Section') }}</span
-      ><select v-model="adding.section" class="input">
-        <option value="" disabled>{{ t('choose…') }}</option>
-        <option v-for="s in secNames" :key="s" :value="s">{{ s }}</option>
-      </select></label
-    >
-    <label class="col" v-if="adding.section"
-      ><span class="lbl">{{ t('Option') }}</span
-      ><select v-model="adding.key" class="input">
-        <option value="" disabled>{{ t('choose…') }}</option>
-        <option v-for="k in Object.keys(rawSection(adding.section) || {})" :key="k" :value="k">{{ k }}</option>
-      </select></label
-    >
+    <div class="col">
+      <span class="lbl">{{ t('Section') }}</span
+      ><SearchSelect
+        v-model="adding.section"
+        :options="secNames"
+        :placeholder="t('choose…')"
+        :label="t('Section')"
+        @update:model-value="adding.key = ''"
+      />
+    </div>
+    <div class="col" v-if="adding.section">
+      <span class="lbl">{{ t('Option') }}</span
+      ><SearchSelect
+        v-model="adding.key"
+        :options="Object.keys(rawSection(adding.section) || {})"
+        :placeholder="t('choose…')"
+        :label="t('Option')"
+      />
+    </div>
     <label class="col"
       ><span class="lbl">{{ t('Unit (optional)') }}</span
       ><input v-model="adding.unit" class="input" placeholder="mm/s"
