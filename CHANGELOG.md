@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.21
+
+- Menu style in Settings > Appearance: Classic (the menu under the top bar, as before and the default), Floating, Attached or Frame; the full height styles have the printer at the top and fold to icons
+- The side menu gets smaller to fit a short window instead of scrolling
+- Beside the full height menu, the favorites bar is a box lined up with the status box
+
 ## 0.38.20
 
 - New side menu: a full height panel with the printer and its switcher at the top, the pages in Printer and Setup groups
