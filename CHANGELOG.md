@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.38.16
+
+- Update Manager shows updates and warnings first. Expand the up-to-date group to see versions and rollback controls.
+- G-code Viewer draws solid extrusion paths with speed and flow colors, layer filtering, and a clickable orientation cube.
+- Files adds a thumbnail grid, printer settings show values pending restart, and alerts can tell you when the bed is cool.
+- Temperature history fills gaps from Moonraker after reconnecting. Printer connection checks, dashboard editing, and dialog keyboard navigation are clearer.
+- Fixes file selection and deletion, pre-print checks, and Moonraker request handling.
+
 ## 0.38.15
 
 - Narrow dashboard cards keep their header on one row: the header buttons turn into icons first, so the card keeps its room (also while customizing)

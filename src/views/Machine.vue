@@ -430,6 +430,10 @@ const viewLog = ref(null);
 .current-updates summary .chip {
   margin-inline-start: 8px;
 }
+/* Closed details content can still report bounds in Chromium. Remove it from layout. */
+.current-updates:not([open]) .current-grid {
+  display: none;
+}
 .current-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
