@@ -159,6 +159,10 @@ const TONES = {
     [392, 0, 0.22],
     [294, 0.3, 0.34],
   ],
+  partReady: [
+    [784, 0, 0.22],
+    [1047, 0.26, 0.42],
+  ],
   heated: [
     [1319, 0, 0.6],
     [2637, 0, 0.25, 'sine', 0.3],
@@ -238,6 +242,29 @@ const shortFile = () =>
     .split('/')
     .pop()
     .replace(/\.gcode$/i, '');
+let coolingPrint = null;
+watch(
+  [printState, () => state.connected, () => S('heater_bed').temperature, () => S('heater_bed').target],
+  ([status, connected, temperature, target], [previous]) => {
+    if (status !== 'complete') coolingPrint = null;
+    if (
+      status === 'complete' &&
+      ['printing', 'paused'].includes(previous) &&
+      state.connected &&
+      state.settings.sound?.partReady &&
+      Number.isFinite(temperature)
+    )
+      coolingPrint = shortFile();
+    if (coolingPrint === null || !connected || !Number.isFinite(temperature) || target !== 0) return;
+    const threshold = Number(state.settings.sound?.partReadyTemp ?? 35);
+    if (!Number.isFinite(threshold) || temperature > threshold) return;
+    const message = t('Part ready: {file}. Bed is {temp}°C.', { file: coolingPrint, temp: Math.round(temperature) });
+    coolingPrint = null;
+    if (!state.settings.sound?.partReady) return;
+    toast(message);
+    alertEvent('partReady', message);
+  },
+);
 watch(printState, (now, before) => {
   if (!state.booted) return;
   if (now === 'complete' && before === 'printing')
@@ -390,8 +417,11 @@ export async function loadQueue() {
     const r = await api.call('server.job_queue.status');
     state.queue = { enabled: true, state: r.queue_state, jobs: r.queued_jobs || [] };
   } catch (e) {
-    // method not found = [job_queue] missing in moonraker.conf
-    state.queue = { enabled: false, state: '', jobs: [] };
+    if (e.code === -32601 || /method not found/i.test(e.message)) {
+      state.queue = { enabled: false, state: '', jobs: [] };
+    } else {
+      state.queue = { enabled: null, state: '', jobs: [], error: e.message };
+    }
   }
 }
 export const queueApi = {

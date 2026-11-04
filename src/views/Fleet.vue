@@ -116,7 +116,10 @@ function startEdit(c) {
 async function testEdit() {
   const e = edit.value;
   e.test = { busy: true };
-  e.test = await testPrinter(cleanHost(e.host));
+  const host = cleanHost(e.host);
+  const result = await testPrinter(host);
+  if (cleanHost(e.host) === host) e.test = result;
+  else e.test = null;
 }
 function saveEdit() {
   const e = edit.value,
@@ -209,6 +212,9 @@ function open(c) {
             />
             <p v-if="edit.test && !edit.test.busy" class="res" :class="edit.test.level">
               {{ t(edit.test.text, edit.test.params) }}
+              <span v-for="step in edit.test.steps || []" :key="step.label" style="display: block">
+                {{ t(step.label) }} · {{ t(step.status) }}
+              </span>
             </p>
             <p v-if="editOk && looksIncomplete(cleanHost(edit.host))" class="res wn">
               {{ t('This address looks incomplete (an IP address has four numbers, like 192.168.1.20).') }}

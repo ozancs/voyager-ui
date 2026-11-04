@@ -150,6 +150,9 @@ async function check(p) {
         const a = vr[i],
           b = vr[j];
         if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
+        // Projected face rectangles overlap even when the cube faces themselves do not.
+        const cube = a.e.closest('.orientation-cube');
+        if (cube && cube === b.e.closest('.orientation-cube')) continue;
         if (inter(a.v, b.v, 4)) out.push(`controls overlap: ${desc(a.e)}  <>  ${desc(b.e)}`);
       }
     // something sticks out of the right edge of the window

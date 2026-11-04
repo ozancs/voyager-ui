@@ -135,6 +135,9 @@ const thumb = (fn) => {
           {{ t('Queue is empty. Use + here or the queue button next to a file.') }}
         </div>
       </div>
+      <p v-if="jobs.length" class="mu" style="margin: 0">
+        {{ t('The queue controls upcoming jobs. Automatic transitions depend on Moonraker configuration.') }}
+      </p>
       <div v-if="jobs.length" class="row">
         <span
           class="mono mu grow"
@@ -143,13 +146,17 @@ const thumb = (fn) => {
         >
         <button class="btn clear" :disabled="busy" @click="run(queueApi.clear())">{{ t('Clear') }}</button>
         <button v-if="q.state === 'ready'" class="btn" :disabled="busy" @click="run(queueApi.pause())">
-          <Icon name="pause" :size="16" />{{ t('Pause queue') }}
+          <Icon name="pause" :size="16" />{{ t('Hold upcoming jobs') }}
         </button>
         <button v-else class="btn acc" :disabled="busy" @click="run(queueApi.start())">
-          <Icon name="play" :size="16" />{{ isPrinting ? t('Resume queue') : t('Start queue') }}
+          <Icon name="play" :size="16" />{{ isPrinting ? t('Allow upcoming jobs') : t('Start queued jobs') }}
         </button>
       </div>
     </template>
+    <div v-else-if="q.error" class="empty">
+      {{ t('Could not load the job queue') }} · {{ q.error }}
+      <button class="btn" @click="loadQueue">{{ t('Retry') }}</button>
+    </div>
     <div v-else class="empty">{{ t('Loading…') }}</div>
   </section>
 

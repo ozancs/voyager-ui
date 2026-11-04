@@ -1047,6 +1047,24 @@ function reset() {
                   ><Toggle v-model="snd.speak" :label="t('Read events aloud')" />
                 </div>
               </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Part ready alert') }}</b>
+                  <span class="hint">{{ t('Alert when the bed cools after a print. Keep this page open.') }}</span>
+                </div>
+                <Toggle v-model="snd.partReady" :label="t('Part ready alert')" />
+              </div>
+              <label v-if="snd.partReady" class="rw">
+                <span>{{ t('Bed temperature for removal') }} (°C)</span>
+                <input
+                  class="input mono"
+                  type="number"
+                  min="10"
+                  max="60"
+                  :value="snd.partReadyTemp ?? 35"
+                  @change="snd.partReadyTemp = Math.min(60, Math.max(10, $event.target.valueAsNumber || 35))"
+                />
+              </label>
               <template v-if="snd.enabled || snd.desktop || snd.speak">
                 <span class="hint">{{
                   t(

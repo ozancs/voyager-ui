@@ -11,7 +11,6 @@ const FEATURES = [
   ['Bridge', '#38d6ff', /^(bridge|internal bridge)/],
   ['Support', '#3dd68c', /^(support|support interface|support material)/],
   ['Skirt / brim', '#7a8290', /^(skirt|brim|skirt\/brim|prime tower|wipe tower)/],
-  ['Gap fill', '#ff3d7f', /^(gap fill|gap infill|ironing)/],
   ['Other', '#9aa3ad', /./],
 ];
 const SPEED_COLORS = ['#3a4bd1', '#2f7fe0', '#2fb6c9', '#3dd68c', '#b9d64a', '#f5c451', '#ff8f3a', '#ff3d4f'];
@@ -54,26 +53,51 @@ export function colorByFeature(text) {
 
 // speed of every extruding move (G1 with X or Y and a positive E), bucketed into 8 steps between the slowest
 // and the fastest (ignoring the 2% fastest, which are usually a few travel-like moves)
-export function colorBySpeed(text) {
+export function colorBySpeed(text, { flow = false, diameter = 1.75 } = {}) {
   const lines = text.split('\n');
   const speeds = [];
-  let f = 0;
-  const extruding = (p) => /[XY]\d/.test(p) && /E\s*0*\.?\d*[1-9]/.test(p) && !/E\s*-/.test(p);
+  let f = 0,
+    x = 0,
+    y = 0,
+    e = 0;
+  let relative = false,
+    relativeE = false;
+  const area = Math.PI * (diameter / 2) ** 2;
   const moves = [];
   for (let i = 0; i < lines.length; i++) {
-    const l = lines[i];
-    if (!/^G0?1\b/i.test(l)) continue;
-    const fm = /\bF([\d.]+)/i.exec(l);
-    if (fm) f = +fm[1];
-    if (extruding(l) && f > 0) {
-      speeds.push(f);
-      moves.push([i, f]);
+    const l = lines[i].split(';', 1)[0].trim().toUpperCase();
+    const cmd = /^[GM]\d+/.exec(l)?.[0];
+    if (cmd === 'G90' || cmd === 'G91') relative = cmd === 'G91';
+    if (cmd === 'M82' || cmd === 'M83') relativeE = cmd === 'M83';
+    if (!['G0', 'G00', 'G1', 'G01', 'G92'].includes(cmd)) continue;
+    const p = Object.fromEntries(
+      [...l.matchAll(/([XYEF])\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))/g)].map(([, k, v]) => [k, Number(v)]),
+    );
+    if (cmd === 'G92') {
+      x = p.X ?? x;
+      y = p.Y ?? y;
+      e = p.E ?? e;
+      continue;
     }
+    f = p.F ?? f;
+    const nx = p.X === undefined ? x : relative ? x + p.X : p.X;
+    const ny = p.Y === undefined ? y : relative ? y + p.Y : p.Y;
+    const ne = p.E === undefined ? e : relativeE || relative ? e + p.E : p.E;
+    const distance = Math.hypot(nx - x, ny - y);
+    if (distance > 0 && ne > e && f > 0) {
+      const value = flow ? ((ne - e) * area * (f / 60)) / distance : f;
+      speeds.push(value);
+      moves.push([i, value]);
+    }
+    x = nx;
+    y = ny;
+    e = ne;
   }
   if (!speeds.length) return { text, map: null, colors: SPEED_COLORS, legend: [] };
   const sorted = [...speeds].sort((a, b) => a - b);
   const lo = sorted[0],
-    hi = sorted[Math.floor((sorted.length - 1) * 0.98)] || sorted[sorted.length - 1];
+    clipped = sorted[Math.floor((sorted.length - 1) * 0.98)],
+    hi = clipped > lo ? clipped : sorted[sorted.length - 1];
   const n = SPEED_COLORS.length;
   const bucket = (v) => (hi <= lo ? 0 : Math.min(n - 1, Math.floor(((v - lo) / (hi - lo)) * n)));
   const marks = new Map();
@@ -95,14 +119,14 @@ export function colorBySpeed(text) {
     out.push(T_LINE.test(lines[i]) ? ';' + lines[i] : lines[i]);
     map.push(i);
   }
-  const mm = (v) => Math.round(v / 60);
+  const mm = (v) => (flow ? Number(v.toFixed(1)) : Math.round(v / 60));
   return {
     text: out.join('\n'),
     map,
     colors: SPEED_COLORS,
     legend: SPEED_COLORS.map((c, i) => ({
       color: c,
-      label: `${mm(lo + ((hi - lo) * i) / n)}–${mm(lo + ((hi - lo) * (i + 1)) / n)} mm/s`,
+      label: `${mm(lo + ((hi - lo) * i) / n)}–${mm(lo + ((hi - lo) * (i + 1)) / n)} ${flow ? 'mm³/s' : 'mm/s'}`,
       used: true,
     })),
   };

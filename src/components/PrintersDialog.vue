@@ -19,7 +19,8 @@ const remove = (i) => rows.value.splice(i, 1);
 const tests = ref({}); // id -> { busy } or testPrinter() result
 async function test(r) {
   tests.value[r.id] = { busy: true };
-  tests.value[r.id] = { ...(await testPrinter(clean(r.host))), host: clean(r.host) };
+  const host = clean(r.host);
+  tests.value[r.id] = { ...(await testPrinter(host)), host };
 }
 const result = (r) => {
   const x = tests.value[r.id];
@@ -84,6 +85,9 @@ function save(openId) {
       </div>
       <p v-if="result(r) && !result(r).busy" class="res" :class="result(r).level">
         {{ t(result(r).text, result(r).params) }}
+        <span v-for="step in result(r).steps || []" :key="step.label" style="display: block">
+          {{ t(step.label) }} · {{ t(step.status) }}
+        </span>
       </p>
       <p v-if="r.host && !bad(r) && looksIncomplete(clean(r.host))" class="res wn">
         {{ t('This address looks incomplete (an IP address has four numbers, like 192.168.1.20).') }}

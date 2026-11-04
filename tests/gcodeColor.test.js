@@ -20,10 +20,16 @@ describe('viewer colouring', () => {
     expect(r.legend.filter((l) => l.used).map((l) => l.label)).toEqual(['Outer wall', 'Infill']);
   });
   it('speeds are bucketed', () => {
-    const r = colorBySpeed('G1 X1 Y1 E1 F1200\nG1 X2 E1\nG1 X3 E1 F6000\nG1 X4 E1 F12000');
+    const r = colorBySpeed('M83\nG1 X1 Y1 E1 F1200\nG1 X2 E1\nG1 X3 E1 F6000\nG1 X4 E1 F12000');
     const ts = r.text.split('\n').filter((l) => /^T\d/.test(l));
     expect(ts[0]).toBe('T0');
     expect(ts.length).toBeGreaterThanOrEqual(2);
+  });
+  it('calculates flow from extrusion deltas and ignores retractions', () => {
+    const r = colorBySpeed('M82\nG1 X10 E1 F600\nG1 X20 E0.5\nG92 E0\nG1 X30 E2', { flow: true });
+    expect(r.text.split('\n').filter((line) => /^T\d/.test(line))).toEqual(['T0', 'T7']);
+    expect(r.legend[0].label).toContain('2.4');
+    expect(r.legend.at(-1).label).toContain('4.8 mm³/s');
   });
   it('finds the object under a point', () => {
     const objs = [

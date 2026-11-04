@@ -2,16 +2,17 @@
 // Messages are English keys with {params}; the dialog translates them.
 const msg = (text, params) => ({ text, params });
 
-// material names are compared loosely: PLA and PLA+ match, ABS and ASA do not
+// Allow explicit spelling variants without hiding blends or fiber reinforcement.
 const norm = (m) =>
   String(m || '')
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '');
+    .replace(/[^A-Z0-9+]/g, '')
+    .replace(/^PLA(?:\+|PLUS)$/, 'PLA');
 export function sameMaterial(a, b) {
   const x = norm(a),
     y = norm(b);
   if (!x || !y) return true;
-  return x.includes(y) || y.includes(x);
+  return x === y;
 }
 
 // grams of filament for a length in mm, from the filament's diameter and density

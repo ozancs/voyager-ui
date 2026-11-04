@@ -9,6 +9,7 @@ import { api } from '../api/moonraker';
 import { t, tn } from '../i18n';
 import { writeOptions } from '../cfgwrite';
 const drafts = ref({});
+const saved = ref({});
 const saving = ref(false);
 const result = ref(null);
 const adding = ref(null);
@@ -32,8 +33,11 @@ const groups = computed(() => {
   return g;
 });
 const id = (f) => f.section + '|' + f.key;
+const pending = (f) => saved.value[id(f)] !== undefined && saved.value[id(f)] !== current(f);
+const displayed = (f) => (pending(f) ? saved.value[id(f)] : current(f));
+const waiting = computed(() => state.settings.quickConfig.some(pending));
 const changes = computed(() =>
-  state.settings.quickConfig.filter((f) => drafts.value[id(f)] !== undefined && drafts.value[id(f)] !== current(f)),
+  state.settings.quickConfig.filter((f) => drafts.value[id(f)] !== undefined && drafts.value[id(f)] !== displayed(f)),
 );
 // written by cfgwrite.js: only into printer.cfg and the files it includes, a backup of each first
 async function save(restart) {
@@ -44,7 +48,10 @@ async function save(restart) {
     );
     // keep what was typed for the rows that could not be written
     const keep = {};
-    for (const l of log) if (l.error) keep[id(l.f)] = l.value;
+    for (const l of log) {
+      if (l.error) keep[id(l.f)] = l.value;
+      else saved.value[id(l.f)] = l.value;
+    }
     drafts.value = keep;
     result.value = log.map((l) => ({ ...l, v: l.value }));
     if (restart && !log.some((l) => l.error)) await restartKlipper();
@@ -77,6 +84,10 @@ function addField() {
       <span class="mu">{{
         t('Edits the matching line in your .cfg files (SAVE_CONFIG block first). Klipper needs a restart to apply.')
       }}</span>
+      <span v-if="waiting" class="chip">{{ t('Restart pending') }}</span>
+      <button v-if="waiting && !changes.length" class="btn" :disabled="isPrinting || saving" @click="restartKlipper()">
+        {{ t('Restart Klipper') }}
+      </button>
       <div class="grow"></div>
       <button class="btn" @click="adding = { section: '', key: '', unit: '' }">
         <Icon name="plus" :size="16" />{{ t('Add field') }}
@@ -107,16 +118,18 @@ function addField() {
               >
                 <Icon name="x" :size="12" /></button
             ></span>
-            <span class="ib" :class="{ ch: drafts[id(f)] !== undefined && drafts[id(f)] !== current(f) }">
+            <span class="ib" :class="{ ch: drafts[id(f)] !== undefined && drafts[id(f)] !== displayed(f) }">
               <input
-                :value="drafts[id(f)] ?? current(f)"
+                :value="drafts[id(f)] ?? displayed(f)"
+                :disabled="saving"
                 @input="drafts[id(f)] = $event.target.value"
                 :aria-label="f.key"
                 spellcheck="false"
               />
               <span v-if="f.unit" class="u">{{ f.unit }}</span>
             </span>
-            <span v-if="drafts[id(f)] !== undefined && drafts[id(f)] !== current(f)" class="was mono">{{
+            <span v-if="pending(f)" class="was mono">{{ t('Active value: {value}', { value: current(f) }) }}</span>
+            <span v-if="drafts[id(f)] !== undefined && drafts[id(f)] !== displayed(f)" class="was mono">{{
               t('was {v}', { v: current(f) })
             }}</span>
           </label>

@@ -40,6 +40,15 @@ describe('long temperature history', () => {
     expect(longHist.bed).toBeUndefined();
   });
 
+  it('backfills missing slots even if live sampling already resumed', () => {
+    vi.useFakeTimers();
+    const now = 1_700_000_010;
+    vi.setSystemTime(now * 1000);
+    longHist.bed = { ts: [now - 45, now], t: [41, 51], g: [0, 0] };
+    backfillLong({ bed: { temperatures: Array(45).fill(45), targets: Array(45).fill(0) } });
+    expect(longHist.bed.t).toEqual([41, 45, 45, 51]);
+  });
+
   it('backfills the gap from the 1-second store without duplicating', () => {
     const now = Math.floor(Date.now() / 1000);
     longHist.bed = { ts: [now - 60], t: [50], g: [0] };

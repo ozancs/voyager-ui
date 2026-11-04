@@ -112,14 +112,22 @@ export function backfillLong(store) {
     const tg = d.targets || [];
     if (!temps.length) continue;
     const h = (longHist[name] ||= { ts: [], t: [], g: [] });
-    const last = h.ts[h.ts.length - 1] ?? 0;
-    const start = now - temps.length; // time of temps[0]
-    for (let ts = Math.ceil(start / STEP) * STEP; ts <= now; ts += STEP) {
-      if (ts <= last) continue;
+    const start = now - temps.length;
+    const oldest = h.ts[0] ?? start;
+    const slots = new Map(h.ts.map((ts, i) => [ts, [h.t[i], h.g[i]]]));
+    let filled = false;
+    for (let ts = Math.ceil(Math.max(start, oldest) / STEP) * STEP; ts < now; ts += STEP) {
       const i = ts - start;
-      if (i < 0 || i >= temps.length || typeof temps[i] !== 'number') continue;
-      push(name, ts, temps[i], tg[i]);
+      if (slots.has(ts) || !Number.isFinite(temps[i])) continue;
+      slots.set(ts, [round1(temps[i]), round1(tg[i] || 0)]);
+      filled = true;
     }
+    if (!filled) continue;
+    h.ts = [...slots.keys()].sort((a, b) => a - b);
+    h.t = h.ts.map((ts) => slots.get(ts)[0]);
+    h.g = h.ts.map((ts) => slots.get(ts)[1]);
+    trim(h, now);
+    dirty = true;
   }
   saveLong(true);
 }

@@ -99,13 +99,15 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
         class="gm mono"
         data-opt
         :data-tip="
+          t('Current printer G-code mode') +
+          ' · ' +
           (gm.absolute_coordinates === false
             ? t('G91: relative positioning, a move goes this far from where the toolhead is')
             : t('G90: absolute positioning, a move goes to the coordinate given')) +
           ' · ' +
           (gm.absolute_extrude === false ? t('M83: relative extrusion') : t('M82: absolute extrusion'))
         "
-        >{{ gm.absolute_coordinates === false ? 'G91 REL' : 'G90 ABS' }} ·
+        >{{ t('G-code mode') }} · {{ gm.absolute_coordinates === false ? 'G91 REL' : 'G90 ABS' }} ·
         {{ gm.absolute_extrude === false ? 'M83' : 'M82' }}</span
       >
       <div class="acts">
@@ -151,7 +153,7 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
       <CardCollapse />
     </div>
     <div class="body" :class="{ circ: circle }">
-      <div class="grp pos3">
+      <div class="grp pos3" :aria-label="t('Target position')" :data-tip="t('Target position')">
         <div
           v-for="(a, i) in ['X', 'Y', 'Z']"
           :key="a"
@@ -181,7 +183,7 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
           />
         </div>
       </div>
-      <div v-if="circle" class="pad">
+      <div v-if="circle" class="pad" :aria-label="t('Relative jog')">
         <CircleJog
           :steps-x-y="ctl.circleXY || []"
           :steps-z="ctl.circleZ || []"

@@ -65,7 +65,7 @@ export async function startPrint(filename, { reprint = false, confirm = true } =
   } catch {
     // no metadata (file not scanned yet): nothing to show or compare
   }
-  const issues = meta && state.settings.preprintCheck !== false ? checkPrint(context(meta)) : [];
+  const issues = state.settings.preprintCheck !== false ? checkPrint(context(meta)) : [];
   if (!confirm && !issues.length) return start(filename);
   state.preprint?.resolve(false); // an older question still open counts as "no"
   const go = await new Promise((resolve) => {

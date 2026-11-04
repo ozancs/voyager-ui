@@ -61,6 +61,30 @@ describe('silent socket watchdog', () => {
     await vi.advanceTimersByTimeAsync(60000);
     expect(closes).toHaveLength(0);
   });
+  it('checks the lock again after waiting for a connection', async () => {
+    const { api, ws } = await connected();
+    let release;
+    api.ready = () =>
+      new Promise((resolve) => {
+        release = resolve;
+      });
+    const request = api.call('server.files.delete_file', { path: 'gcodes/example.gcode' });
+    api.lockedMsg = () => 'Locked';
+    release();
+    await expect(request).rejects.toThrow('Locked');
+    expect(ws.sent).toHaveLength(0);
+  });
+  it('cleans up an unanswered request even when the socket still receives messages', async () => {
+    const { api, ws } = await connected();
+    const request = api.call('server.job_queue.status');
+    const rejected = expect(request).rejects.toThrow('Request timed out');
+    for (let i = 0; i < 30; i++) {
+      ws.onmessage({ data: JSON.stringify({ method: 'notify_proc_stat_update', params: [{}] }) });
+      await vi.advanceTimersByTimeAsync(1000);
+    }
+    await rejected;
+    expect(api.pending.size).toBe(0);
+  });
   it('regular messages keep it alive without probing', async () => {
     const { closes, ws } = await connected();
     for (let i = 0; i < 30; i++) {

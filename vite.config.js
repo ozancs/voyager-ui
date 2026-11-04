@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue';
 // `vite build --mode demo` bakes the in-browser fake Moonraker in (see src/demo/mock.js), no .env file needed
 export default defineConfig(({ mode }) => ({
   plugins: [vue()],
+  resolve: { dedupe: ['three'] },
   base: './',
   define: {
     'import.meta.env.VITE_DEMO': JSON.stringify(mode === 'demo' ? '1' : ''),

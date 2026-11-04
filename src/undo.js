@@ -51,10 +51,10 @@ export async function stillSame(dir, items) {
     return items.filter((it) => {
       const cur = now.get(it.name);
       if (!cur) return false; // already gone
-      if (it.dir) return true;
+      if (it.dir) return cur.modified === it.modified;
       return cur.modified === it.modified && (it.size == null || cur.size === it.size);
     });
   } catch {
-    return items;
+    throw new Error(t('Could not verify the files. Nothing was deleted.'));
   }
 }

@@ -552,6 +552,7 @@ const restoreOpen = ref(false);
 const askReset = ref(false);
 function startEdit() {
   entry = layoutSnapshot();
+  editMode.value = mode.value;
   state.editDash = true;
   reload(); // folded cards open up for editing
 }
@@ -760,6 +761,9 @@ function detachCard(i) {
       <template v-if="state.editDash">
         <Icon name="move" :size="18" style="color: var(--ac)" />
         <b>{{ t('Customize') }}</b>
+        <span class="chip">{{
+          t('Editing layout: {layout}', { layout: mode === 'print' ? t('Printing') : t('Idle') })
+        }}</span>
         <label class="row al" :title="t('Use a separate layout while a print is running')"
           ><Toggle v-model="state.settings.autoLayout" :label="t('Separate layout while printing')" /><span>{{
             t('While printing')

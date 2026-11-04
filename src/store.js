@@ -89,6 +89,8 @@ export const DEFAULT_SETTINGS = () => ({
     error: true,
     paused: true,
     heated: false,
+    partReady: false,
+    partReadyTemp: 35,
     desktop: false,
     speak: false,
   },
@@ -1587,7 +1589,7 @@ export function start() {
   });
   window.addEventListener('pagehide', () => saveLong(true));
   setInterval(() => {
-    if (state.klippy !== 'ready') return;
+    if (!state.connected || state.klippy !== 'ready') return;
     const names = tempSensors.value;
     const readings = {};
     for (const n of names) if (state.status[n]) readings[n] = state.status[n];

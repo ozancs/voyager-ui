@@ -307,13 +307,38 @@ export class Moonraker {
       /^printer\.(gcode\.script|print\.|restart|firmware_restart)|^machine\.(reboot|shutdown|device_power\.post)/;
     if (acts.test(method) && this.ws?.readyState !== 1) throw new Error('not connected');
     await this.ready();
+    const currentLock = this.lockedMsg?.();
+    if (currentLock && Moonraker.WRITES.test(method)) throw new Error(currentLock);
     return new Promise((resolve, reject) => {
       if (!this.ws || this.ws.readyState !== 1) return reject(new Error('not connected'));
       const id = this.id++;
-      this.pending.set(id, { resolve, reject });
+      const write = Moonraker.WRITES.test(method);
+      // G-code and update requests may legitimately take several minutes.
+      const timeout = method === 'printer.gcode.script' || method.startsWith('machine.update.') ? 30 * 60_000 : 30_000;
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(write ? 'Request timed out. Check the printer before retrying.' : 'Request timed out.'));
+      }, timeout);
+      timer.unref?.();
+      const fail = (error) => {
+        clearTimeout(timer);
+        reject(error);
+      };
+      this.pending.set(id, {
+        resolve: (result) => {
+          clearTimeout(timer);
+          resolve(result);
+        },
+        reject: fail,
+      });
       const msg = { jsonrpc: '2.0', method, id };
       if (params !== undefined) msg.params = params;
-      this.ws.send(JSON.stringify(msg));
+      try {
+        this.ws.send(JSON.stringify(msg));
+      } catch (error) {
+        this.pending.delete(id);
+        fail(error);
+      }
     });
   }
 

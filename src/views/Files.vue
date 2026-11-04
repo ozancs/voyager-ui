@@ -25,6 +25,10 @@ import { t } from '../i18n';
 import { startPrint, uploadName } from '../preprint';
 import { undoable, isHidden, stillSame } from '../undo';
 const path = ref('gcodes');
+const grid = ref(state.settings.filesView === 'grid');
+watch(grid, (value) => {
+  state.settings.filesView = value ? 'grid' : 'table';
+});
 // a file's print time on this printer (path from the gcodes root, as history keeps it)
 const fileTime = (f) =>
   f.estimated_time
@@ -52,18 +56,34 @@ const fileInput = ref(null);
 const up = ref(null);
 const del = ref(null);
 const newDir = ref(null);
+let directoryRequest = 0;
+watch(
+  path,
+  () => {
+    picked.value = new Set();
+    sel.value = null;
+    del.value = null;
+    dirs.value = [];
+    files.value = [];
+  },
+  { flush: 'sync' },
+);
 async function load() {
+  const request = ++directoryRequest;
   loading.value = true;
   try {
-    const r = await api.call('server.files.get_directory', { path: path.value, extended: true });
+    const directory = path.value;
+    const r = await api.call('server.files.get_directory', { path: directory, extended: true });
+    if (request !== directoryRequest || directory !== path.value) return;
     dirs.value = r.dirs.filter((d) => !d.dirname.startsWith('.'));
     files.value = r.files.filter((f) => isGcodeFile(f.filename));
     disk.value = r.disk_usage;
     if (path.value === 'gcodes') state.cache.files = { dirs: dirs.value, files: files.value, disk: disk.value };
   } catch (e) {
-    toast(e.message, 'error');
+    if (request === directoryRequest) toast(e.message, 'error');
+  } finally {
+    if (request === directoryRequest) loading.value = false;
   }
-  loading.value = false;
 }
 // opened from Ctrl+K search: jump to the file (also when this page is already showing)
 function takeAnchor() {
@@ -114,8 +134,10 @@ const list = computed(() => {
     .filter((x) => !f || x.filename.toLowerCase().includes(f))
     .sort((a, b) => ((a[k] ?? 0) > (b[k] ?? 0) ? d : -d));
 });
-function thumb(f) {
-  const t = (f.thumbnails || []).sort((a, b) => a.width - b.width).find((t) => t.width >= 32);
+function thumb(f, large = false) {
+  const t = [...(f.thumbnails || [])]
+    .sort((a, b) => (large ? b.width - a.width : a.width - b.width))
+    .find((t) => t.width >= 32);
   if (!t) return null;
   const dir = path.value === 'gcodes' ? '' : path.value.slice(7) + '/';
   return api.fileUrl('gcodes', dir + t.relative_path);
@@ -261,7 +283,61 @@ function onDrop(e) {
         </button>
         <input ref="fileInput" type="file" multiple :accept="UPLOAD_ACCEPT" hidden @change="upload" />
       </div>
-      <div style="overflow: auto; flex: 1">
+      <div class="row" style="justify-content: space-between">
+        <div class="seg">
+          <button :class="{ on: !grid }" :aria-pressed="!grid" @click="grid = false">{{ t('Table') }}</button>
+          <button :class="{ on: grid }" :aria-pressed="grid" @click="grid = true">{{ t('Thumbnail grid') }}</button>
+        </div>
+        <label v-if="grid" class="row">
+          <input
+            type="checkbox"
+            class="cb"
+            :checked="allPicked"
+            :indeterminate="picked.size > 0 && !allPicked"
+            @change="toggleAll"
+          />
+          {{ t('Select all') }}
+        </label>
+      </div>
+      <div v-if="grid" class="file-grid">
+        <button v-for="d in dirs" :key="d.dirname" class="btn file-tile" @click="open(d)">
+          <Icon name="folder" :size="32" /><span>{{ d.dirname }}</span>
+        </button>
+        <article v-for="f in list" :key="f.filename" class="file-tile" :class="{ selected: picked.has(f.filename) }">
+          <div class="file-image">
+            <img v-if="thumb(f, true)" :src="thumb(f, true)" alt="" loading="lazy" />
+            <Icon v-else name="cube" :size="42" />
+            <input
+              type="checkbox"
+              class="cb"
+              :aria-label="t('Select file')"
+              :checked="picked.has(f.filename)"
+              @change="togglePick(f.filename)"
+            />
+          </div>
+          <b>{{ f.filename }}</b>
+          <span class="mono mu">{{ fmtTime(fileTime(f) || f.estimated_time) }} · {{ fmtBytes(f.size) }}</span>
+          <div class="row">
+            <button class="btn acc" :disabled="isPrinting" @click="print(f)">{{ t('Print') }}</button>
+            <button v-if="state.queue.enabled" class="btn ibtn" :aria-label="t('Add to queue')" @click="addQ([f])">
+              <Icon name="queue" :size="16" />
+            </button>
+            <button class="btn ibtn" :aria-label="t('Preheat')" @click="preheat(f)">
+              <Icon name="flame" :size="16" />
+            </button>
+            <button class="btn ibtn" :aria-label="t('Edit')" :disabled="!!editBlocked(f)" @click="editFile(f)">
+              <Icon name="pencil" :size="16" />
+            </button>
+            <a class="btn ibtn" :aria-label="t('Download')" :href="api.fileUrl('gcodes', rel(f))" download
+              ><Icon name="download" :size="16"
+            /></a>
+            <button class="btn ibtn" :aria-label="t('Delete')" @click="del = [f]">
+              <Icon name="trash" :size="16" />
+            </button>
+          </div>
+        </article>
+      </div>
+      <div v-else style="overflow: auto; flex: 1">
         <table class="tbl">
           <thead>
             <tr>
@@ -429,6 +505,50 @@ function onDrop(e) {
   </Modal>
 </template>
 <style scoped>
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 12px;
+}
+.file-tile {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  height: auto;
+  min-width: 0;
+  padding: 10px;
+  border-radius: var(--r);
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  overflow-wrap: anywhere;
+}
+.file-tile.selected {
+  border-color: var(--ac);
+}
+.file-tile .row {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.file-image {
+  display: grid;
+  place-items: center;
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--s1);
+  border-radius: var(--rb);
+}
+.file-image img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  object-fit: contain;
+}
+.file-image input {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
 .th {
   width: 44px;
   height: 44px;

@@ -72,14 +72,47 @@ export async function pollPrinter(p, known = {}) {
 // "Test" in the printer list: can this page reach the address? The browser does not say why a request failed
 // (printer off, wrong address or a cors_domains block all look the same), so the message lists all three.
 export async function testPrinter(host) {
+  const steps = [{ label: 'Printer address', status: 'Accepted' }];
+  const result = await probePrinter(host);
+  steps.push({ label: 'Moonraker', status: result.reached ? 'Reached' : 'Unreachable' });
+  steps.push({ label: 'Browser access / CORS', status: result.reached ? 'Passed' : 'Could not verify' });
+  steps.push({
+    label: 'Authorization',
+    status: result.login ? 'Login required' : result.ok ? 'Passed' : 'Could not verify',
+  });
+  let camera = 'Could not verify';
+  if (result.ok && !result.login) {
+    const response = await get(host, '/server/webcams/list').catch(() => null);
+    if (Array.isArray(response?.result?.webcams)) {
+      camera = response.result.webcams.some((c) => c.enabled !== false) ? 'Configured' : 'No camera configured';
+    }
+  }
+  steps.push({ label: 'Camera', status: camera });
+  return { ...result, steps };
+}
+async function probePrinter(host) {
   try {
     const r = await get(host, '/printer/info');
-    if (r.login) return { ok: true, level: 'wn', text: 'Reached, but it needs a login. Open it to log in.' };
+    if (r.login)
+      return {
+        ok: true,
+        reached: true,
+        login: true,
+        level: 'wn',
+        text: 'Reached, but it needs a login. Open it to log in.',
+      };
     if (!r.result)
-      return { ok: false, level: 'dg', text: 'Moonraker answered with an error ({code}).', params: { code: r.error } };
+      return {
+        ok: false,
+        reached: true,
+        level: 'dg',
+        text: 'Moonraker answered with an error ({code}).',
+        params: { code: r.error },
+      };
     const st = r.result.state || '';
     return {
       ok: true,
+      reached: true,
       level: st === 'ready' ? 'ok' : 'wn',
       text: st === 'ready' ? 'Connected: {name}, Klipper ready.' : 'Connected: {name}, Klipper {state}.',
       params: { name: r.result.hostname || host, state: st },

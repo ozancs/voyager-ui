@@ -198,16 +198,32 @@ function deletePicked() {
   picked.value = new Set();
 }
 // hidden at once, deleted after the undo time (undo.js)
+async function directorySnapshot(path) {
+  const { files = [], dirs = [] } = await api.call('server.files.get_directory', { path, extended: false });
+  const entries = files.map((f) => [f.filename, f.modified, f.size]);
+  for (const d of dirs) entries.push([d.dirname, d.modified, await directorySnapshot(path + '/' + d.dirname)]);
+  return JSON.stringify(entries.sort((a, b) => a[0].localeCompare(b[0])));
+}
 function deleteLater(its, base) {
   if (!its.length) return;
+  const snapshots = new Map(
+    its.filter((it) => it.dir).map((it) => [it.name, directorySnapshot(base + '/' + it.name).catch(() => null)]),
+  );
   undoable(its.length === 1 ? t('{f} deleted', { f: its[0].name }) : t('{n} files deleted', { n: its.length }), {
     hideKeys: its.map((it) => 'f:' + base + '/' + it.name),
     commit: async () => {
       let fail = 0;
       for (const it of await stillSame(base, its)) {
         try {
-          if (it.dir) await api.call('server.files.delete_directory', { path: `${base}/${it.name}`, force: true });
-          else await api.call('server.files.delete_file', { path: `${base}/${it.name}` });
+          if (it.dir) {
+            const path = base + '/' + it.name;
+            const before = await snapshots.get(it.name);
+            if (!before || before !== (await directorySnapshot(path))) {
+              fail++;
+              continue;
+            }
+            await api.call('server.files.delete_directory', { path, force: true });
+          } else await api.call('server.files.delete_file', { path: `${base}/${it.name}` });
         } catch {
           fail++;
         }

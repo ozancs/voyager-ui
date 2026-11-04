@@ -12,29 +12,64 @@ const props = defineProps({
 });
 const emit = defineEmits(['close']);
 // Esc closes the topmost dialog only (a confirm on top of another dialog must not close both)
-import { onMounted, onBeforeUnmount } from 'vue';
+import { nextTick, onMounted, onBeforeUnmount, ref } from 'vue';
 const stack = (window.__modalStack ||= []);
-const me = {};
+const dialog = ref(null);
+const me = { z: () => props.z || 100 };
+const top = () => stack.reduce((a, b) => (!a || b.z() >= a.z() ? b : a), null);
+let previous;
+function focusables() {
+  return [
+    ...dialog.value.querySelectorAll('button, input, select, textarea, a[href], [tabindex], [contenteditable="true"]'),
+  ].filter((el) => el.tabIndex >= 0 && !el.matches(':disabled') && el.getClientRects().length);
+}
+function keepFocus(e) {
+  if (top() === me && !dialog.value.contains(e.target)) (focusables()[0] || dialog.value).focus();
+}
 const esc = (e) => {
-  if (e.key === 'Escape' && stack[stack.length - 1] === me) {
+  if (top() !== me) return;
+  if (e.key === 'Tab') {
+    const items = focusables();
+    const index = items.indexOf(document.activeElement);
+    if (index < 0 || (e.shiftKey ? index === 0 : index === items.length - 1)) {
+      e.preventDefault();
+      (items[e.shiftKey ? items.length - 1 : 0] || dialog.value).focus();
+    }
+  }
+  if (e.key === 'Escape') {
     e.stopPropagation();
     if (!props.locked) emit('close');
   }
 };
 onMounted(() => {
+  previous = document.activeElement;
   stack.push(me);
+  document.addEventListener('focusin', keepFocus);
+  nextTick(() => {
+    if (top() === me && !dialog.value.contains(document.activeElement)) dialog.value.focus();
+  });
   window.addEventListener('keydown', esc);
 });
 onBeforeUnmount(() => {
   const i = stack.indexOf(me);
   if (i >= 0) stack.splice(i, 1);
   window.removeEventListener('keydown', esc);
+  document.removeEventListener('focusin', keepFocus);
+  if (previous?.isConnected) nextTick(() => previous.focus());
 });
 </script>
 <template>
   <Teleport to="body">
     <div class="ov" :style="z ? { zIndex: z } : null" @mousedown.self="!locked && emit('close')">
-      <div class="md card" :style="{ width }" role="dialog" :aria-label="title">
+      <div
+        class="md card"
+        :style="{ width }"
+        ref="dialog"
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+        :aria-label="title"
+      >
         <div class="card-h">
           <h2>{{ title }}</h2>
           <button v-if="!locked" class="btn clear ibtn sm" :aria-label="t('Close')" @click="emit('close')">

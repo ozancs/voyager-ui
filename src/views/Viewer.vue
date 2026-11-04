@@ -17,6 +17,33 @@ const eo = computed(() => S('exclude_object'));
 const canvas = ref(null);
 const wrap = ref(null);
 const preview = shallowRef(null);
+const cubeTransform = ref('');
+const layerWindow = ref(0);
+const axes = [
+  ['Front', [0, 0, 1], 'translateZ(22px)'],
+  ['Rear', [0, 0, -1], 'rotateY(180deg) translateZ(22px)'],
+  ['Right', [1, 0, 0], 'rotateY(90deg) translateZ(22px)'],
+  ['Left', [-1, 0, 0], 'rotateY(-90deg) translateZ(22px)'],
+  ['Top', [0, 1, 0], 'rotateX(90deg) translateZ(22px)'],
+  ['Bottom', [0, -1, 0], 'rotateX(-90deg) translateZ(22px)'],
+];
+let three;
+let loadRequest = 0;
+let parseRequest = 0;
+function syncCube() {
+  const q = preview.value.camera.quaternion;
+  // CSS uses a downward Y axis. Invert the camera rotation and reflect that axis.
+  const angle = 2 * Math.acos(Math.max(-1, Math.min(1, q.w)));
+  cubeTransform.value = Math.abs(angle) < 1e-6 ? 'none' : `rotate3d(${q.x}, ${-q.y}, ${q.z}, ${angle}rad)`;
+}
+function viewFrom([x, y, z]) {
+  const { camera, controls } = preview.value;
+  const distance = camera.position.distanceTo(controls.target);
+  camera.position.copy(controls.target).addScaledVector(new three.Vector3(x, y, z || (y ? 0.000001 : 0)), distance);
+  controls.update();
+  syncCube();
+}
+
 const file = ref('');
 const loading = ref('');
 const layers = ref(0);
@@ -47,6 +74,7 @@ const files = ref([]);
 async function ensurePreview() {
   if (preview.value) return preview.value;
   const GP = await import('gcode-preview');
+  three = await import('three');
   const th = S('toolhead');
   const max = th.axis_maximum || [300, 300, 300];
   preview.value = GP.init({
@@ -54,12 +82,30 @@ async function ensurePreview() {
     buildVolume: { x: max[0], y: max[1], z: Math.min(max[2], 400) },
     backgroundColor: '#0b0c0e',
     extrusionColor: state.settings.accent || '#ff6b1a',
-    topLayerColor: '#ffd166',
-    lastSegmentColor: '#ffffff',
     travelColor: '#5aa9ff',
     renderTravel: false,
+    renderTubes: true,
+    extrusionWidth: Number(S('configfile').settings?.extruder?.nozzle_diameter) || 0.4,
     initialCameraPosition: [0, max[1] * 1.6, max[1] * 1.4],
   });
+  // The batch copies each source geometry. Free the temporary geometry once it has been copied.
+  const createBatch = preview.value.createBatchMesh.bind(preview.value);
+  preview.value.createBatchMesh = (color) => {
+    const batch = createBatch(color);
+    const addGeometry = batch.addGeometry.bind(batch);
+    batch.addGeometry = (geometry) => {
+      try {
+        const id = addGeometry(geometry);
+        batch.addInstance?.(id);
+        return id;
+      } finally {
+        geometry.dispose();
+      }
+    };
+    return batch;
+  };
+  preview.value.controls.addEventListener('change', syncCube);
+  syncCube();
   return preview.value;
 }
 // the whole file is read into memory: above this size ask first (a phone or tablet tab can run out of memory)
@@ -75,6 +121,8 @@ async function sizeOf(fn) {
 }
 async function load(fn) {
   if (!fn) return;
+  const request = ++loadRequest;
+  ++parseRequest;
   // a .gcode.3mf is compressed: the G-code inside is several times the file size
   const size = await sizeOf(fn);
   if (
@@ -87,28 +135,43 @@ async function load(fn) {
       }),
       ok: t('Open anyway'),
     }))
-  )
+  ) {
+    if (request === loadRequest) loading.value = '';
     return;
-  file.value = fn;
+  }
+  if (request !== loadRequest) return;
   loading.value = t('Downloading…');
   try {
-    rawText = await readGcodeText(api, fn);
+    const text = await readGcodeText(api, fn);
+    if (request !== loadRequest) return;
+    file.value = fn;
+    rawText = text;
     await parse(rawText);
   } catch (e) {
+    if (request !== loadRequest) return;
     toast(t('Viewer: {err}', { err: e.message }), 'error');
   }
   loading.value = '';
 }
 async function parse(text) {
+  const request = ++parseRequest;
   loading.value = t('Parsing…');
   await nextTick();
   await new Promise((r) => setTimeout(r, 30));
+  if (request !== parseRequest) return;
   const p = await ensurePreview();
+  if (request !== parseRequest) return;
   p.clear?.();
   let shown = text,
     map = null;
-  if (colorMode.value === 'feature' || colorMode.value === 'speed') {
-    const r = colorMode.value === 'feature' ? colorByFeature(text) : colorBySpeed(text);
+  if (['feature', 'speed', 'flow'].includes(colorMode.value)) {
+    const r =
+      colorMode.value === 'feature'
+        ? colorByFeature(text)
+        : colorBySpeed(text, {
+            flow: colorMode.value === 'flow',
+            diameter: Number(S('configfile').settings?.extruder?.filament_diameter) || 1.75,
+          });
     shown = r.text;
     map = r.map;
     legend.value = r.legend.filter((l) => l.used);
@@ -128,7 +191,6 @@ async function parse(text) {
   for (let k = 0; k < text.length; k++) if (text.charCodeAt(k) === 10) offsets[++i] = k + 1;
   lineLayer = p.layers.map((l) => (map ? (map[l.lineNumber] ?? l.lineNumber) : l.lineNumber));
   showMap = map;
-  dropGhost();
   parsed.value++;
   layers.value = p.layers.length;
   layer.value = layers.value;
@@ -143,7 +205,7 @@ function cvDown(e) {
 async function cvClick(e) {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 4) return; // a drag, not a click
   const p = preview.value;
-  if (!p || !eo.value.objects?.length || !active.value) return;
+  if (!p || loading.value || file.value !== curPrint.value || !eo.value.objects?.length || !active.value) return;
   const { Raycaster, Vector2, Plane, Vector3 } = await import('three');
   const r = canvas.value.getBoundingClientRect();
   const nd = new Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
@@ -162,69 +224,17 @@ async function cvClick(e) {
   state.excludePick = name;
   emit('exclude');
 }
-// following the print: the model up to the line being printed, the rest faded (a second render of the layers
-// still to come, kept with its own see-through material while that layer prints)
-let ghost = null,
-  ghostDisp = [],
-  ghostFor = -1,
-  marker = null;
-function dropGhost() {
-  ghost?.parent?.remove(ghost);
-  for (const d of ghostDisp) d.dispose?.();
-  ghost = null;
-  ghostDisp = [];
-  ghostFor = -1;
-}
-// gcode-preview brings its own copy of three.js: the faded material and the nozzle cone are made from the classes of
-// the objects it drew, an object from another three.js copy breaks its renderer
-function firstLine(group) {
-  let found = null;
-  group?.traverse((o) => !found && o.isLineSegments && (found = o));
-  return found;
-}
-// the nozzle at real size (mm): the cone at the tip, the hex above it and the heater block, drawn as lines in a
-// hotend orange so it stands out from the model at any zoom
-function ensureMarker(like) {
-  if (marker || !like) return marker;
-  const pts = [];
-  const seg = (a, b) => pts.push(...a, ...b);
-  const ring = (r, y, n, k, rot = 0) => {
-    const a = (k / n) * 2 * Math.PI + rot;
-    return [Math.cos(a) * r, y, Math.sin(a) * r];
-  };
-  const N = 16;
-  for (let k = 0; k < N; k++) {
-    seg(ring(0.4, 0, N, k), ring(0.4, 0, N, k + 1)); // tip
-    seg(ring(3, 5, N, k), ring(3, 5, N, k + 1)); // top of the cone
-    if (k % 2 === 0) seg(ring(0.4, 0, N, k), ring(3, 5, N, k));
-  }
-  for (let k = 0; k < 6; k++) {
-    // hex
-    for (const y of [5, 9]) seg(ring(4.2, y, 6, k, Math.PI / 6), ring(4.2, y, 6, k + 1, Math.PI / 6));
-    seg(ring(4.2, 5, 6, k, Math.PI / 6), ring(4.2, 9, 6, k, Math.PI / 6));
-  }
-  // heater block, 20 x 16 x 10, the nozzle a little off centre as on most hotends
-  const bx = [-7, 13],
-    bz = [-8, 8],
-    by = [9, 19];
-  const c = (i, j, l) => [bx[i], by[j], bz[l]];
-  for (const j of [0, 1]) {
-    seg(c(0, j, 0), c(1, j, 0));
-    seg(c(1, j, 0), c(1, j, 1));
-    seg(c(1, j, 1), c(0, j, 1));
-    seg(c(0, j, 1), c(0, j, 0));
-  }
-  for (const [i, l] of [
-    [0, 0],
-    [1, 0],
-    [1, 1],
-    [0, 1],
-  ])
-    seg(c(i, 0, l), c(i, 1, l));
-  const g = new like.geometry.constructor();
-  g.setAttribute('position', new like.geometry.attributes.position.constructor(new Float32Array(pts), 3));
-  marker = new like.constructor(g, new like.material.constructor({ color: 0xff8a3d }));
-  marker.renderOrder = 10;
+// Only deposited extrusion is drawn during live follow.
+let marker = null;
+function ensureMarker() {
+  if (marker) return marker;
+  const material = new three.MeshLambertMaterial({ color: 0xffa53d });
+  marker = new three.Group();
+  const tip = new three.Mesh(new three.CylinderGeometry(2.8, 0.35, 5, 12), material);
+  tip.position.y = 2.5;
+  const hex = new three.Mesh(new three.CylinderGeometry(4, 4, 4, 6), material);
+  hex.position.y = 7;
+  marker.add(tip, hex);
   return marker;
 }
 function placeMarker() {
@@ -236,37 +246,18 @@ function placeMarker() {
 }
 function renderLive(p, at) {
   const { li, line } = at;
-  if (ghostFor !== li) {
-    dropGhost();
-    p.startLayer = li + 1;
-    p.endLayer = undefined;
-    p.render();
-    ghost = p.group;
-    p.scene.remove(ghost);
-    ghostDisp = p.disposables.splice(0); // the next render must not dispose them
-    const base = firstLine(ghost)?.material;
-    if (base) {
-      const mat = base.clone();
-      mat.color.setHex(0x9aa0a8);
-      Object.assign(mat, { transparent: true, opacity: 0.13, depthWrite: false });
-      ghostDisp.push(mat);
-      ghost.traverse((o) => o.isLineSegments && (o.material = mat));
-    }
-    ghostFor = li;
-  }
   // the layer being printed only up to the current line
   const l = p.layers[li];
   const all = l.commands;
   l.commands = all.slice(0, Math.max(0, line - l.lineNumber + 1));
-  p.startLayer = undefined;
+  p.startLayer = layerWindow.value ? Math.max(1, li + 2 - layerWindow.value) : undefined;
   p.endLayer = li + 1;
   try {
     p.render();
   } finally {
     l.commands = all;
   }
-  p.scene.add(ghost);
-  const m = showNozzle.value && ensureMarker(firstLine(p.group) || firstLine(ghost));
+  const m = showNozzle.value && ensureMarker();
   if (m) p.scene.add(m);
   else if (marker) p.scene.remove(marker);
   placeMarker();
@@ -278,14 +269,13 @@ async function update() {
   if (!p) return;
   p.renderTravel = travel.value;
   if (live.value) return renderLive(p, printAt.value);
-  dropGhost();
   if (marker) p.scene.remove(marker);
-  p.startLayer = undefined;
+  p.startLayer = layerWindow.value ? Math.max(1, layer.value + 1 - layerWindow.value) : undefined;
   p.endLayer = Math.max(1, layer.value);
   p.render();
   // not following, the nozzle still shows where it is, on the file being printed
   if (showNozzle.value && active.value && file.value === curPrint.value) {
-    const m = ensureMarker(firstLine(p.group));
+    const m = ensureMarker();
     if (m) {
       p.scene.add(m);
       placeMarker();
@@ -374,9 +364,8 @@ onMounted(async () => {
 watch(curPrint, (f) => f && !file.value && !loading.value && load(f));
 onBeforeUnmount(() => {
   clearTimeout(liveTm);
-  dropGhost();
-  marker?.geometry.dispose();
-  marker?.material.dispose();
+  marker?.traverse((o) => o.geometry?.dispose());
+  marker?.children[0]?.material.dispose();
   ro?.disconnect();
   preview.value?.dispose?.();
 });
@@ -408,10 +397,24 @@ onBeforeUnmount(() => {
       </div>
       <div v-show="tab === '3d'" ref="wrap" class="cv" @pointerdown="cvDown" @click="cvClick">
         <canvas ref="canvas"></canvas>
+        <div v-if="preview && file" class="orientation" @pointerdown.stop @click.stop>
+          <div class="orientation-cube" :style="{ transform: cubeTransform }">
+            <button
+              v-for="[name, direction, face] in axes"
+              :key="name"
+              type="button"
+              :style="{ transform: face }"
+              :aria-label="t(name)"
+              @click="viewFrom(direction)"
+            >
+              {{ t(name) }}
+            </button>
+          </div>
+        </div>
         <div v-if="legend.length" class="vlegend">
           <span v-for="l in legend" :key="l.label"><i :style="{ background: l.color }"></i>{{ t(l.label) }}</span>
         </div>
-        <span v-if="file && active && eo.objects?.length" class="hint mono">{{
+        <span v-if="file && file === curPrint && active && eo.objects?.length" class="hint mono">{{
           t('Click an object to exclude it')
         }}</span>
         <div v-if="loading" class="ld"><Icon name="refresh" :size="20" class="spin" />{{ loading }}</div>
@@ -465,11 +468,20 @@ onBeforeUnmount(() => {
           ><Toggle v-model="travel" :label="t('Show travel')" />
         </div>
         <div class="col" style="gap: 6px">
+          <label class="row">
+            <span class="grow">{{ t('Visible layers') }}</span>
+            <select v-model.number="layerWindow" class="input" @change="update">
+              <option :value="0">{{ t('All') }}</option>
+              <option :value="1">{{ t('Active layer only') }}</option>
+              <option :value="5">{{ t('Last five layers') }}</option>
+            </select>
+          </label>
           <span>{{ t('Colour') }}</span>
           <div class="seg">
-            <button :class="{ on: colorMode === 'single' }" @click="colorMode = 'single'">{{ t('Height') }}</button>
+            <button :class="{ on: colorMode === 'single' }" @click="colorMode = 'single'">{{ t('Solid') }}</button>
             <button :class="{ on: colorMode === 'feature' }" @click="colorMode = 'feature'">{{ t('Feature') }}</button>
             <button :class="{ on: colorMode === 'speed' }" @click="colorMode = 'speed'">{{ t('Speed') }}</button>
+            <button :class="{ on: colorMode === 'flow' }" @click="colorMode = 'flow'">{{ t('Flow') }}</button>
           </div>
         </div>
       </section>
@@ -501,6 +513,39 @@ onBeforeUnmount(() => {
   </div>
 </template>
 <style scoped>
+.orientation {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  perspective: 230px;
+}
+.orientation-cube {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  transform-style: preserve-3d;
+}
+.orientation button {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border: 1px solid var(--mu);
+  border-radius: 4px;
+  background: var(--s2);
+  color: var(--tx);
+  font-size: 10px;
+  padding: 0;
+}
+.orientation button:hover,
+.orientation button:focus-visible {
+  background: var(--ac);
+  color: var(--oa);
+}
+
 .mu {
   color: var(--mu);
 }
@@ -538,7 +583,7 @@ onBeforeUnmount(() => {
 }
 .hint {
   position: absolute;
-  top: 10px;
+  top: 94px;
   right: 12px;
   font-size: 11px;
   color: var(--mu);
