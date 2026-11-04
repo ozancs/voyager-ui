@@ -80,7 +80,18 @@ const cpu = computed(() => proc.value?.system_cpu_usage?.cpu ?? null);
 const mem = computed(() => proc.value?.system_memory);
 const mcus = computed(() => state.objects.filter((o) => o === 'mcu' || o.startsWith('mcu ')));
 const updates = computed(() => Object.entries(upd.value?.version_info || {}).filter(([k]) => k !== 'system'));
-const sysUpd = computed(() => upd.value?.version_info?.system);
+const updateGroups = computed(() => {
+  const attention = [];
+  const current = [];
+  for (const entry of Object.entries(upd.value?.version_info || {})) {
+    const [, info] = entry;
+    (needs(info) || info.is_dirty || info.detached || info.is_valid === false ? attention : current).push(entry);
+  }
+  return [
+    { id: 'attention', entries: attention },
+    { id: 'current', entries: current },
+  ];
+});
 function needs(v) {
   if (v.package_count) return v.package_count > 0;
   if (v.commits_behind?.length) return true;
@@ -213,46 +224,65 @@ const viewLog = ref(null);
           </div>
         </div>
         <div v-if="!upd" class="empty">{{ t('Loading…') }}</div>
-        <div v-for="[name, v] in updates" :key="name" :id="'upd-' + name" class="it">
-          <div class="grow row" style="gap: 10px; min-width: 0; align-items: baseline">
-            <b>{{ name }}</b
-            ><span
-              class="mono mu"
-              style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
-              >{{ verText(v) }}<template v-if="needs(v)"> → {{ v.remote_version }}</template
-              ><template v-if="v.is_dirty"> · {{ t('dirty') }}</template
-              ><template v-if="v.detached"> · {{ t('detached') }}</template></span
-            >
-          </div>
-          <!-- roll back sits left of the status, in a slot every row keeps so the status buttons line up -->
-          <span v-if="anyRollback" class="rbs"
-            ><button
-              v-if="canRollback(v)"
-              class="btn clear ibtn sm"
-              :disabled="!!busy"
-              :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
-              :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
-              @click="rb = name"
-            >
-              <Icon name="rewind" :size="16" /></button
-          ></span>
-          <button v-if="needs(v)" class="btn upb" :disabled="!!busy" @click="confirm = name">
-            <Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}
-          </button>
-          <span v-else class="chip" :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"
-            ><i></i>{{ v.detached ? t('Pinned') : t('Up to date') }}</span
+        <template v-for="group in updateGroups" :key="group.id">
+          <component
+            :is="group.id === 'current' ? 'details' : 'div'"
+            v-if="group.entries.length"
+            :class="{ 'current-updates': group.id === 'current' }"
           >
-        </div>
-        <div v-if="sysUpd" class="it">
-          <div class="grow col" style="gap: 2px">
-            <b>{{ t('System') }}</b
-            ><span class="mono mu" style="font-size: 11px">{{ t('{n} packages', { n: sysUpd.package_count }) }}</span>
-          </div>
-          <button v-if="sysUpd.package_count" class="btn upb" :disabled="!!busy" @click="confirm = 'system'">
-            {{ t('Update') }}
-          </button>
-          <span v-else class="chip" style="color: var(--mu)"><i></i>{{ t('Up to date') }}</span>
-        </div>
+            <summary v-if="group.id === 'current'">
+              <span>{{ t('Up to date') }}</span>
+              <span class="chip">{{ group.entries.length }}</span>
+            </summary>
+            <div :class="{ 'current-grid': group.id === 'current' }">
+              <div v-for="[name, v] in group.entries" :key="name" :id="'upd-' + name" class="it">
+                <div class="grow update-info">
+                  <b>{{ name === 'system' ? t('System') : name }}</b
+                  ><span
+                    class="mono mu"
+                    style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
+                    >{{ name === 'system' ? t('{n} packages', { n: v.package_count }) : verText(v)
+                    }}<template v-if="name !== 'system' && needs(v)"> → {{ v.remote_version }}</template
+                    ><template v-if="v.is_dirty"> · {{ t('dirty') }}</template
+                    ><template v-if="v.detached"> · {{ t('detached') }}</template></span
+                  >
+                </div>
+                <!-- roll back sits left of the status, in a slot every row keeps so the status buttons line up -->
+                <span
+                  v-if="name !== 'system' && anyRollback && (group.id === 'attention' || canRollback(v))"
+                  class="rbs"
+                  ><button
+                    v-if="canRollback(v)"
+                    class="btn clear ibtn sm"
+                    :disabled="!!busy"
+                    :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
+                    :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
+                    @click="rb = name"
+                  >
+                    <Icon name="rewind" :size="16" /></button
+                ></span>
+                <button v-if="needs(v)" class="btn upb" :disabled="!!busy" @click="confirm = name">
+                  <Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}
+                </button>
+                <span
+                  v-else-if="group.id === 'attention'"
+                  class="chip"
+                  :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"
+                  ><i></i
+                  >{{
+                    v.detached
+                      ? t('Pinned')
+                      : v.is_dirty
+                        ? t('dirty')
+                        : v.is_valid === false
+                          ? t('Invalid')
+                          : t('Up to date')
+                  }}</span
+                >
+              </div>
+            </div>
+          </component>
+        </template>
       </section>
       <section class="card">
         <div class="card-h">
@@ -392,6 +422,34 @@ const viewLog = ref(null);
   display: flex;
   justify-content: center;
 }
+.current-updates summary {
+  cursor: pointer;
+  padding: 8px 0;
+  font-weight: 600;
+}
+.current-updates summary .chip {
+  margin-inline-start: 8px;
+}
+.current-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  column-gap: 16px;
+}
+.current-grid .it {
+  min-height: 34px;
+  border-bottom: 1px solid var(--bd);
+}
+.update-info {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+.update-info b {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .it > .chip,
 .it > .upb {
   min-width: 112px;
@@ -411,7 +469,7 @@ const viewLog = ref(null);
 .it b {
   font-weight: 600;
   font-size: 13.5px;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 :root.ew-lt-1200 .mg {
   grid-template-columns: minmax(0, 1fr);
