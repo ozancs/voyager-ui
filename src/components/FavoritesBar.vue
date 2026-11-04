@@ -45,7 +45,7 @@ function add() {
 }
 function save() {
   const f = { ...form.value };
-  if (!f.name.trim()) f.name = f.gcode.split(/\s/)[0] || t('Button');
+  if (!f.name.trim()) f.name = f.gcode.trimStart().split(/\s/)[0] || t('Button');
   const isNew = f.isNew;
   delete f.isNew;
   if (isNew) favs.value.push(f);
@@ -171,6 +171,7 @@ function onDrop(i) {
       />
       <CmdInput
         v-model="form.gcode"
+        multiline
         input-class="input"
         :placeholder="t('Command or macro, e.g. CHAMBER TEMP=50')"
         :aria-label="t('Command')"

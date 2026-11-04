@@ -14,12 +14,23 @@ const props = defineProps({
   mono: { type: Boolean, default: true },
   ariaLabel: String,
   inputClass: String,
+  multiline: Boolean,
 });
 const emit = defineEmits(['update:modelValue', 'enter', 'keydown']);
 const open = ref(false);
 const sel = ref(0);
 const el = ref(null);
+const atEnd = ref(true);
+function trackCaret() {
+  atEnd.value = !props.multiline || el.value?.selectionStart === el.value?.value.length;
+}
+function onInput(e) {
+  trackCaret();
+  emit('update:modelValue', e.target.value);
+  open.value = true;
+}
 const word = computed(() => {
+  if (!atEnd.value) return '';
   const v = props.modelValue || '';
   const line = v.split('\n').pop();
   if (/\s/.test(line.trimStart())) return '';
@@ -44,6 +55,7 @@ const show = computed(
 );
 // the command on the line being typed, once a space follows it, and its parameters
 const hint = computed(() => {
+  if (!atEnd.value) return null;
   const line = (props.modelValue || '').split('\n').pop();
   const m = line.match(/^\s*(\S+)\s(.*)$/);
   if (!m) return null;
@@ -70,6 +82,8 @@ function accept(c) {
   el.value?.focus();
 }
 function key(e) {
+  // A favorite is edited as a script: Enter always starts a new line.
+  if (props.multiline && e.key === 'Enter') return;
   if (show.value) {
     if (e.key === 'ArrowDown') {
       sel.value = (sel.value + 1) % matches.value.length;
@@ -124,7 +138,9 @@ defineExpose({ focus: () => el.value?.focus() });
 </script>
 <template>
   <div class="ci">
-    <input
+    <component
+      :is="multiline ? 'textarea' : 'input'"
+      :rows="multiline ? 5 : undefined"
       ref="el"
       :value="modelValue"
       :placeholder="placeholder"
@@ -132,10 +148,10 @@ defineExpose({ focus: () => el.value?.focus() });
       :class="[inputClass, { mono }]"
       autocomplete="off"
       spellcheck="false"
-      @input="
-        emit('update:modelValue', $event.target.value);
-        open = true;
-      "
+      @input="onInput"
+      @select="trackCaret"
+      @click="trackCaret"
+      @keyup="trackCaret"
       @focus="open = true"
       @blur="onBlur"
       @keydown="key"
@@ -177,9 +193,16 @@ defineExpose({ focus: () => el.value?.focus() });
   min-width: 0;
   display: flex;
 }
-.ci input {
+.ci input,
+.ci textarea {
   flex: 1;
   min-width: 0;
+}
+.ci textarea {
+  height: auto;
+  padding-block: 10px;
+  line-height: 1.5;
+  resize: vertical;
 }
 .dd {
   position: absolute;
