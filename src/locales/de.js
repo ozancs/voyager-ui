@@ -2374,4 +2374,6 @@ export default {
   "Active layer only": "Nur aktive Schicht",
   "Last five layers": "Letzte fünf Schichten",
   "Open in the G-code viewer": "Im G-Code-Viewer öffnen",
+  "Expand menu": "Menü ausklappen",
+  "Collapse menu": "Menü einklappen",
 }

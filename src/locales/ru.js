@@ -2374,4 +2374,6 @@ export default {
   "Active layer only": "Только текущий слой",
   "Last five layers": "Последние пять слоёв",
   "Open in the G-code viewer": "Открыть в просмотрщике G-code",
+  "Expand menu": "Развернуть меню",
+  "Collapse menu": "Свернуть меню",
 }

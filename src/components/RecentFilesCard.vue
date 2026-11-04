@@ -36,8 +36,11 @@ useApiEvent('notify_filelist_changed', ([p]) => {
     tm = setTimeout(load, 500);
   }
 });
-function thumb(f) {
-  const th = (f.meta?.thumbnails || []).sort((a, b) => a.width - b.width).find((x) => x.width >= 32);
+// big: the largest picture, for the hover preview
+function thumb(f, big = false) {
+  const th = [...(f.meta?.thumbnails || [])]
+    .sort((a, b) => (big ? b.width - a.width : a.width - b.width))
+    .find((x) => x.width >= 32);
   if (!th) return null;
   const dir = f.path.split('/').slice(0, -1).join('/');
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + th.relative_path);
@@ -55,7 +58,7 @@ const print = (f) => startPrint(f.path);
     <div class="list">
       <div v-for="f in files" :key="f.path" class="fr">
         <div class="th">
-          <img v-if="thumb(f)" :src="thumb(f)" alt="" loading="lazy" /><Icon
+          <img v-if="thumb(f)" v-zoom="thumb(f, true)" :src="thumb(f)" alt="" loading="lazy" /><Icon
             v-else
             name="cube"
             :size="18"

@@ -42,8 +42,10 @@ watch(shownFiles, (list) => {
         .catch(() => {});
     }
 });
-function thumbOf(path) {
-  const th = [...(meta.value[path]?.thumbnails || [])].sort((a, b) => a.width - b.width).find((x) => x.width >= 32);
+function thumbOf(path, big = false) {
+  const th = [...(meta.value[path]?.thumbnails || [])]
+    .sort((a, b) => (big ? b.width - a.width : a.width - b.width))
+    .find((x) => x.width >= 32);
   if (!th) return null;
   const dir = path.split('/').slice(0, -1).join('/');
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + th.relative_path);
@@ -655,10 +657,12 @@ onBeforeUnmount(() => {
             @click="load(f.path)"
           >
             <span class="th"
-              ><img v-if="thumbOf(f.path)" :src="thumbOf(f.path)" alt="" loading="lazy" /><Icon
-                v-else
-                name="cube"
-                :size="16"
+              ><img
+                v-if="thumbOf(f.path)"
+                v-zoom="thumbOf(f.path, true)"
+                :src="thumbOf(f.path)"
+                alt=""
+                loading="lazy" /><Icon v-else name="cube" :size="16"
             /></span>
             <span class="col" style="gap: 1px; min-width: 0">
               <b class="ell">{{ f.path }}</b>

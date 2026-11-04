@@ -62,8 +62,10 @@ async function openPicker() {
 const pickShown = computed(() =>
   pickList.value.filter((f) => !pickQ.value || f.path.toLowerCase().includes(pickQ.value.toLowerCase())).slice(0, 80),
 );
-const thumb = (fn) => {
-  const t = (meta.value[fn]?.thumbnails || []).sort((a, b) => a.width - b.width).find((t) => t.width >= 32);
+const thumb = (fn, big = false) => {
+  const t = [...(meta.value[fn]?.thumbnails || [])]
+    .sort((a, b) => (big ? b.width - a.width : a.width - b.width))
+    .find((t) => t.width >= 32);
   if (!t) return null;
   const dir = fn.split('/').slice(0, -1).join('/');
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + t.relative_path);
@@ -101,7 +103,7 @@ const thumb = (fn) => {
         <div v-for="(j, i) in jobs" :key="j.job_id" class="jr">
           <span class="n mono">{{ i + 1 }}</span>
           <div class="th">
-            <img v-if="thumb(j.filename)" :src="thumb(j.filename)" alt="" /><Icon
+            <img v-if="thumb(j.filename)" v-zoom="thumb(j.filename, true)" :src="thumb(j.filename)" alt="" /><Icon
               v-else
               name="cube"
               :size="18"

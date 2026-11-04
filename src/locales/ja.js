@@ -2374,4 +2374,6 @@ export default {
   "Active layer only": "現在のレイヤーのみ",
   "Last five layers": "直近5レイヤー",
   "Open in the G-code viewer": "G-codeビューアーで開く",
+  "Expand menu": "メニューを展開",
+  "Collapse menu": "メニューを折りたたむ",
 }

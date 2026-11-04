@@ -52,7 +52,9 @@ const fileName = computed(() => (S('print_stats').filename || '').split('/').pop
 
 <template>
   <div class="pbar" :class="{ paused }">
-    <div class="pth"><img v-if="thumb" :src="thumb" alt="" /><Icon v-else name="cube" :size="20" :stroke="1.8" /></div>
+    <div class="pth">
+      <img v-if="thumb" v-zoom :src="thumb" alt="" /><Icon v-else name="cube" :size="20" :stroke="1.8" />
+    </div>
     <div class="info">
       <div class="row top">
         <b class="st">{{ paused ? t('Paused') : t('Printing') }}</b>

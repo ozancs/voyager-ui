@@ -288,6 +288,11 @@ last 20 minutes, Moonraker's own store too; this is what the 1h / 6h / 24h range
 Samples carry their time (seconds since the epoch), so a gap (UI closed, printer off) shows as a gap and not as  
 a line across it.
 
+**[src/thumbZoom.js](../src/thumbZoom.js)**  
+v-zoom on a thumbnail: while the mouse is over it, the picture shows large next to the pointer (ThumbZoom.vue,  
+in App.vue). The value is the URL of the large picture; without one the thumbnail itself is shown larger.  
+Not on touch screens, where there is no hover.
+
 **[src/timelapse.js](../src/timelapse.js)**  
 moonraker-timelapse: settings, the frames of the running print, rendering and the finished clips.  
 The component takes one snapshot per layer (or every N seconds in hyperlapse mode) from one camera and  
@@ -724,6 +729,10 @@ Print controls: speed factor and flow, the two values that change during a print
 While this card is on the dashboard the Machine Limits card leaves them out. Its option: the two one under the  
 other instead of side by side when the card is wide.
 
+**[src/components/PrinterBrand.vue](../src/components/PrinterBrand.vue)**  
+The printer at the top of the side menu: its icon, name and address, and the switcher to the other printers  
+(the same list as the top bar's on small screens). rail: only the icon, which opens the switcher.
+
 **[src/components/PrinterIconPicker.vue](../src/components/PrinterIconPicker.vue)**  
 The icon of one printer in the Printers dialog: a button showing it, a pop-up with the Voyager mark, the  
 bundled logos and an own image. The open printer changes right away; another printer gets it when it is opened.
@@ -792,7 +801,9 @@ such a macro it says what is needed.
 
 **[src/components/SideNav.vue](../src/components/SideNav.vue)**  
 Side menu: the pages, a badge with the number of health issues, and the footer (connection state,  
-slow requests, "new version" hint that opens the update manager). Can be pinned, hidden or auto-hide.
+slow requests, "new version" hint that opens the update manager). Can be pinned, hidden or auto-hide.  
+side: pinned on a wide screen, the menu runs the full height of the window as a floating panel with the printer  
+at its top; rail is its collapsed form, icons only, each page's name showing on hover.
 
 **[src/components/SortList.vue](../src/components/SortList.vue)**  
 A list whose rows can be dragged into a new order by their handle (mouse, touch and pen through pointer events,  
@@ -843,6 +854,10 @@ presets and cooldown are in the header.
 **[src/components/ThumbCard.vue](../src/components/ThumbCard.vue)**  
 Thumbnail card: the current (or last) file's picture as big as the card, with its name and progress. A click  
 shows it over the whole window.
+
+**[src/components/ThumbZoom.vue](../src/components/ThumbZoom.vue)**  
+The large picture of a thumbnail under the mouse (thumbZoom.js): up to 500 px, beside the pointer, on the side  
+of the window that has room.
 
 **[src/components/TimelapseCard.vue](../src/components/TimelapseCard.vue)**  
 Dashboard card: is the timelapse recording, how many frames so far, the newest frame, and the last clips.

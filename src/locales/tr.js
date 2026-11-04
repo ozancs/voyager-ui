@@ -2392,4 +2392,6 @@ export default {
   "High": "Yüksek",
   "Ultra": "Çok yüksek",
   "Open in the G-code viewer": "G-code görüntüleyicide aç",
+  "Expand menu": "Menüyü genişlet",
+  "Collapse menu": "Menüyü daralt",
 }

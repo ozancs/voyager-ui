@@ -1,8 +1,11 @@
 <script setup>
 // Side menu: the pages, a badge with the number of health issues, and the footer (connection state,
 // slow requests, "new version" hint that opens the update manager). Can be pinned, hidden or auto-hide.
+// side: pinned on a wide screen, the menu runs the full height of the window as a floating panel with the printer
+// at its top; rail is its collapsed form, icons only, each page's name showing on hover.
 import { ref, computed, onMounted, watch } from 'vue';
 import Icon from './Icon.vue';
+import PrinterBrand from './PrinterBrand.vue';
 import { state, useApiEvent, activeTasks } from '../store';
 import { healthIssues } from '../features';
 import { availableGroups } from '../calibrations';
@@ -10,8 +13,8 @@ import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
 defineOptions({ inheritAttrs: false });
-defineProps({ open: Boolean, mode: { type: String, default: 'pinned' } });
-const emit = defineEmits(['close', 'pin']);
+defineProps({ open: Boolean, mode: { type: String, default: 'pinned' }, side: Boolean, rail: Boolean });
+const emit = defineEmits(['close', 'pin', 'rail']);
 const NAV = [
   ['dashboard', 'dash', 'Dashboard'],
   ['webcam', 'cam', 'Webcam'],
@@ -57,8 +60,15 @@ setInterval(() => (tick.value = Date.now()), 250);
 const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) => tick.value - t.t > 400) : []));
 </script>
 <template>
-  <nav v-bind="$attrs" class="sn" :class="[{ open }, mode !== 'pinned' && 'float', mode]" :aria-label="t('Main')">
-    <div class="pinrow">
+  <nav
+    v-bind="$attrs"
+    class="sn"
+    :class="[{ open, side, rail: side && rail }, mode !== 'pinned' && !side && 'float', mode]"
+    :aria-label="t('Main')"
+  >
+    <PrinterBrand v-if="side" :rail="rail" />
+    <div v-if="side && !rail" class="sl">{{ t('Printer') }}</div>
+    <div v-if="!side" class="pinrow">
       <button
         class="pin"
         :aria-label="t('Show / hide the side menu')"
@@ -77,7 +87,9 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
         >{{ hBadge.n }}</span
       >
     </button>
-    <div class="sep"></div>
+    <div v-if="!side" class="sep"></div>
+    <div v-else-if="!rail" class="sl">{{ t('Setup') }}</div>
+    <div v-else class="sep"></div>
     <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)">
       <Icon :name="i" /><span>{{ t(l) }}</span>
     </button>
@@ -102,6 +114,15 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
       <Icon name="gear" /><span>{{ t('Interface settings') }}</span>
     </button>
     <div class="ft">
+      <button
+        v-if="side"
+        class="rl"
+        :aria-label="rail ? t('Expand menu') : t('Collapse menu')"
+        :data-tip="rail ? t('Expand menu') : t('Collapse menu')"
+        @click="emit('rail')"
+      >
+        <Icon :name="rail ? 'chevr2' : 'chevl2'" :size="16" :stroke="2.4" />
+      </button>
       <template v-if="slowTasks.length"
         ><Icon name="refresh" :size="13" class="spin" /><span class="tk"
           >{{ slowTasks[0].label }}…<template v-if="slowTasks.length > 1"> +{{ slowTasks.length - 1 }}</template></span
@@ -318,5 +339,121 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
   .scrim {
     bottom: calc(61px + env(safe-area-inset-bottom));
   }
+}
+/* side: the full height panel, apart from the page, with the printer at the top */
+.sn.side {
+  width: 248px;
+  margin: 12px 0 12px 12px;
+  padding: 12px 12px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--s1), var(--bg));
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  position: relative;
+  z-index: 95; /* the page names of the rail show over the page */
+}
+.sl {
+  font-size: 11.5px;
+  color: var(--mu);
+  padding: 10px 12px 4px;
+  flex-shrink: 0;
+}
+.side .it {
+  position: relative;
+}
+.side .it.on {
+  background: color-mix(in srgb, var(--ac) 14%, var(--s2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ac) 40%, transparent);
+}
+.side .it.on::before {
+  content: '';
+  position: absolute;
+  left: -13px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--ac);
+}
+.side .ft {
+  padding: 10px 2px 0 8px;
+}
+.rl {
+  order: 2;
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--bd);
+  background: transparent;
+  color: var(--mu);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.rl:hover {
+  color: var(--tx);
+  border-color: var(--mu2);
+}
+/* rail: icons only, the name of a page beside it on hover */
+.sn.rail {
+  width: 70px;
+  padding: 12px 10px;
+  align-items: center;
+  overflow: visible;
+}
+.rail .it {
+  width: 48px;
+  height: 46px;
+  padding: 0;
+  justify-content: center;
+}
+.rail .it > span:first-of-type {
+  display: none;
+  position: absolute;
+  left: 58px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: var(--s3);
+  color: var(--tx);
+  padding: 7px 11px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.rail .it:hover > span:first-of-type,
+.rail .it:focus-visible > span:first-of-type {
+  display: block;
+}
+.rail .it.on::before {
+  left: -11px;
+}
+.rail .nb {
+  position: absolute;
+  top: 3px;
+  right: 1px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+}
+.rail .sep {
+  width: 36px;
+}
+.rail .ft {
+  font-size: 0; /* the connection text has no room */
+  padding: 10px 0 0;
+  justify-content: center;
+}
+.rail .ft > :not(.rl) {
+  display: none;
+}
+.rail .rl {
+  margin: 0;
 }
 </style>

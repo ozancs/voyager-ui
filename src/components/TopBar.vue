@@ -41,6 +41,8 @@ import { startPrint, uploadName } from '../preprint';
 import { activity } from '../activity';
 
 const emit = defineEmits(['exclude', 'menu']);
+// the printer name and switcher; off when the full height side menu has them (App.vue)
+defineProps({ brand: { type: Boolean, default: true } });
 const fileInput = ref(null);
 const uploading = ref(null);
 const showBell = ref(false);
@@ -152,10 +154,16 @@ function measureName() {
   over.value = Math.max(0, el.scrollWidth - el.clientWidth);
 }
 onMounted(() => {
-  measureName();
   nameRo = new ResizeObserver(measureName);
-  nameRo.observe(nameEl.value);
   document.fonts?.ready.then(measureName);
+});
+// the name is not there while the side menu shows it: watch it whenever it comes
+watch(nameEl, (el, old) => {
+  if (old) nameRo?.unobserve(old);
+  if (el) {
+    nameRo?.observe(el);
+    measureName();
+  }
 });
 onBeforeUnmount(() => nameRo?.disconnect());
 let nameRo;
@@ -194,63 +202,65 @@ onBeforeUnmount(() => ovObs?.disconnect());
     <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')">
       <Icon name="menu" :size="22" />
     </button>
-    <a class="brand" href="#/dashboard">
-      <Logo :size="40" own />
-      <div class="col" style="gap: 0; min-width: 0">
-        <b ref="nameEl" class="pn" :class="{ marq: over > 0 }" :style="{ '--ov': over + 'px' }"
-          ><span>{{ printerName }}</span></b
-        ><span class="mono mu" style="font-size: 11px">{{ hostName }}</span>
-      </div>
-    </a>
-    <button
-      ref="pmBtn"
-      class="btn clear ibtn sm pmb"
-      :class="{ on: pmOpen }"
-      :aria-label="t('Printers')"
-      :data-tip="t('Printers')"
-      @click.stop="pmOpen = !pmOpen"
-    >
-      <Icon name="down" :size="16" :stroke="2.4" />
-    </button>
-    <Popover v-if="pmOpen" :anchor="pmBtn" :width="280" @close="pmOpen = false">
+    <template v-if="brand">
+      <a class="brand" href="#/dashboard">
+        <Logo :size="40" own />
+        <div class="col" style="gap: 0; min-width: 0">
+          <b ref="nameEl" class="pn" :class="{ marq: over > 0 }" :style="{ '--ov': over + 'px' }"
+            ><span>{{ printerName }}</span></b
+          ><span class="mono mu" style="font-size: 11px">{{ hostName }}</span>
+        </div>
+      </a>
       <button
-        v-if="printers.length"
-        class="btn clear pmi all"
-        @click="
-          pmOpen = false;
-          go('fleet');
-        "
+        ref="pmBtn"
+        class="btn clear ibtn sm pmb"
+        :class="{ on: pmOpen }"
+        :aria-label="t('Printers')"
+        :data-tip="t('Printers')"
+        @click.stop="pmOpen = !pmOpen"
       >
-        <Icon name="grid" :size="15" /><span class="grow">{{ t('All printers') }}</span
-        ><span class="mono mu">{{ printers.length + 1 }}</span>
+        <Icon name="down" :size="16" :stroke="2.4" />
       </button>
-      <button class="btn clear pmi" :class="{ cur: !curId }" :disabled="!curId" @click="selectPrinter('')">
-        <img v-if="listIconUrl('')" class="pmic" :src="listIconUrl('')" alt="" /><Logo v-else :size="22" />
-        <span class="grow">{{ t('This address') }}</span
-        ><span class="mono mu">{{ here }}</span>
-      </button>
-      <button
-        v-for="p in printers"
-        :key="p.id"
-        class="btn clear pmi"
-        :class="{ cur: p.id === curId }"
-        :disabled="p.id === curId"
-        @click="selectPrinter(p.id)"
-      >
-        <img v-if="listIconUrl(p.id)" class="pmic" :src="listIconUrl(p.id)" alt="" /><Logo v-else :size="22" />
-        <span class="grow">{{ p.name }}</span
-        ><span class="mono mu">{{ p.host }}</span>
-      </button>
-      <button
-        class="btn clear pmi"
-        @click="
-          pmOpen = false;
-          state.printersOpen = true;
-        "
-      >
-        <Icon name="gear" :size="15" /><span class="grow">{{ t('Manage printers') }}</span>
-      </button>
-    </Popover>
+      <Popover v-if="pmOpen" :anchor="pmBtn" :width="280" @close="pmOpen = false">
+        <button
+          v-if="printers.length"
+          class="btn clear pmi all"
+          @click="
+            pmOpen = false;
+            go('fleet');
+          "
+        >
+          <Icon name="grid" :size="15" /><span class="grow">{{ t('All printers') }}</span
+          ><span class="mono mu">{{ printers.length + 1 }}</span>
+        </button>
+        <button class="btn clear pmi" :class="{ cur: !curId }" :disabled="!curId" @click="selectPrinter('')">
+          <img v-if="listIconUrl('')" class="pmic" :src="listIconUrl('')" alt="" /><Logo v-else :size="22" />
+          <span class="grow">{{ t('This address') }}</span
+          ><span class="mono mu">{{ here }}</span>
+        </button>
+        <button
+          v-for="p in printers"
+          :key="p.id"
+          class="btn clear pmi"
+          :class="{ cur: p.id === curId }"
+          :disabled="p.id === curId"
+          @click="selectPrinter(p.id)"
+        >
+          <img v-if="listIconUrl(p.id)" class="pmic" :src="listIconUrl(p.id)" alt="" /><Logo v-else :size="22" />
+          <span class="grow">{{ p.name }}</span
+          ><span class="mono mu">{{ p.host }}</span>
+        </button>
+        <button
+          class="btn clear pmi"
+          @click="
+            pmOpen = false;
+            state.printersOpen = true;
+          "
+        >
+          <Icon name="gear" :size="15" /><span class="grow">{{ t('Manage printers') }}</span>
+        </button>
+      </Popover>
+    </template>
     <!-- a running print: in its own band under the top bar by default; "moved up" it is this compact pill -->
     <template v-if="active && state.settings.printBar === 'top'">
       <div class="grow"></div>

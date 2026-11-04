@@ -166,10 +166,10 @@ const barMax = computed(() => {
   return Math.ceil(m / p) * p;
 });
 
-function thumb(j) {
+function thumb(j, big = false) {
   const t = (j.metadata?.thumbnails || [])
     .slice()
-    .sort((a, b) => a.width - b.width)
+    .sort((a, b) => (big ? b.width - a.width : a.width - b.width))
     .find((t) => t.width >= 32);
   if (!t || !j.exists) return null;
   const dir = j.filename.split('/').slice(0, -1).join('/');
@@ -385,7 +385,7 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
               </td>
               <td>
                 <div class="th">
-                  <img v-if="thumb(j)" :src="thumb(j)" alt="" loading="lazy" /><Icon
+                  <img v-if="thumb(j)" v-zoom="thumb(j, true)" :src="thumb(j)" alt="" loading="lazy" /><Icon
                     v-else
                     name="file"
                     :size="20"

@@ -2374,4 +2374,6 @@ export default {
   "Active layer only": "Solo la capa activa",
   "Last five layers": "Últimas cinco capas",
   "Open in the G-code viewer": "Abrir en el visor de G-code",
+  "Expand menu": "Expandir menú",
+  "Collapse menu": "Contraer menú",
 }

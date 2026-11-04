@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.20
+
+- New side menu: a full height panel with the printer and its switcher at the top, the pages in Printer and Setup groups
+- The menu collapses to a rail of icons (the button at its bottom); hovering an icon shows the page name
+- Hovering a file thumbnail (Files, G-code viewer, recent files, queue, history, print bar) shows it large
+
 ## 0.38.19
 
 - Files: a button on every file opens it in the G-code viewer

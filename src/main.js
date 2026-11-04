@@ -17,6 +17,7 @@ import { startTabIcon } from './printerIcon';
 import { i18n, loadLang } from './i18n';
 import { away } from './away';
 import { vfit } from './fit';
+import { vzoom } from './thumbZoom';
 // the chosen language is fetched first so the UI does not flash in English
 async function boot() {
   // the live demo build runs against a fake Moonraker inside the page
@@ -24,7 +25,7 @@ async function boot() {
   await loadLang(i18n.lang).catch(() => {});
   start();
   startTabIcon();
-  createApp(App).directive('away', away).directive('fit', vfit).mount('#app');
+  createApp(App).directive('away', away).directive('fit', vfit).directive('zoom', vzoom).mount('#app');
 }
 // iOS Safari only applies :active (the pressed look of buttons) when the page listens to touches
 document.addEventListener('touchstart', () => {}, { passive: true });

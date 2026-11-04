@@ -2374,4 +2374,6 @@ export default {
   "Active layer only": "Alleen actieve laag",
   "Last five layers": "Laatste vijf lagen",
   "Open in the G-code viewer": "Openen in de G-code-viewer",
+  "Expand menu": "Menu uitklappen",
+  "Collapse menu": "Menu inklappen",
 }

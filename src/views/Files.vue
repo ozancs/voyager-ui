@@ -403,7 +403,7 @@ function onDrop(e) {
               </td>
               <td>
                 <div class="th">
-                  <img v-if="thumb(f)" :src="thumb(f)" alt="" loading="lazy" /><Icon
+                  <img v-if="thumb(f)" v-zoom="thumb(f, true)" :src="thumb(f)" alt="" loading="lazy" /><Icon
                     v-else
                     name="cube"
                     :size="22"
