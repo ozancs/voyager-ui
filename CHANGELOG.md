@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.38.18
+
+- New G-code viewer engine (the one Mainsail uses): solid, shaded extrusions coloured by feature, speed or extruder
+- Play a file back at 1x to 20x: freshly drawn lines start light and cool down into their colour, the nozzle moves along
+- Move through the file by position or by layer without redrawing the model; render quality from Low to Max; the camera frames the model
+- Printer settings: Add field picks the section and the option from a searchable list
+- Fixes: PID/MPC calibration for heater_generic heaters, a dismissed Klipper error coming back after a reconnect, a wrong error recorded during a Klipper restart, update notifications that stayed hidden after one was dismissed, failed Moonraker component notices that never cleared, Klipper init retrying only at first boot, History left on an empty page after a delete, Update buttons unlocking when Check was pressed during an update, the print error alert on page load, "1h 60m" in the heat-up time
+- Translations for the texts that were only in Turkish
+
 ## 0.38.17
 
 - Favorites accept pasted multi-line G-code scripts and run their commands in order.
