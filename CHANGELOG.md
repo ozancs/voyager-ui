@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.17
+
+- Favorites accept pasted multi-line G-code scripts and run their commands in order.
+
 ## 0.38.16
 
 - Update Manager shows updates and warnings first. Expand the up-to-date group to see versions and rollback controls.
