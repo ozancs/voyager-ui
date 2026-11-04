@@ -11,7 +11,8 @@ const named = (re) => (ctx) =>
     .map((o) => re.exec(o))
     .filter(Boolean)
     .map((m) => m[1]);
-const heaters = (ctx) => ctx.status.heaters?.available_heaters || [];
+// PID_CALIBRATE HEATER= takes the short name: "heater_generic chamber" is HEATER=chamber
+const heaters = (ctx) => (ctx.status.heaters?.available_heaters || []).map((n) => n.split(' ').pop());
 const tmcSteppers = named(/^tmc\w+ (.+)$/);
 const eddyChips = named(/^probe_eddy_current (.+)$/);
 const tempProbes = named(/^temperature_probe (.+)$/);

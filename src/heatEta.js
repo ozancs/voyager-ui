@@ -91,5 +91,6 @@ export function fmtEta(secs) {
       s = Math.round((secs % 60) / 10) * 10;
     return s === 60 ? m + 1 + ':00' : m + ':' + String(s).padStart(2, '0');
   }
-  return Math.floor(secs / 3600) + 'h ' + Math.round((secs % 3600) / 60) + 'm';
+  const mins = Math.round(secs / 60); // whole minutes first, so it never reads "1h 60m"
+  return Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm';
 }

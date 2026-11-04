@@ -269,7 +269,7 @@ watch(printState, (now, before) => {
   if (!state.booted) return;
   if (now === 'complete' && before === 'printing')
     alertEvent('complete', t('Print finished: {file}', { file: shortFile() }));
-  else if (now === 'error')
+  else if (now === 'error' && (before === 'printing' || before === 'paused'))
     alertEvent('error', t('Print stopped with an error: {msg}', { msg: S('print_stats').message || '' }));
   else if (now === 'paused' && before === 'printing')
     alertEvent('paused', t('Print paused: {file}', { file: shortFile() }));
@@ -590,8 +590,10 @@ function learnHeater(n, s, tg, now, live) {
   const found = (heaterTrend[n] || []).filter((f) => f.kind === 'heat');
   // heat-up from a cold start
   let run = heatRun[n];
-  if (!tg) delete heatRun[n];
-  else if (!run || run.tg !== tg)
+  if (!tg) {
+    delete heatRun[n]; // turned off mid heat-up: no time to learn from
+    run = null;
+  } else if (!run || run.tg !== tg)
     run = heatRun[n] =
       s.temperature < COLD && s.temperature < tg - 30 ? { tg, t0: now, from: s.temperature } : { tg, skip: true };
   if (run && !run.skip && !run.done && s.temperature >= tg - 2) {

@@ -32,7 +32,9 @@ async function loadProc() {
   } catch {}
 }
 async function loadUpd(refresh = false) {
-  busy.value = refresh ? 'check' : '';
+  if (busy.value && busy.value !== 'check')
+    refresh = false; // an update is running: only read the status
+  else busy.value = refresh ? 'check' : '';
   try {
     let r;
     if (refresh) {
@@ -47,7 +49,7 @@ async function loadUpd(refresh = false) {
   } catch (e) {
     if (refresh) toast(e.message, 'error');
   }
-  busy.value = '';
+  if (busy.value === 'check' || !busy.value) busy.value = '';
 }
 async function query() {
   try {
@@ -218,7 +220,7 @@ const viewLog = ref(null);
               @click="confirm = '__all'"
             >
               <Icon name="download" :size="16" />{{ t('Update all') }}</button
-            ><button class="btn" :disabled="busy === 'check'" @click="loadUpd(true)">
+            ><button class="btn" :disabled="!!busy" @click="loadUpd(true)">
               <Icon name="refresh" :size="16" />{{ busy === 'check' ? t('Checking…') : t('Check') }}
             </button>
           </div>

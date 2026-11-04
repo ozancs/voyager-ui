@@ -12,7 +12,7 @@ import { t } from '../i18n';
 import { forError } from './problems';
 
 const SKIP =
-  /^(disconnected|error|shutdown|startup|ready)$|Unknown command|Must home axis first|must home|Move out of range|Extrude below minimum temp|Extrude only move too long|Shutdown due to webhooks request|Emergency stop/i;
+  /^(disconnected|error|shutdown|startup|ready)$|^Printer is (not )?ready|Unknown command|Must home axis first|must home|Move out of range|Extrude below minimum temp|Extrude only move too long|Shutdown due to webhooks request|Emergency stop/i;
 const MAX = 30;
 // one id per message, numbers and quoted names kept (an MCU name tells boards apart), timestamps dropped
 export function issueId(msg) {
@@ -73,6 +73,7 @@ export function startIssues() {
     ([k, m]) => {
       if ((k === 'shutdown' || k === 'error') && m) recordIssue(m, 'klippy', ran);
       if (k === 'ready' || k === 'startup') ran = true;
+      if (k === 'disconnected') ran = false; // our socket came back: Klipper showing the same error is not a new one
     },
   );
   watch(

@@ -47,7 +47,10 @@ async function load(which) {
 }
 onMounted(() => load('serial'));
 // the CAN query takes a few seconds and talks to the bus: only when asked
-watch(tab, (k) => k !== 'can' && data.value[k] == null && load(k));
+watch(tab, (k) => {
+  err.value = ''; // an error belongs to the tab it came from
+  if (k !== 'can' && data.value[k] == null) load(k);
+});
 
 const rows = computed(() => {
   const d = data.value[tab.value];

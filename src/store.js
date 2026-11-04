@@ -896,7 +896,14 @@ export function applyUpd(u) {
     )
     .map(([k]) => k);
   unnotify('upd:');
-  if (n.length) notify('upd:' + n.join(','), t('Updates available: {list}', { list: n.join(', ') }), 'info');
+  // the id names the versions, so dismissing one update does not hide the next ones
+  const ver = (k) => u.version_info[k].remote_version || u.version_info[k].commits_behind?.[0]?.sha?.slice(0, 7) || '';
+  if (n.length)
+    notify(
+      'upd:' + n.map((k) => k + '@' + ver(k)).join(','),
+      t('Updates available: {list}', { list: n.join(', ') }),
+      'info',
+    );
   // our own entry gets a hint in the side menu, one click away from the update button
   const me = Object.entries(u.version_info).find(([k]) => k === APP || k.startsWith(APP + '-'));
   state.uiUpdate =
@@ -936,6 +943,7 @@ async function checkHealth() {
   try {
     const info = await api.call('server.info');
     unnotify('mr:');
+    unnotify('mrc:'); // a component fixed since: its notification goes
     for (const w of (info.warnings || []).filter((w) => !w.includes('::TMPNAME')))
       notify('mr:' + w.slice(0, 120), 'Moonraker: ' + w, 'warn');
     for (const c of info.failed_components || [])
@@ -1233,15 +1241,19 @@ async function checkKlippy() {
     const info = await api.call('server.info');
     state.versions.moonraker = info.moonraker_version || '';
     state.components = info.components || [];
-    state.klippy = info.klippy_state;
-    if (info.klippy_state === 'ready') return initKlippy();
-    state.booted = true;
-    try {
-      const p = await api.call('printer.info');
-      state.klippyMessage = p.state_message;
-    } catch {
-      state.klippyMessage = info.klippy_state;
+    if (info.klippy_state === 'ready') {
+      state.klippy = 'ready';
+      return initKlippy();
     }
+    // the message first, then the state: whatever watches the state (the Problem Solver's issues) must never pair
+    // a new error state with the previous message
+    let msg = info.klippy_state;
+    try {
+      msg = (await api.call('printer.info')).state_message;
+    } catch {}
+    state.klippyMessage = msg;
+    state.klippy = info.klippy_state;
+    state.booted = true;
     if (info.klippy_state === 'shutdown' || info.klippy_state === 'error') {
       // still try subscribing so webhooks/state gets through
     }
@@ -1258,7 +1270,9 @@ function initKlippy() {
     }))
   );
 }
+let initOk = false; // the last init got through (booted alone stays true after the first one)
 async function initKlippyOnce() {
+  initOk = false;
   try {
     const { objects } = await api.call('printer.objects.list');
     state.objects = objects;
@@ -1294,11 +1308,12 @@ async function initKlippyOnce() {
     loadGcodeStore();
     loadCommands();
     loadCurrentMeta();
+    initOk = true;
   } catch (e) {
     toast(t('Klipper init failed: {err}', { err: e.message }), 'error');
     // a timeout on a slow host at boot: try again instead of staying empty until the next Klipper event
     setTimeout(() => {
-      if (!state.booted && state.connected && state.klippy === 'ready') initKlippy();
+      if (!initOk && state.connected && state.klippy === 'ready') initKlippy();
     }, 3000);
   }
 }
@@ -1541,8 +1556,7 @@ export function start() {
     if (state.connected) checkHealth();
   }, 120000);
   api.on('notify_klippy_shutdown', () => {
-    state.klippy = 'shutdown';
-    checkKlippy();
+    checkKlippy(); // sets the state together with its message
     setTimeout(
       () =>
         notify(

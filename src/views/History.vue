@@ -93,6 +93,8 @@ const filtered = computed(() => {
 const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / per.value)));
 const shown = computed(() => filtered.value.slice(page.value * per.value, (page.value + 1) * per.value));
 watch([q, per], () => (page.value = 0));
+// fewer pages after a delete: stay on the last one that exists
+watch(pages, (n) => page.value > n - 1 && (page.value = n - 1));
 function sortBy(k) {
   sort.value = { k, d: sort.value.k === k ? -sort.value.d : -1 };
 }
