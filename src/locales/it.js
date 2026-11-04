@@ -2373,4 +2373,5 @@ export default {
   "Visible layers": "Layer visibili",
   "Active layer only": "Solo layer attivo",
   "Last five layers": "Ultimi cinque layer",
+  "Open in the G-code viewer": "Apri nel visualizzatore G-code",
 }

@@ -2373,4 +2373,5 @@ export default {
   "Visible layers": "Видимі шари",
   "Active layer only": "Лише поточний шар",
   "Last five layers": "Останні п'ять шарів",
+  "Open in the G-code viewer": "Відкрити в переглядачі G-code",
 }

@@ -2373,4 +2373,5 @@ export default {
   "Visible layers": "可见层",
   "Active layer only": "仅当前层",
   "Last five layers": "最近五层",
+  "Open in the G-code viewer": "在 G-code 查看器中打开",
 }

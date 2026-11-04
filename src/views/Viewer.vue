@@ -5,14 +5,15 @@
 // position, the layer slider by layer. Following the running print draws it up to where the printer is, with the
 // nozzle at the toolhead position. Clicking an object of the running print picks it for exclusion.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { readGcodeText, is3mf } from '../gcode3mf';
+import { readGcodeText, is3mf, isGcodeFile } from '../gcode3mf';
 import Icon from '../components/Icon.vue';
 import ObjectMap from '../components/ObjectMap.vue';
 import RangeSlider from '../components/RangeSlider.vue';
 import Rng from '../components/Rng.vue';
 import Toggle from '../components/Toggle.vue';
-import { state, S, layerInfo, printState, toast, askConfirm, fmtBytes } from '../store';
+import { state, S, layerInfo, printState, toast, askConfirm, fmtBytes, fmtTime, fmtDate } from '../store';
 import { api } from '../api/moonraker';
+import { route } from '../router';
 import { t } from '../i18n';
 const emit = defineEmits(['exclude']);
 const eo = computed(() => S('exclude_object'));
@@ -23,7 +24,30 @@ const ready = ref(false);
 const file = ref('');
 const loading = ref('');
 const pct = ref(0);
+// the file list in the side column: newest first, searchable, with thumbnails read for the rows shown
 const files = ref([]);
+const fq = ref('');
+const meta = ref({});
+const shownFiles = computed(() => {
+  const words = fq.value.toLowerCase().split(/\s+/).filter(Boolean);
+  return files.value.filter((f) => words.every((w) => f.path.toLowerCase().includes(w))).slice(0, 40);
+});
+watch(shownFiles, (list) => {
+  for (const f of list)
+    if (!(f.path in meta.value)) {
+      meta.value[f.path] = null;
+      api
+        .call('server.files.metadata', { filename: f.path })
+        .then((m) => (meta.value[f.path] = m))
+        .catch(() => {});
+    }
+});
+function thumbOf(path) {
+  const th = [...(meta.value[path]?.thumbnails || [])].sort((a, b) => a.width - b.width).find((x) => x.width >= 32);
+  if (!th) return null;
+  const dir = path.split('/').slice(0, -1).join('/');
+  return api.fileUrl('gcodes', (dir ? dir + '/' : '') + th.relative_path);
+}
 // remembered in this browser's settings
 const set = state.settings;
 const colorMode = ref(set.viewerColorMode ?? 2); // 0 extruder, 1 feed rate, 2 feature
@@ -429,13 +453,17 @@ onMounted(async () => {
   try {
     const all = await api.call('server.files.list', { root: 'gcodes' });
     for (const f of all) sizes[f.path] = f.size;
-    files.value = all
-      .sort((a, b) => b.modified - a.modified)
-      .slice(0, 60)
-      .map((f) => f.path);
+    files.value = all.filter((f) => isGcodeFile(f.path)).sort((a, b) => b.modified - a.modified);
   } catch {}
-  if (curPrint.value) load(curPrint.value);
+  // opened from the Files page with a file to show, otherwise the running job
+  if (route.arg) load(route.arg);
+  else if (curPrint.value) load(curPrint.value);
 });
+// a file sent from the Files page while this page is open
+watch(
+  () => route.arg,
+  (a) => route.name === 'viewer' && a && a !== file.value && load(a),
+);
 // opened before the printer answered (a direct link to the page): load the running job once it is known
 watch(curPrint, (f) => f && !file.value && !loading.value && load(f));
 onBeforeUnmount(() => {
@@ -465,16 +493,6 @@ onBeforeUnmount(() => {
           <button class="btn out" :disabled="!curPrint" @click="load(curPrint)">
             <Icon name="download" :size="16" />{{ t('Load current job') }}
           </button>
-          <select
-            class="input"
-            style="height: 34px; max-width: 260px"
-            :value="file"
-            @change="load($event.target.value)"
-            :aria-label="t('Open file')"
-          >
-            <option value="" disabled>{{ t('Open file…') }}</option>
-            <option v-for="f in files" :key="f" :value="f">{{ f }}</option>
-          </select>
           <button
             class="btn ibtn"
             :disabled="!ready"
@@ -616,10 +634,104 @@ onBeforeUnmount(() => {
           >
         </div>
       </section>
+      <section class="card fls">
+        <div class="card-h">
+          <h2>{{ t('G-code Files') }}</h2>
+        </div>
+        <input
+          v-model="fq"
+          class="input"
+          type="search"
+          :placeholder="t('Search files')"
+          :aria-label="t('Search files')"
+        />
+        <div class="fl">
+          <button
+            v-for="f in shownFiles"
+            :key="f.path"
+            class="fr"
+            :class="{ on: f.path === file }"
+            :aria-current="f.path === file || undefined"
+            @click="load(f.path)"
+          >
+            <span class="th"
+              ><img v-if="thumbOf(f.path)" :src="thumbOf(f.path)" alt="" loading="lazy" /><Icon
+                v-else
+                name="cube"
+                :size="16"
+            /></span>
+            <span class="col" style="gap: 1px; min-width: 0">
+              <b class="ell">{{ f.path }}</b>
+              <span class="mono mu ell sm"
+                >{{ meta[f.path]?.estimated_time ? fmtTime(meta[f.path].estimated_time) + ' · ' : ''
+                }}{{ fmtDate(f.modified) }}</span
+              >
+            </span>
+          </button>
+          <div v-if="!shownFiles.length" class="empty">{{ t('No match') }}</div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 <style scoped>
+.fls .input {
+  width: 100%;
+}
+.fl {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 420px;
+  overflow: auto;
+}
+.fr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tx);
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+.fr:hover {
+  background: var(--s2);
+}
+.fr.on {
+  background: var(--s3);
+}
+.fr .th {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: var(--s2);
+  display: grid;
+  place-items: center;
+  color: var(--mu);
+  overflow: hidden;
+}
+.fr .th img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.fr b {
+  font-size: 13px;
+  font-weight: 600;
+}
+.ell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sm {
+  font-size: 11.5px;
+}
 .mu {
   color: var(--mu);
 }

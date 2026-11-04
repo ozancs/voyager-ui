@@ -2391,4 +2391,5 @@ export default {
   "Medium": "Orta",
   "High": "Yüksek",
   "Ultra": "Çok yüksek",
+  "Open in the G-code viewer": "G-code görüntüleyicide aç",
 }

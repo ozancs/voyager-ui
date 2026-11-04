@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.19
+
+- Files: a button on every file opens it in the G-code viewer
+- G-code viewer: the file list moved to the side, under Objects, with search and small thumbnails
+
 ## 0.38.18
 
 - New G-code viewer engine (the one Mainsail uses): solid, shaded extrusions coloured by feature, speed or extruder

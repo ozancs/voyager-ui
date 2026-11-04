@@ -142,6 +142,7 @@ function thumb(f, large = false) {
   const dir = path.value === 'gcodes' ? '' : path.value.slice(7) + '/';
   return api.fileUrl('gcodes', dir + t.relative_path);
 }
+const view = (f) => go('viewer', rel(f)); // the G-code viewer opens with this file
 function open(d) {
   path.value = path.value + '/' + d.dirname;
   sel.value = null;
@@ -325,6 +326,14 @@ function onDrop(e) {
             <button class="btn ibtn" :aria-label="t('Preheat')" @click="preheat(f)">
               <Icon name="flame" :size="16" />
             </button>
+            <button
+              class="btn ibtn"
+              :aria-label="t('Open in the G-code viewer')"
+              :data-tip="t('Open in the G-code viewer')"
+              @click="view(f)"
+            >
+              <Icon name="cube" :size="16" />
+            </button>
             <button class="btn ibtn" :aria-label="t('Edit')" :disabled="!!editBlocked(f)" @click="editFile(f)">
               <Icon name="pencil" :size="16" />
             </button>
@@ -438,6 +447,14 @@ function onDrop(e) {
                   </button>
                   <button class="btn ibtn sm" :aria-label="t('Preheat')" @click.stop="preheat(f)">
                     <Icon name="flame" :size="16" />
+                  </button>
+                  <button
+                    class="btn ibtn sm"
+                    :aria-label="t('Open in the G-code viewer')"
+                    :data-tip="t('Open in the G-code viewer')"
+                    @click.stop="view(f)"
+                  >
+                    <Icon name="cube" :size="16" />
                   </button>
                   <button
                     class="btn ibtn sm"
