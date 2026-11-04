@@ -387,7 +387,22 @@ startIssues();
   flex-direction: row;
 }
 .shell.side .scol {
-  padding-left: 4px;
+  padding-left: 12px;
+}
+/* beside the side menu the bars start where the status box starts: the favorites a box of their own under it,
+   not a band reaching to the menu */
+.shell.side :deep(.tb) {
+  padding-left: 0;
+}
+.shell.side .main {
+  padding-left: 0;
+}
+.shell.side :deep(.fb) {
+  margin: 10px 20px 0 0;
+  padding: 0 10px;
+  height: 58px;
+  border: 1px solid var(--bd);
+  border-radius: 14px;
 }
 .navtab {
   position: fixed;
