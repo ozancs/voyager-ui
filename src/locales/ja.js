@@ -2376,4 +2376,9 @@ export default {
   "Open in the G-code viewer": "G-codeビューアーで開く",
   "Expand menu": "メニューを展開",
   "Collapse menu": "メニューを折りたたむ",
+  "Menu style": "メニューのスタイル",
+  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "クラシック：上部バーの下にメニュー。その他は全高で、プリンターが上部にあり、アイコンに折りたためます。メニューが常に表示され、画面が広いときに使われます。",
+  "Floating": "フローティング",
+  "Attached": "アタッチ",
+  "Frame": "フレーム",
 }

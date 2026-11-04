@@ -2371,5 +2371,10 @@
 "Ultra",
 "Open in the G-code viewer",
 "Expand menu",
-"Collapse menu"
+"Collapse menu",
+"Menu style",
+"Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.",
+"Floating",
+"Attached",
+"Frame"
 ]

@@ -2376,4 +2376,9 @@ export default {
   "Open in the G-code viewer": "Im G-Code-Viewer öffnen",
   "Expand menu": "Menü ausklappen",
   "Collapse menu": "Menü einklappen",
+  "Menu style": "Menüstil",
+  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Klassisch: das Menü unter der oberen Leiste. Die anderen gehen über die ganze Höhe, mit dem Drucker oben, und klappen zu Symbolen ein. Gilt, wenn das Menü immer sichtbar ist und der Bildschirm breit genug.",
+  "Floating": "Schwebend",
+  "Attached": "Angelegt",
+  "Frame": "Rahmen",
 }

@@ -963,6 +963,31 @@ function reset() {
               </div>
               <div class="rw">
                 <div class="k">
+                  <b>{{ t('Menu style') }}</b
+                  ><span>{{
+                    t(
+                      'Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.',
+                    )
+                  }}</span>
+                </div>
+                <div class="seg v">
+                  <button
+                    v-for="[k, l] in [
+                      ['classic', 'Classic'],
+                      ['float', 'Floating'],
+                      ['attached', 'Attached'],
+                      ['frame', 'Frame'],
+                    ]"
+                    :key="k"
+                    :class="{ on: (state.settings.navStyle || 'classic') === k }"
+                    @click="state.settings.navStyle = k"
+                  >
+                    {{ t(l) }}
+                  </button>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
                   <b>{{ t('Favorites bar') }}</b
                   ><span>{{
                     t('Macro buttons under the top bar. Also available as a Favorites card for the dashboard.')

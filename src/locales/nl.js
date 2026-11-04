@@ -2376,4 +2376,9 @@ export default {
   "Open in the G-code viewer": "Openen in de G-code-viewer",
   "Expand menu": "Menu uitklappen",
   "Collapse menu": "Menu inklappen",
+  "Menu style": "Menustijl",
+  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Klassiek: het menu onder de bovenbalk. De andere lopen over de hele hoogte, met de printer bovenaan, en klappen in tot pictogrammen. Geldt als het menu altijd zichtbaar is op een breed scherm.",
+  "Floating": "Zwevend",
+  "Attached": "Vast",
+  "Frame": "Kader",
 }

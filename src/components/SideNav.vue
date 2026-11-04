@@ -3,7 +3,7 @@
 // slow requests, "new version" hint that opens the update manager). Can be pinned, hidden or auto-hide.
 // side: pinned on a wide screen, the menu runs the full height of the window as a floating panel with the printer
 // at its top; rail is its collapsed form, icons only, each page's name showing on hover.
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import PrinterBrand from './PrinterBrand.vue';
 import { state, useApiEvent, activeTasks } from '../store';
@@ -13,7 +13,12 @@ import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
 defineOptions({ inheritAttrs: false });
-defineProps({ open: Boolean, mode: { type: String, default: 'pinned' }, side: Boolean, rail: Boolean });
+const props = defineProps({
+  open: Boolean,
+  mode: { type: String, default: 'pinned' },
+  side: Boolean,
+  rail: Boolean,
+});
 const emit = defineEmits(['close', 'pin', 'rail']);
 const NAV = [
   ['dashboard', 'dash', 'Dashboard'],
@@ -55,12 +60,46 @@ const hBadge = computed(() => {
     c: l.some((i) => i.level === 'error') ? 'var(--dg)' : l.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--s3)',
   };
 });
+// a short window: everything in the menu gets smaller together until it fits, instead of a scrollbar (down to
+// 60 %; below that it scrolls after all). Not for the menu that slides over the page.
+const navEl = ref(null);
+const zoom = ref(1);
+function fitNav() {
+  const el = navEl.value;
+  if (!el || (props.mode !== 'pinned' && !props.side)) return (zoom.value = 1);
+  const kids = [...el.children];
+  for (const k of kids) k.style.zoom = '';
+  const pad = parseFloat(getComputedStyle(el).paddingTop) + parseFloat(getComputedStyle(el).paddingBottom);
+  const need = el.scrollHeight - pad,
+    have = el.clientHeight - pad;
+  const z = need > have + 1 ? Math.max(0.6, Math.floor(((have - 2) / need) * 100) / 100) : 1;
+  let zz = z;
+  if (zz < 1) for (const k of kids) k.style.zoom = String(zz);
+  // the gaps and borders do not shrink: step down while it still does not fit
+  for (let i = 0; i < 8 && zz > 0.6 && el.scrollHeight > el.clientHeight + 1; i++) {
+    zz = Math.max(0.6, Math.round((zz - 0.03) * 100) / 100);
+    for (const k of kids) k.style.zoom = String(zz);
+  }
+  zoom.value = zz;
+}
+let navRo;
+onMounted(() => {
+  navRo = new ResizeObserver(() => fitNav());
+  if (navEl.value) navRo.observe(navEl.value);
+  fitNav();
+});
+onBeforeUnmount(() => navRo?.disconnect());
+watch(
+  () => [props.rail, props.side, props.mode, navItems.value.length],
+  () => nextTick(fitNav),
+);
 const tick = ref(Date.now());
 setInterval(() => (tick.value = Date.now()), 250);
 const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) => tick.value - t.t > 400) : []));
 </script>
 <template>
   <nav
+    ref="navEl"
     v-bind="$attrs"
     class="sn"
     :class="[{ open, side, rail: side && rail }, mode !== 'pinned' && !side && 'float', mode]"

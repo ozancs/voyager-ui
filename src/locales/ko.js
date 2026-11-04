@@ -2376,4 +2376,9 @@ export default {
   "Open in the G-code viewer": "G-code 뷰어에서 열기",
   "Expand menu": "메뉴 펼치기",
   "Collapse menu": "메뉴 접기",
+  "Menu style": "메뉴 스타일",
+  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "클래식: 상단 바 아래의 메뉴. 나머지는 전체 높이로 프린터가 맨 위에 있고 아이콘으로 접힙니다. 메뉴가 항상 표시되고 화면이 넓을 때 사용됩니다.",
+  "Floating": "플로팅",
+  "Attached": "붙임",
+  "Frame": "프레임",
 }

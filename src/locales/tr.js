@@ -2394,4 +2394,9 @@ export default {
   "Open in the G-code viewer": "G-code görüntüleyicide aç",
   "Expand menu": "Menüyü genişlet",
   "Collapse menu": "Menüyü daralt",
+  "Menu style": "Menü stili",
+  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Klasik: menü üst barın altında. Diğerleri tam boy uzanır, yazıcı en üstte durur ve ikonlara katlanır. Menü her zaman görünürken ve geniş ekranda kullanılır.",
+  "Floating": "Yüzen",
+  "Attached": "Yapışık",
+  "Frame": "Çerçeve",
 }

@@ -151,7 +151,8 @@ window.addEventListener('resize', () => (narrow.value = window.innerWidth <= 110
 const navMode = computed(() => (narrow.value ? 'hidden' : state.settings.navMode || 'pinned'));
 // pinned on a wide screen: the menu runs the full height as a panel of its own, the printer at its top; it
 // collapses to a rail of icons
-const side = computed(() => navMode.value === 'pinned');
+const navStyle = computed(() => state.settings.navStyle || 'classic'); // Settings > Menu style
+const side = computed(() => navMode.value === 'pinned' && navStyle.value !== 'classic');
 const rail = computed(() => side.value && !!state.settings.navRail);
 // the button inside the menu: pinned -> hidden, hidden/auto -> pinned
 function pinNav() {
@@ -209,7 +210,11 @@ startIssues();
 </script>
 
 <template>
-  <div class="shell" ref="shell" :class="{ booting: state.connected && !state.booted, side }">
+  <div
+    class="shell"
+    ref="shell"
+    :class="[{ booting: state.connected && !state.booted, side }, side && 'nav-' + navStyle]"
+  >
     <SideNav
       v-if="side"
       side
@@ -396,6 +401,58 @@ startIssues();
 }
 .shell.side .main {
   padding-left: 0;
+}
+/* attached: the menu on the left edge, rounded only on its right */
+.shell.nav-attached > :deep(.sn.side) {
+  margin: 0;
+  border-left: 0;
+  border-radius: 0 20px 20px 0;
+  background: var(--s1);
+  box-shadow: none;
+}
+.shell.nav-attached > :deep(.sn.side .it.on) {
+  background: var(--s2);
+  box-shadow: none;
+}
+.shell.nav-attached > :deep(.sn.side .it.on::before) {
+  display: none;
+}
+.shell.nav-attached .scol {
+  padding-left: 20px;
+}
+/* frame: the menu is the dark frame around the page, which sits in it as a rounded panel */
+.shell.nav-frame {
+  background: color-mix(in srgb, var(--bg) 55%, #000);
+}
+.shell.nav-frame > :deep(.sn.side) {
+  margin: 10px 0 10px 6px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.shell.nav-frame > :deep(.sn.side .pbr) {
+  border-bottom-color: color-mix(in srgb, var(--bd) 70%, transparent);
+}
+.shell.nav-frame > :deep(.sn.side .it.on) {
+  background: var(--s1);
+  box-shadow: none;
+}
+.shell.nav-frame .scol {
+  margin: 8px 8px 8px 4px;
+  padding-left: 0;
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.shell.nav-frame :deep(.tb) {
+  padding-left: 14px;
+}
+.shell.nav-frame .main {
+  padding-left: 20px;
+}
+.shell.nav-frame :deep(.fb) {
+  margin: 10px 20px 0 14px;
 }
 .shell.side :deep(.fb) {
   margin: 10px 20px 0 0;

@@ -2376,4 +2376,9 @@ export default {
   "Open in the G-code viewer": "在 G-code 查看器中打开",
   "Expand menu": "展开菜单",
   "Collapse menu": "收起菜单",
+  "Menu style": "菜单样式",
+  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "经典：菜单在顶栏下方。其他样式占满整个高度，打印机在顶部，可折叠为图标。在菜单始终显示且屏幕较宽时使用。",
+  "Floating": "悬浮",
+  "Attached": "贴边",
+  "Frame": "框架",
 }
