@@ -378,9 +378,11 @@ recommended shaper right away (SET_INPUT_SHAPER) or write it into the config.
 The recommendation is read from the console lines the test prints ("Recommended filters: ... MZV @ 48.2 Hz").
 
 **[src/views/Viewer.vue](../src/views/Viewer.vue)**  
-G-code viewer (gcode-preview, three.js): loads a file from the printer and shows it in 3D or as  
-layers, can follow the running print and exclude objects. Following the print shows what is printed so far  
-down to the line being printed, the rest of the model faded, and a cone where the nozzle is.
+G-code viewer, drawn by @sindarius/gcodeviewer (Babylon.js, the engine Mainsail uses): solid extrusions with  
+light and shade, colour by feature, speed or extruder. A file plays back at 1x to 20x, and the lines that were  
+just drawn start light and cool down into their colour. The bar under the model moves through the file by  
+position, the layer slider by layer. Following the running print draws it up to where the printer is, with the  
+nozzle at the toolhead position. Clicking an object of the running print picks it for exclusion.
 
 **[src/views/WebcamPage.vue](../src/views/WebcamPage.vue)**  
 Webcam page: one camera large, or all of them side by side ("All cameras", the default when there is more than  

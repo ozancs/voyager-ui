@@ -29,12 +29,11 @@
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/onest": "^5.3.1",
     "@lezer/highlight": "^1.2.4",
-    "gcode-preview": "^2.18.0",
+    "@sindarius/gcodeviewer": "^3.7.18",
     "grid-layout-plus": "^1.1.1",
     "hls.js": "^1.7.3",
     "plotly.js-gl3d-dist-min": "^4.1.1",
     "qrcode-generator": "^2.0.4",
-    "three": "^0.186.0",
     "vue": "^3.5.0"
   },
   "devDependencies": {

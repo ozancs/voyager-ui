@@ -93,7 +93,7 @@ watch(
     idle(() => {
       Object.values(LOADERS).forEach(([, l], i) => setTimeout(() => l().catch(() => {}), i * 150));
       setTimeout(() => import('./components/Surface3D.vue').catch(() => {}), 4000);
-      setTimeout(() => import('gcode-preview').catch(() => {}), 6000);
+      setTimeout(() => import('@sindarius/gcodeviewer').catch(() => {}), 6000);
     });
   },
   { immediate: true },
