@@ -1,6 +1,6 @@
 {
   "name": "voyager-ui",
-  "version": "0.38.25",
+  "version": "0.38.26",
   "private": true,
   "type": "module",
   "scripts": {

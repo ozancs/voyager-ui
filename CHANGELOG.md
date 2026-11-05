@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.38.26
+
+- A soft shadow under the top bars once the page is scrolled, so the page reads as going under them instead of being cut off
+- The large thumbnail preview opens over the thumbnail at any interface size (it could land in the middle of the page)
+- G-code viewer: files with OrcaSlicer's spiral z-hop no longer look full of gaps between layers
+- CI layout check no longer counts the viewer's own view cube faces as overlapping buttons
+
 ## 0.38.25
 
 - G-code viewer: the first open no longer stops with "Cannot read properties of undefined (reading '0')" and an empty view
