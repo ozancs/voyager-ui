@@ -3,6 +3,7 @@
 // serial ports with their /dev/serial/by-id path (what [mcu] serial: wants), USB devices, CAN boards waiting for a
 // canbus_uuid and cameras. A path or UUID copies with one click. Reading only; the CAN query asks the bus which
 // boards answer, boards Klipper already uses do not show up there.
+import { copyText } from '../clipboard';
 import { ref, computed, onMounted, watch } from 'vue';
 import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
@@ -83,7 +84,7 @@ const rows = computed(() => {
 const copied = ref('');
 async function copy(txt) {
   try {
-    await navigator.clipboard.writeText(txt);
+    await copyText(txt);
     copied.value = txt;
     setTimeout(() => (copied.value = ''), 1500);
   } catch {

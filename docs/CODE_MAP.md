@@ -62,6 +62,11 @@ definition in load order, or the last file with the section; files Klipper does 
 changes the line with setOption (the SAVE_CONFIG block wins when the option is  
 there), saves a backup of each file first and uploads it. Klipper needs a restart to use the new values.
 
+**[src/clipboard.js](../src/clipboard.js)**  
+Copy text to the clipboard. The Clipboard API exists only on https or localhost, and a printer is usually  
+opened over plain http on its LAN address, so the old way (a hidden text box and the copy command) is tried  
+when the API is missing or refuses. Resolves when the text was copied, throws when neither way worked.
+
 **[src/controls.js](../src/controls.js)**  
 Helpers of the Controls card: reading a value out of a printer object and testing a switch condition.
 

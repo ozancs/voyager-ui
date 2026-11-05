@@ -241,6 +241,10 @@ function dragEnter(i) {
   padding: 0 20px;
   background: color-mix(in srgb, var(--s1) 45%, var(--bg));
   border-bottom: 1px solid var(--bd);
+  /* a soft shadow under it, so the page scrolling beneath reads as going under the bar, not cut off */
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.45);
 }
 .fb .fav {
   background: var(--s1);

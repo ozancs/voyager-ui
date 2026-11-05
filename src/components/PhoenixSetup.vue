@@ -3,6 +3,7 @@
 // still needs, the two slicer lines with an explicit "I added them", and the park point (the current XY after the
 // toolhead was moved there with the normal controls, or typed machine coordinates), each saved only after a
 // confirmation. Nothing here moves, heats, homes or restarts; the settings apply at once, no SAVE_CONFIG.
+import { copyText } from '../clipboard';
 import { ref, computed, watch } from 'vue';
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
@@ -75,7 +76,7 @@ const LINES = [
 const copied = ref('');
 async function copy(txt) {
   try {
-    await navigator.clipboard.writeText(txt);
+    await copyText(txt);
     copied.value = txt;
     setTimeout(() => (copied.value = ''), 1500);
   } catch {}

@@ -1,6 +1,7 @@
 <script setup>
 // Health page: MCU and CAN connection errors, TMC driver flags, host throttling and power, heater
 // behaviour, maintenance reminders based on print hours. The checks themselves are in features.js.
+import { copyText } from '../clipboard';
 import { ref, computed, onMounted } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
@@ -51,7 +52,7 @@ const thrPast = computed(() => thrNames(16, 19));
 const flashOpen = ref(null); // the board whose flash steps are shown
 async function copyCmd(c) {
   try {
-    await navigator.clipboard.writeText(c);
+    await copyText(c);
     toast(t('Copied'));
   } catch {
     toast(t('Select the command and copy it'), 'warn');

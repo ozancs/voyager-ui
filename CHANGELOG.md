@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.38.25
+
+- G-code viewer: the first open no longer stops with "Cannot read properties of undefined (reading '0')" and an empty view
+- G-code viewer keeps the render quality you picked instead of falling back to Low
+- Copy buttons (console, commands, links) work when the printer is opened over plain http on its network address
+- The favorites bar casts a soft shadow, so the page scrolling under it does not look cut off
+- Fixed a dashboard error when LED effects were found for the first time
+
 ## 0.38.24
 
 - Print card: the actual speed and used filament big, the requested speed and file total small beside them

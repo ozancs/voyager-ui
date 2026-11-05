@@ -2,6 +2,7 @@
 // Moonraker users and the API key (the [authorization] section). Lists the accounts, adds one, removes one, changes
 // the password of the account this browser is logged in with, shows and renews the API key. Shown when Moonraker
 // answers access.users.list, which it does for a logged-in user or a trusted client.
+import { copyText } from '../clipboard';
 import { ref, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
@@ -87,7 +88,7 @@ async function renewKey() {
 }
 async function copyKey() {
   try {
-    await navigator.clipboard.writeText(key.value);
+    await copyText(key.value);
     toast(t('Copied'));
   } catch {
     showKey.value = true;

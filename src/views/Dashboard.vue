@@ -690,10 +690,12 @@ function saveCard() {
   editing.value = null;
 }
 // is the card shown inside some tabs card (other than `except`)?
-const inTabs = (i, except) =>
-  Object.entries(state.settings.customCards || {}).some(
+// (a function declaration: the LED effects watcher above runs at once and reaches it through attachCard)
+function inTabs(i, except) {
+  return Object.entries(state.settings.customCards || {}).some(
     ([id, c]) => id !== except && c.type === 'tabs' && (c.tabs || []).some((tb) => tb.card === i),
   );
+}
 // put a card back on the grid (both layouts when there are two) below everything else
 function attachCard(i) {
   if (inTabs(i) || !(MODULES[i] || state.settings.customCards?.[i])) return;

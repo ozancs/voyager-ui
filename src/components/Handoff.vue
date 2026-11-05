@@ -1,5 +1,6 @@
 <script setup>
 // "Open on phone": a QR code of this exact page (same tab, same printer), made in the browser, no internet needed.
+import { copyText } from '../clipboard';
 import { ref, computed } from 'vue';
 import qrcode from 'qrcode-generator';
 import Icon from './Icon.vue';
@@ -46,7 +47,7 @@ const svg = computed(() => {
 });
 async function copy() {
   try {
-    await navigator.clipboard.writeText(url.value);
+    await copyText(url.value);
     toast(t('Link copied'));
   } catch {
     toast(url.value);

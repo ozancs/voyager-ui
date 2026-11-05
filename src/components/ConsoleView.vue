@@ -4,6 +4,7 @@
 // up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.
 // Options (Settings > Console): a sent command and the replies after it drawn as one block with its own copy
 // button, text colour themes, the command help on hover, timestamps and line wrap.
+import { copyText } from '../clipboard';
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import CmdInput from './CmdInput.vue';
@@ -104,7 +105,7 @@ const copied = ref(null); // the block (or 'all') just copied, for the tick
 async function copy(ls, which) {
   const txt = plain(ls);
   try {
-    await navigator.clipboard.writeText(txt);
+    await copyText(txt);
     copied.value = which;
     setTimeout(() => copied.value === which && (copied.value = null), 1400);
   } catch {

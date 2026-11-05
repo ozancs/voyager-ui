@@ -461,7 +461,7 @@ startIssues();
 .shell.side :deep(.fb) {
   margin: 10px 20px 0 0;
   padding: 0 10px;
-  height: 58px;
+  height: calc(40px * var(--fs, 1) + 18px); /* follows the favorite button size */
   border: 1px solid var(--bd);
   border-radius: 14px;
 }

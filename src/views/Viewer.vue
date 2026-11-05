@@ -196,9 +196,38 @@ async function ensureViewer() {
   const { default: GCodeViewer } = await import('@sindarius/gcodeviewer');
   const canvas = document.createElement('canvas');
   canvas.className = 'gv';
+  // no parallel shader compiling: with it the engine could draw a part whose shader was still compiling on the
+  // first open ("Cannot read properties of undefined (reading '0')") and the view stayed empty until a reload
+  const getContext = canvas.getContext.bind(canvas);
+  canvas.getContext = (type, opts) => {
+    const gl = getContext(type, opts);
+    if (gl && /webgl/.test(type) && !gl.__noParallel) {
+      const getExt = gl.getExtension.bind(gl);
+      gl.getExtension = (name) => (name === 'KHR_parallel_shader_compile' ? null : getExt(name));
+      gl.__noParallel = true;
+    }
+    return gl;
+  };
   wrap.value.prepend(canvas);
   const v = new GCodeViewer(canvas);
   await v.init();
+  // one bad frame must not stop the drawing for good (the engine stops its loop on an error), so each frame runs
+  // guarded and a failing one is only logged
+  const eng = v.engine;
+  if (Array.isArray(eng?._activeRenderLoops) && eng._activeRenderLoops.length) {
+    const loops = [...eng._activeRenderLoops];
+    eng.stopRenderLoop();
+    let logged = false;
+    for (const f of loops)
+      eng.runRenderLoop(() => {
+        try {
+          f();
+        } catch (e) {
+          if (!logged) console.warn('viewer frame', e);
+          logged = true;
+        }
+      });
+  }
   v.setBackgroundColor('#0b0c0e');
   v.bed.setBedColor('#6b7077');
   v.setZClipPlane(1000000, -1000000);
@@ -240,11 +269,9 @@ async function ensureViewer() {
     emit('exclude');
   };
   gp.loadingProgressCallback = (p) => (pct.value = Math.min(100, Math.ceil(p * 100)));
-  if (v.lastLoadFailed()) {
-    // the last file crashed the tab at this quality: start low (the engine remembers it)
-    quality.value = 2;
-    v.clearLoadFlag();
-  }
+  // the engine marks a load as failed when the page is left or a load is stopped half way, and would then drop
+  // to its lowest quality by itself: the quality picked here is kept instead
+  v.clearLoadFlag();
   v.updateRenderQuality(quality.value);
   viewer = v;
   ready.value = true;
@@ -283,6 +310,7 @@ async function processText(v, text, request) {
   }
   if (request !== loadRequest) return false;
   v.gcodeProcessor.cancelLoad = false;
+  v.clearLoadFlag();
   try {
     processing = v.processFile(text);
     await processing;
@@ -290,6 +318,7 @@ async function processText(v, text, request) {
     if (request !== loadRequest) return false;
     v.clearScene?.(true);
     v.gcodeProcessor.cancelLoad = false;
+    v.clearLoadFlag();
     processing = v.processFile(text);
     await processing;
   } finally {
