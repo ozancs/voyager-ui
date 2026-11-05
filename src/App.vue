@@ -149,6 +149,7 @@ watch(
 );
 const showExclude = ref(false);
 const navOpen = ref(false);
+const scrolled = ref(false); // the page is scrolled: the shade under the bars shows
 // side menu: pinned (in the layout), hidden (button opens it over the page), auto (opens when the mouse reaches the left edge)
 const narrow = ref(window.innerWidth <= 1100);
 window.addEventListener('resize', () => (narrow.value = window.innerWidth <= 1100));
@@ -237,6 +238,8 @@ startIssues();
       />
       <FavoritesBar v-if="showFavBar" />
       <div class="body">
+        <!-- the shadow the bars above cast once the page is scrolled, so the page reads as going under them -->
+        <div class="shade" :class="{ on: scrolled }" aria-hidden="true"></div>
         <SideNav
           v-if="!side"
           :open="navOpen"
@@ -257,7 +260,11 @@ startIssues();
         >
           <Icon name="chevr2" :size="16" :stroke="2.4" />
         </button>
-        <main class="main" :class="{ stale: !state.connected && state.booted }">
+        <main
+          class="main"
+          :class="{ stale: !state.connected && state.booted }"
+          @scroll.passive="scrolled = $event.target.scrollTop > 2"
+        >
           <div v-if="!state.connected" class="banner">
             <Icon name="refresh" :size="20" class="spin" />
             <div class="grow">
@@ -498,6 +505,25 @@ startIssues();
   flex: 1;
   min-height: 0;
   display: flex;
+  position: relative;
+}
+.shade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  z-index: 30;
+  pointer-events: none;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.25) 40%, transparent);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.shade.on {
+  opacity: 1;
+}
+:root[data-theme='light'] .shade {
+  background: linear-gradient(rgba(0, 0, 0, 0.14), transparent);
 }
 .main > * {
   flex-shrink: 0;

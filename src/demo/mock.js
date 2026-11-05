@@ -11,6 +11,13 @@ function wsAll(m) {
   const s = JSON.stringify(m);
   sockets.forEach((ws) => ws._recv(s));
 }
+// slicer thumbnails for the demo files (a small and a large one, drawn as SVG, see api.fileUrl in installDemo)
+const DEMO_THUMBS = [
+  { width: 48, height: 48, size: 1, relative_path: '.thumbs/demo-48x48.png' },
+  { width: 300, height: 300, size: 1, relative_path: '.thumbs/demo-300x300.png' },
+];
+const thumbSvg = (hue) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="#0006" stroke-width="1.5" stroke-linejoin="round"><path d="M50 18 82 34 50 50 18 34Z" fill="hsl(${hue} 80% 62%)"/><path d="M18 34 50 50v32L18 66Z" fill="hsl(${hue} 70% 45%)"/><path d="M82 34 50 50v32l32-16Z" fill="hsl(${hue} 70% 36%)"/></g></svg>`;
 const objects = ['mmu'].concat([
   'probe_eddy_current btt_eddy',
   'axis_twist_compensation',
@@ -979,7 +986,7 @@ const files = [
     estimated_time: 3100,
     filament_total: 4100,
     layer_height: 0.2,
-    thumbnails: [],
+    thumbnails: DEMO_THUMBS,
   },
   {
     filename: 'bracket_v3.gcode',
@@ -988,7 +995,7 @@ const files = [
     estimated_time: 7400,
     filament_total: 16200,
     layer_height: 0.2,
-    thumbnails: [],
+    thumbnails: DEMO_THUMBS,
   },
   {
     filename: 'fan_duct.gcode',
@@ -1974,7 +1981,7 @@ function handle(m) {
             estimated_time: 5400,
             layer_height: 0.2,
             object_height: 38,
-            thumbnails: [],
+            thumbnails: DEMO_THUMBS,
             filament_type: 'PETG',
             filament_weight_total: 705,
             nozzle_diameter: 0.4,
@@ -1984,7 +1991,7 @@ function handle(m) {
               estimated_time: 6780,
               layer_height: 0.2,
               object_height: 42,
-              thumbnails: [],
+              thumbnails: DEMO_THUMBS,
               filament_total: 29500,
               slicer: 'OrcaSlicer',
               slicer_version: '2.2.0',
@@ -1995,7 +2002,7 @@ function handle(m) {
               modified: BRACKET_MODIFIED,
               size: 2300000,
             }
-          : { estimated_time: 7400, layer_height: 0.2, object_height: 42, thumbnails: [] };
+          : { estimated_time: 7400, layer_height: 0.2, object_height: 42, thumbnails: DEMO_THUMBS };
     case 'server.database.get_item': {
       if (p.namespace === 'mainsail') return { value: { printername: 'Voyager Demo' } };
       const k = p.namespace + '/' + p.key;
@@ -2948,6 +2955,7 @@ const SLICER_BLOCK = `
 ; CONFIG_BLOCK_END
 `;
 function gcodeFile() {
+  if (globalThis.__demoGcodeText) return globalThis.__demoGcodeText; // a test can hand in its own file
   let g = ';gcode\n;TYPE:Custom\nG28\nG90\nM83\n';
   for (let z = 1; z <= 40; z++) {
     g += `;LAYER_CHANGE\n;Z:${(z * 0.2).toFixed(2)}\nG1 Z${(z * 0.2).toFixed(2)} F600\n`;
@@ -3162,6 +3170,7 @@ export function installDemo() {
     if (root === 'timelapse' && /\.jpg$/i.test(path))
       return svgUrl(tlSvg(TL_FILES.findIndex((f) => f.path === path) * 37 + 150, 'clip'));
     if (root === 'timelapse_frames') return svgUrl(tlSvg(+(path.match(/\d+/)?.[0] || 0)));
+    if (root === 'gcodes' && /\.thumbs\/demo-/.test(path)) return svgUrl(thumbSvg(95));
     return fileUrl(root, path);
   };
   setInterval(tick, 1000);

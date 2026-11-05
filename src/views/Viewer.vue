@@ -253,6 +253,23 @@ async function ensureViewer() {
     v.bed.buildVolume.z.min = min[2];
   }
   const gp = v.gcodeProcessor;
+  // a lift drawn as an arc (OrcaSlicer's spiral z-hop, "G3 Z… I… J…" without E) counts in the engine as a new layer
+  // height, so every line after it was drawn only as tall as the hop and the part looked full of gaps: such a move
+  // leaves the layer height as it was
+  if (!gp.__arcHopFix && typeof gp.processLine === 'function') {
+    const orig = gp.processLine;
+    gp.processLine = function (line, ...rest) {
+      const code = String(line).split(';')[0];
+      if (!/^\s*G0?[23](?![0-9])/i.test(code) || /E/i.test(code)) return orig.call(this, line, ...rest);
+      const cur = this.currentLayerHeight,
+        prev = this.previousLayerHeight;
+      const r = orig.call(this, line, ...rest);
+      this.currentLayerHeight = cur;
+      this.previousLayerHeight = prev;
+      return r;
+    };
+    gp.__arcHopFix = true;
+  }
   gp.setLiveTracking(false);
   gp.useHighQualityExtrusion(hd.value);
   gp.updateForceWireMode(false);

@@ -7,14 +7,18 @@ const SIZE = 500;
 const style = computed(() => {
   const r = zoom.rect;
   if (!r) return {};
+  // worked out in screen pixels (the thumbnail's rect), then set inside the zoomed page (Interface size), so it
+  // lands over the thumbnail at any zoom instead of somewhere in the middle
+  const z = window.__uiZoom || 1;
   const W = window.innerWidth,
     Hh = window.innerHeight;
-  const s = Math.min(SIZE, Hh - 16, W - 16);
+  const s = Math.min(SIZE * z, Hh - 16, W - 16);
   let left = r.left + s <= W - 8 ? r.left : r.right - s;
   let top = r.bottom - s >= 8 ? r.bottom - s : r.top;
   left = Math.max(8, Math.min(left, W - s - 8));
   top = Math.max(8, Math.min(top, Hh - s - 8));
-  return { width: s + 'px', height: s + 'px', left: left + 'px', top: top + 'px' };
+  const px = (v) => v / z + 'px';
+  return { width: px(s), height: px(s), left: px(left), top: px(top) };
 });
 </script>
 <template>
