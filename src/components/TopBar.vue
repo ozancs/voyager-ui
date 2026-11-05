@@ -98,6 +98,13 @@ async function onFile(e) {
   }
   uploading.value = null;
 }
+// a G-code file dropped on Upload & Print: the same as picking it
+const dropOn = ref(false);
+function onDrop(e) {
+  dropOn.value = false;
+  const f = e.dataTransfer?.files?.[0];
+  if (f && uploading.value === null) onFile({ target: { files: [f], value: '' } });
+}
 async function estop() {
   try {
     await api.call('printer.emergency_stop');
@@ -365,10 +372,16 @@ onBeforeUnmount(() => ovObs?.disconnect());
       <Icon name="save" :stroke="2.4" /><span class="hide-m">{{ t('Save Config') }}</span>
     </button>
     <button
-      class="btn lg hide-s"
+      class="btn lg hide-s upb"
+      :class="{ dropon: dropOn }"
       :aria-label="t('Upload & Print')"
+      :data-tip="t('Click, or drop a G-code file here')"
       :disabled="uploading !== null"
       @click="fileInput.click()"
+      @dragenter.prevent="dropOn = true"
+      @dragover.prevent="dropOn = true"
+      @dragleave="dropOn = false"
+      @drop.prevent="onDrop"
     >
       <Icon name="upload" :stroke="2.4" /><span v-if="uploading !== null">{{ Math.round(uploading * 100) + '%' }}</span
       ><span v-else class="hide-m">{{ t('Upload & Print') }}</span>
@@ -1049,5 +1062,10 @@ onBeforeUnmount(() => ovObs?.disconnect());
 .pmi:disabled {
   opacity: 1;
   background: var(--s2);
+}
+.upb.dropon {
+  outline: 2px dashed var(--ac);
+  outline-offset: 2px;
+  background: color-mix(in srgb, var(--ac) 18%, var(--s2));
 }
 </style>

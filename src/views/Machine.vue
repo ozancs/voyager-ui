@@ -89,9 +89,16 @@ const updateGroups = computed(() => {
     const [, info] = entry;
     (needs(info) || info.is_dirty || info.detached || info.is_valid === false ? attention : current).push(entry);
   }
+  // OznLab's own (Voyager UI, PA Sensei, Phoenix) first, then the rest in Moonraker's order
+  const own = ([k]) => (/^(voyager-ui|pa[_-]sensei|oznlab|phoenix)/i.test(k) ? 0 : 1);
+  const order = (l) =>
+    l
+      .map((e, i) => [e, i])
+      .sort((a, b) => own(a[0]) - own(b[0]) || a[1] - b[1])
+      .map((x) => x[0]);
   return [
-    { id: 'attention', entries: attention },
-    { id: 'current', entries: current },
+    { id: 'attention', entries: order(attention) },
+    { id: 'current', entries: order(current) },
   ];
 });
 function needs(v) {

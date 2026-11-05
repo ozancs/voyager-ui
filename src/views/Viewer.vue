@@ -166,17 +166,29 @@ function syncCube(cam) {
     pitch = Math.asin(Math.max(-1, Math.min(1, dy / len)));
   cubeTf.value = `rotateX(${(-deg(pitch)).toFixed(1)}deg) rotateY(${(-deg(yaw)).toFixed(1)}deg)`;
 }
+// each face: where the camera goes, as a direction in printer axes from the model's centre (x right, y back, z up),
+// and the engine's own view for when the model's size is not known
 const FACES = [
-  ['Front', 'translateZ(23px)', { x: 0, y: 0, z: 1 }],
-  ['Back', 'rotateY(180deg) translateZ(23px)', { x: 0, y: 0, z: -1 }],
-  ['Right', 'rotateY(90deg) translateZ(23px)', { x: -1, y: 0, z: 0 }],
-  ['Left', 'rotateY(-90deg) translateZ(23px)', { x: 1, y: 0, z: 0 }],
-  ['Top', 'rotateX(90deg) translateZ(23px)', { x: 0, y: -1, z: 0 }],
-  ['Bottom', 'rotateX(-90deg) translateZ(23px)', { x: 0, y: 1, z: 0 }],
+  ['Front', 'translateZ(23px)', [0, -1, 0], { x: 0, y: 0, z: 1 }],
+  ['Back', 'rotateY(180deg) translateZ(23px)', [0, 1, 0], { x: 0, y: 0, z: -1 }],
+  ['Right', 'rotateY(90deg) translateZ(23px)', [1, 0, 0], { x: -1, y: 0, z: 0 }],
+  ['Left', 'rotateY(-90deg) translateZ(23px)', [-1, 0, 0], { x: 1, y: 0, z: 0 }],
+  ['Top', 'rotateX(90deg) translateZ(23px)', [0, -0.001, 1], { x: 0, y: -1, z: 0 }],
+  ['Bottom', 'rotateX(-90deg) translateZ(23px)', [0, -0.001, -1], { x: 0, y: 1, z: 0 }],
 ];
-function lookFrom(v) {
+// a face click: the model in the middle, seen straight from that side
+function lookFrom(dir, engine) {
   if (!viewer) return;
-  viewer.setViewboxCameraPosition(v);
+  if (!box) viewer.setViewboxCameraPosition(engine);
+  else {
+    const [x0, x1, y0, y1, zt] = box;
+    const cx = (x0 + x1) / 2,
+      cy = (y0 + y1) / 2,
+      cz = zt / 2,
+      d = Math.max(x1 - x0, y1 - y0, zt, 40) * 1.8;
+    viewer.setCameraTarget(cx, cy, cz);
+    viewer.setCameraPosition(cx + dir[0] * d, cy + dir[1] * d, cz + dir[2] * d);
+  }
   syncCube(viewer.scene.activeCamera);
 }
 async function ensureViewer() {
@@ -258,6 +270,33 @@ async function sizeOf(fn) {
   }
 }
 let loadRequest = 0;
+// one file at a time in the engine: a new pick stops the one being read and waits for it to let go. A file read
+// right after another one could fail inside the engine (it worked after a reload), so a failed read is tried once
+// more on a cleared scene before it is reported.
+let processing = null;
+async function processText(v, text, request) {
+  if (processing) {
+    v.gcodeProcessor.cancelLoad = true;
+    try {
+      await processing;
+    } catch {}
+  }
+  if (request !== loadRequest) return false;
+  v.gcodeProcessor.cancelLoad = false;
+  try {
+    processing = v.processFile(text);
+    await processing;
+  } catch (e) {
+    if (request !== loadRequest) return false;
+    v.clearScene?.(true);
+    v.gcodeProcessor.cancelLoad = false;
+    processing = v.processFile(text);
+    await processing;
+  } finally {
+    processing = null;
+  }
+  return request === loadRequest;
+}
 async function load(fn) {
   if (!fn) return;
   const request = ++loadRequest;
@@ -284,16 +323,13 @@ async function load(fn) {
     const v = await ensureViewer();
     if (request !== loadRequest) return;
     file.value = fn;
+    // the file being printed follows the print by itself; any other file has nothing to follow
+    if (fn === curPrint.value) follow.value = true;
     loading.value = t('Parsing…');
     await nextTick();
-    if (viewer.loading) {
-      v.gcodeProcessor.cancelLoad = true;
-      await new Promise((r) => setTimeout(r, 300));
-    }
     findLayers(text);
     v.updateRenderQuality(quality.value);
-    await v.processFile(text);
-    if (request !== loadRequest) return;
+    if (!(await processText(v, text, request))) return;
     finish();
     focusModel();
   } catch (e) {
@@ -549,12 +585,12 @@ onBeforeUnmount(() => {
         <div v-if="ready" class="ocube" @pointerdown.stop>
           <div class="oc" :style="{ transform: cubeTf }">
             <button
-              v-for="[name, tf, dir] in FACES"
+              v-for="[name, tf, dir, engine] in FACES"
               :key="name"
               type="button"
               :style="{ transform: tf }"
               :aria-label="t(name)"
-              @click="lookFrom(dir)"
+              @click="lookFrom(dir, engine)"
             >
               {{ t(name) }}
             </button>
@@ -621,7 +657,7 @@ onBeforeUnmount(() => {
             >/ {{ layerInfo.total || '--' }} · Z {{ (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2) }}</span
           >
         </div>
-        <div class="row" style="justify-content: space-between">
+        <div v-if="active && file === curPrint" class="row" style="justify-content: space-between">
           <span>{{ t('Follow print') }}</span
           ><Toggle v-model="follow" :label="t('Follow print')" />
         </div>

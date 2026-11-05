@@ -452,11 +452,11 @@ startIssues();
 .shell.nav-frame :deep(.tb) {
   padding-left: 14px;
 }
-.shell.nav-frame .main {
-  padding-left: 20px;
+.shell.side.nav-frame .main {
+  padding-left: 14px;
 }
-.shell.nav-frame :deep(.fb) {
-  margin: 10px 20px 0 14px;
+.shell.side.nav-frame :deep(.fb) {
+  margin: 10px 20px 0 14px; /* in line with the status box (the general rule below is otherwise later) */
 }
 .shell.side :deep(.fb) {
   margin: 10px 20px 0 0;

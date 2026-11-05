@@ -233,6 +233,9 @@ function deleteLater(its, base) {
     },
   });
 }
+// the files that run the printer, marked so they are quick to find among the rest
+const MAIN = { 'printer.cfg': 'Printer config', 'moonraker.conf': 'Moonraker config' };
+const main = (it) => !it.dir && root.value === 'config' && !path.value && MAIN[it.name];
 const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', delete: 'Delete', bulkdelete: 'Delete' };
 </script>
 <template>
@@ -245,8 +248,9 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
     @drop.prevent="dDrop($event)"
   >
     <div v-if="over" class="dz">
-      <div class="pill">
-        <Icon name="upload" :size="20" :stroke="2.4" /><b>{{
+      <div class="big">
+        <span class="ring"><Icon name="upload" :size="34" :stroke="2.2" /></span>
+        <b>{{
           overDir ? t('Drop to upload into {dir}', { dir: overDir }) : t('Drop to upload to /{p}', { p: full })
         }}</b>
       </div>
@@ -366,10 +370,12 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
               <Icon
                 :name="it.dir ? 'folder' : 'file'"
                 :size="18"
-                :style="{ color: it.dir ? 'var(--ac)' : 'var(--mu)' }"
+                :style="{ color: it.dir || main(it) ? 'var(--ac)' : 'var(--mu)' }"
               />
             </td>
-            <td class="nm">{{ it.name }}</td>
+            <td class="nm" :class="{ main: main(it) }">
+              {{ it.name }}<span v-if="main(it)" class="tag">{{ t(main(it)) }}</span>
+            </td>
             <td class="mono mu r">{{ it.dir ? '--' : fmtBytes(it.size) }}</td>
             <td class="mono mu r">{{ fmtDate(it.modified) }}</td>
             <td>
@@ -455,12 +461,53 @@ tr.sel td {
   z-index: 5;
   border-radius: inherit;
   border: 2px dashed var(--ac);
-  background: color-mix(in srgb, var(--ac) 7%, transparent);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(2px);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding-bottom: 22px;
   pointer-events: none;
+}
+/* the drop target in the middle: what will happen when the files are let go */
+.dz .big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 36px;
+  border-radius: 20px;
+  background: var(--s1);
+  border: 1px solid color-mix(in srgb, var(--ac) 45%, var(--bd));
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  font-size: 15px;
+}
+.dz .ring {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ac);
+  color: var(--oa);
+}
+/* rows: a little tighter than the general table */
+tr.fr td {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+.nm.main {
+  color: var(--tx);
+}
+.tag {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ac);
+  background: color-mix(in srgb, var(--ac) 12%, transparent);
+  vertical-align: 1px;
+  white-space: nowrap;
 }
 .dz .pill {
   display: flex;

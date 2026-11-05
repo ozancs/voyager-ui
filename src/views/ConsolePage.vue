@@ -40,6 +40,10 @@ const desc = (c) => macroDesc(c, state.settings.cardOpts?.macros?.descs, state.c
             @click="state.settings.consoleHideTemps = !state.settings.consoleHideTemps"
           >
             {{ t('Hide temps') }}</button
+          ><button class="btn" @click="cv?.copyAll()">
+            <Icon :name="cv?.copied === 'all' ? 'check' : 'copy'" :size="15" />{{
+              cv?.copied === 'all' ? t('Copied') : t('Copy console')
+            }}</button
           ><button class="btn" @click="clearConsole"><Icon name="trash" :size="16" />{{ t('Clear') }}</button>
         </div>
       </div>

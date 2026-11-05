@@ -56,6 +56,11 @@ export const DEFAULT_SETTINGS = () => ({
     { section: 'firmware_retraction', key: 'retract_speed', unit: 'mm/s' },
   ],
   consoleHideTemps: true,
+  consoleGroup: true, // a sent command and its replies as one block (ConsoleView)
+  consoleTheme: 'default', // text colours of the console log
+  consoleHelp: true, // what a command does, on hover over a sent command
+  consoleTime: true, // the time in front of each line
+  consoleWrap: true, // long lines wrap; off: one line each, the log scrolls sideways
   tempRange: 600,
   strip: { order: [], hidden: [] },
   layout: null,

@@ -68,13 +68,18 @@ function fromMacro(m) {
       .toLowerCase()
       .replace(/\b\w/g, (c) => c.toUpperCase());
 }
+// reordering: the button being dragged takes the place of the one it is over at once, the others slide aside,
+// so where it lands is visible before letting go. A short pause after each move stops two buttons of different
+// widths from swapping back and forth under the pointer.
 const dragI = ref(null);
-function onDrop(i) {
-  if (dragI.value == null || dragI.value === i) return;
+let lastMove = 0;
+function dragEnter(i) {
+  if (dragI.value == null || dragI.value === i || Date.now() - lastMove < 180) return;
   const a = favs.value;
   const [x] = a.splice(dragI.value, 1);
   a.splice(i, 0, x);
-  dragI.value = null;
+  dragI.value = i;
+  lastMove = Date.now();
 }
 </script>
 
@@ -95,7 +100,7 @@ function onDrop(i) {
         </button>
       </div>
     </div>
-    <div class="list">
+    <TransitionGroup tag="div" name="fv" class="list">
       <button
         v-for="(f, i) in favs"
         :key="f.id"
@@ -106,17 +111,20 @@ function onDrop(i) {
         :draggable="state.favEdit"
         @dragstart="dragI = i"
         @dragend="dragI = null"
+        @dragenter.prevent="dragEnter(i)"
         @dragover.prevent
-        @drop.prevent="onDrop(i)"
+        @drop.prevent="dragI = null"
         @click="run(f)"
       >
         <Icon v-if="state.favEdit" name="grip" :size="14" :stroke="3" class="gr" />
         <Icon :name="f.icon" :size="17" :stroke="2.3" class="fi" :style="f.color ? { color: f.color } : null" />
         <span>{{ f.name }}</span>
-        <Icon v-if="state.favEdit" name="pencil" :size="13" class="pe" />
+        <Icon v-if="state.favEdit" name="pencil" :size="11" class="pe" />
       </button>
-      <div v-if="!favs.length" class="hint">{{ t('No favorites yet. Press + to add a macro or command.') }}</div>
-    </div>
+      <div v-if="!favs.length" key="hint" class="hint">
+        {{ t('No favorites yet. Press + to add a macro or command.') }}
+      </div>
+    </TransitionGroup>
     <button v-if="!card" class="side" :aria-label="t('Add favorite')" @click="add">
       <Icon name="plus" :size="18" :stroke="2.4" />
     </button>
@@ -270,12 +278,23 @@ function onDrop(i) {
 .fav.drag {
   opacity: 0.4;
 }
+/* while editing the grip and the pencil sit over the button's own padding, so it keeps its size and the bar
+   does not start scrolling */
 .gr {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--mu2);
-  margin-left: -6px;
 }
 .pe {
+  position: absolute;
+  top: 4px;
+  right: 3px;
   color: var(--mu);
+}
+.fv-move {
+  transition: transform 0.18s ease;
 }
 
 .hint {

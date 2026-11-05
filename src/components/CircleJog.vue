@@ -1,7 +1,8 @@
 <script setup>
 // Circle jog pad (Toolhead card, "Circle" style, as Mainsail's): X and Y around a round pad, one ring per step
-// (the smallest inside) inside a dial of ticks with the axis directions on it, a Z strip next to it, home buttons in the corners (X, Y, XY, Z) and Home all in the middle. The steps
-// are the circle's own X/Y and Z steps from Settings > Control. It only emits; the card sends the G-code.
+// (the smallest inside) with the axis directions at its rim, a Z strip next to it, home buttons in the corners
+// (X, Y, XY, Z) and Home all in the middle. The steps are the circle's own X/Y and Z steps from Settings > Control.
+// It only emits; the card sends the G-code.
 import { computed } from 'vue';
 import { t } from '../i18n';
 const props = defineProps({
@@ -14,10 +15,11 @@ const props = defineProps({
 const emit = defineEmits(['jog', 'home']);
 
 const C = 38, // pad centre
-  R = 36, // dial radius
-  RP = 32.6, // outer radius of the rings, inside the dial
-  RC = 7.5, // centre button
-  GAP = 1.4; // between rings
+  R = 36.4, // where the axis names sit, just outside the rings
+  RP = 34.4, // outer radius of the rings
+  RC = 8, // centre button
+  GAP = 1.7, // between rings (the rounded edges take part of it)
+  SPREAD = 43.4; // each ring piece covers this many degrees each side of its direction
 const up = (a) =>
   [...a]
     .map(Number)
@@ -33,10 +35,10 @@ const pt = (r, deg) => {
   const a = (deg * Math.PI) / 180;
   return `${(C + r * Math.cos(a)).toFixed(3)} ${(C - r * Math.sin(a)).toFixed(3)}`;
 };
-// one ring piece: between two radii, 43° each side of the direction
+// one ring piece: between two radii, SPREAD° each side of the direction (a hairline between the quadrants)
 function sector(r0, r1, mid) {
-  const a0 = mid - 43,
-    a1 = mid + 43;
+  const a0 = mid - SPREAD,
+    a1 = mid + SPREAD;
   return `M${pt(r1, a0)}A${r1} ${r1} 0 0 0 ${pt(r1, a1)}L${pt(r0, a1)}A${r0} ${r0} 0 0 1 ${pt(r0, a0)}Z`;
 }
 const DIRS = [
@@ -82,26 +84,19 @@ const zbands = computed(() => {
     ];
   });
 });
-// the dial: a tick every 5°, longer on the diagonals, none on the axes where their names are
+// the axis names at the rim (the tick dial that was around the rings is gone: it only made the pad look busy)
 const xyp = (r, deg) => {
   const a = (deg * Math.PI) / 180;
   return [+(C + r * Math.cos(a)).toFixed(3), +(C - r * Math.sin(a)).toFixed(3)];
 };
-const TICKS = Array.from({ length: 72 }, (_, k) => k * 5)
-  .filter((a) => a % 90 !== 0)
-  .map((a) => {
-    const big = a % 45 === 0;
-    const [x1, y1] = xyp(big ? R - 1.7 : R - 1.1, a),
-      [x2, y2] = xyp(R, a);
-    return { a, x1, y1, x2, y2, big };
-  });
 const AXES = [
   ['X+', 0],
   ['Y+', 90],
   ['X−', 180],
   ['Y−', 270],
-].map(([l, a]) => ({ l, a, p: xyp(R - 1, a) }));
-const fill = (i, n) => `color-mix(in srgb, var(--tx) ${16 - (12 * i) / Math.max(1, n - 1 || 1)}%, var(--s2))`;
+].map(([l, a]) => ({ l, a, p: xyp(R, a) }));
+// fuller rings: the innermost (smallest step) the lightest, each ring out a step darker, all clearly visible
+const fill = (i, n) => `color-mix(in srgb, var(--tx) ${22 - (12 * i) / Math.max(1, n - 1 || 1)}%, var(--s2))`;
 const CORNERS = computed(() => [
   { key: 'x', x: 0, y: 0, cmd: 'G28 X', label: 'X', homed: can('X'), tip: t('Home {axis}', { axis: 'X' }) },
   { key: 'y', x: 64, y: 0, cmd: 'G28 Y', label: 'Y', homed: can('Y'), tip: t('Home {axis}', { axis: 'Y' }) },
@@ -119,17 +114,7 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
 </script>
 <template>
   <svg class="cj" viewBox="0 0 100 76" role="group" :aria-label="t('Toolhead jog pad')">
-    <!-- the dial around the rings -->
-    <line
-      v-for="k in TICKS"
-      :key="'k' + k.a"
-      class="tk"
-      :class="{ big: k.big }"
-      :x1="k.x1"
-      :y1="k.y1"
-      :x2="k.x2"
-      :y2="k.y2"
-    />
+    <!-- the axis names around the rings -->
     <text v-for="a in AXES" :key="a.l" class="axl" :x="a.p[0]" :y="a.p[1]">{{ a.l }}</text>
     <!-- X / Y rings -->
     <g
@@ -145,7 +130,7 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
       @keydown="key(() => !busy && can(p.axis) && emit('jog', p.axis, p.dist))($event)"
     >
       <title>{{ can(p.axis) ? p.label : t('{axis} must be homed first', { axis: p.axis }) }}</title>
-      <path :d="p.d" :style="{ fill: fill(p.i, xy.length) }" />
+      <path :d="p.d" :style="{ fill: fill(p.i, xy.length), stroke: fill(p.i, xy.length) }" />
     </g>
     <!-- step sizes along the Y+ side, as on the rings -->
     <text v-for="r in rings" :key="'t' + r.i" class="lb" :x="C" :y="C - r.rm" :class="{ dim: !can('Y') }">
@@ -225,11 +210,13 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
 .st:hover rect,
 .st:focus-visible path,
 .st:focus-visible rect {
-  fill: color-mix(in srgb, var(--tx) 26%, var(--s2)) !important;
+  fill: color-mix(in srgb, var(--tx) 32%, var(--s2)) !important;
+  stroke: color-mix(in srgb, var(--tx) 32%, var(--s2)) !important;
 }
 .st:active path,
 .st:active rect {
   fill: color-mix(in srgb, var(--ac) 45%, var(--s2)) !important;
+  stroke: color-mix(in srgb, var(--ac) 45%, var(--s2)) !important;
 }
 .st.off {
   cursor: default;
@@ -237,25 +224,20 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
   opacity: 0.45;
 }
 .lb {
-  font: 600 3.4px var(--fd);
+  font: 700 3.6px var(--fd);
   fill: var(--tx);
   text-anchor: middle;
   dominant-baseline: central;
   pointer-events: none;
   font-variant-numeric: tabular-nums;
 }
-.tk {
-  stroke: var(--mu);
-  stroke-width: 0.22;
-  opacity: 0.5;
-  pointer-events: none;
-}
-.tk.big {
-  stroke-width: 0.35;
-  opacity: 0.85;
+/* the fill's own colour drawn round the edge: rounder corners on the ring pieces */
+.st path {
+  stroke-width: 0.7;
+  stroke-linejoin: round;
 }
 .axl {
-  font: 600 2.9px var(--fd);
+  font: 600 2.6px var(--fd);
   fill: var(--mu);
   text-anchor: middle;
   dominant-baseline: central;

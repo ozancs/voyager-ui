@@ -1,7 +1,7 @@
 <script setup>
 // Toolhead card: position (type a value to move), jog buttons per axis with the configured steps,
 // homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
@@ -88,9 +88,33 @@ const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
 // jog style: the round pad (default, as Mainsail's circle) or rows of buttons; Settings > Control has the same choice
 const circle = computed(() => state.settings.toolheadStyle !== 'buttons');
 const setStyle = (v) => (state.settings.toolheadStyle = v);
+// Buttons style laid out for the card's shape: one long row when the card is wide and low, otherwise stacked
+// (positions side by side on top, the axis rows under them, the D-pad with Z and the steps at the bottom). On the
+// dashboard grid it goes by the cell's proportions (the card is zoomed to fit, so its own width says little);
+// elsewhere by the width a row needs.
+const root = ref(null);
+const stack = ref(false);
+let ro;
+function measure() {
+  const el = root.value;
+  if (!el) return;
+  const cell = el.closest('.cell[data-scale]');
+  if (cell) {
+    const w = cell.clientWidth,
+      h = cell.clientHeight;
+    stack.value = h > 0 && w / h < 2;
+  } else stack.value = el.clientWidth < 760;
+}
+onMounted(() => {
+  ro = new ResizeObserver(measure);
+  const cell = root.value?.closest('.cell[data-scale]');
+  ro.observe(cell || root.value);
+  measure();
+});
+onBeforeUnmount(() => ro?.disconnect());
 </script>
 <template>
-  <section class="card spread">
+  <section ref="root" class="card spread">
     <div class="card-h">
       <CardTitle :text="t('Toolhead')" />
       <!-- the G-code state the printer is in: where a typed G1 goes and how E counts (the jog buttons always move
@@ -152,7 +176,7 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
       </div>
       <CardCollapse />
     </div>
-    <div class="body" :class="{ circ: circle }">
+    <div class="body" :class="{ circ: circle, stack: !circle && stack }">
       <div class="grp pos3" :aria-label="t('Target position')" :data-tip="t('Target position')">
         <div
           v-for="(a, i) in ['X', 'Y', 'Z']"
@@ -509,5 +533,59 @@ const setStyle = (v) => (state.settings.toolheadStyle = v);
   .cell[data-scale] .steps {
     display: flex;
   }
+}
+/* stacked buttons style (a square or narrow card): the positions side by side, the axis rows under them, then
+   the D-pad with Z beside it and the step column. Last in the file so it wins over the rules above. */
+.body.stack {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto 1fr; /* the bottom group in the middle */
+  grid-template-areas:
+    'pos pos pos pos pos'
+    'jog jog jog jog jog'
+    '. dpad zcol steps .';
+  gap: 10px 12px;
+  align-items: start;
+  flex: 1 1 auto;
+}
+.body.stack .pos3 {
+  grid-area: pos;
+  width: 100%;
+  height: auto;
+  grid-template-rows: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.body.stack .pos {
+  height: 40px;
+  padding: 0 4px 0 10px;
+  min-width: 0;
+}
+.body.stack .pin {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 2px;
+  font-size: clamp(13px, 4.2cqw, 19px);
+}
+.body.stack .ax {
+  gap: 4px;
+}
+.body.stack .jog {
+  grid-area: jog;
+  min-width: 0;
+  flex: none;
+}
+.body.stack .dpad,
+.body.stack .zcol {
+  display: grid;
+}
+.body.stack .dpad {
+  grid-area: dpad;
+}
+.body.stack .zcol {
+  grid-area: zcol;
+}
+.body.stack .steps {
+  grid-area: steps;
+  display: flex;
+  margin-left: 0;
 }
 </style>

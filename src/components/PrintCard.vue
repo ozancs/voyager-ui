@@ -53,11 +53,10 @@ const reqSpeed = computed(() => {
   const g = S('gcode_move');
   return g.speed > 0 ? Math.round((g.speed / 60) * (g.speed_factor ?? 1)) : null;
 });
-const speed = computed(() => {
-  if (!active.value || mr.value.live_velocity == null) return '--';
-  const a = Math.round(mr.value.live_velocity);
-  return (reqSpeed.value != null ? a + ' / ' + reqSpeed.value : a) + ' mm/s';
-});
+// the actual value large, what was asked for small after it
+const speed = computed(() =>
+  active.value && mr.value.live_velocity != null ? Math.round(mr.value.live_velocity) : null,
+);
 const flow = computed(() => {
   const v = mr.value.live_extruder_velocity;
   if (!active.value || v == null) return '--';
@@ -67,10 +66,7 @@ const flow = computed(() => {
 const slicer = computed(() => (state.currentMeta?.estimated_time ? fmtTime(state.currentMeta.estimated_time) : '--'));
 // used / the file's total (the slicer's figure), with how far along that is
 const filTotal = computed(() => state.currentMeta?.filament_total || 0);
-const filament = computed(() => {
-  const u = (ps.value.filament_used || 0) / 1000;
-  return filTotal.value ? u.toFixed(2) + ' / ' + (filTotal.value / 1000).toFixed(2) + ' m' : u.toFixed(2) + ' m';
-});
+const filament = computed(() => ((ps.value.filament_used || 0) / 1000).toFixed(2));
 const filPct = computed(() =>
   filTotal.value ? Math.min(100, Math.round(((ps.value.filament_used || 0) / filTotal.value) * 100)) + '%' : null,
 );
@@ -131,7 +127,10 @@ async function reprint() {
         </div>
         <div :style="{ minWidth: '12ch' }">
           <span class="lbl" :data-tip="t('Actual / requested by the G-code')">{{ t('Speed') }}</span
-          ><b class="mono">{{ speed }}</b>
+          ><b class="mono"
+            >{{ speed ?? '--'
+            }}<small v-if="speed != null" class="rq">{{ reqSpeed != null ? ' / ' + reqSpeed : '' }} mm/s</small></b
+          >
         </div>
         <div :style="{ minWidth: '9.5ch' }">
           <span class="lbl">{{ t('Flow') }}</span
@@ -139,7 +138,9 @@ async function reprint() {
         </div>
         <div :style="{ minWidth: '13ch' }">
           <span class="lbl" :data-tip="t('Used / total of the file')">{{ t('Filament') }}</span
-          ><b class="mono" :data-tip="filPct">{{ filament }}</b>
+          ><b class="mono" :data-tip="filPct"
+            >{{ filament }}<small class="rq">{{ filTotal ? ' / ' + (filTotal / 1000).toFixed(2) : '' }} m</small></b
+          >
         </div>
         <div :style="{ minWidth: '7ch' }">
           <span class="lbl">{{ t('Print time') }}</span
@@ -318,5 +319,11 @@ async function reprint() {
   .acts {
     width: 100%;
   }
+}
+/* the requested / total part: smaller and quieter than the value itself */
+.rq {
+  font-size: 0.72em;
+  font-weight: 500;
+  color: var(--mu);
 }
 </style>

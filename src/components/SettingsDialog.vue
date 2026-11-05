@@ -781,6 +781,58 @@ function reset() {
                 </div>
                 <Toggle v-model="state.settings.consoleHideTemps" :label="t('Hide temperature lines')" />
               </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Group commands with their replies') }}</b
+                  ><span>{{
+                    t('A command you send and the lines that answer it show as one block, with a copy button on hover.')
+                  }}</span>
+                </div>
+                <Toggle v-model="state.settings.consoleGroup" :label="t('Group commands with their replies')" />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Text theme') }}</b
+                  ><span>{{ t('Colours of the console text.') }}</span>
+                </div>
+                <div class="seg v">
+                  <button
+                    v-for="[k, l] in [
+                      ['default', 'Default'],
+                      ['soft', 'Soft'],
+                      ['terminal', 'Terminal'],
+                      ['contrast', 'High contrast'],
+                      ['paper', 'Paper'],
+                    ]"
+                    :key="k"
+                    :class="{ on: (state.settings.consoleTheme || 'default') === k }"
+                    @click="state.settings.consoleTheme = k"
+                  >
+                    {{ t(l) }}
+                  </button>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Command help on hover') }}</b
+                  ><span>{{ t('Pointing at a command you sent says what it does.') }}</span>
+                </div>
+                <Toggle v-model="state.settings.consoleHelp" :label="t('Command help on hover')" />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Timestamps') }}</b
+                  ><span>{{ t('The time in front of each line.') }}</span>
+                </div>
+                <Toggle v-model="state.settings.consoleTime" :label="t('Timestamps')" />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Wrap long lines') }}</b
+                  ><span>{{ t('Off: each line stays on one row and the console scrolls sideways.') }}</span>
+                </div>
+                <Toggle v-model="state.settings.consoleWrap" :label="t('Wrap long lines')" />
+              </div>
             </template>
 
             <!-- Appearance -->
@@ -1374,13 +1426,15 @@ function reset() {
   align-items: center;
   justify-content: center;
   z-index: 95;
-  padding: 16px;
+  /* the top bar stays above the dialog (E-STOP reachable), so the dialog starts under it */
+  padding: 80px 16px 16px;
 }
 .dlg {
-  width: 960px;
+  /* large enough that a tab (Appearance has the most) fits without scrolling on a usual screen */
+  width: 1200px;
   max-width: 100%;
-  height: calc(88vh / var(--zoom, 1));
-  max-height: 820px;
+  height: calc((100vh - 96px) / var(--zoom, 1));
+  max-height: 1080px;
   display: flex;
   flex-direction: column;
   background: var(--s1);

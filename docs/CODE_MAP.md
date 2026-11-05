@@ -289,8 +289,8 @@ Samples carry their time (seconds since the epoch), so a gap (UI closed, printer
 a line across it.
 
 **[src/thumbZoom.js](../src/thumbZoom.js)**  
-v-zoom on a thumbnail: while the mouse is over it, the picture shows large next to the pointer (ThumbZoom.vue,  
-in App.vue). The value is the URL of the large picture; without one the thumbnail itself is shown larger.  
+v-zoom on a thumbnail: while the mouse is over it, the picture shows large over it, the thumbnail in one of its  
+bottom corners (ThumbZoom.vue, in App.vue). The value is the URL of the large picture; without one the thumbnail itself is shown larger.  
 Not on touch screens, where there is no hover.
 
 **[src/timelapse.js](../src/timelapse.js)**  
@@ -442,8 +442,9 @@ A list of numbers shown as chips: click the x to remove, type a value and press 
 
 **[src/components/CircleJog.vue](../src/components/CircleJog.vue)**  
 Circle jog pad (Toolhead card, "Circle" style, as Mainsail's): X and Y around a round pad, one ring per step  
-(the smallest inside) inside a dial of ticks with the axis directions on it, a Z strip next to it, home buttons in the corners (X, Y, XY, Z) and Home all in the middle. The steps  
-are the circle's own X/Y and Z steps from Settings > Control. It only emits; the card sends the G-code.
+(the smallest inside) with the axis directions at its rim, a Z strip next to it, home buttons in the corners  
+(X, Y, XY, Z) and Home all in the middle. The steps are the circle's own X/Y and Z steps from Settings > Control.  
+It only emits; the card sends the G-code.
 
 **[src/components/CmdInput.vue](../src/components/CmdInput.vue)**  
 Input with live command search from the printer (G-code help + macros). After the command word, a hint row lists  
@@ -451,13 +452,15 @@ the parameters it takes (a macro's from its template, Klipper's own from gcodePa
 are dimmed, a click or Tab adds the next one.
 
 **[src/components/ConsoleCard.vue](../src/components/ConsoleCard.vue)**  
-Dashboard card with the console (ConsoleView) and its header buttons: hide temperature reports, clear,  
-open the full console page.
+Dashboard card with the console (ConsoleView) and its header buttons: hide temperature reports, copy the log,  
+clear, open the full console page.
 
 **[src/components/ConsoleView.vue](../src/components/ConsoleView.vue)**  
 Console output and the G-code input. Shows state.console (filled by the store from Moonraker's  
 gcode responses), keeps scrolled to the bottom unless the user scrolls up, remembers sent commands (arrow  
-up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.
+up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.  
+Options (Settings > Console): a sent command and the replies after it drawn as one block with its own copy  
+button, text colour themes, the command help on hover, timestamps and line wrap.
 
 **[src/components/ControlEditor.vue](../src/components/ControlEditor.vue)**  
 Editor for one control of the Controls card (used inside the card editor in Dashboard.vue). The control object  
@@ -856,8 +859,8 @@ Thumbnail card: the current (or last) file's picture as big as the card, with it
 shows it over the whole window.
 
 **[src/components/ThumbZoom.vue](../src/components/ThumbZoom.vue)**  
-The large picture of a thumbnail under the mouse (thumbZoom.js): up to 500 px, beside the pointer, on the side  
-of the window that has room.
+The large picture of a thumbnail under the mouse (thumbZoom.js): up to 500 px, over the thumbnail, which sits in  
+its bottom left corner (bottom right when there is no room to the right; a top corner when none above).
 
 **[src/components/TimelapseCard.vue](../src/components/TimelapseCard.vue)**  
 Dashboard card: is the timelapse recording, how many frames so far, the newest frame, and the last clips.

@@ -295,8 +295,8 @@ const tiles = computed(() => [
   padding: 10px 0;
   border-top: 1px solid var(--bd);
 }
-.sld .it:first-of-type {
-  border-top: none;
+.sld .card-h + .it {
+  border-top: none; /* the first row sits right under the title, no line between */
 }
 .sld .sm {
   font-size: 13px;

@@ -2,10 +2,12 @@
 // Console output and the G-code input. Shows state.console (filled by the store from Moonraker's
 // gcode responses), keeps scrolled to the bottom unless the user scrolls up, remembers sent commands (arrow
 // up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.
+// Options (Settings > Console): a sent command and the replies after it drawn as one block with its own copy
+// button, text colour themes, the command help on hover, timestamps and line wrap.
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import CmdInput from './CmdInput.vue';
-import { state, gcode, restartKlipper } from '../store';
+import { state, gcode, restartKlipper, toast } from '../store';
 import { t } from '../i18n';
 import { richHtml, hasMarkup } from '../richText';
 import Popover from './Popover.vue';
@@ -67,6 +69,51 @@ function parts(msg) {
   return out;
 }
 const filtering = computed(() => props.errors || !!props.search.trim());
+// blocks to draw: with grouping on, a sent command and the lines that follow it, as long as they keep coming
+// (each within GAP seconds of the one before: what comes after a pause is something else, a periodic message or
+// another macro). A command nothing answered and lines outside a group stay single lines.
+const GAP = 10;
+const blocks = computed(() => {
+  const out = [];
+  let g = null;
+  for (const l of lines.value) {
+    if (!state.settings.consoleGroup) {
+      out.push({ key: l.id, lines: [l] });
+      continue;
+    }
+    if (l.type === 'command') {
+      g = { key: l.id, lines: [l], last: l.time };
+      out.push(g);
+    } else if (g && l.time - g.last <= GAP) {
+      g.lines.push(l);
+      g.last = l.time;
+    } else {
+      g = null;
+      out.push({ key: l.id, lines: [l] });
+    }
+  }
+  for (const b of out) b.grp = b.lines.length > 1 && b.lines[0].type === 'command';
+  return out;
+});
+// plain text of some lines, as shown (time, "> " before a sent command)
+const plain = (ls) =>
+  ls
+    .map((l) => (state.settings.consoleTime ? fmt(l.time) + '  ' : '') + (l.type === 'command' ? '> ' : '') + l.message)
+    .join('\n');
+const copied = ref(null); // the block (or 'all') just copied, for the tick
+async function copy(ls, which) {
+  const txt = plain(ls);
+  try {
+    await navigator.clipboard.writeText(txt);
+    copied.value = which;
+    setTimeout(() => copied.value === which && (copied.value = null), 1400);
+  } catch {
+    toast(t('Copying is blocked here. Select the text and copy it instead.'), 'error');
+  }
+}
+const copyAll = () => copy(lines.value, 'all');
+const THEMES = ['default', 'soft', 'terminal', 'contrast', 'paper'];
+const theme = computed(() => (THEMES.includes(state.settings.consoleTheme) ? state.settings.consoleTheme : 'default'));
 const fmt = (t) => new Date(t * 1000).toLocaleTimeString(undefined, { hour12: false });
 function scroll() {
   if (auto.value && box.value) box.value.scrollTop = box.value.scrollHeight;
@@ -149,7 +196,7 @@ const cls = (l) =>
         : l.type === 'hint'
           ? 'h'
           : '';
-defineExpose({ setCmd: (c) => (cmd.value = c) });
+defineExpose({ setCmd: (c) => (cmd.value = c), copyAll, copied });
 // ? next to an error line: what the error means (explain.js)
 const xOpen = ref(null); // { anchor, e }
 const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain(msg) });
@@ -157,25 +204,45 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
 <template>
   <div class="cv">
     <div class="wrap">
-      <div ref="box" class="out" @scroll="onScroll">
-        <div v-for="l in lines" :key="l.id" class="ln" :class="cls(l)">
-          <span class="t">{{ fmt(l.time) }}</span
-          ><span v-if="l.type !== 'command' && hasMarkup(l.message)" class="m" v-html="richHtml(l.message)"></span
-          ><span v-else class="m" :data-tip="l.type === 'command' ? describe(l.message) || null : null"
-            >{{ l.type === 'command' ? '> ' : ''
-            }}<template v-for="(p, i) in parts(l.message)" :key="i"
-              ><mark v-if="p.hit">{{ p.s }}</mark
-              ><template v-else>{{ p.s }}</template></template
-            ></span
-          ><button
-            v-if="cls(l) === 'e' && explain(l.message)"
-            class="xq"
-            :aria-label="t('What does this mean?')"
-            :data-tip="t('What does this mean?')"
-            @click="openX($event, l.message)"
+      <div
+        ref="box"
+        class="out"
+        :class="['th-' + theme, { nowrap: !state.settings.consoleWrap, notime: !state.settings.consoleTime }]"
+        @scroll="onScroll"
+      >
+        <div v-for="b in blocks" :key="b.key" :class="{ grp: b.grp }">
+          <button
+            v-if="b.grp"
+            class="gcp"
+            :aria-label="t('Copy')"
+            :data-tip="copied === b.key ? t('Copied') : t('Copy')"
+            @click="copy(b.lines, b.key)"
           >
-            ?
+            <Icon :name="copied === b.key ? 'check' : 'copy'" :size="13" />
           </button>
+          <div v-for="l in b.lines" :key="l.id" class="ln" :class="cls(l)">
+            <span v-if="state.settings.consoleTime" class="t">{{ fmt(l.time) }}</span
+            ><span v-if="l.type !== 'command' && hasMarkup(l.message)" class="m" v-html="richHtml(l.message)"></span
+            ><span
+              v-else
+              class="m"
+              :class="{ hp: l.type === 'command' && state.settings.consoleHelp }"
+              :data-tip="l.type === 'command' && state.settings.consoleHelp ? describe(l.message) || null : null"
+              >{{ l.type === 'command' ? '> ' : ''
+              }}<template v-for="(p, i) in parts(l.message)" :key="i"
+                ><mark v-if="p.hit">{{ p.s }}</mark
+                ><template v-else>{{ p.s }}</template></template
+              ></span
+            ><button
+              v-if="cls(l) === 'e' && explain(l.message)"
+              class="xq"
+              :aria-label="t('What does this mean?')"
+              :data-tip="t('What does this mean?')"
+              @click="openX($event, l.message)"
+            >
+              ?
+            </button>
+          </div>
         </div>
         <div v-if="filtering && !lines.length" class="none">
           {{ errors ? t('No errors in the console') : t('Nothing matches') }}
@@ -218,7 +285,7 @@ mark {
   color: var(--mu);
   padding: 8px 2px;
 }
-.m[data-tip] {
+.m.hp[data-tip] {
   cursor: help;
 }
 .xq {
@@ -289,38 +356,125 @@ mark {
   min-height: 120px;
   overflow: auto;
   padding: 10px 14px;
-  background: #121418;
+  background: var(--k-bg);
   border: none;
   border-radius: 10px;
   font-family: var(--fm);
   font-size: 13px;
   line-height: 1.7;
+  /* text themes (Settings > Console): only the log's own colours change */
+  --k-bg: #121418;
+  --k-time: var(--mu2);
+  --k-text: var(--mu);
+  --k-cmd: var(--tx);
+  --k-err: var(--dg);
+  --k-info: var(--tx);
+  --k-hint: var(--bl);
+}
+/* softer: lower contrast, easy on the eyes for a console left open all day */
+.out.th-soft {
+  --k-bg: #16181c;
+  --k-time: #565c66;
+  --k-text: #979da6;
+  --k-cmd: #d3d6db;
+  --k-err: #e08a83;
+  --k-info: #bfc4ca;
+  --k-hint: #85a9d6;
+}
+/* the classic terminal: green on black */
+.out.th-terminal {
+  --k-bg: #070b07;
+  --k-time: #2e6a3a;
+  --k-text: #3ccf5a;
+  --k-cmd: #b9f5c4;
+  --k-err: #ff6b62;
+  --k-info: #8fe3a0;
+  --k-hint: #6ec4ff;
+}
+/* high contrast: white on black, bright error and info colours */
+.out.th-contrast {
+  --k-bg: #000;
+  --k-time: #a3a3a3;
+  --k-text: #f2f2f2;
+  --k-cmd: #fff;
+  --k-err: #ff5050;
+  --k-info: #ffd866;
+  --k-hint: #66d9ff;
+}
+/* paper: dark ink on a light page, readable in a bright room */
+.out.th-paper {
+  --k-bg: #ebe7dc;
+  --k-time: #8b8679;
+  --k-text: #3b3934;
+  --k-cmd: #111;
+  --k-err: #b0281f;
+  --k-info: #1e1c19;
+  --k-hint: #2a5ca6;
 }
 .ln {
   display: flex;
   gap: 14px;
-  color: var(--mu);
+  color: var(--k-text);
 }
 .ln .t {
-  color: var(--mu2);
+  color: var(--k-time);
   flex-shrink: 0;
 }
 .ln .m {
   white-space: pre-wrap;
   word-break: break-word;
 }
+.nowrap .ln .m {
+  white-space: pre;
+  word-break: normal;
+}
+.nowrap > div {
+  width: max-content;
+  min-width: 100%;
+}
 .ln.c {
-  color: var(--tx);
+  color: var(--k-cmd);
   font-weight: 600;
 }
 .ln.e {
-  color: var(--dg);
+  color: var(--k-err);
 }
 .ln.i {
-  color: var(--tx);
+  color: var(--k-info);
 }
 .ln.h {
-  color: var(--bl);
+  color: var(--k-hint);
+}
+/* a sent command with its replies: one block, its copy button on hover */
+.grp {
+  position: relative;
+  margin: 3px -8px;
+  padding: 2px 8px 2px 6px; /* the 2 px rule keeps the text in line with the lines around */
+  border-left: 2px solid color-mix(in srgb, var(--k-cmd) 28%, transparent);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--k-text) 6%, transparent);
+}
+.gcp {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--k-text) 25%, transparent);
+  border-radius: 6px;
+  background: var(--k-bg);
+  color: var(--k-text);
+  cursor: pointer;
+}
+.grp:hover .gcp,
+.gcp:focus-visible {
+  display: flex;
+}
+.gcp:hover {
+  color: var(--k-cmd);
 }
 .in {
   flex: 1;

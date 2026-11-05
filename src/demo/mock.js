@@ -2140,6 +2140,14 @@ function handle(m) {
             .concat(stFiles)
         : files.map((f) => ({ path: f.filename, modified: f.modified, size: f.size }));
     case 'server.files.get_directory':
+      if (/^config\/?$/.test(m.params?.path || ''))
+        return {
+          dirs: [{ dirname: 'hardware', modified: Date.now() / 1000, size: 0 }],
+          files: Object.keys(cfgText)
+            .filter((k) => !k.includes('/'))
+            .map((k) => ({ filename: k, modified: Date.now() / 1000 - 86400, size: cfgText[k].length })),
+          disk_usage: { total: 58e9, used: 40e9, free: 18e9 },
+        };
       return {
         dirs: [{ dirname: 'archive', modified: Date.now() / 1000, size: 0 }],
         files,

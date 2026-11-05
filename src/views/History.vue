@@ -70,7 +70,7 @@ useApiEvent('notify_history_changed', () => {
   setTimeout(loadShots, 12000); // the picture is taken a few seconds after the job ends
 });
 const STATUS = {
-  completed: { c: 'var(--mu)', i: 'check' },
+  completed: { c: 'var(--ok)', i: 'check' },
   cancelled: { c: 'var(--wn)', i: 'x' },
   error: { c: 'var(--dg)', i: 'warn' },
   klippy_shutdown: { c: 'var(--dg)', i: 'warn' },
@@ -399,7 +399,7 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
                   :style="{ color: st(j.status).c }"
                   :aria-label="t(j.status.replace('_', ' '))"
                   :data-tip="t(j.status.replace('_', ' '))"
-                  ><Icon :name="st(j.status).i" :size="18" :stroke="2.4"
+                  ><Icon :name="st(j.status).i" :size="22" :stroke="2.4"
                 /></span>
               </td>
               <td class="mono">{{ fmtDate(j.start_time) }}</td>
@@ -416,16 +416,16 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
                     :data-tip="t('Picture at the end')"
                     @click="openShot(j)"
                   >
-                    <Icon name="image" :size="16" /></button
+                    <Icon name="image" :size="19" /></button
                   ><button
                     class="btn ibtn sm"
                     :aria-label="t('Print again')"
                     :disabled="isPrinting || !j.exists"
                     @click="reprint(j)"
                   >
-                    <Icon name="refresh" :size="16" /></button
+                    <Icon name="refresh" :size="19" /></button
                   ><button class="btn ibtn sm clear" :aria-label="t('Delete from history')" @click="del = [j]">
-                    <Icon name="trash" :size="16" />
+                    <Icon name="trash" :size="19" />
                   </button>
                 </div>
               </td>
