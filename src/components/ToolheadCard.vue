@@ -538,11 +538,11 @@ onBeforeUnmount(() => ro?.disconnect());
    the D-pad with Z beside it and the step column. Last in the file so it wins over the rules above. */
 .body.stack {
   display: grid;
-  grid-template-columns: 1fr auto auto auto 1fr; /* the bottom group in the middle */
+  grid-template-columns: auto 1fr auto auto; /* D-pad to the left edge, Z and the steps to the right */
   grid-template-areas:
-    'pos pos pos pos pos'
-    'jog jog jog jog jog'
-    '. dpad zcol steps .';
+    'pos pos pos pos'
+    'jog jog jog jog'
+    'dpad . zcol steps';
   gap: 10px 12px;
   align-items: start;
   flex: 1 1 auto;

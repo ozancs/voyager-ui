@@ -2419,4 +2419,7 @@ export default {
   "Paper": "종이",
   "Printer config": "프린터 설정",
   "Moonraker config": "Moonraker 설정",
+  "Smaller buttons": "버튼 작게",
+  "Bigger buttons": "버튼 크게",
+  "Button size": "버튼 크기",
 }

@@ -12,7 +12,7 @@ import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 
-export const VERSION = '0.38.23';
+export const VERSION = '0.38.24';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';
@@ -76,6 +76,7 @@ export const DEFAULT_SETTINGS = () => ({
   searchContent: true, // Ctrl+K also searches inside .py .sh .txt files in the config folder
   heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false }, // colour range and 3D z axis, auto = from the mesh
   printBar: 'band', // where the running print shows: band (its own bar under the top bar) | top (compact pill in the top bar)
+  favScale: 1, // size of the favorite buttons (0.7 to 1.3); the bar follows the buttons
   favBar: 'always', // favorites bar under the top bar: always | dashboard | off (a Favorites card can go on the dashboard)
   compactCards: true, // dashboard cards with less padding, a thinner title bar and a tighter grid
   uiScale: 100, // percent, or 'auto' = looks the same as on a 1920 px wide screen

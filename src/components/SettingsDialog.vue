@@ -795,7 +795,7 @@ function reset() {
                   <b>{{ t('Text theme') }}</b
                   ><span>{{ t('Colours of the console text.') }}</span>
                 </div>
-                <div class="seg v">
+                <div class="seg v wide">
                   <button
                     v-for="[k, l] in [
                       ['default', 'Default'],
@@ -1538,6 +1538,12 @@ function reset() {
   width: 320px;
   max-width: 55%;
   flex-shrink: 0;
+}
+/* more choices than fit in the usual width: as wide as they need, wrapping onto a second row on a narrow dialog */
+.v.wide {
+  width: auto;
+  max-width: 62%;
+  flex-wrap: wrap;
 }
 .unit {
   display: flex;

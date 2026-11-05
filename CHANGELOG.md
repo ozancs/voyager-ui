@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.38.24
+
+- Print card: the actual speed and used filament big, the requested speed and file total small beside them
+- Temperature graph: a setpoint view that zooms in around the target
+- Thumbnails open a large preview over the small one; History shows a picture icon for files with a thumbnail
+- G-code viewer: own view cube, clicking a face centres the part and looks at it from that side; the first load no longer fails with "Cannot read properties of undefined"
+- G-code viewer follows the print on its own when the open file is the one printing; the Follow print switch shows only then
+- Console: copy button, a command and its replies as one block with a copy button on hover, text themes, command help on hover can be turned off, timestamps and line wrap switches
+- Toolhead: thicker rings without the tick lines on the circle; the buttons style stacks for a square card (positions, axis rows, then the D-pad on the left and Z on the right)
+- Favorites: editing keeps the buttons the same size, the others make room while dragging, and a size control makes the buttons smaller or bigger
+- Config files: tighter rows, printer.cfg and moonraker.conf marked, a large drop target when dragging files in
+- Drop a G-code file on Upload & Print to upload and print it
+- History: bigger status icons, completed green, errors red, cancelled orange
+- Update Manager lists OznLab items first; the System Loads card lost the extra line at the top
+- Interface settings dialog is larger so each tab fits without scrolling
+- Frame menu style: the favorites bar lines up with the status box
+
 ## 0.38.23
 
 - Hotend PID tuning finds the part cooling fan when it is a [fan_generic] (Mainsail style multiple part fans); with several fans you pick which one

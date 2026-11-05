@@ -2437,4 +2437,7 @@ export default {
   "Paper": "Kâğıt",
   "Printer config": "Yazıcı ayarı",
   "Moonraker config": "Moonraker ayarı",
+  "Smaller buttons": "Daha küçük butonlar",
+  "Bigger buttons": "Daha büyük butonlar",
+  "Button size": "Buton boyutu",
 }

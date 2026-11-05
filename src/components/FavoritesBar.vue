@@ -15,6 +15,14 @@ import { t } from '../i18n';
 defineProps({ card: Boolean }); // card: the same buttons as a dashboard card instead of the bar
 const busy = ref(null);
 const favs = computed(() => state.settings.favorites);
+// button size, set while editing: only the buttons (and the bar's height with them) grow or shrink, within limits so
+// they stay readable and the bar never sits far bigger than what is in it
+const SC_MIN = 0.7,
+  SC_MAX = 1.3;
+const scale = computed(() => Math.min(SC_MAX, Math.max(SC_MIN, Number(state.settings.favScale) || 1)));
+const setScale = (d) =>
+  (state.settings.favScale = Math.round(Math.min(SC_MAX, Math.max(SC_MIN, scale.value + d)) * 10) / 10);
+const isz = (n) => Math.round(n * scale.value);
 async function run(f) {
   if (state.favEdit) {
     edit(f);
@@ -84,10 +92,22 @@ function dragEnter(i) {
 </script>
 
 <template>
-  <component :is="card ? 'section' : 'div'" :class="[card ? 'card fcard' : 'fb', { editing: state.favEdit }]">
+  <component
+    :is="card ? 'section' : 'div'"
+    :class="[card ? 'card fcard' : 'fb', { editing: state.favEdit }]"
+    :style="{ '--fs': scale }"
+  >
     <div v-if="card" class="card-h">
       <CardTitle :text="t('Favorites')" />
       <div class="acts">
+        <div v-if="state.favEdit" class="fsz">
+          <button :aria-label="t('Smaller buttons')" :disabled="scale <= SC_MIN" @click="setScale(-0.1)">
+            <Icon name="minus" :size="14" :stroke="2.4" /></button
+          ><span class="mono">{{ Math.round(scale * 100) }}%</span
+          ><button :aria-label="t('Bigger buttons')" :disabled="scale >= SC_MAX" @click="setScale(0.1)">
+            <Icon name="plus" :size="14" :stroke="2.4" />
+          </button>
+        </div>
         <button class="btn ibtn" :aria-label="t('Add favorite')" @click="add">
           <Icon name="plus" :size="16" :stroke="2.4" /></button
         ><button
@@ -117,7 +137,7 @@ function dragEnter(i) {
         @click="run(f)"
       >
         <Icon v-if="state.favEdit" name="grip" :size="14" :stroke="3" class="gr" />
-        <Icon :name="f.icon" :size="17" :stroke="2.3" class="fi" :style="f.color ? { color: f.color } : null" />
+        <Icon :name="f.icon" :size="isz(17)" :stroke="2.3" class="fi" :style="f.color ? { color: f.color } : null" />
         <span>{{ f.name }}</span>
         <Icon v-if="state.favEdit" name="pencil" :size="11" class="pe" />
       </button>
@@ -125,6 +145,14 @@ function dragEnter(i) {
         {{ t('No favorites yet. Press + to add a macro or command.') }}
       </div>
     </TransitionGroup>
+    <div v-if="!card && state.favEdit" class="fsz" :data-tip="t('Button size')">
+      <button :aria-label="t('Smaller buttons')" :disabled="scale <= SC_MIN" @click="setScale(-0.1)">
+        <Icon name="minus" :size="14" :stroke="2.4" /></button
+      ><span class="mono">{{ Math.round(scale * 100) }}%</span
+      ><button :aria-label="t('Bigger buttons')" :disabled="scale >= SC_MAX" @click="setScale(0.1)">
+        <Icon name="plus" :size="14" :stroke="2.4" />
+      </button>
+    </div>
     <button v-if="!card" class="side" :aria-label="t('Add favorite')" @click="add">
       <Icon name="plus" :size="18" :stroke="2.4" />
     </button>
@@ -205,7 +233,7 @@ function dragEnter(i) {
 }
 /* its own band under the top bar: a touch lighter than the page and closed with a hairline, so the macro row reads as one thing */
 .fb {
-  height: 60px;
+  height: calc(40px * var(--fs, 1) + 20px);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -227,8 +255,8 @@ function dragEnter(i) {
 .fav {
   flex: 0 0 auto;
   min-width: 0;
-  padding: 0 16px;
-  height: 40px;
+  padding: 0 max(16px, calc(16px * var(--fs, 1))); /* room for the grip and pencil while editing */
+  height: calc(40px * var(--fs, 1));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -238,12 +266,11 @@ function dragEnter(i) {
   border: none;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs, 1));
   white-space: nowrap;
   transition:
     background 0.12s,
     transform 0.08s;
-  padding: 0 16px;
   position: relative;
 }
 .fav:hover {
@@ -297,6 +324,39 @@ function dragEnter(i) {
   transition: transform 0.18s ease;
 }
 
+/* button size while editing: - 100% + */
+.fsz {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 32px;
+  border: 1px dashed var(--s3);
+  border-radius: 10px;
+}
+.fsz button {
+  width: 28px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--mu);
+  cursor: pointer;
+}
+.fsz button:hover:not(:disabled) {
+  color: var(--tx);
+}
+.fsz button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.fsz span {
+  font-size: 11px;
+  color: var(--mu);
+  min-width: 34px;
+  text-align: center;
+}
 .hint {
   color: var(--mu2);
   font-size: 13px;
@@ -306,7 +366,7 @@ function dragEnter(i) {
 }
 .side {
   width: 36px;
-  height: 40px;
+  height: min(40px, calc(40px * var(--fs, 1)));
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -353,7 +413,7 @@ function dragEnter(i) {
     padding: 0 10px;
   }
   .fav {
-    min-width: 96px;
+    min-width: calc(96px * var(--fs, 1));
   }
 }
 /* as a dashboard card */

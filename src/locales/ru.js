@@ -2419,4 +2419,7 @@ export default {
   "Paper": "Бумага",
   "Printer config": "Конфиг принтера",
   "Moonraker config": "Конфиг Moonraker",
+  "Smaller buttons": "Кнопки меньше",
+  "Bigger buttons": "Кнопки больше",
+  "Button size": "Размер кнопок",
 }
