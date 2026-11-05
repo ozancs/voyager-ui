@@ -12,6 +12,7 @@ import { state, S, gcode, toast, isPrinting, useApiEvent, fmtDate, restartKlippe
 import { api } from '../api/moonraker';
 import { writeOptions } from '../cfgwrite';
 import { t } from '../i18n';
+import { undoable, isHidden, stillSame } from '../undo';
 import { cleanVal } from '../calibrations';
 
 // the tests and their parameters (names and defaults from the Shake&Tune docs)
@@ -189,6 +190,9 @@ async function doSave() {
 // files there); without the option, any folder ending in ShakeTune_results (K-ShakeTune_results, older
 // ShakeTune_results).
 const images = ref([]); // { path, name, folder, modified }
+const visibleImages = computed(() => images.value.filter((i) => !isHidden('graph:' + i.path)));
+const picked = ref(new Set());
+const deleteAsk = ref(null);
 const outside = ref(''); // result_folder when it is outside the config folder
 async function resultFolder() {
   const raw = String(S('configfile').config?.shaketune?.result_folder || '').trim();
@@ -224,7 +228,13 @@ async function loadImages() {
       .filter((f) => inDir(f.path) && /\.png$/i.test(f.path))
       .map((f) => {
         const parts = f.path.split('/');
-        return { path: f.path, name: parts[parts.length - 1], folder: parts[parts.length - 2], modified: f.modified };
+        return {
+          path: f.path,
+          name: parts[parts.length - 1],
+          folder: parts[parts.length - 2],
+          modified: f.modified,
+          size: f.size,
+        };
       })
       .sort((a, b) => b.modified - a.modified);
   } catch {
@@ -239,14 +249,60 @@ const folder = ref('input_shaper');
 watch(test, (x) => (folder.value = x.folder));
 const FOLDERS = computed(() => {
   const known = TESTS.map((x) => [x.folder, x.name]);
-  const extra = [...new Set(images.value.map((i) => i.folder))].filter((f) => !known.some(([k]) => k === f));
+  const extra = [...new Set(visibleImages.value.map((i) => i.folder))].filter((f) => !known.some(([k]) => k === f));
   return [...known, ...extra.map((f) => [f, f])].map(([k, n]) => ({
     k,
     n,
-    count: images.value.filter((i) => i.folder === k).length,
+    count: visibleImages.value.filter((i) => i.folder === k).length,
   }));
 });
-const list = computed(() => images.value.filter((i) => i.folder === folder.value));
+const list = computed(() => visibleImages.value.filter((i) => i.folder === folder.value));
+const allPicked = computed(() => list.value.length > 0 && list.value.every((i) => picked.value.has(i.path)));
+function togglePick(path) {
+  const next = new Set(picked.value);
+  next.has(path) ? next.delete(path) : next.add(path);
+  picked.value = next;
+}
+function toggleAll() {
+  picked.value = allPicked.value ? new Set() : new Set(list.value.map((i) => i.path));
+}
+watch(folder, () => (picked.value = new Set()));
+watch(visibleImages, (items) => {
+  const paths = new Set(items.map((i) => i.path));
+  picked.value = new Set([...picked.value].filter((path) => paths.has(path)));
+});
+function deleteGraphs() {
+  const items = deleteAsk.value;
+  deleteAsk.value = null;
+  picked.value = new Set();
+  if (items.some((i) => i.path === viewer.value)) viewer.value = null;
+  undoable(t('{n} graphs deleted', { n: items.length }), {
+    hideKeys: items.map((i) => 'graph:' + i.path),
+    commit: async () => {
+      let fail = 0;
+      try {
+        const dirs = new Map();
+        for (const i of items) {
+          const dir = 'config/' + i.path.split('/').slice(0, -1).join('/');
+          if (!dirs.has(dir)) dirs.set(dir, []);
+          dirs.get(dir).push({ name: i.name, modified: i.modified, size: i.size });
+        }
+        for (const [dir, files] of dirs) {
+          for (const file of await stillSame(dir, files)) {
+            try {
+              await api.call('server.files.delete_file', { path: dir + '/' + file.name });
+            } catch {
+              fail++;
+            }
+          }
+        }
+        if (fail) toast(t('{n} file(s) could not be deleted', { n: fail }), 'error');
+      } finally {
+        await loadImages();
+      }
+    },
+  });
+}
 const sel = ref(null); // path of the main image
 const cmp = ref(null); // path of the image to compare with
 const comparing = ref(false);
@@ -279,6 +335,14 @@ const shortName = (n) => n.replace(/\.png$/i, '');
       <div class="card-h">
         <h2>{{ t('Graphs') }}</h2>
         <div class="acts">
+          <button
+            v-if="picked.size"
+            class="btn dg"
+            :disabled="state.locked"
+            @click="deleteAsk = list.filter((i) => picked.has(i.path))"
+          >
+            <Icon name="trash" :size="16" />{{ t('Delete ({n})', { n: picked.size }) }}
+          </button>
           <button class="btn" :class="{ on: comparing }" :aria-pressed="comparing" @click="comparing = !comparing">
             <Icon name="diff" :size="16" />{{ t('Compare') }}
           </button>
@@ -302,17 +366,32 @@ const shortName = (n) => n.replace(/\.png$/i, '');
       <div v-else-if="!list.length" class="empty">{{ t('No graphs yet. Run a test and it shows up here.') }}</div>
       <div v-else class="body">
         <div class="thumbs">
-          <button
-            v-for="i in list"
-            :key="i.path"
-            class="th"
-            :class="{ on: i.path === sel, cmp: i.path === cmp }"
-            @click="pick(i)"
-          >
-            <b class="mono">{{ shortName(i.name) }}</b>
-            <span class="mu">{{ fmtDate(i.modified) }}</span>
-            <span v-if="i.path === cmp" class="tag">{{ t('Compare') }}</span>
-          </button>
+          <label class="row">
+            <input
+              type="checkbox"
+              class="cb"
+              :checked="allPicked"
+              :indeterminate="picked.size > 0 && !allPicked"
+              :disabled="state.locked"
+              @change="toggleAll"
+            />
+            {{ t('Select all') }}
+          </label>
+          <div v-for="i in list" :key="i.path" class="graph-row">
+            <input
+              type="checkbox"
+              class="cb"
+              :checked="picked.has(i.path)"
+              :disabled="state.locked"
+              :aria-label="t('Select {name}', { name: i.name })"
+              @change="togglePick(i.path)"
+            />
+            <button class="th" :class="{ on: i.path === sel, cmp: i.path === cmp }" @click="pick(i)">
+              <b class="mono">{{ shortName(i.name) }}</b>
+              <span class="mu">{{ fmtDate(i.modified) }}</span>
+              <span v-if="i.path === cmp" class="tag">{{ t('Compare') }}</span>
+            </button>
+          </div>
         </div>
         <div class="imgs" :class="{ two: comparing && cmp }">
           <figure v-if="sel">
@@ -447,6 +526,13 @@ const shortName = (n) => n.replace(/\.png$/i, '');
       </button>
     </template>
   </Modal>
+  <Modal v-if="deleteAsk" :title="t('Delete graphs')" @close="deleteAsk = null">
+    <p>{{ t('Delete {n} selected graphs? Only the PNG files will be deleted.', { n: deleteAsk.length }) }}</p>
+    <template #foot>
+      <button class="btn lg" @click="deleteAsk = null">{{ t('Cancel') }}</button>
+      <button class="btn lg dg" :disabled="state.locked" @click="deleteGraphs">{{ t('Delete') }}</button>
+    </template>
+  </Modal>
   <ImageViewer v-if="viewer" :list="list.map((i) => i.path)" :start="viewer" @close="viewer = null" />
 </template>
 
@@ -483,6 +569,15 @@ const shortName = (n) => n.replace(/\.png$/i, '');
   gap: 4px;
   overflow: auto;
   max-height: calc(80vh / var(--zoom, 1));
+}
+.graph-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.graph-row .th {
+  flex: 1;
+  min-width: 0;
 }
 .th {
   display: flex;

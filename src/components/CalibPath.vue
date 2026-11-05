@@ -7,7 +7,7 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
-import { state, S, gcode, toast, closeToast, updateToast, isPrinting, spoolPreset } from '../store';
+import { state, S, gcode, toast, closeToast, updateToast, isPrinting, spoolPreset, setFan } from '../store';
 import { api } from '../api/moonraker';
 import {
   pathSteps,
@@ -75,6 +75,11 @@ const cur = ref(null); // the step shown in the dialog
 const run = computed(() => (cur.value ? RUNS[cur.value.key] || null : null));
 const running = computed(() => steps.value.find((s) => RUNS[s.key]?.running) || null);
 const target = ref(0);
+const useFan = ref(false);
+const fanSpeed = ref(0);
+const hasPidFan = computed(
+  () => cur.value?.kind === 'pid' && /^extruder\d*$/.test(cur.value.heater) && state.objects.includes('fan'),
+);
 const samples = ref(10);
 const axis = ref('');
 const twistAxis = ref('X');
@@ -87,6 +92,10 @@ function open(s) {
   if (s.kind === 'pid') {
     const sp = spoolPreset.value?.temps?.[s.heater];
     target.value = sp || s.target;
+    if (!RUNS[s.key]?.running) {
+      useFan.value = false;
+      fanSpeed.value = Math.round((S('fan').speed || 0) * 100);
+    }
   }
 }
 // ---------------------------------------------------------------- progress while running
@@ -138,7 +147,7 @@ const out = computed(() =>
 );
 const errLine = computed(() => out.value.find((l) => /^!!/.test(l)));
 
-async function send(cmd) {
+async function send(cmd, cooling = null) {
   const step = cur.value;
   const since = state.console.length ? state.console[state.console.length - 1].id : 0;
   RUNS[step.key] = { since, running: true, ended: false, cmd, at: Date.now() };
@@ -162,12 +171,29 @@ async function send(cmd) {
   });
   r.tick = setInterval(() => updateToast(r.toast, line()), 1000);
   let failed = false;
+  let fanChanged = false;
   try {
+    if (cooling) {
+      await setFan('fan', cooling.speed);
+      fanChanged = true;
+      // The connection or lock may have changed while the fan command was in flight.
+      if (!state.connected || state.klippy !== 'ready' || state.locked || isPrinting.value || !r.running)
+        throw new Error('Calibration interrupted');
+    }
     await gcode(cmd);
   } catch {
     failed = true; // shown as a toast and in the output
+  } finally {
+    // Do not queue a restoration across a shutdown/reconnect or after a new print has started.
+    if (fanChanged && r.running && state.connected && state.klippy === 'ready' && !state.locked && !isPrinting.value) {
+      try {
+        await setFan('fan', cooling.previous);
+      } catch {
+        failed = true;
+      }
+    }
+    endRun(r);
   }
-  endRun(r);
   // remembered on the tile even when the dialog was closed meanwhile
   // (a moment later: the last output lines can arrive just after the command's answer)
   setTimeout(() => {
@@ -244,11 +270,18 @@ const canStart = computed(
     state.klippy === 'ready' &&
     !running.value &&
     !needsHome.value &&
-    !(cur.value.kind === 'pid' && !(target.value > 30 && target.value <= pidMax.value - 5)),
+    !(cur.value.kind === 'pid' && !(target.value > 30 && target.value <= pidMax.value - 5)) &&
+    !(
+      hasPidFan.value &&
+      useFan.value &&
+      (!Number.isFinite(fanSpeed.value) || fanSpeed.value < 0 || fanSpeed.value > 100)
+    ),
 );
 function start() {
   if (!canStart.value) return;
-  send(commandFor(cur.value));
+  const cooling =
+    hasPidFan.value && useFan.value ? { speed: fanSpeed.value, previous: (S('fan').speed || 0) * 100 } : null;
+  send(commandFor(cur.value), cooling);
 }
 
 // results per kind, read from the console as they come
@@ -805,6 +838,28 @@ const RUNS = _reactive({});
           <input v-model.number="target" type="number" class="input mono" min="40" :max="pidMax - 5" />
           <span class="mu sm">{{ t('The temperature you print at most.') }}</span>
         </label>
+        <div v-if="hasPidFan" class="fld">
+          <label class="row">
+            <input v-model="useFan" type="checkbox" class="cb" :disabled="!!running" />
+            {{ t('Set part cooling fan speed') }}
+          </label>
+          <label v-if="useFan" class="row">
+            <input
+              v-model.number="fanSpeed"
+              type="number"
+              class="input mono"
+              min="0"
+              max="100"
+              step="1"
+              :disabled="!!running"
+              :aria-label="t('Fan speed (%)')"
+            />
+            <span>%</span>
+          </label>
+          <span v-if="useFan" class="mu sm">{{
+            t('Applied before PID tuning. The previous fan speed is restored when it finishes.')
+          }}</span>
+        </div>
         <label v-if="cur.kind === 'accuracy'" class="fld">
           <span>{{ t('Samples') }}</span>
           <input v-model.number="samples" type="number" class="input mono" min="3" max="50" />

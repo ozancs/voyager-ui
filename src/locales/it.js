@@ -1,5 +1,12 @@
 // Italiano. Key = English text shown in the UI.
 export default {
+  "Set part cooling fan speed": "Imposta la ventola di raffreddamento del pezzo",
+  "Fan speed (%)": "Velocità ventola (%)",
+  "Applied before PID tuning. The previous fan speed is restored when it finishes.": "Applicata prima della calibrazione PID. Al termine viene ripristinata la velocità precedente.",
+  "{n} graphs deleted": "{n} grafici eliminati",
+  "Delete graphs": "Elimina grafici",
+  "Delete {n} selected graphs? Only the PNG files will be deleted.": "Eliminare i {n} grafici selezionati? Verranno eliminati solo i file PNG.",
+
  " and everything inside it": " e tutto il suo contenuto",
  "(a backup is saved first) and restarts Moonraker. Klipper keeps running.": "(prima viene salvato un backup) e riavvia Moonraker. Klipper continua a funzionare.",
  "A few questions, you can change everything later in Settings.": "Qualche domanda, puoi cambiare tutto in seguito nelle Impostazioni.",

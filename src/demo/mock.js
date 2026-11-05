@@ -2938,7 +2938,7 @@ const SLICER_BLOCK = `
 ; CONFIG_BLOCK_END
 `;
 function gcodeFile() {
-  let g = ';gcode\nG28\nG90\nM83\n';
+  let g = ';gcode\n;TYPE:Custom\nG28\nG90\nM83\n';
   for (let z = 1; z <= 40; z++) {
     g += `;LAYER_CHANGE\n;Z:${(z * 0.2).toFixed(2)}\nG1 Z${(z * 0.2).toFixed(2)} F600\n`;
     for (let k = 0; k < 4; k++) {

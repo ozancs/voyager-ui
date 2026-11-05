@@ -1,5 +1,12 @@
 // 简体中文. Key = English text shown in the UI.
 export default {
+  "Set part cooling fan speed": "设置模型冷却风扇速度",
+  "Fan speed (%)": "风扇速度 (%)",
+  "Applied before PID tuning. The previous fan speed is restored when it finishes.": "在 PID 调整前应用。完成后恢复之前的风扇速度。",
+  "{n} graphs deleted": "已删除 {n} 张图表",
+  "Delete graphs": "删除图表",
+  "Delete {n} selected graphs? Only the PNG files will be deleted.": "删除选中的 {n} 张图表？仅删除 PNG 文件。",
+
  " and everything inside it": " 及其中所有内容",
  "(a backup is saved first) and restarts Moonraker. Klipper keeps running.": "（会先保存一份备份）并重启 Moonraker。Klipper 会继续运行。",
  "A few questions, you can change everything later in Settings.": "几个简单问题，之后都可以在设置中修改。",

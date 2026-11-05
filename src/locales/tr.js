@@ -1,5 +1,12 @@
 // Türkçe. Key = English text shown in the UI.
 export default {
+  "Set part cooling fan speed": "Parça soğutma fanı hızını ayarla",
+  "Fan speed (%)": "Fan hızı (%)",
+  "Applied before PID tuning. The previous fan speed is restored when it finishes.": "PID başlamadan uygulanır. İşlem bitince önceki fan hızına dönülür.",
+  "{n} graphs deleted": "{n} grafik silindi",
+  "Delete graphs": "Grafikleri sil",
+  "Delete {n} selected graphs? Only the PNG files will be deleted.": "Seçilen {n} grafik silinsin mi? Yalnızca PNG dosyaları silinecek.",
+
   "Restart pending": "Yeniden başlatma bekleniyor",
   "Active value: {value}": "Etkin değer: {value}",
   "Editing layout: {layout}": "Düzenlenen yerleşim: {layout}",

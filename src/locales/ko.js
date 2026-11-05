@@ -1,5 +1,12 @@
 // 한국어. Key = English text shown in the UI.
 export default {
+  "Set part cooling fan speed": "출력물 냉각 팬 속도 설정",
+  "Fan speed (%)": "팬 속도 (%)",
+  "Applied before PID tuning. The previous fan speed is restored when it finishes.": "PID 조정 전에 적용합니다. 완료되면 이전 팬 속도로 복원합니다.",
+  "{n} graphs deleted": "그래프 {n}개 삭제됨",
+  "Delete graphs": "그래프 삭제",
+  "Delete {n} selected graphs? Only the PNG files will be deleted.": "선택한 그래프 {n}개를 삭제할까요? PNG 파일만 삭제됩니다.",
+
  " and everything inside it": " 그리고 그 안의 모든 것",
  "(a backup is saved first) and restarts Moonraker. Klipper keeps running.": "(먼저 백업을 저장하고) Moonraker를 재시작합니다. Klipper는 계속 실행됩니다.",
  "A few questions, you can change everything later in Settings.": "몇 가지 질문입니다. 나중에 설정에서 모두 변경할 수 있어요.",

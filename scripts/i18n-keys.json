@@ -2376,5 +2376,11 @@
 "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.",
 "Floating",
 "Attached",
-"Frame"
+"Frame",
+"Set part cooling fan speed",
+"Fan speed (%)",
+"Applied before PID tuning. The previous fan speed is restored when it finishes.",
+"{n} graphs deleted",
+"Delete graphs",
+"Delete {n} selected graphs? Only the PNG files will be deleted."
 ]

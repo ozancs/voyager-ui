@@ -77,8 +77,8 @@ const zbands = computed(() => {
   return zs.value.flatMap((step, i) => {
     const top = C - ZMID - (i + 1) * h;
     return [
-      { key: 'u' + i, y: top + 0.7, h: h - 1.4, dist: props.zdir * step, i, step, sign: '+' },
-      { key: 'd' + i, y: C + ZMID + i * h + 0.7, h: h - 1.4, dist: -props.zdir * step, i, step, sign: '−' },
+      { key: 'u' + i, y: top + 0.7, h: h - 1.4, dist: props.zdir * step, i, step },
+      { key: 'd' + i, y: C + ZMID + i * h + 0.7, h: h - 1.4, dist: -props.zdir * step, i, step },
     ];
   });
 });
@@ -198,7 +198,7 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
       </title>
       <rect :x="ZX" :y="b.y" :width="ZW" :height="b.h" rx="2.5" :style="{ fill: fill(b.i, zs.length) }" />
       <text class="lb" :class="{ dim: !can('Z') }" :x="ZX + ZW / 2" :y="b.y + b.h / 2">
-        {{ b.sign }}{{ fmt(b.step) }}
+        {{ fmt(b.step) }}
       </text>
     </g>
     <text class="dir z" :x="ZX + ZW / 2" :y="C">Z</text>

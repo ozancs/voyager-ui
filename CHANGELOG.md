@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.22
+
+- Guided hotend PID tuning can set the part cooling fan speed and restore the previous speed afterward. The option is shown only when the printer has a part cooling fan.
+- Shake&Tune graphs support multi-select deletion with confirmation and a 10-second Undo window. Replaced files are preserved. Only selected PNG graphs are deleted.
+- Z jog buttons show unsigned step sizes, including with Invert Z enabled. Tooltips retain the actual signed movement.
+
 ## 0.38.21
 
 - Menu style in Settings > Appearance: Classic (the menu under the top bar, as before and the default), Floating, Attached or Frame; the full height styles have the printer at the top and fold to icons
