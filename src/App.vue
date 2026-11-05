@@ -2,6 +2,7 @@
 // Root component: top bar, side menu, favorites bar and the page the router points at. Pages are loaded
 // on demand (LOADERS) and kept alive, so switching back is instant. Also hosts the app-wide overlays: toasts,
 // Ctrl+K search, settings, update log, macro prompts, first-run setup and the login screen.
+import { mergePrinters } from './printers';
 import { ref, computed, defineAsyncComponent, h, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import LoadingPanel from './components/LoadingPanel.vue';
 import TopBar from './components/TopBar.vue';
@@ -139,7 +140,10 @@ watch(
 watch(
   () => state.settingsLoaded && state.connected,
   (ok) => {
-    if (ok) initSync();
+    if (!ok) return;
+    initSync();
+    // printers this printer knows (saved from any browser) join this browser's list
+    mergePrinters(state.settings.printers);
   },
   { immediate: true },
 );

@@ -2388,4 +2388,11 @@ export default {
   "Floating": "悬浮",
   "Attached": "贴边",
   "Frame": "框架",
+  "Part cooling fan": "模型冷却风扇",
+  "Fan": "风扇",
+  "The printer did not report its network address.": "打印机未提供网络地址。",
+  "Scan network": "扫描网络",
+  "Looking for printers on this network… {done} / {total}": "正在查找此网络中的打印机… {done} / {total}",
+  "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "没有其他打印机响应。只有 moonraker.conf 的 cors_domains 允许此页面的打印机才会响应；否则请按地址添加。",
+  "needs a login": "需要登录",
 }

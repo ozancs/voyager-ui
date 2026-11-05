@@ -2388,4 +2388,11 @@ export default {
   "Floating": "Flutuante",
   "Attached": "Encostado",
   "Frame": "Moldura",
+  "Part cooling fan": "Ventoinha de peça",
+  "Fan": "Ventoinha",
+  "The printer did not report its network address.": "A impressora não informou seu endereço de rede.",
+  "Scan network": "Procurar na rede",
+  "Looking for printers on this network… {done} / {total}": "Procurando impressoras nesta rede… {done} / {total}",
+  "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "Nenhuma outra impressora respondeu. Uma impressora só responde se seu moonraker.conf permitir esta página em cors_domains; caso contrário, adicione pelo endereço.",
+  "needs a login": "requer login",
 }

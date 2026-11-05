@@ -134,3 +134,50 @@ export function timeLeft(st) {
   const d = st.print_stats?.print_duration || 0;
   return p > 0.01 && d > 0 ? d / p - d : null;
 }
+
+// Scan the printer's own network for other printers: every address of its /24 (from Moonraker's network info),
+// asking /server/info on port 80 with a short timeout. Only printers whose moonraker.conf lets this page in
+// (cors_domains) can answer, the same as adding one by hand. onProgress(done, total); returns the ones found:
+// [{ host, name }]. skip: addresses already known.
+export async function scanNetwork(ips, { skip = [], onProgress, signal } = {}) {
+  const own = new Set(ips);
+  const nets = [...new Set(ips.map((ip) => ip.split('.').slice(0, 3).join('.')))];
+  const targets = [];
+  for (const n of nets) for (let i = 1; i < 255; i++) if (!own.has(n + '.' + i)) targets.push(n + '.' + i);
+  const known = new Set(skip.map((h) => h.toLowerCase()));
+  const found = [];
+  let done = 0,
+    k = 0;
+  const one = async (ip) => {
+    const ctl = new AbortController();
+    const tm = setTimeout(() => ctl.abort(), 1800);
+    const stop = () => ctl.abort();
+    signal?.addEventListener('abort', stop);
+    try {
+      const r = await fetch(`${location.protocol}//${ip}/server/info`, { cache: 'no-store', signal: ctl.signal });
+      const login = r.status === 401 || r.status === 403;
+      const j = login ? null : r.ok ? await r.json().catch(() => null) : null;
+      if (login || j?.result?.klippy_state !== undefined) {
+        let name = '';
+        if (!login) {
+          const i = await fetch(`${location.protocol}//${ip}/printer/info`, { cache: 'no-store' })
+            .then((x) => x.json())
+            .catch(() => null);
+          name = i?.result?.hostname || '';
+        }
+        if (!known.has(ip)) found.push({ host: ip, name: name || ip, login });
+      }
+    } catch {
+      // nothing there, or a printer that does not let this page in
+    } finally {
+      clearTimeout(tm);
+      signal?.removeEventListener('abort', stop);
+      onProgress?.(++done, targets.length);
+    }
+  };
+  const worker = async () => {
+    while (k < targets.length && !signal?.aborted) await one(targets[k++]);
+  };
+  await Promise.all(Array.from({ length: 32 }, worker));
+  return found.sort((a, b) => a.host.localeCompare(b.host, undefined, { numeric: true }));
+}

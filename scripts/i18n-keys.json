@@ -2382,5 +2382,12 @@
 "Applied before PID tuning. The previous fan speed is restored when it finishes.",
 "{n} graphs deleted",
 "Delete graphs",
-"Delete {n} selected graphs? Only the PNG files will be deleted."
+"Delete {n} selected graphs? Only the PNG files will be deleted.",
+"Part cooling fan",
+"Fan",
+"The printer did not report its network address.",
+"Scan network",
+"Looking for printers on this network… {done} / {total}",
+"No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.",
+"needs a login"
 ]

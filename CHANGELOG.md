@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.23
+
+- Hotend PID tuning finds the part cooling fan when it is a [fan_generic] (Mainsail style multiple part fans); with several fans you pick which one
+- Printers: Scan network finds the other printers on the same network to add with one click (a printer answers when its moonraker.conf allows this page in cors_domains)
+- The printer list is kept on the printer too, so another browser opening it gets the same list
+
 ## 0.38.22
 
 - Guided hotend PID tuning can set the part cooling fan speed and restore the previous speed afterward. The option is shown only when the printer has a part cooling fan.

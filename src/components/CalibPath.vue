@@ -77,8 +77,19 @@ const running = computed(() => steps.value.find((s) => RUNS[s.key]?.running) || 
 const target = ref(0);
 const useFan = ref(false);
 const fanSpeed = ref(0);
+// the part cooling fan: [fan], or a [fan_generic] (Mainsail's way of having several part fans, with M106 as a
+// macro). Names that say part cooling come first; with several, the dialog lets you pick one.
+const PART = /part|cool|pcf|blower|model/i;
+const partFans = computed(() => {
+  const gen = state.objects.filter((o) => o.startsWith('fan_generic '));
+  const named = gen.filter((o) => PART.test(o.slice(12)));
+  return [...(state.objects.includes('fan') ? ['fan'] : []), ...named, ...gen.filter((o) => !named.includes(o))];
+});
+const fanId = ref('');
+const pidFan = computed(() => (partFans.value.includes(fanId.value) ? fanId.value : partFans.value[0] || ''));
+const fanName = (id) => (id === 'fan' ? t('Part cooling fan') : id.slice(12).replace(/_/g, ' '));
 const hasPidFan = computed(
-  () => cur.value?.kind === 'pid' && /^extruder\d*$/.test(cur.value.heater) && state.objects.includes('fan'),
+  () => cur.value?.kind === 'pid' && /^extruder\d*$/.test(cur.value.heater) && !!partFans.value.length,
 );
 const samples = ref(10);
 const axis = ref('');
@@ -94,7 +105,7 @@ function open(s) {
     target.value = sp || s.target;
     if (!RUNS[s.key]?.running) {
       useFan.value = false;
-      fanSpeed.value = Math.round((S('fan').speed || 0) * 100);
+      fanSpeed.value = Math.round((S(pidFan.value).speed || 0) * 100);
     }
   }
 }
@@ -174,7 +185,7 @@ async function send(cmd, cooling = null) {
   let fanChanged = false;
   try {
     if (cooling) {
-      await setFan('fan', cooling.speed);
+      await setFan(cooling.id, cooling.speed);
       fanChanged = true;
       // The connection or lock may have changed while the fan command was in flight.
       if (!state.connected || state.klippy !== 'ready' || state.locked || isPrinting.value || !r.running)
@@ -187,7 +198,7 @@ async function send(cmd, cooling = null) {
     // Do not queue a restoration across a shutdown/reconnect or after a new print has started.
     if (fanChanged && r.running && state.connected && state.klippy === 'ready' && !state.locked && !isPrinting.value) {
       try {
-        await setFan('fan', cooling.previous);
+        await setFan(cooling.id, cooling.previous);
       } catch {
         failed = true;
       }
@@ -280,7 +291,9 @@ const canStart = computed(
 function start() {
   if (!canStart.value) return;
   const cooling =
-    hasPidFan.value && useFan.value ? { speed: fanSpeed.value, previous: (S('fan').speed || 0) * 100 } : null;
+    hasPidFan.value && useFan.value
+      ? { id: pidFan.value, speed: fanSpeed.value, previous: (S(pidFan.value).speed || 0) * 100 }
+      : null;
   send(commandFor(cur.value), cooling);
 }
 
@@ -843,6 +856,19 @@ const RUNS = _reactive({});
             <input v-model="useFan" type="checkbox" class="cb" :disabled="!!running" />
             {{ t('Set part cooling fan speed') }}
           </label>
+          <select
+            v-if="useFan && partFans.length > 1"
+            class="input"
+            :value="pidFan"
+            :disabled="!!running"
+            :aria-label="t('Fan')"
+            @change="
+              fanId = $event.target.value;
+              fanSpeed = Math.round((S(fanId).speed || 0) * 100);
+            "
+          >
+            <option v-for="f in partFans" :key="f" :value="f">{{ fanName(f) }}</option>
+          </select>
           <label v-if="useFan" class="row">
             <input
               v-model.number="fanSpeed"

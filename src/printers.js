@@ -57,4 +57,23 @@ export function selectPrinter(id) {
 // appended, so switching printers never shows or seeds data from another one
 export const perPrinterKey = (k) => (currentHost() ? k + '@' + currentHost() : k);
 
+// the list a printer keeps for every browser (state.settings.printers, written when the list is saved): the ones
+// this browser does not have yet are added. Never removes: a printer taken off here goes from the printer's list
+// the next time the list is saved.
+export function mergePrinters(remote) {
+  if (!Array.isArray(remote) || !remote.length) return 0;
+  const list = loadPrinters();
+  const have = new Set([...list.map((p) => p.host.toLowerCase()), location.host.toLowerCase()]);
+  let n = 0;
+  for (const p of remote) {
+    const host = String(p?.host || '').trim();
+    if (!HOST_RE.test(host) || have.has(host.toLowerCase())) continue;
+    list.push({ id: newId(), name: String(p.name || host).slice(0, 60), host });
+    have.add(host.toLowerCase());
+    n++;
+  }
+  if (n) savePrinters(list);
+  return n;
+}
+
 export const newId = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);

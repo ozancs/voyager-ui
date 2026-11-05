@@ -2406,4 +2406,11 @@ export default {
   "Floating": "Yüzen",
   "Attached": "Yapışık",
   "Frame": "Çerçeve",
+  "Part cooling fan": "Parça soğutma fanı",
+  "Fan": "Fan",
+  "The printer did not report its network address.": "Yazıcı ağ adresini bildirmedi.",
+  "Scan network": "Ağı tara",
+  "Looking for printers on this network… {done} / {total}": "Bu ağdaki yazıcılar aranıyor… {done} / {total}",
+  "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "Başka yazıcı cevap vermedi. Bir yazıcı ancak moonraker.conf dosyasındaki cors_domains bu sayfaya izin veriyorsa cevap verir; değilse adresiyle ekle.",
+  "needs a login": "giriş gerekiyor",
 }

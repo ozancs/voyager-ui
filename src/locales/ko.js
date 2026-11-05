@@ -2388,4 +2388,11 @@ export default {
   "Floating": "플로팅",
   "Attached": "붙임",
   "Frame": "프레임",
+  "Part cooling fan": "부품 냉각 팬",
+  "Fan": "팬",
+  "The printer did not report its network address.": "프린터가 네트워크 주소를 알려주지 않았습니다.",
+  "Scan network": "네트워크 검색",
+  "Looking for printers on this network… {done} / {total}": "이 네트워크의 프린터를 찾는 중… {done} / {total}",
+  "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "다른 프린터가 응답하지 않았습니다. moonraker.conf의 cors_domains가 이 페이지를 허용하는 프린터만 응답합니다. 아니면 주소로 추가하세요.",
+  "needs a login": "로그인 필요",
 }

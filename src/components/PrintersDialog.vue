@@ -1,13 +1,15 @@
 <script setup>
 // The printer list: printers this copy of the UI can switch between, each with a nickname and an address.
 // Kept in this browser (printers.js). Saving and picking a printer reloads the page on that printer.
-import { ref, computed } from 'vue';
+import { ref, computed, onBeforeUnmount } from 'vue';
+import { state } from '../store';
+import { api } from '../api/moonraker';
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
 import PrinterIconPicker from './PrinterIconPicker.vue';
 import { pruneListIcons } from '../printerIcon';
 import { loadPrinters, savePrinters, currentPrinter, selectPrinter, HOST_RE, newId } from '../printers';
-import { testPrinter, looksIncomplete } from '../fleet';
+import { testPrinter, looksIncomplete, scanNetwork } from '../fleet';
 import { t } from '../i18n';
 const emit = defineEmits(['close']);
 const rows = ref(loadPrinters().map((p) => ({ ...p })));
@@ -27,6 +29,36 @@ const result = (r) => {
   if (x && !x.busy && x.host !== clean(r.host)) return null; // the address changed since the test
   return x;
 };
+// Scan network: the other printers on this printer's network (fleet.js)
+const scan = ref(null); // { done, total, found, busy, err }
+let scanCtl = null;
+async function startScan() {
+  scanCtl?.abort();
+  scanCtl = new AbortController();
+  scan.value = { done: 0, total: 0, found: [], busy: true, err: '' };
+  try {
+    const info = await api.call('machine.system_info');
+    const ips = [];
+    for (const n of Object.values(info.system_info?.network || {}))
+      for (const a of n.ip_addresses || [])
+        if (a.family === 'ipv4' && !a.is_link_local && !a.address.startsWith('127.')) ips.push(a.address);
+    if (!ips.length) throw new Error(t('The printer did not report its network address.'));
+    const skip = rows.value.map((r) => clean(r.host)).concat(here.split(':')[0]);
+    scan.value.found = await scanNetwork(ips, {
+      skip,
+      signal: scanCtl.signal,
+      onProgress: (d, tot) => scan.value && Object.assign(scan.value, { done: d, total: tot }),
+    });
+  } catch (e) {
+    if (scan.value) scan.value.err = e.message;
+  }
+  if (scan.value) scan.value.busy = false;
+}
+function addFound(f) {
+  rows.value.push({ id: newId(), name: f.name, host: f.host });
+  scan.value.found = scan.value.found.filter((x) => x !== f);
+}
+onBeforeUnmount(() => scanCtl?.abort());
 const clean = (h) =>
   String(h || '')
     .trim()
@@ -37,6 +69,8 @@ const canSave = computed(() => rows.value.every((r) => !bad(r)));
 function save(openId) {
   const list = rows.value.map((r) => ({ id: r.id, name: r.name.trim() || clean(r.host), host: clean(r.host) }));
   savePrinters(list);
+  // kept on the printer too, so another browser opening it gets the same list
+  if (state.settingsLoaded) state.settings.printers = list.map(({ name, host }) => ({ name, host }));
   pruneListIcons(list.map((p) => p.id));
   // the printer on screen was removed or another one was picked: go there
   if (openId !== undefined) return selectPrinter(openId);
@@ -93,9 +127,33 @@ function save(openId) {
         {{ t('This address looks incomplete (an IP address has four numbers, like 192.168.1.20).') }}
       </p>
     </div>
-    <button class="btn" style="align-self: flex-start" @click="add">
-      <Icon name="plus" :size="16" />{{ t('Add printer') }}
-    </button>
+    <div class="row" style="gap: 8px; flex-wrap: wrap">
+      <button class="btn" @click="add"><Icon name="plus" :size="16" />{{ t('Add printer') }}</button>
+      <button class="btn" :disabled="scan?.busy || !state.connected" @click="startScan">
+        <Icon name="search" :size="16" />{{ t('Scan network') }}
+      </button>
+    </div>
+    <div v-if="scan" class="scan">
+      <p v-if="scan.busy" class="mu sm" style="margin: 0">
+        <Icon name="refresh" :size="14" class="spin" />
+        {{ t('Looking for printers on this network… {done} / {total}', { done: scan.done, total: scan.total || '…' }) }}
+      </p>
+      <p v-else-if="scan.err" class="res dg" style="margin: 0">{{ scan.err }}</p>
+      <p v-else-if="!scan.found.length" class="mu sm" style="margin: 0">
+        {{
+          t(
+            'No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.',
+          )
+        }}
+      </p>
+      <div v-for="f in scan.found" :key="f.host" class="pr">
+        <Icon name="l:printer" :size="16" class="mu" />
+        <b class="grow">{{ f.name }}</b>
+        <span class="mono mu">{{ f.host }}</span>
+        <span v-if="f.login" class="mu sm">{{ t('needs a login') }}</span>
+        <button class="btn" @click="addFound(f)"><Icon name="plus" :size="15" />{{ t('Add') }}</button>
+      </div>
+    </div>
     <template #foot>
       <button class="btn lg" @click="emit('close')">{{ t('Cancel') }}</button>
       <button class="btn lg acc" :disabled="!canSave" @click="save()">{{ t('Save') }}</button>
@@ -103,6 +161,15 @@ function save(openId) {
   </Modal>
 </template>
 <style scoped>
+.scan {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--s2);
+}
 .pr {
   display: flex;
   align-items: center;

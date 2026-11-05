@@ -2388,4 +2388,11 @@ export default {
   "Floating": "Fluttuante",
   "Attached": "Agganciato",
   "Frame": "Cornice",
+  "Part cooling fan": "Ventola di raffreddamento pezzo",
+  "Fan": "Ventola",
+  "The printer did not report its network address.": "La stampante non ha indicato il suo indirizzo di rete.",
+  "Scan network": "Cerca in rete",
+  "Looking for printers on this network… {done} / {total}": "Ricerca di stampanti su questa rete… {done} / {total}",
+  "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "Nessun'altra stampante ha risposto. Una stampante risponde solo se il suo moonraker.conf consente questa pagina in cors_domains; altrimenti aggiungila col suo indirizzo.",
+  "needs a login": "serve l'accesso",
 }
