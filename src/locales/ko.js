@@ -2395,4 +2395,9 @@ export default {
   "Looking for printers on this network… {done} / {total}": "이 네트워크의 프린터를 찾는 중… {done} / {total}",
   "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "다른 프린터가 응답하지 않았습니다. moonraker.conf의 cors_domains가 이 페이지를 허용하는 프린터만 응답합니다. 아니면 주소로 추가하세요.",
   "needs a login": "로그인 필요",
+  "Actual / requested by the G-code": "실제 / G-code 요청",
+  "Used / total of the file": "사용량 / 파일 전체",
+  "Offset from target": "목표 대비 편차",
+  "Show temperatures": "온도 보기",
+  "No heater has a target in this time range.": "이 기간에 목표가 있는 히터가 없습니다.",
 }

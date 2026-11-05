@@ -2413,4 +2413,9 @@ export default {
   "Looking for printers on this network… {done} / {total}": "Bu ağdaki yazıcılar aranıyor… {done} / {total}",
   "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "Başka yazıcı cevap vermedi. Bir yazıcı ancak moonraker.conf dosyasındaki cors_domains bu sayfaya izin veriyorsa cevap verir; değilse adresiyle ekle.",
   "needs a login": "giriş gerekiyor",
+  "Actual / requested by the G-code": "Gerçek / G-code'un istediği",
+  "Used / total of the file": "Kullanılan / dosyanın toplamı",
+  "Offset from target": "Hedeften sapma",
+  "Show temperatures": "Sıcaklıkları göster",
+  "No heater has a target in this time range.": "Bu zaman aralığında hedefi olan ısıtıcı yok.",
 }

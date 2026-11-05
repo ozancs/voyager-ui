@@ -78,21 +78,48 @@ function series(name) {
   }
   return out;
 }
+// setpoint view: each heater as how far it is from its target (0 = on target), so a bed at 60° and a hotend at
+// 250° read on the same few degrees. Only what has a target; points without one leave a gap.
+const dev = computed({
+  get: () => !!state.settings.tempChartDev,
+  set: (v) => (state.settings.tempChartDev = v),
+});
 const data = computed(() => {
   state.histTick;
   zoom.value;
-  return sensors.value.map((s) => ({ s, i: s.ci, pts: series(s.name) }));
+  const all = sensors.value.map((s) => ({ s, i: s.ci, pts: series(s.name) }));
+  if (!dev.value) return all;
+  return all
+    .filter(({ s, pts }) => (s.isHeater || s.isTempFan) && pts.some((p) => p.g > 0))
+    .map((e) => {
+      const pts = [];
+      let gap = false;
+      for (const p of e.pts) {
+        if (!(p.g > 0)) {
+          gap = true;
+          continue;
+        }
+        pts.push({ a: p.a, v: p.v - p.g, g: 0, on: true, brk: p.brk || gap });
+        gap = false;
+      }
+      return { ...e, pts };
+    });
 });
 // auto scale to the visible data (values + targets that are set)
+// In the setpoint view the scale follows the heaters once they hold their target: a heat-up from cold (hundreds
+// of degrees off) is left out and runs off the bottom, so a few tenths of a degree still show.
+const SETTLED = 15;
 const scale = computed(() => {
   let lo = Infinity,
     hi = -Infinity;
+  const near = dev.value && data.value.some(({ pts }) => pts.some((p) => Math.abs(p.v) <= SETTLED));
   for (const { s, pts } of data.value) {
     if (pinOn.value && s.name !== pinned.value) continue; // a sensor picked on its own gets the whole height
     for (const p of pts) {
+      if (near && Math.abs(p.v) > SETTLED) continue;
       if (p.v < lo) lo = p.v;
       if (p.v > hi) hi = p.v;
-      if (p.g > 0) {
+      if (p.g > 0 || p.on) {
         if (p.g < lo) lo = p.g;
         if (p.g > hi) hi = p.g;
       }
@@ -102,17 +129,21 @@ const scale = computed(() => {
     lo = 0;
     hi = 100;
   }
-  const sp = Math.max(hi - lo, 10);
+  const sp = Math.max(hi - lo, dev.value ? 2 : 10);
   const raw = sp / 5;
   const p = Math.pow(10, Math.floor(Math.log10(raw)));
   const step = [1, 2, 5, 10].map((m) => m * p).find((s) => s >= raw);
-  const min = Math.max(0, Math.floor((lo - sp * 0.05) / step) * step);
+  const min = dev.value
+    ? Math.floor((lo - sp * 0.05) / step) * step
+    : Math.max(0, Math.floor((lo - sp * 0.05) / step) * step);
   const max = Math.ceil((hi + sp * 0.05) / step) * step;
   const ticks = [];
   for (let v = min; v <= max + 1e-9; v += step) ticks.push(+v.toFixed(3));
   return { min, max, ticks };
 });
 const y = (v) => H - ((v - scale.value.min) / (scale.value.max - scale.value.min)) * H;
+// a line that runs off the scale (a heat-up in the setpoint view) stays inside the plot
+const yc = (v) => Math.max(0, Math.min(H, y(v)));
 const x = (a) => Math.min(W, Math.max(0, W * (1 - (a - end.value) / span.value)));
 const lines = computed(() =>
   data.value
@@ -126,16 +157,16 @@ const lines = computed(() =>
         pen = false;
       for (const p of pts) {
         const px = x(p.a).toFixed(1);
-        d += (d && !p.brk ? 'L' : 'M') + px + ',' + y(p.v).toFixed(1);
+        d += (d && !p.brk ? 'L' : 'M') + px + ',' + yc(p.v).toFixed(1);
         // the area under the line, closed at the bottom; a gap in the data closes it and starts a new one
         if (x0 == null || p.brk) {
           if (x0 != null) area += 'L' + xl + ',' + H + 'Z';
           area += 'M' + px + ',' + H;
           x0 = px;
         }
-        area += 'L' + px + ',' + y(p.v).toFixed(1);
+        area += 'L' + px + ',' + yc(p.v).toFixed(1);
         xl = px;
-        if ((s.isHeater || s.isTempFan) && p.g > 0) {
+        if ((s.isHeater || s.isTempFan) && (p.g > 0 || p.on)) {
           dt += (pen && !p.brk ? 'L' : 'M') + px + ',' + y(p.g).toFixed(1);
           pen = true;
         } else pen = false;
@@ -200,12 +231,13 @@ const marks = computed(() => {
 // hover: values at the pointer's time shown in the legend
 const hover = ref(null); // seconds ago
 function valueAt(entry) {
-  if (hover.value == null) return entry.s.temperature;
+  if (hover.value == null)
+    return dev.value ? (entry.s.target > 0 ? entry.s.temperature - entry.s.target : null) : entry.s.temperature;
   let best = null;
   for (const p of entry.pts) if (!best || Math.abs(p.a - hover.value) < Math.abs(best.a - hover.value)) best = p;
   return best && Math.abs(best.a - hover.value) < span.value / 50 ? best.v : null;
 }
-const fmt = (v) => (v != null ? v.toFixed(1) + '°' : '--');
+const fmt = (v) => (v != null ? (dev.value && v > 0 ? '+' : '') + v.toFixed(1) + '°' : '--');
 
 // zoom and pan
 const plot = ref(null);
@@ -295,11 +327,24 @@ onBeforeUnmount(() => ptrs.clear());
         >
           <Icon name="play" :size="14" />
         </button>
+        <button
+          class="btn ibtn sm"
+          :class="{ on: dev }"
+          :aria-pressed="dev"
+          :aria-label="t('Offset from target')"
+          :data-tip="dev ? t('Show temperatures') : t('Offset from target')"
+          @click="dev = !dev"
+        >
+          <Icon name="target" :size="15" />
+        </button>
         <SensorPicker lines />
       </div>
       <CardCollapse />
     </div>
     <div class="lg">
+      <span v-if="dev && !data.length" class="mu" style="font-size: 12px">{{
+        t('No heater has a target in this time range.')
+      }}</span>
       <span
         v-for="e in data"
         :key="e.s.name"
@@ -416,7 +461,7 @@ onBeforeUnmount(() => ptrs.clear());
           />
         </svg>
         <span v-for="g in scale.ticks" :key="'l' + g" class="yl mono" :style="{ top: (y(g) / H) * 100 + '%' }"
-          >{{ g }}°</span
+          >{{ dev && g > 0 ? '+' + g : g }}°</span
         >
         <span
           v-for="m in marks"

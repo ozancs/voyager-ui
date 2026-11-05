@@ -2395,4 +2395,9 @@ export default {
   "Looking for printers on this network… {done} / {total}": "Buscando impresoras en esta red… {done} / {total}",
   "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "Ninguna otra impresora respondió. Una impresora solo responde si su moonraker.conf permite esta página en cors_domains; si no, añádela por su dirección.",
   "needs a login": "requiere iniciar sesión",
+  "Actual / requested by the G-code": "Real / pedido por el G-code",
+  "Used / total of the file": "Usado / total del archivo",
+  "Offset from target": "Desviación del objetivo",
+  "Show temperatures": "Mostrar temperaturas",
+  "No heater has a target in this time range.": "Ningún calentador tiene objetivo en este intervalo.",
 }

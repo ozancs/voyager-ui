@@ -2389,5 +2389,10 @@
 "Scan network",
 "Looking for printers on this network… {done} / {total}",
 "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.",
-"needs a login"
+"needs a login",
+"Actual / requested by the G-code",
+"Used / total of the file",
+"Offset from target",
+"Show temperatures",
+"No heater has a target in this time range."
 ]

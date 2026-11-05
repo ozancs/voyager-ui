@@ -248,6 +248,7 @@ const status = {
   },
   motion_report: { live_velocity: 0, live_extruder_velocity: 0, live_position: [0, 0, 0, 0] },
   gcode_move: {
+    speed: 10200, // the last F (mm/min): 170 mm/s requested
     speed_factor: 1,
     absolute_coordinates: true,
     absolute_extrude: false,
@@ -1984,6 +1985,7 @@ function handle(m) {
               layer_height: 0.2,
               object_height: 42,
               thumbnails: [],
+              filament_total: 29500,
               slicer: 'OrcaSlicer',
               slicer_version: '2.2.0',
               filament_type: 'PETG',

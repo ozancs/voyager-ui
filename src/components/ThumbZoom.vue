@@ -1,14 +1,19 @@
 <script setup>
-// The large picture of a thumbnail under the mouse (thumbZoom.js): up to 500 px, beside the pointer, on the side
-// of the window that has room.
+// The large picture of a thumbnail under the mouse (thumbZoom.js): up to 500 px, over the thumbnail, which sits in
+// its bottom left corner (bottom right when there is no room to the right; a top corner when none above).
 import { computed } from 'vue';
 import { zoom } from '../thumbZoom';
 const SIZE = 500;
 const style = computed(() => {
-  const s = Math.min(SIZE, window.innerHeight - 40, window.innerWidth - 40);
-  const right = zoom.x + 24 + s < window.innerWidth;
-  const left = right ? zoom.x + 24 : Math.max(8, zoom.x - 24 - s);
-  const top = Math.max(8, Math.min(zoom.y - s / 2, window.innerHeight - s - 8));
+  const r = zoom.rect;
+  if (!r) return {};
+  const W = window.innerWidth,
+    Hh = window.innerHeight;
+  const s = Math.min(SIZE, Hh - 16, W - 16);
+  let left = r.left + s <= W - 8 ? r.left : r.right - s;
+  let top = r.bottom - s >= 8 ? r.bottom - s : r.top;
+  left = Math.max(8, Math.min(left, W - s - 8));
+  top = Math.max(8, Math.min(top, Hh - s - 8));
   return { width: s + 'px', height: s + 'px', left: left + 'px', top: top + 'px' };
 });
 </script>

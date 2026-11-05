@@ -150,6 +150,35 @@ function focusModel() {
   viewer.setCameraPosition(cx - d * 0.8, cy - d * 1.1, zt + d * 0.9);
 }
 
+// The cube turns with the camera: where the camera is seen from the model (Babylon: y up, the printer's front
+// towards -z) gives the turn around the bed and the tilt from above. A face click moves the camera there with the
+// engine's own view positions (the ones Mainsail's cube uses).
+const cubeTf = ref('');
+const deg = (r) => (r * 180) / Math.PI;
+function syncCube(cam) {
+  const p = cam.position,
+    t = cam.target;
+  const dx = p.x - t.x,
+    dy = p.y - t.y,
+    dz = p.z - t.z;
+  const len = Math.hypot(dx, dy, dz) || 1;
+  const yaw = Math.atan2(dx, -dz),
+    pitch = Math.asin(Math.max(-1, Math.min(1, dy / len)));
+  cubeTf.value = `rotateX(${(-deg(pitch)).toFixed(1)}deg) rotateY(${(-deg(yaw)).toFixed(1)}deg)`;
+}
+const FACES = [
+  ['Front', 'translateZ(23px)', { x: 0, y: 0, z: 1 }],
+  ['Back', 'rotateY(180deg) translateZ(23px)', { x: 0, y: 0, z: -1 }],
+  ['Right', 'rotateY(90deg) translateZ(23px)', { x: -1, y: 0, z: 0 }],
+  ['Left', 'rotateY(-90deg) translateZ(23px)', { x: 1, y: 0, z: 0 }],
+  ['Top', 'rotateX(90deg) translateZ(23px)', { x: 0, y: -1, z: 0 }],
+  ['Bottom', 'rotateX(-90deg) translateZ(23px)', { x: 0, y: 1, z: 0 }],
+];
+function lookFrom(v) {
+  if (!viewer) return;
+  viewer.setViewboxCameraPosition(v);
+  syncCube(viewer.scene.activeCamera);
+}
 async function ensureViewer() {
   if (viewer) return viewer;
   const { default: GCodeViewer } = await import('@sindarius/gcodeviewer');
@@ -162,6 +191,11 @@ async function ensureViewer() {
   v.bed.setBedColor('#6b7077');
   v.setZClipPlane(1000000, -1000000);
   v.axes.show(true);
+  // our own orientation cube instead of the engine's: it turns with the camera, a face click looks from there
+  v.displayViewBox(false);
+  const cam = v.scene.activeCamera;
+  cam.onViewMatrixChangedObservable.add(() => syncCube(cam));
+  syncCube(cam);
   const th = S('toolhead');
   const kin = S('configfile').settings?.printer?.kinematics || '';
   v.bed.setDelta(kin.includes('delta'));
@@ -512,6 +546,20 @@ onBeforeUnmount(() => {
         </div>
         <div v-else-if="!file" class="ld">{{ t('Load the current job or pick a file') }}</div>
         <span v-if="file" class="fn mono">{{ file }}</span>
+        <div v-if="ready" class="ocube" @pointerdown.stop>
+          <div class="oc" :style="{ transform: cubeTf }">
+            <button
+              v-for="[name, tf, dir] in FACES"
+              :key="name"
+              type="button"
+              :style="{ transform: tf }"
+              :aria-label="t(name)"
+              @click="lookFrom(dir)"
+            >
+              {{ t(name) }}
+            </button>
+          </div>
+        </div>
         <span v-if="file && file === curPrint && active && eo.objects?.length" class="hint mono">{{
           t('Click an object to exclude it')
         }}</span>
@@ -796,5 +844,47 @@ onBeforeUnmount(() => {
 .spd button {
   padding: 0 9px;
   font-size: 12px;
+}
+.ocube {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  perspective: 260px;
+  z-index: 2;
+}
+.oc {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  transform-style: preserve-3d;
+}
+.oc button {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--tx) 18%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--s2) 88%, transparent);
+  color: var(--mu);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  backface-visibility: hidden;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+.oc button:hover,
+.oc button:focus-visible {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: var(--oa, #0d1513);
 }
 </style>

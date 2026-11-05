@@ -2395,4 +2395,9 @@ export default {
   "Looking for printers on this network… {done} / {total}": "このネットワークのプリンターを検索中… {done} / {total}",
   "No other printers answered. A printer only answers when its moonraker.conf allows this page in cors_domains; add it by its address otherwise.": "他のプリンターは応答しませんでした。moonraker.conf の cors_domains でこのページが許可されているプリンターだけが応答します。そうでなければアドレスで追加してください。",
   "needs a login": "ログインが必要",
+  "Actual / requested by the G-code": "実際 / G-codeの指定",
+  "Used / total of the file": "使用量 / ファイルの合計",
+  "Offset from target": "目標からのずれ",
+  "Show temperatures": "温度を表示",
+  "No heater has a target in this time range.": "この期間に目標温度のあるヒーターはありません。",
 }

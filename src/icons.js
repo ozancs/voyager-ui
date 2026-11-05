@@ -117,6 +117,8 @@ export const ICONS = {
   right: 'M9 6l6 6-6 6',
   send: 'M4 12l16-8-6 16-3-7z',
   pause: 'M8 5v14M16 5v14',
+  image:
+    'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM21 15l-5-5L5 21M9 7a2 2 0 1 0 0 4 2 2 0 1 0 0-4z',
   sq: 'M6 6h12v12H6z',
   play: 'M7 4l13 8-13 8z',
   excl: 'M4 4h7v7H4zM13 13h7v7h-7zM14 4l6 6M20 4l-6 6',

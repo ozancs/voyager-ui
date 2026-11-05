@@ -48,9 +48,16 @@ const remaining = computed(() => (eo.value.objects?.length || 0) - (eo.value.exc
 const z = computed(() => (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2));
 // live speed and volumetric flow from Klipper's motion_report (flow = extruder speed x filament cross section)
 const mr = computed(() => S('motion_report'));
-const speed = computed(() =>
-  active.value && mr.value.live_velocity != null ? Math.round(mr.value.live_velocity) + ' mm/s' : '--',
-);
+// actual / requested: the speed the G-code asks for (its F, in mm/min, times the speed factor), as Mainsail shows
+const reqSpeed = computed(() => {
+  const g = S('gcode_move');
+  return g.speed > 0 ? Math.round((g.speed / 60) * (g.speed_factor ?? 1)) : null;
+});
+const speed = computed(() => {
+  if (!active.value || mr.value.live_velocity == null) return '--';
+  const a = Math.round(mr.value.live_velocity);
+  return (reqSpeed.value != null ? a + ' / ' + reqSpeed.value : a) + ' mm/s';
+});
 const flow = computed(() => {
   const v = mr.value.live_extruder_velocity;
   if (!active.value || v == null) return '--';
@@ -58,7 +65,15 @@ const flow = computed(() => {
   return (Math.max(0, v) * Math.PI * (d / 2) ** 2).toFixed(1) + ' mm³/s';
 });
 const slicer = computed(() => (state.currentMeta?.estimated_time ? fmtTime(state.currentMeta.estimated_time) : '--'));
-const filament = computed(() => ((ps.value.filament_used || 0) / 1000).toFixed(2) + ' m');
+// used / the file's total (the slicer's figure), with how far along that is
+const filTotal = computed(() => state.currentMeta?.filament_total || 0);
+const filament = computed(() => {
+  const u = (ps.value.filament_used || 0) / 1000;
+  return filTotal.value ? u.toFixed(2) + ' / ' + (filTotal.value / 1000).toFixed(2) + ' m' : u.toFixed(2) + ' m';
+});
+const filPct = computed(() =>
+  filTotal.value ? Math.min(100, Math.round(((ps.value.filament_used || 0) / filTotal.value) * 100)) + '%' : null,
+);
 const eta = computed(() =>
   printTimes.value.eta
     ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
@@ -114,17 +129,17 @@ async function reprint() {
         <div :style="{ minWidth: '8.5ch' }">
           <span class="lbl">Z</span><b class="mono">{{ z }} mm</b>
         </div>
-        <div :style="{ minWidth: '8ch' }">
-          <span class="lbl">{{ t('Speed') }}</span
+        <div :style="{ minWidth: '12ch' }">
+          <span class="lbl" :data-tip="t('Actual / requested by the G-code')">{{ t('Speed') }}</span
           ><b class="mono">{{ speed }}</b>
         </div>
         <div :style="{ minWidth: '9.5ch' }">
           <span class="lbl">{{ t('Flow') }}</span
           ><b class="mono">{{ flow }}</b>
         </div>
-        <div :style="{ minWidth: '7.5ch' }">
-          <span class="lbl">{{ t('Filament') }}</span
-          ><b class="mono">{{ filament }}</b>
+        <div :style="{ minWidth: '13ch' }">
+          <span class="lbl" :data-tip="t('Used / total of the file')">{{ t('Filament') }}</span
+          ><b class="mono" :data-tip="filPct">{{ filament }}</b>
         </div>
         <div :style="{ minWidth: '7ch' }">
           <span class="lbl">{{ t('Print time') }}</span

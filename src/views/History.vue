@@ -416,7 +416,7 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
                     :data-tip="t('Picture at the end')"
                     @click="openShot(j)"
                   >
-                    <Icon name="snap" :size="16" /></button
+                    <Icon name="image" :size="16" /></button
                   ><button
                     class="btn ibtn sm"
                     :aria-label="t('Print again')"
