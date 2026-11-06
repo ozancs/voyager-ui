@@ -12,7 +12,7 @@ import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 
-export const VERSION = '0.38.26';
+export const VERSION = '0.38.27';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';
@@ -60,6 +60,7 @@ export const DEFAULT_SETTINGS = () => ({
   consoleTheme: 'default', // text colours of the console log
   consoleHelp: true, // what a command does, on hover over a sent command
   consoleTime: true, // the time in front of each line
+  consoleMultiline: true, // several lines pasted into the console are sent one after another
   consoleWrap: true, // long lines wrap; off: one line each, the log scrolls sideways
   tempRange: 600,
   strip: { order: [], hidden: [] },
@@ -757,13 +758,13 @@ export function askConfirm({ title, text, ok, alt }) {
 
 // print control: the user already chose to cancel, pause or resume, and these macros are expected to park
 const PRINT_CONTROL = /^(CANCEL_PRINT|PAUSE|RESUME|M600)$/;
-export const gcode = async (script, { quiet = false, force = false } = {}) => {
+export const gcode = async (script, { quiet = false, force = false, repeat = false } = {}) => {
   if (state.locked) {
     if (!quiet) toast(api.lockedMsg?.() || 'Locked', 'warn');
     return;
   }
   const now = Date.now();
-  if (script === lastSent.s && now - lastSent.at < 400 && !REPEATABLE.test(script)) return;
+  if (!repeat && script === lastSent.s && now - lastSent.at < 400 && !REPEATABLE.test(script)) return;
   const mine = (lastSent = { s: script, at: now });
   const lines = String(script)
     .split('\n')

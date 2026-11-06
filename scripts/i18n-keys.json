@@ -2416,5 +2416,11 @@
 "Moonraker config",
 "Smaller buttons",
 "Bigger buttons",
-"Button size"
+"Button size",
+"{n} commands, one after another",
+"Stop after this one",
+"Continue from here",
+"Send all",
+"Paste several lines",
+"Lines pasted into the console are sent one after another, each when the one before has finished."
 ]

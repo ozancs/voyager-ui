@@ -3,7 +3,8 @@
 // gcode responses), keeps scrolled to the bottom unless the user scrolls up, remembers sent commands (arrow
 // up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.
 // Options (Settings > Console): a sent command and the replies after it drawn as one block with its own copy
-// button, text colour themes, the command help on hover, timestamps and line wrap.
+// button, text colour themes, the command help on hover, timestamps and line wrap. Several lines pasted at once
+// become a list sent one after another, each when the one before has finished (Settings > Console can turn it off).
 import { copyText } from '../clipboard';
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Icon from './Icon.vue';
@@ -157,8 +158,51 @@ function onScroll() {
   auto.value = b.scrollHeight - b.scrollTop - b.clientHeight < 40;
   if (auto.value) unseen.value = 0;
 }
+// ---- several lines pasted at once ----
+// { lines, at (the one running or failed), done (how many finished), running, stop, failed }
+const batch = ref(null);
+function onPaste(e) {
+  if (state.settings.consoleMultiline === false) return;
+  const txt = e.clipboardData?.getData('text') || '';
+  const ls = txt
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (ls.length < 2) return;
+  e.preventDefault();
+  if (cmd.value.trim()) ls.unshift(cmd.value.trim());
+  cmd.value = '';
+  batch.value = { lines: ls, at: -1, done: 0, running: false, stop: false, failed: false };
+}
+async function runBatch(from = 0) {
+  const b = batch.value;
+  if (!b || b.running) return;
+  Object.assign(b, { running: true, stop: false, failed: false, done: from });
+  auto.value = true;
+  for (let i = from; i < b.lines.length; i++) {
+    if (b.stop || batch.value !== b) break;
+    b.at = i;
+    const c = b.lines[i];
+    hist.push(c);
+    hi = hist.length;
+    const up = c.toUpperCase();
+    try {
+      if (up === 'FIRMWARE_RESTART' || up === 'RESTART') await restartKlipper(up === 'FIRMWARE_RESTART');
+      else await gcode(c, { repeat: true });
+      b.done = i + 1;
+    } catch {
+      b.failed = true;
+      break;
+    }
+  }
+  b.running = false;
+  // all sent: the list goes away after a moment; stopped or failed: it stays, to go on from there
+  if (b.done >= b.lines.length) setTimeout(() => batch.value === b && !b.running && (batch.value = null), 1500);
+}
 async function send() {
   const c = cmd.value.trim();
+  if (!c && batch.value && !batch.value.running)
+    return runBatch(batch.value.failed ? batch.value.at : batch.value.done);
   if (!c) return;
   hist.push(c);
   hi = hist.length;
@@ -256,8 +300,50 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
         </button>
       </Transition>
     </div>
+    <div v-if="batch" class="bt">
+      <div class="bth">
+        <Icon name="list" :size="15" />
+        <span class="grow">{{ t('{n} commands, one after another', { n: batch.lines.length }) }}</span>
+        <span v-if="batch.running || batch.done" class="mono mu">{{ batch.done }}/{{ batch.lines.length }}</span>
+        <button v-if="batch.running" class="btn sm" :disabled="batch.stop" @click="batch.stop = true">
+          {{ t('Stop after this one') }}
+        </button>
+        <template v-else>
+          <button class="btn sm" @click="batch = null">{{ t('Clear') }}</button>
+          <button
+            class="btn sm acc"
+            :disabled="batch.done >= batch.lines.length"
+            @click="runBatch(batch.failed ? batch.at : batch.done)"
+          >
+            <Icon name="send" :size="14" :stroke="2.4" />{{
+              batch.done || batch.failed ? t('Continue from here') : t('Send all')
+            }}
+          </button>
+        </template>
+      </div>
+      <ol class="btl mono">
+        <li
+          v-for="(l, i) in batch.lines"
+          :key="i"
+          :class="{
+            ok: i < batch.done,
+            now: batch.running && i === batch.at,
+            bad: batch.failed && i === batch.at,
+          }"
+        >
+          <Icon
+            v-if="i < batch.done || (batch.failed && i === batch.at)"
+            :name="i < batch.done ? 'check' : 'x'"
+            :size="12"
+            :stroke="2.6"
+            class="bi"
+          /><span v-else class="bi n">{{ i + 1 }}</span
+          >{{ l }}
+        </li>
+      </ol>
+    </div>
     <div class="row">
-      <label class="in"
+      <label class="in" @paste="onPaste"
         ><span class="p">&gt;</span
         ><CmdInput
           ref="ci"
@@ -476,6 +562,74 @@ mark {
 }
 .gcp:hover {
   color: var(--k-cmd);
+}
+/* lines pasted together, waiting to go one after another */
+.bt {
+  border: 1px solid var(--bd);
+  border-radius: var(--rb, 10px);
+  background: var(--s2);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.bth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.bth .btn {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.bth .mu {
+  color: var(--mu);
+  font-weight: 400;
+  font-size: 12px;
+}
+.btl {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 168px;
+  overflow: auto;
+  font-size: 12.5px;
+}
+.btl li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+.btl .bi {
+  flex-shrink: 0;
+  width: 16px;
+  text-align: right;
+  color: var(--mu2);
+}
+.btl .n {
+  font-size: 11px;
+}
+.btl li.ok {
+  color: var(--mu);
+}
+.btl li.ok .bi {
+  color: var(--ok);
+}
+.btl li.now {
+  background: color-mix(in srgb, var(--ac) 16%, transparent);
+}
+.btl li.bad {
+  color: var(--dg);
+}
+.btl li.bad .bi {
+  color: var(--dg);
 }
 .in {
   flex: 1;

@@ -2422,4 +2422,10 @@ export default {
   "Smaller buttons": "Kleinere knoppen",
   "Bigger buttons": "Grotere knoppen",
   "Button size": "Knopgrootte",
+  "{n} commands, one after another": "{n} opdrachten, na elkaar",
+  "Stop after this one": "Stop na deze",
+  "Continue from here": "Ga hier verder",
+  "Send all": "Alles verzenden",
+  "Paste several lines": "Meerdere regels plakken",
+  "Lines pasted into the console are sent one after another, each when the one before has finished.": "In de console geplakte regels worden na elkaar verzonden, elk als de vorige klaar is.",
 }

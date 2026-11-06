@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.27
+
+- Console: several lines pasted at once are sent one after another, each when the one before has finished. They show as a list above the input with Send all, Stop after this one and Continue from here; Settings > Console can turn it off
+
 ## 0.38.26
 
 - A soft shadow under the top bars once the page is scrolled, so the page reads as going under them instead of being cut off

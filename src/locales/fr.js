@@ -2422,4 +2422,10 @@ export default {
   "Smaller buttons": "Boutons plus petits",
   "Bigger buttons": "Boutons plus grands",
   "Button size": "Taille des boutons",
+  "{n} commands, one after another": "{n} commandes, l’une après l’autre",
+  "Stop after this one": "Arrêter après celle-ci",
+  "Continue from here": "Reprendre ici",
+  "Send all": "Tout envoyer",
+  "Paste several lines": "Coller plusieurs lignes",
+  "Lines pasted into the console are sent one after another, each when the one before has finished.": "Les lignes collées dans la console partent l’une après l’autre, chacune quand la précédente est terminée.",
 }

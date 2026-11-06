@@ -2422,4 +2422,10 @@ export default {
   "Smaller buttons": "ボタンを小さく",
   "Bigger buttons": "ボタンを大きく",
   "Button size": "ボタンのサイズ",
+  "{n} commands, one after another": "{n} 個のコマンドを順番に",
+  "Stop after this one": "これの後で停止",
+  "Continue from here": "ここから続行",
+  "Send all": "すべて送信",
+  "Paste several lines": "複数行を貼り付け",
+  "Lines pasted into the console are sent one after another, each when the one before has finished.": "コンソールに貼り付けた行は、前の行が終わってから順番に送信されます。",
 }

@@ -2440,4 +2440,10 @@ export default {
   "Smaller buttons": "Daha küçük butonlar",
   "Bigger buttons": "Daha büyük butonlar",
   "Button size": "Buton boyutu",
+  "{n} commands, one after another": "{n} komut, sırayla",
+  "Stop after this one": "Bundan sonra dur",
+  "Continue from here": "Buradan devam et",
+  "Send all": "Hepsini gönder",
+  "Paste several lines": "Birden fazla satır yapıştır",
+  "Lines pasted into the console are sent one after another, each when the one before has finished.": "Konsola yapıştırılan satırlar sırayla gönderilir, her biri bir öncekisi bitince.",
 }

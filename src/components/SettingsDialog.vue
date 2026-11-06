@@ -833,6 +833,17 @@ function reset() {
                 </div>
                 <Toggle v-model="state.settings.consoleWrap" :label="t('Wrap long lines')" />
               </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Paste several lines') }}</b
+                  ><span>{{
+                    t(
+                      'Lines pasted into the console are sent one after another, each when the one before has finished.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle v-model="state.settings.consoleMultiline" :label="t('Paste several lines')" />
+              </div>
             </template>
 
             <!-- Appearance -->
