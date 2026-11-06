@@ -2426,4 +2426,6 @@ export default {
   "Send all": "모두 보내기",
   "Paste several lines": "여러 줄 붙여넣기",
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "콘솔에 붙여넣은 여러 줄은 붙여넣은 순서대로 Enter 한 번에 전송됩니다.",
+  "Preview": "미리보기",
+  "Sample lines, nothing is sent to the printer.": "예시 줄이며 프린터로 아무것도 전송되지 않습니다.",
 }

@@ -2426,4 +2426,6 @@ export default {
   "Send all": "Надіслати все",
   "Paste several lines": "Вставлення кількох рядків",
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Кілька рядків, вставлених у консоль, надсилаються одним Enter у порядку вставлення.",
+  "Preview": "Попередній перегляд",
+  "Sample lines, nothing is sent to the printer.": "Приклад рядків, на принтер нічого не надсилається.",
 }

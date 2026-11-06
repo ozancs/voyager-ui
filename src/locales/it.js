@@ -2426,4 +2426,6 @@ export default {
   "Send all": "Invia tutto",
   "Paste several lines": "Incolla più righe",
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Più righe incollate nella console partono con un solo Invio, nell’ordine in cui sono state incollate.",
+  "Preview": "Anteprima",
+  "Sample lines, nothing is sent to the printer.": "Righe di esempio, nulla viene inviato alla stampante.",
 }

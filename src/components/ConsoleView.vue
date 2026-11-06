@@ -21,6 +21,8 @@ const props = defineProps({
   limit: { type: Number, default: 400 },
   search: { type: String, default: '' },
   errors: Boolean,
+  // sample lines to show instead of the printer's console, with no input (the preview in Settings > Console)
+  sample: { type: Array, default: null },
 });
 const box = ref(null);
 const cmd = ref('');
@@ -29,7 +31,7 @@ let hi = -1;
 const auto = ref(true);
 const TEMP_RE = /^(ok\s+)?(B|T\d*|C):\s*-?\d/;
 const lines = computed(() => {
-  let l = state.console;
+  let l = props.sample || state.console;
   l = l.filter(
     (x) =>
       !(x.type === 'command' && /NAME=_ui_|MSG=action:prompt_end/.test(x.message)) &&
@@ -144,6 +146,7 @@ onMounted(() => nextTick(scroll));
 // command picked in Ctrl+K search lands here
 const ci = ref(null);
 function takeDraft() {
+  if (props.sample) return; // the preview has no input: the draft is for the real console
   if (state.consoleDraft) {
     cmd.value = state.consoleDraft;
     state.consoleDraft = '';
@@ -297,7 +300,7 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
         </button>
       </Transition>
     </div>
-    <div v-if="batch" class="bt">
+    <div v-if="batch && !sample" class="bt">
       <div class="bth">
         <Icon name="list" :size="15" />
         <span class="grow">{{ t('{n} commands, one after another', { n: batch.length }) }}</span>
@@ -313,7 +316,7 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
         </li>
       </ol>
     </div>
-    <div class="row">
+    <div v-if="!sample" class="row">
       <label class="in" @paste="onPaste"
         ><span class="p">&gt;</span
         ><CmdInput

@@ -2426,4 +2426,6 @@ export default {
   "Send all": "Отправить все",
   "Paste several lines": "Вставка нескольких строк",
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Несколько строк, вставленных в консоль, отправляются одним Enter в порядке вставки.",
+  "Preview": "Предпросмотр",
+  "Sample lines, nothing is sent to the printer.": "Примерные строки, на принтер ничего не отправляется.",
 }

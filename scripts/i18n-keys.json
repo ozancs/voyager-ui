@@ -2420,5 +2420,7 @@
 "{n} commands, one after another",
 "Send all",
 "Paste several lines",
-"Several lines pasted into the console all go with one Enter, in the order they were pasted."
+"Several lines pasted into the console all go with one Enter, in the order they were pasted.",
+"Preview",
+"Sample lines, nothing is sent to the printer."
 ]

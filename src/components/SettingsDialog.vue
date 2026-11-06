@@ -7,6 +7,7 @@ import Modal from './Modal.vue';
 import Toggle from './Toggle.vue';
 import ChipList from './ChipList.vue';
 import NotifierSettings from './NotifierSettings.vue';
+import ConsoleView from './ConsoleView.vue';
 import {
   state,
   saveSettings,
@@ -373,6 +374,28 @@ function reset() {
     t('Settings reset to defaults'),
   );
 }
+// Settings > Console preview: a short made-up session (a command and its replies, a temperature report, a
+// macro's messages, an error, a long line) drawn with the console's own look and the choices above
+const consoleSample = (() => {
+  const t0 = Math.floor(Date.now() / 1000) - 90;
+  const L = [
+    [0, 'command', 'G28'],
+    [2, 'response', 'ok'],
+    [14, 'response', 'ok B:60.1 /60.0 T0:215.2 /215.0'],
+    [30, 'command', 'BED_MESH_CALIBRATE ADAPTIVE=1'],
+    [31, 'response', '// probe at 125.000,125.000 is z=1.284731'],
+    [33, 'response', '// Mesh Bed Leveling Complete'],
+    [34, 'response', 'ok'],
+    [52, 'command', 'G1 X400 F6000'],
+    [52, 'response', '!! Move out of range: 400.000 180.000 10.000 [0.000]'],
+    [
+      70,
+      'response',
+      '// Recommended shaper_type_x = mzv, shaper_freq_x = 48.2 Hz. To avoid too much smoothing with mzv, suggested max_accel <= 6900 mm/sec^2',
+    ],
+  ];
+  return L.map(([dt, type, message], i) => ({ id: -1 - i, time: t0 + dt, type, message }));
+})();
 </script>
 
 <template>
@@ -841,6 +864,14 @@ function reset() {
                   }}</span>
                 </div>
                 <Toggle v-model="state.settings.consoleMultiline" :label="t('Paste several lines')" />
+              </div>
+              <!-- how the console looks with the choices above: sample lines only, nothing is sent -->
+              <div class="rw col">
+                <div class="k">
+                  <b>{{ t('Preview') }}</b
+                  ><span>{{ t('Sample lines, nothing is sent to the printer.') }}</span>
+                </div>
+                <div class="cprev"><ConsoleView :sample="consoleSample" /></div>
               </div>
             </template>
 
@@ -1525,6 +1556,12 @@ function reset() {
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
+}
+.cprev {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 .rw:last-child {
   border-bottom: none;

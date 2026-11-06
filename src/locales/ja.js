@@ -2426,4 +2426,6 @@ export default {
   "Send all": "すべて送信",
   "Paste several lines": "複数行を貼り付け",
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "コンソールに貼り付けた複数行は、貼り付けた順に Enter 一回で送信されます。",
+  "Preview": "プレビュー",
+  "Sample lines, nothing is sent to the printer.": "サンプルの行です。プリンターには何も送信されません。",
 }

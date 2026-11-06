@@ -2444,4 +2444,6 @@ export default {
   "Send all": "Hepsini gönder",
   "Paste several lines": "Birden fazla satır yapıştır",
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Konsola yapıştırılan birden fazla satır, yapıştırıldığı sırayla tek Enter ile gider.",
+  "Preview": "Önizleme",
+  "Sample lines, nothing is sent to the printer.": "Örnek satırlar, yazıcıya hiçbir şey gönderilmez.",
 }

@@ -2426,4 +2426,6 @@ export default {
   "Send all": "Enviar todo",
   "Paste several lines": "Pegar varias líneas",
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Varias líneas pegadas en la consola se envían con un solo Enter, en el orden en que se pegaron.",
+  "Preview": "Vista previa",
+  "Sample lines, nothing is sent to the printer.": "Líneas de ejemplo, no se envía nada a la impresora.",
 }
