@@ -2432,4 +2432,5 @@ export default {
   "Could not start the camera sound": "Impossibile avviare l’audio della videocamera",
   "Turn the camera sound off": "Disattiva l’audio della videocamera",
   "Turn the camera sound on": "Attiva l’audio della videocamera",
+  "Click anywhere on the page to hear the camera": "Fai clic in un punto qualsiasi della pagina per sentire la videocamera",
 }

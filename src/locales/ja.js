@@ -2432,4 +2432,5 @@ export default {
   "Could not start the camera sound": "カメラの音声を開始できませんでした",
   "Turn the camera sound off": "カメラの音声をオフ",
   "Turn the camera sound on": "カメラの音声をオン",
+  "Click anywhere on the page to hear the camera": "カメラの音を聞くにはページのどこかをクリックしてください",
 }

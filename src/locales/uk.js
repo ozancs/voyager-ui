@@ -2432,4 +2432,5 @@ export default {
   "Could not start the camera sound": "Не вдалося увімкнути звук камери",
   "Turn the camera sound off": "Вимкнути звук камери",
   "Turn the camera sound on": "Увімкнути звук камери",
+  "Click anywhere on the page to hear the camera": "Натисніть будь-де на сторінці, щоб почути камеру",
 }

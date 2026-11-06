@@ -2450,4 +2450,5 @@ export default {
   "Could not start the camera sound": "Kamera sesi başlatılamadı",
   "Turn the camera sound off": "Kamera sesini kapat",
   "Turn the camera sound on": "Kamera sesini aç",
+  "Click anywhere on the page to hear the camera": "Kamerayı duymak için sayfada herhangi bir yere tıkla",
 }

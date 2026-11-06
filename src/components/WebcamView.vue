@@ -335,8 +335,42 @@ watch(vol, (v) => {
     localStorage.setItem(VOL_KEY, String(v));
   } catch {}
 });
+// on stays on through a reload of the page (sessionStorage: this tab only), a newly opened browser starts off
+const SND_KEY = 'voyager-ui-cam-sound';
+function remember(on) {
+  try {
+    on ? sessionStorage.setItem(SND_KEY, '1') : sessionStorage.removeItem(SND_KEY);
+  } catch {}
+}
+function remembered() {
+  try {
+    return sessionStorage.getItem(SND_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+// after a reload the browser may hold the sound back until the page is clicked once (autoplay rule): the first
+// click or key anywhere starts it
+let gesture = null;
+function waitForGesture() {
+  if (gesture) return;
+  gesture = () => {
+    dropGesture();
+    audioEl.value?.play().catch(() => {});
+  };
+  document.addEventListener('pointerdown', gesture, true);
+  document.addEventListener('keydown', gesture, true);
+  toast(t('Click anywhere on the page to hear the camera'));
+}
+function dropGesture() {
+  if (!gesture) return;
+  document.removeEventListener('pointerdown', gesture, true);
+  document.removeEventListener('keydown', gesture, true);
+  gesture = null;
+}
 function soundOff() {
   sgen++;
+  dropGesture();
   try {
     apc?.close(); // closed, not muted: go2rtc stops the microphone once nobody listens
   } catch {}
@@ -356,6 +390,7 @@ async function soundStart() {
   const lost = () => {
     if (g !== sgen) return;
     soundOff();
+    remember(false);
     toast(t('Camera sound stopped'), 'warn');
   };
   // dropped: a short "disconnected" can come back by itself, "failed" or a few seconds of it cannot
@@ -370,7 +405,7 @@ async function soundStart() {
     if (g !== sgen || !audioEl.value) return;
     audioEl.value.srcObject = e.streams[0] || new MediaStream([e.track]);
     audioEl.value.volume = vol.value;
-    audioEl.value.play().catch(() => {});
+    audioEl.value.play().catch((err) => err?.name === 'NotAllowedError' && g === sgen && waitForGesture());
   };
   try {
     p.addTransceiver('audio', { direction: 'recvonly' });
@@ -400,20 +435,33 @@ async function soundStart() {
   } catch {
     if (g !== sgen) return;
     soundOff();
+    remember(false);
     toast(t('Could not start the camera sound'), 'warn');
   }
 }
-const toggleSound = () => (sndOn.value ? soundOff() : soundStart());
-// asked once Moonraker is connected (the view can mount before that), again after a reconnect
+function toggleSound() {
+  remember(!sndOn.value);
+  sndOn.value ? soundOff() : soundStart();
+}
+// asked once Moonraker is connected (the view can mount before that), again after a reconnect; sound that was on
+// before a reload comes back on
 function askSound() {
-  if (props.audio && state.connected) findCamAudio().then((s) => (snd.value = s));
+  if (!props.audio || !state.connected) return;
+  findCamAudio().then((s) => {
+    snd.value = s;
+    if (s && remembered() && !sndOn.value) soundStart();
+  });
 }
 onMounted(askSound);
 watch(() => state.connected, askSound);
 onBeforeUnmount(soundOff);
+// another camera: this connection closes; if the sound was on it opens again for the new view
 watch(
   () => props.cam?.name,
-  () => soundOff(),
+  () => {
+    soundOff();
+    if (snd.value && props.cam && remembered()) soundStart();
+  },
 );
 const touch = typeof matchMedia === 'function' && !matchMedia('(hover: hover)').matches;
 defineExpose({ retry: start });

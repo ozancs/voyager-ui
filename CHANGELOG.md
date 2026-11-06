@@ -2,7 +2,7 @@
 
 ## 0.38.29
 
-- Webcam sound: when go2rtc runs on the printer with a sound stream (found by itself in go2rtc.yaml), the webcam gets a round speaker button in its top right corner. Off whenever the page opens; on plays the sound over WebRTC, off closes the connection so the microphone stops. The volume slides out on hover (always shown while on with a touch screen) and is remembered in the browser
+- Webcam sound: when go2rtc runs on the printer with a sound stream (found by itself in go2rtc.yaml), the webcam gets a round speaker button in its top right corner. Off in a newly opened browser and stays on through a reload of the page; on plays the sound over WebRTC, off closes the connection so the microphone stops. The volume slides out on hover (always shown while on with a touch screen) and is remembered in the browser
 - Settings > Console: a preview console with sample lines shows the chosen look; nothing is sent
 
 ## 0.38.28

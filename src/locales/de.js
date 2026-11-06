@@ -2432,4 +2432,5 @@ export default {
   "Could not start the camera sound": "Kameraton konnte nicht gestartet werden",
   "Turn the camera sound off": "Kameraton aus",
   "Turn the camera sound on": "Kameraton an",
+  "Click anywhere on the page to hear the camera": "Irgendwo auf die Seite klicken, um die Kamera zu hören",
 }

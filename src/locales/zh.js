@@ -2432,4 +2432,5 @@ export default {
   "Could not start the camera sound": "无法开启摄像头声音",
   "Turn the camera sound off": "关闭摄像头声音",
   "Turn the camera sound on": "打开摄像头声音",
+  "Click anywhere on the page to hear the camera": "点击页面任意位置即可听到摄像头声音",
 }

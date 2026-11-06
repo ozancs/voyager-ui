@@ -2432,4 +2432,5 @@ export default {
   "Could not start the camera sound": "Camerageluid kon niet starten",
   "Turn the camera sound off": "Camerageluid uit",
   "Turn the camera sound on": "Camerageluid aan",
+  "Click anywhere on the page to hear the camera": "Klik ergens op de pagina om de camera te horen",
 }

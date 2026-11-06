@@ -2432,4 +2432,5 @@ export default {
   "Could not start the camera sound": "No se pudo iniciar el sonido de la cámara",
   "Turn the camera sound off": "Apagar el sonido de la cámara",
   "Turn the camera sound on": "Encender el sonido de la cámara",
+  "Click anywhere on the page to hear the camera": "Haz clic en cualquier parte de la página para oír la cámara",
 }

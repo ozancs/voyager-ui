@@ -2432,4 +2432,5 @@ export default {
   "Could not start the camera sound": "카메라 소리를 시작할 수 없습니다",
   "Turn the camera sound off": "카메라 소리 끄기",
   "Turn the camera sound on": "카메라 소리 켜기",
+  "Click anywhere on the page to hear the camera": "카메라 소리를 들으려면 페이지 아무 곳이나 클릭하세요",
 }
