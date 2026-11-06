@@ -2423,9 +2423,7 @@ export default {
   "Bigger buttons": "Większe przyciski",
   "Button size": "Rozmiar przycisków",
   "{n} commands, one after another": "{n} poleceń, jedno po drugim",
-  "Stop after this one": "Zatrzymaj po tym",
-  "Continue from here": "Kontynuuj od tego miejsca",
   "Send all": "Wyślij wszystko",
   "Paste several lines": "Wklejanie wielu linii",
-  "Lines pasted into the console are sent one after another, each when the one before has finished.": "Linie wklejone do konsoli są wysyłane jedna po drugiej, każda gdy poprzednia się zakończy.",
+  "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Kilka linii wklejonych do konsoli wysyła jeden Enter, w kolejności wklejenia.",
 }

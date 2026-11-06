@@ -4,12 +4,12 @@
 // up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.
 // Options (Settings > Console): a sent command and the replies after it drawn as one block with its own copy
 // button, text colour themes, the command help on hover, timestamps and line wrap. Several lines pasted at once
-// become a list sent one after another, each when the one before has finished (Settings > Console can turn it off).
+// wait above the input and all go with Enter, in their order (Settings > Console can turn it off).
 import { copyText } from '../clipboard';
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import CmdInput from './CmdInput.vue';
-import { state, gcode, restartKlipper, toast } from '../store';
+import { state, gcode, restartKlipper, toast, isPrinting, dangerIn, askGuard } from '../store';
 import { t } from '../i18n';
 import { richHtml, hasMarkup } from '../richText';
 import Popover from './Popover.vue';
@@ -159,8 +159,9 @@ function onScroll() {
   if (auto.value) unseen.value = 0;
 }
 // ---- several lines pasted at once ----
-// { lines, at (the one running or failed), done (how many finished), running, stop, failed }
-const batch = ref(null);
+// they wait above the input until Enter (or Send), then all go at once in their order, the same as typing each
+// one and pressing Enter
+const batch = ref(null); // the pasted lines
 function onPaste(e) {
   if (state.settings.consoleMultiline === false) return;
   const txt = e.clipboardData?.getData('text') || '';
@@ -172,37 +173,33 @@ function onPaste(e) {
   e.preventDefault();
   if (cmd.value.trim()) ls.unshift(cmd.value.trim());
   cmd.value = '';
-  batch.value = { lines: ls, at: -1, done: 0, running: false, stop: false, failed: false };
+  batch.value = ls;
 }
-async function runBatch(from = 0) {
-  const b = batch.value;
-  if (!b || b.running) return;
-  Object.assign(b, { running: true, stop: false, failed: false, done: from });
+async function sendBatch() {
+  const ls = batch.value;
+  if (!ls) return;
+  batch.value = null;
   auto.value = true;
-  for (let i = from; i < b.lines.length; i++) {
-    if (b.stop || batch.value !== b) break;
-    b.at = i;
-    const c = b.lines[i];
-    hist.push(c);
-    hi = hist.length;
-    const up = c.toUpperCase();
-    try {
-      if (up === 'FIRMWARE_RESTART' || up === 'RESTART') await restartKlipper(up === 'FIRMWARE_RESTART');
-      else await gcode(c, { repeat: true });
-      b.done = i + 1;
-    } catch {
-      b.failed = true;
-      break;
-    }
+  // while printing, a line that homes, probes or levels is asked about once for the whole list up front, so the
+  // lines still go out in their order
+  let force = false;
+  if (isPrinting.value) {
+    const all = ls.join('\n');
+    const danger = dangerIn(all);
+    if (danger && !(await askGuard(all, danger))) return;
+    force = true;
   }
-  b.running = false;
-  // all sent: the list goes away after a moment; stopped or failed: it stays, to go on from there
-  if (b.done >= b.lines.length) setTimeout(() => batch.value === b && !b.running && (batch.value = null), 1500);
+  for (const c of ls) {
+    hist.push(c);
+    const up = c.toUpperCase();
+    if (up === 'FIRMWARE_RESTART' || up === 'RESTART') restartKlipper(up === 'FIRMWARE_RESTART', { force });
+    else gcode(c, { quiet: true, repeat: true, force }).catch(() => {});
+  }
+  hi = hist.length;
 }
 async function send() {
   const c = cmd.value.trim();
-  if (!c && batch.value && !batch.value.running)
-    return runBatch(batch.value.failed ? batch.value.at : batch.value.done);
+  if (!c && batch.value) return sendBatch();
   if (!c) return;
   hist.push(c);
   hi = hist.length;
@@ -303,41 +300,15 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
     <div v-if="batch" class="bt">
       <div class="bth">
         <Icon name="list" :size="15" />
-        <span class="grow">{{ t('{n} commands, one after another', { n: batch.lines.length }) }}</span>
-        <span v-if="batch.running || batch.done" class="mono mu">{{ batch.done }}/{{ batch.lines.length }}</span>
-        <button v-if="batch.running" class="btn sm" :disabled="batch.stop" @click="batch.stop = true">
-          {{ t('Stop after this one') }}
+        <span class="grow">{{ t('{n} commands, one after another', { n: batch.length }) }}</span>
+        <button class="btn sm" @click="batch = null">{{ t('Clear') }}</button>
+        <button class="btn sm acc" @click="sendBatch">
+          <Icon name="send" :size="14" :stroke="2.4" />{{ t('Send all') }}
         </button>
-        <template v-else>
-          <button class="btn sm" @click="batch = null">{{ t('Clear') }}</button>
-          <button
-            class="btn sm acc"
-            :disabled="batch.done >= batch.lines.length"
-            @click="runBatch(batch.failed ? batch.at : batch.done)"
-          >
-            <Icon name="send" :size="14" :stroke="2.4" />{{
-              batch.done || batch.failed ? t('Continue from here') : t('Send all')
-            }}
-          </button>
-        </template>
       </div>
       <ol class="btl mono">
-        <li
-          v-for="(l, i) in batch.lines"
-          :key="i"
-          :class="{
-            ok: i < batch.done,
-            now: batch.running && i === batch.at,
-            bad: batch.failed && i === batch.at,
-          }"
-        >
-          <Icon
-            v-if="i < batch.done || (batch.failed && i === batch.at)"
-            :name="i < batch.done ? 'check' : 'x'"
-            :size="12"
-            :stroke="2.6"
-            class="bi"
-          /><span v-else class="bi n">{{ i + 1 }}</span
+        <li v-for="(l, i) in batch" :key="i">
+          <span class="bi n">{{ i + 1 }}</span
           >{{ l }}
         </li>
       </ol>
@@ -586,11 +557,6 @@ mark {
   padding: 0 10px;
   font-size: 12px;
 }
-.bth .mu {
-  color: var(--mu);
-  font-weight: 400;
-  font-size: 12px;
-}
 .btl {
   margin: 0;
   padding: 0;
@@ -615,21 +581,6 @@ mark {
 }
 .btl .n {
   font-size: 11px;
-}
-.btl li.ok {
-  color: var(--mu);
-}
-.btl li.ok .bi {
-  color: var(--ok);
-}
-.btl li.now {
-  background: color-mix(in srgb, var(--ac) 16%, transparent);
-}
-.btl li.bad {
-  color: var(--dg);
-}
-.btl li.bad .bi {
-  color: var(--dg);
 }
 .in {
   flex: 1;

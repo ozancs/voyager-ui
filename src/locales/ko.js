@@ -2423,9 +2423,7 @@ export default {
   "Bigger buttons": "버튼 크게",
   "Button size": "버튼 크기",
   "{n} commands, one after another": "명령 {n}개, 차례대로",
-  "Stop after this one": "이것 다음에 중지",
-  "Continue from here": "여기서부터 계속",
   "Send all": "모두 보내기",
   "Paste several lines": "여러 줄 붙여넣기",
-  "Lines pasted into the console are sent one after another, each when the one before has finished.": "콘솔에 붙여넣은 줄은 앞의 줄이 끝난 뒤 차례대로 전송됩니다.",
+  "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "콘솔에 붙여넣은 여러 줄은 붙여넣은 순서대로 Enter 한 번에 전송됩니다.",
 }

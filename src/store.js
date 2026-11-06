@@ -12,7 +12,7 @@ import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 
-export const VERSION = '0.38.27';
+export const VERSION = '0.38.28';
 export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';
@@ -60,7 +60,7 @@ export const DEFAULT_SETTINGS = () => ({
   consoleTheme: 'default', // text colours of the console log
   consoleHelp: true, // what a command does, on hover over a sent command
   consoleTime: true, // the time in front of each line
-  consoleMultiline: true, // several lines pasted into the console are sent one after another
+  consoleMultiline: true, // several lines pasted into the console all go with one Enter, in their order
   consoleWrap: true, // long lines wrap; off: one line each, the log scrolls sideways
   tempRange: 600,
   strip: { order: [], hidden: [] },

@@ -2423,9 +2423,7 @@ export default {
   "Bigger buttons": "Pulsanti più grandi",
   "Button size": "Dimensione pulsanti",
   "{n} commands, one after another": "{n} comandi, uno dopo l’altro",
-  "Stop after this one": "Fermati dopo questo",
-  "Continue from here": "Continua da qui",
   "Send all": "Invia tutto",
   "Paste several lines": "Incolla più righe",
-  "Lines pasted into the console are sent one after another, each when the one before has finished.": "Le righe incollate nella console vengono inviate una dopo l’altra, ciascuna quando la precedente è finita.",
+  "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Più righe incollate nella console partono con un solo Invio, nell’ordine in cui sono state incollate.",
 }

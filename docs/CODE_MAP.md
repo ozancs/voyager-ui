@@ -466,7 +466,7 @@ gcode responses), keeps scrolled to the bottom unless the user scrolls up, remem
 up/down) and colours errors. Macro markup (Happy Hare) is rendered through richText.js, never as raw HTML.  
 Options (Settings > Console): a sent command and the replies after it drawn as one block with its own copy  
 button, text colour themes, the command help on hover, timestamps and line wrap. Several lines pasted at once  
-become a list sent one after another, each when the one before has finished (Settings > Console can turn it off).
+wait above the input and all go with Enter, in their order (Settings > Console can turn it off).
 
 **[src/components/ControlEditor.vue](../src/components/ControlEditor.vue)**  
 Editor for one control of the Controls card (used inside the card editor in Dashboard.vue). The control object  

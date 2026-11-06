@@ -2423,9 +2423,7 @@ export default {
   "Bigger buttons": "按钮更大",
   "Button size": "按钮大小",
   "{n} commands, one after another": "{n} 条命令，依次执行",
-  "Stop after this one": "这条之后停止",
-  "Continue from here": "从这里继续",
   "Send all": "全部发送",
   "Paste several lines": "粘贴多行",
-  "Lines pasted into the console are sent one after another, each when the one before has finished.": "粘贴到控制台的多行会依次发送，每行在上一行完成后发送。",
+  "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "粘贴到控制台的多行内容按粘贴顺序一次回车全部发送。",
 }

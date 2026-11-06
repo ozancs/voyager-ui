@@ -837,9 +837,7 @@ function reset() {
                 <div class="k">
                   <b>{{ t('Paste several lines') }}</b
                   ><span>{{
-                    t(
-                      'Lines pasted into the console are sent one after another, each when the one before has finished.',
-                    )
+                    t('Several lines pasted into the console all go with one Enter, in the order they were pasted.')
                   }}</span>
                 </div>
                 <Toggle v-model="state.settings.consoleMultiline" :label="t('Paste several lines')" />

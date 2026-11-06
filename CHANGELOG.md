@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.28
+
+- Console: lines pasted together all go with one Enter (or Send all), in their order, the same as typing each one and pressing Enter; no more waiting for each to finish before the next is sent
+
 ## 0.38.27
 
 - Console: several lines pasted at once are sent one after another, each when the one before has finished. They show as a list above the input with Send all, Stop after this one and Continue from here; Settings > Console can turn it off

@@ -2423,9 +2423,7 @@ export default {
   "Bigger buttons": "Кнопки больше",
   "Button size": "Размер кнопок",
   "{n} commands, one after another": "{n} команд, по очереди",
-  "Stop after this one": "Остановить после этой",
-  "Continue from here": "Продолжить отсюда",
   "Send all": "Отправить все",
   "Paste several lines": "Вставка нескольких строк",
-  "Lines pasted into the console are sent one after another, each when the one before has finished.": "Строки, вставленные в консоль, отправляются по очереди, каждая после завершения предыдущей.",
+  "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Несколько строк, вставленных в консоль, отправляются одним Enter в порядке вставки.",
 }

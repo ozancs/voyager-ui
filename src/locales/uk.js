@@ -2423,9 +2423,7 @@ export default {
   "Bigger buttons": "Більші кнопки",
   "Button size": "Розмір кнопок",
   "{n} commands, one after another": "{n} команд, по черзі",
-  "Stop after this one": "Зупинити після цієї",
-  "Continue from here": "Продовжити звідси",
   "Send all": "Надіслати все",
   "Paste several lines": "Вставлення кількох рядків",
-  "Lines pasted into the console are sent one after another, each when the one before has finished.": "Рядки, вставлені в консоль, надсилаються по черзі, кожен після завершення попереднього.",
+  "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Кілька рядків, вставлених у консоль, надсилаються одним Enter у порядку вставлення.",
 }

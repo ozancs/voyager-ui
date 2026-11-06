@@ -2418,9 +2418,7 @@
 "Bigger buttons",
 "Button size",
 "{n} commands, one after another",
-"Stop after this one",
-"Continue from here",
 "Send all",
 "Paste several lines",
-"Lines pasted into the console are sent one after another, each when the one before has finished."
+"Several lines pasted into the console all go with one Enter, in the order they were pasted."
 ]
