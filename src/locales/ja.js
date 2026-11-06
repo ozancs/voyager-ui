@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "コンソールに貼り付けた複数行は、貼り付けた順に Enter 一回で送信されます。",
   "Preview": "プレビュー",
   "Sample lines, nothing is sent to the printer.": "サンプルの行です。プリンターには何も送信されません。",
+  "Camera sound stopped": "カメラの音声が停止しました",
+  "Could not start the camera sound": "カメラの音声を開始できませんでした",
+  "Turn the camera sound off": "カメラの音声をオフ",
+  "Turn the camera sound on": "カメラの音声をオン",
 }

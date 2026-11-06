@@ -85,7 +85,7 @@ function snapshot() {
       <span>{{ t('Floating over the page') }}</span>
       <button class="btn" @click="state.pip = null">{{ t('Back to the card') }}</button>
     </div>
-    <WebcamView v-else :cam="cam" />
+    <WebcamView v-else :cam="cam" audio />
   </section>
 </template>
 <style scoped>

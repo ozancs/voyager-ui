@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Mehrere in die Konsole eingefügte Zeilen gehen mit einem Enter, in der eingefügten Reihenfolge.",
   "Preview": "Vorschau",
   "Sample lines, nothing is sent to the printer.": "Beispielzeilen, an den Drucker wird nichts gesendet.",
+  "Camera sound stopped": "Kameraton unterbrochen",
+  "Could not start the camera sound": "Kameraton konnte nicht gestartet werden",
+  "Turn the camera sound off": "Kameraton aus",
+  "Turn the camera sound on": "Kameraton an",
 }

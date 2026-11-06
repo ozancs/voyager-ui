@@ -2446,4 +2446,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Konsola yapıştırılan birden fazla satır, yapıştırıldığı sırayla tek Enter ile gider.",
   "Preview": "Önizleme",
   "Sample lines, nothing is sent to the printer.": "Örnek satırlar, yazıcıya hiçbir şey gönderilmez.",
+  "Camera sound stopped": "Kamera sesi kesildi",
+  "Could not start the camera sound": "Kamera sesi başlatılamadı",
+  "Turn the camera sound off": "Kamera sesini kapat",
+  "Turn the camera sound on": "Kamera sesini aç",
 }

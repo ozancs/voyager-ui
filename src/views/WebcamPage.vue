@@ -77,7 +77,7 @@ function snapshot(c) {
         </div>
       </div>
       <div v-else class="one">
-        <WebcamView :cam="cam" />
+        <WebcamView :cam="cam" audio />
         <CamOverlay v-if="info" />
       </div>
     </section>

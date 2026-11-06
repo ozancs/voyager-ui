@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Meerdere in de console geplakte regels gaan met één Enter, in de volgorde waarin ze zijn geplakt.",
   "Preview": "Voorbeeld",
   "Sample lines, nothing is sent to the printer.": "Voorbeeldregels, er wordt niets naar de printer gestuurd.",
+  "Camera sound stopped": "Camerageluid gestopt",
+  "Could not start the camera sound": "Camerageluid kon niet starten",
+  "Turn the camera sound off": "Camerageluid uit",
+  "Turn the camera sound on": "Camerageluid aan",
 }

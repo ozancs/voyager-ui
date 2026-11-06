@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "粘贴到控制台的多行内容按粘贴顺序一次回车全部发送。",
   "Preview": "预览",
   "Sample lines, nothing is sent to the printer.": "示例内容，不会向打印机发送任何内容。",
+  "Camera sound stopped": "摄像头声音已中断",
+  "Could not start the camera sound": "无法开启摄像头声音",
+  "Turn the camera sound off": "关闭摄像头声音",
+  "Turn the camera sound on": "打开摄像头声音",
 }

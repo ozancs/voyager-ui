@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "콘솔에 붙여넣은 여러 줄은 붙여넣은 순서대로 Enter 한 번에 전송됩니다.",
   "Preview": "미리보기",
   "Sample lines, nothing is sent to the printer.": "예시 줄이며 프린터로 아무것도 전송되지 않습니다.",
+  "Camera sound stopped": "카메라 소리가 끊겼습니다",
+  "Could not start the camera sound": "카메라 소리를 시작할 수 없습니다",
+  "Turn the camera sound off": "카메라 소리 끄기",
+  "Turn the camera sound on": "카메라 소리 켜기",
 }

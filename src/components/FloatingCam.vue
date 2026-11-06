@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
         <Icon name="x" :size="15" />
       </button>
     </div>
-    <div class="vw"><WebcamView :cam="cam" :overlay="false" /></div>
+    <div class="vw"><WebcamView :cam="cam" :overlay="false" audio /></div>
     <span class="rs" :aria-label="t('Resize')" @pointerdown="down($event, 'size')"></span>
   </div>
 </template>

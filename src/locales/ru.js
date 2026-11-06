@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Несколько строк, вставленных в консоль, отправляются одним Enter в порядке вставки.",
   "Preview": "Предпросмотр",
   "Sample lines, nothing is sent to the printer.": "Примерные строки, на принтер ничего не отправляется.",
+  "Camera sound stopped": "Звук камеры прервался",
+  "Could not start the camera sound": "Не удалось включить звук камеры",
+  "Turn the camera sound off": "Выключить звук камеры",
+  "Turn the camera sound on": "Включить звук камеры",
 }

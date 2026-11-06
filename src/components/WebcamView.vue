@@ -9,11 +9,16 @@
 //   ipstream                             -> plain <video>
 //   iframe                               -> the page in an iframe
 // When nothing arrives for a while the view says so and what to check, instead of staying black.
+// audio: a sound button in the top right corner when the printer runs go2rtc with a sound stream (camAudio.js).
+// Off whenever the page opens; on = a WebRTC connection that receives only sound, off = that connection closed, so
+// go2rtc stops ffmpeg and the microphone on the Pi.
 import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
-const props = defineProps({ cam: Object, overlay: { type: Boolean, default: true } });
+import { state, toast } from '../store';
+import { findCamAudio } from '../camAudio';
+const props = defineProps({ cam: Object, overlay: { type: Boolean, default: true }, audio: Boolean });
 const src = ref('');
 const fps = ref(0);
 const video = ref(null);
@@ -306,6 +311,111 @@ watch(
     start(true);
   },
 );
+// ---- camera sound (go2rtc) ----
+const snd = ref(null); // { base, name } once go2rtc and its sound stream were found
+const sndOn = ref(false); // always off when the page opens
+const sndBusy = ref(false);
+const VOL_KEY = 'voyager-ui-cam-volume';
+const vol = ref(
+  (() => {
+    try {
+      const v = parseFloat(localStorage.getItem(VOL_KEY));
+      return v >= 0 && v <= 1 ? v : 0.8;
+    } catch {
+      return 0.8;
+    }
+  })(),
+);
+const audioEl = ref(null);
+let apc = null; // the sound's own peer connection
+let sgen = 0;
+watch(vol, (v) => {
+  if (audioEl.value) audioEl.value.volume = v;
+  try {
+    localStorage.setItem(VOL_KEY, String(v));
+  } catch {}
+});
+function soundOff() {
+  sgen++;
+  try {
+    apc?.close(); // closed, not muted: go2rtc stops the microphone once nobody listens
+  } catch {}
+  apc = null;
+  if (audioEl.value) audioEl.value.srcObject = null;
+  sndOn.value = false;
+  sndBusy.value = false;
+}
+async function soundStart() {
+  const s = snd.value;
+  if (!s) return;
+  soundOff();
+  const g = sgen;
+  sndOn.value = true;
+  sndBusy.value = true;
+  const p = (apc = new RTCPeerConnection({ iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }] }));
+  const lost = () => {
+    if (g !== sgen) return;
+    soundOff();
+    toast(t('Camera sound stopped'), 'warn');
+  };
+  // dropped: a short "disconnected" can come back by itself, "failed" or a few seconds of it cannot
+  let dropT = null;
+  p.onconnectionstatechange = () => {
+    const st = p.connectionState;
+    clearTimeout(dropT);
+    if (st === 'failed' || st === 'closed') lost();
+    else if (st === 'disconnected') dropT = setTimeout(() => p.connectionState !== 'connected' && lost(), 4000);
+  };
+  p.ontrack = (e) => {
+    if (g !== sgen || !audioEl.value) return;
+    audioEl.value.srcObject = e.streams[0] || new MediaStream([e.track]);
+    audioEl.value.volume = vol.value;
+    audioEl.value.play().catch(() => {});
+  };
+  try {
+    p.addTransceiver('audio', { direction: 'recvonly' });
+    await p.setLocalDescription(await p.createOffer());
+    await new Promise((r) => {
+      if (p.iceGatheringState === 'complete') return r();
+      const to = setTimeout(r, 1500);
+      p.onicegatheringstatechange = () => {
+        if (p.iceGatheringState === 'complete') {
+          clearTimeout(to);
+          r();
+        }
+      };
+    });
+    if (g !== sgen) return;
+    // the offer as plain text: a simple request, so the browser sends no CORS preflight first
+    const r = await fetch(`${s.base}/api/webrtc?src=${encodeURIComponent(s.name)}`, {
+      method: 'POST',
+      body: p.localDescription.sdp,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const sdp = await r.text();
+    if (g !== sgen) return;
+    await p.setRemoteDescription({ type: 'answer', sdp });
+    sndBusy.value = false;
+  } catch {
+    if (g !== sgen) return;
+    soundOff();
+    toast(t('Could not start the camera sound'), 'warn');
+  }
+}
+const toggleSound = () => (sndOn.value ? soundOff() : soundStart());
+// asked once Moonraker is connected (the view can mount before that), again after a reconnect
+function askSound() {
+  if (props.audio && state.connected) findCamAudio().then((s) => (snd.value = s));
+}
+onMounted(askSound);
+watch(() => state.connected, askSound);
+onBeforeUnmount(soundOff);
+watch(
+  () => props.cam?.name,
+  () => soundOff(),
+);
+const touch = typeof matchMedia === 'function' && !matchMedia('(hover: hover)').matches;
 defineExpose({ retry: start });
 </script>
 <template>
@@ -368,6 +478,30 @@ defineExpose({ retry: start });
       }}</span>
     </div>
 
+    <div v-if="audio && snd && cam" class="snd" :class="{ on: sndOn, touch }">
+      <button
+        class="sb"
+        :class="{ on: sndOn, busy: sndBusy }"
+        :aria-label="sndOn ? t('Turn the camera sound off') : t('Turn the camera sound on')"
+        :aria-pressed="sndOn"
+        :data-tip="sndOn ? t('Turn the camera sound off') : t('Turn the camera sound on')"
+        @click="toggleSound"
+      >
+        <Icon :name="sndOn ? 'volume2' : 'volumex'" :size="17" :stroke="2.2" />
+      </button>
+      <label class="sv">
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          :value="vol"
+          :aria-label="t('Volume')"
+          @input="vol = +$event.target.value"
+        />
+      </label>
+      <audio ref="audioEl" autoplay></audio>
+    </div>
     <template v-if="overlay && cam && status === 'live'">
       <span class="live">{{ t('LIVE') }}</span>
       <span class="info"
@@ -452,6 +586,66 @@ defineExpose({ retry: start });
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
+}
+/* camera sound: a round button in the top right corner, the volume slides out to its left */
+.snd {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 6px;
+}
+.sb {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--bd);
+  background: var(--s2);
+  color: var(--tx);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    scale 0.08s;
+}
+.sb:hover {
+  background: var(--s3);
+}
+.sb:active {
+  scale: 0.9;
+}
+.sb.on {
+  color: var(--ac);
+}
+.sb.busy {
+  opacity: 0.6;
+}
+.sv {
+  display: none;
+  align-items: center;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 17px;
+  border: 1px solid var(--bd);
+  background: var(--s2);
+}
+.sv input {
+  width: 90px;
+  accent-color: var(--ac);
+}
+/* the volume: on hover with a mouse, always while the sound is on with a touch screen */
+.snd:not(.touch):hover .sv,
+.snd:has(:focus-visible) .sv,
+.snd.touch.on .sv {
+  display: flex;
+}
+.snd audio {
+  display: none;
 }
 .info {
   position: absolute;

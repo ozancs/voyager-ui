@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Più righe incollate nella console partono con un solo Invio, nell’ordine in cui sono state incollate.",
   "Preview": "Anteprima",
   "Sample lines, nothing is sent to the printer.": "Righe di esempio, nulla viene inviato alla stampante.",
+  "Camera sound stopped": "L’audio della videocamera si è interrotto",
+  "Could not start the camera sound": "Impossibile avviare l’audio della videocamera",
+  "Turn the camera sound off": "Disattiva l’audio della videocamera",
+  "Turn the camera sound on": "Attiva l’audio della videocamera",
 }

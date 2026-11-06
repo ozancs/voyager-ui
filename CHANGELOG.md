@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.29
+
+- Webcam sound: when go2rtc runs on the printer with a sound stream (found by itself in go2rtc.yaml), the webcam gets a round speaker button in its top right corner. Off whenever the page opens; on plays the sound over WebRTC, off closes the connection so the microphone stops. The volume slides out on hover (always shown while on with a touch screen) and is remembered in the browser
+- Settings > Console: a preview console with sample lines shows the chosen look; nothing is sent
+
 ## 0.38.28
 
 - Console: lines pasted together all go with one Enter (or Send all), in their order, the same as typing each one and pressing Enter; no more waiting for each to finish before the next is sent

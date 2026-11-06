@@ -1350,6 +1350,7 @@ gcode:
   'README.txt':
     'Voyager demo config folder. Nothing here reaches a real printer.\nTry Ctrl+K and type: pressure, shaper, retract, EB_SET, stealthchop\n',
 };
+if (globalThis.__demoCfg) Object.assign(cfgText, globalThis.__demoCfg); // a test can add config files
 const versions = {
   klipper: {
     configured_type: 'git_repo',

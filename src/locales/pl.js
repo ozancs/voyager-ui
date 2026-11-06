@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Kilka linii wklejonych do konsoli wysyła jeden Enter, w kolejności wklejenia.",
   "Preview": "Podgląd",
   "Sample lines, nothing is sent to the printer.": "Przykładowe linie, nic nie jest wysyłane do drukarki.",
+  "Camera sound stopped": "Dźwięk kamery przerwany",
+  "Could not start the camera sound": "Nie udało się uruchomić dźwięku kamery",
+  "Turn the camera sound off": "Wyłącz dźwięk kamery",
+  "Turn the camera sound on": "Włącz dźwięk kamery",
 }

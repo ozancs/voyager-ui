@@ -2428,4 +2428,8 @@ export default {
   "Several lines pasted into the console all go with one Enter, in the order they were pasted.": "Кілька рядків, вставлених у консоль, надсилаються одним Enter у порядку вставлення.",
   "Preview": "Попередній перегляд",
   "Sample lines, nothing is sent to the printer.": "Приклад рядків, на принтер нічого не надсилається.",
+  "Camera sound stopped": "Звук камери перервався",
+  "Could not start the camera sound": "Не вдалося увімкнути звук камери",
+  "Turn the camera sound off": "Вимкнути звук камери",
+  "Turn the camera sound on": "Увімкнути звук камери",
 }

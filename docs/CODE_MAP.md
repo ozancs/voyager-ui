@@ -47,6 +47,12 @@ A tab shows only when the printer has at least one of its commands. Commands tha
 but are not in this list (a macro named FLOW_CALIBRATION, say) end up in the "Other" tab.  
 parseResult() reads the useful numbers out of the console lines a command printed.
 
+**[src/camAudio.js](../src/camAudio.js)**  
+Camera sound through go2rtc (a sound-only stream next to the MJPEG picture). Found by itself, nothing to set up:  
+go2rtc.yaml in the config folder gives the API port (api.listen) and the sound stream (a source reading ALSA or  
+with "audio" in it, or a stream named mic / audio), then go2rtc's /api/streams has to list that stream. If any  
+step does not hold, there is no sound button and nothing is said.
+
 **[src/cfgHistory.js](../src/cfgHistory.js)**  
 Config history: the earlier versions of every config file, from the copies the UI makes before it writes a file  
 (backups/<file>-klipperui-<date>.cfg, store.js backupBeforeWrite) and the ones Klipper makes on SAVE_CONFIG  
@@ -921,7 +927,10 @@ One webcam, any Moonraker webcam service:
   hlsstream                            -> HLS (native on Safari, hls.js elsewhere)  
   ipstream                             -> plain <video>  
   iframe                               -> the page in an iframe  
-When nothing arrives for a while the view says so and what to check, instead of staying black.
+When nothing arrives for a while the view says so and what to check, instead of staying black.  
+audio: a sound button in the top right corner when the printer runs go2rtc with a sound stream (camAudio.js).  
+Off whenever the page opens; on = a WebRTC connection that receives only sound, off = that connection closed, so  
+go2rtc stops ffmpeg and the microphone on the Pi.
 
 **[src/components/WhatsNew.vue](../src/components/WhatsNew.vue)**  
 What's new: the project's CHANGELOG.md, shown in the UI. The file is loaded only when this dialog opens  
