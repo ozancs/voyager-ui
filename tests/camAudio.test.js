@@ -56,3 +56,26 @@ describe('noise filter on the mic line', () => {
     expect(readNoise(base, 'nope')).toBe(null);
   });
 });
+
+describe('noise filter configuration safety', () => {
+  it('does not turn list, URL or block sources into invalid YAML', () => {
+    for (const config of [
+      'streams:\n  mic:\n    - "exec:ffmpeg -f alsa -i default -c:a libopus -f rtsp {output}"\n',
+      'streams:\n  mic: rtsp://camera/audio\n',
+      'streams:\n  mic: |\n    exec:ffmpeg -f alsa -i default -f rtsp {output}\n',
+      'other:\n  mic: exec:ffmpeg -f alsa -i default -f rtsp {output}\n',
+    ]) {
+      expect(readNoise(config, 'mic')).toBeNull();
+      expect(writeNoise(config, 'mic', 'normal')).toBeNull();
+    }
+  });
+  it('preserves quoted command, other sections, comments and CRLF', () => {
+    const line = '  mic: "exec:ffmpeg -f alsa -i default -c:a libopus -f rtsp {output}"';
+    const config = `other:\r\n${line}\r\nstreams:\r\n${line} # microphone\r\n`;
+    const result = writeNoise(config, 'mic', 'light');
+    expect(result.startsWith(`other:\r\n${line}\r\n`)).toBe(true);
+    expect(result).toContain(`-af ${noiseFilter(12)} -c:a`);
+    expect(writeNoise(result, 'mic', 'off')).toBe(config);
+    expect(writeNoise(config, 'mic', 'invalid')).toBeNull();
+  });
+});

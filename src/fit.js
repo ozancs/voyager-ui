@@ -2,9 +2,8 @@
 // showing a scrollbar. Up to 25% smaller; beyond that the card stays at 75% and scrolls (it used to jump back to
 // 100%, so opening something inside a card, like an MMU gate menu, suddenly blew the whole card up). Measured on the card itself and on
 // inner scroll areas marked data-fit (the temperatures table). Console logs and editors are not touched.
-// Cards marked data-scale (controls: toolhead, extruder, system loads...) keep shrinking as a whole, much further.
-const MIN = 0.75,
-  MIN_SCALE = 0.35;
+// The dashboard canvas may already be scaled: do not compound it into unreadably small controls.
+const MIN = 0.75;
 function measure(card) {
   let need = 1;
   const cH = card.clientHeight,
@@ -19,59 +18,22 @@ function measure(card) {
   }
   return need;
 }
-// the header on one row: when its buttons would wrap to a second row (a card made narrow), they show only their
-// icons (hd-tight), and when that is still too wide, the header's optional extras ([data-opt]) go too (hd-tighter).
-// Checked at zoom 1, before the card is measured. The classes go on the card: the cell's own class is watched.
-function wraps(hd) {
-  const els = [...hd.children, ...hd.querySelectorAll(':scope > .acts > *')].filter((e) => e.offsetHeight);
-  const mids = els
-    .filter((e) => !e.classList.contains('acts'))
-    .map((e) => {
-      const r = e.getBoundingClientRect();
-      return r.top + r.height / 2;
-    });
-  return mids.length > 1 && Math.max(...mids) - Math.min(...mids) > 8;
-}
-function fitHeader(card) {
-  const hd = card.querySelector(':scope > .card-h');
-  card.classList.remove('hd-tight', 'hd-tighter');
-  if (!hd) return;
-  const acts = hd.querySelector(':scope > .acts');
-  // too wide: on two rows, or cut (a narrow card keeps them on one row and hides what does not fit)
-  const cut = () => {
-    const kids = acts ? [...acts.children].filter((e) => e.offsetWidth) : [];
-    if (!kids.length) return false;
-    const r = acts.getBoundingClientRect();
-    // right aligned, what does not fit sticks out on the left
-    return kids.some((e) => {
-      const k = e.getBoundingClientRect();
-      return k.right > r.right + 1 || k.left < r.left - 1;
-    });
-  };
-  // or simply wider than the header (a folded card: nothing wraps there, the overflow is hidden instead)
-  const over = () => wraps(hd) || cut() || hd.scrollWidth > hd.clientWidth + 1;
-  if (!over()) return;
-  card.classList.add('hd-tight');
-  if (over()) card.classList.add('hd-tighter');
-}
 function fit(cell) {
   const card = cell.querySelector(':scope > .card, :scope > * > .card, :scope > .card, .card');
   if (!card) return;
   if (cell.classList.contains('collapsed')) {
-    // only the header shows: nothing to zoom (a zoomed header would slide away from the chevron), but the header
-    // itself still has to fit, so its extras give way and the chevron stays in view
+    // only the header shows: nothing to fit, and a zoomed header would slide away from the chevron
     card.style.zoom = '';
     card.classList.remove('fitted');
-    fitHeader(card);
     return;
   }
-  const min = cell.hasAttribute('data-scale') ? MIN_SCALE : MIN;
-  const cur = parseFloat(card.style.zoom) || 1;
+  const canvasScale = parseFloat(getComputedStyle(cell).getPropertyValue('--dashboard-scale')) || 1;
+  const min = Math.min(1, MIN / canvasScale);
   // measure at zoom 1 so the result does not drift
   card.style.zoom = '';
   card.style.overflowY = '';
   for (const el of card.querySelectorAll('[data-fit]')) el.style.overflowY = '';
-  fitHeader(card);
+
   const need = measure(card);
   let z = 1;
   if (need > 1.005) z = 1 / need;
@@ -100,7 +62,7 @@ function fit(cell) {
   // a pixel or two left over (rounding) would only show an empty scrollbar
   for (const el of [card, ...card.querySelectorAll('[data-fit]')])
     if (el.scrollHeight > el.clientHeight && el.scrollHeight - el.clientHeight <= 3) el.style.overflowY = 'hidden';
-  if (z !== cur) card.classList.toggle('fitted', z !== 1);
+  card.classList.toggle('fitted', z !== 1);
 }
 export const vfit = {
   mounted(el) {

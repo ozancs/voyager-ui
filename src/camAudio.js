@@ -86,7 +86,13 @@ export const noiseFilter = (nr) => `highpass=f=200,lowpass=f=6000,afftdn=nr=${nr
 // the microphone line of go2rtc.yaml: its start (up to and including the line's name and the colon) and the source
 function micLine(text, name) {
   const re = new RegExp(`^([ \\t]+["']?${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']?:[ \\t]*)(.*)$`, 'm');
-  return text.match(re);
+  // Only a direct exec:ffmpeg scalar in streams can accept CLI audio filters.
+  // Lists, aliases, block scalars and RTSP URLs must never be rewritten as commands.
+  const section = text.match(/^streams:[ \t]*(?:#.*)?\r?\n(?:^[ \t].*\r?\n|^\s*\r?\n)*/m)?.[0];
+  const m = section?.match(re);
+  if (!m || !/^["']?exec:ffmpeg\s/.test(m[2]) || !/\s-i\s/.test(m[2]) || !m[2].includes('{output}')) return null;
+  m.index += text.indexOf(section);
+  return m;
 }
 // what the line has now: a level name, 'custom' for a filter that is not one of ours, 'off' for none
 export function readNoise(text, name) {
@@ -101,7 +107,8 @@ export function readNoise(text, name) {
 export function writeNoise(text, name, level) {
   const m = micLine(text, name);
   if (!m) return null;
-  const nr = NOISE_LEVELS[level] ?? 0;
+  if (!Object.prototype.hasOwnProperty.call(NOISE_LEVELS, level)) return null;
+  const nr = NOISE_LEVELS[level];
   let src = m[2].replace(AF_RE, '');
   if (nr) {
     // after the input and in front of the encoder, where ffmpeg expects a filter: `-c:a`, or the output `-f`
@@ -110,10 +117,11 @@ export function writeNoise(text, name, level) {
     const from = inAt >= 0 ? inAt + src.slice(inAt).match(/\s-i\s+\S+/)[0].length : 0;
     const rel = src.slice(from).search(/\s-(c:a|codec:a|acodec|f)\s/);
     const at = rel >= 0 ? from + rel : -1;
+    if (at < 0) return null;
     const ins = ` -af ${noiseFilter(nr)}`;
-    src = at >= 0 ? src.slice(0, at) + ins + src.slice(at) : src + ins;
+    src = src.slice(0, at) + ins + src.slice(at);
   }
-  return text.replace(m[0], m[1] + src);
+  return text.slice(0, m.index) + m[1] + src + text.slice(m.index + m[0].length);
 }
 // Settings > Cameras: read the level, or set one. Setting writes go2rtc.yaml (a copy of the old file stays as
 // go2rtc.yaml.bak) and restarts go2rtc through its own API, so the new filter is used from the next listen on.

@@ -8,6 +8,7 @@ export const PARTS = [
     keys: [
       'layout',
       'layoutPrint',
+      'layoutWidths',
       'hiddenCards',
       'hiddenCardsPrint',
       'mobileOrder',

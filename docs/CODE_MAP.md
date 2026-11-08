@@ -137,11 +137,10 @@ tell a client which parameters a command takes (its help is one line of text), s
 own parameters are read from its template instead (macros.js). Classic G-codes take letters (X10), the extended  
 commands take NAME=value.
 
-**[src/gridReflow.js](../src/gridReflow.js)**  
-The dashboard grid on a narrow window (Dashboard.vue): a card whose columns came out narrower than minCol px  
-takes more columns, and the cards are packed again in their order (top to bottom, left to right), each into  
-the highest free place, the column closest to where it was winning a tie, so no holes are left behind.  
-Only for showing: the layout as arranged is kept, and returned as it is when every card is wide enough.
+**[src/dashboardSize.js](../src/dashboardSize.js)**
+The dashboard's logical canvas and scale, measured against the available content width. The grid keeps its
+saved coordinates; below the readable scale threshold it uses the independent stacked layout. Reference
+widths travel with layout backups, separately for idle and printing dashboards.
 
 **[src/heatEta.js](../src/heatEta.js)**  
 How long until a heater reaches its target, or whether it will at all.  

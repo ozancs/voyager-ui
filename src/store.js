@@ -85,6 +85,7 @@ export const DEFAULT_SETTINGS = () => ({
   navMode: 'pinned', // pinned | hidden | auto
   autoLayout: false,
   layoutPrint: null,
+  layoutWidths: null,
   mobileOrder: null, // card order of the one-column phone dashboard, set in Customize on a phone
   hiddenCardsPrint: [],
   collapsed: {}, // card id -> true while folded to its header
@@ -226,6 +227,7 @@ export const LAYOUT_KEYS = [
   'strip',
   'customCards',
   'layoutPrint',
+  'layoutWidths',
   'hiddenCardsPrint',
   'autoLayout',
   'cardColors',

@@ -14,7 +14,8 @@
     "format:check": "prettier --check \"src/**/*.{js,vue,css}\" \"tests/**/*.js\" \"scripts/**/*.{js,cjs,mjs}\" vite.config.js",
     "same-code": "node scripts/same-code.mjs",
     "code-map": "node scripts/code-map.mjs",
-    "layout": "node scripts/layout-sweep.mjs"
+    "layout": "node scripts/layout-sweep.mjs",
+    "layout:resize": "node scripts/dashboard-resize.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",

@@ -44,7 +44,6 @@ import PhoenixCard from '../components/PhoenixCard.vue';
 import { hasPhoenix } from '../phoenix';
 import { t } from '../i18n';
 import { useEdgeAutoScroll } from '../autoscroll';
-import { reflow } from '../gridReflow';
 import interact from 'interactjs';
 import { nextTick } from 'vue';
 import {
@@ -62,6 +61,7 @@ import IconPicker from '../components/IconPicker.vue';
 import LiveZCard from '../components/LiveZCard.vue';
 import FavoritesCard from '../components/FavoritesCard.vue';
 import { pushDown } from '../calc';
+import { dashboardSize } from '../dashboardSize';
 import { orderMacros, macroDesc } from '../macros';
 import SortList from '../components/SortList.vue';
 import ButtonParams from '../components/ButtonParams.vue';
@@ -263,25 +263,6 @@ const nameOf = (i) =>
     ? state.settings.customCards?.[i]?.name || 'Custom'
     : state.settings.cardTitles?.[i]?.name || MODULES[i]?.n;
 
-const width = ref(window.innerWidth);
-const onResize = () => (width.value = window.innerWidth);
-onMounted(() => window.addEventListener('resize', onResize));
-onBeforeUnmount(() => window.removeEventListener('resize', onResize));
-const wide = computed(() => width.value > 1000);
-// how many screen pixels one CSS pixel of the grid is (interface scale). Measured instead of taken from the setting,
-// because browsers disagree on how CSS zoom shows up in pointer and element coordinates.
-const gridScale = ref(1);
-const gap = computed(() => (state.settings.compactCards !== false ? [14, 14] : [20, 20]));
-function measureScale() {
-  const g = document.querySelector('.grid');
-  if (g && g.offsetWidth) gridScale.value = g.getBoundingClientRect().width / g.offsetWidth || 1;
-}
-watch(
-  () => [state.editDash, state.uiZoom, width.value],
-  () => nextTick(measureScale),
-);
-onMounted(() => nextTick(measureScale));
-
 // two layouts: normal and while printing (optional). In Customize both can be edited.
 const editMode = ref('idle');
 const mode = computed(() =>
@@ -293,6 +274,54 @@ const mode = computed(() =>
       ? 'print'
       : 'idle',
 );
+
+const width = ref(window.innerWidth);
+const onResize = () => (width.value = window.innerWidth);
+onMounted(() => window.addEventListener('resize', onResize));
+onBeforeUnmount(() => window.removeEventListener('resize', onResize));
+// Observe the available content width, including sidebar and interface zoom changes.
+// Resize changes only the presentation, never the saved grid coordinates.
+const gridHost = ref(null);
+const gridView = ref(null);
+const availableWidth = ref(0);
+let hostObserver;
+onMounted(() => {
+  hostObserver = new ResizeObserver(([entry]) => {
+    availableWidth.value = entry.contentRect.width;
+  });
+  hostObserver.observe(gridHost.value);
+});
+onBeforeUnmount(() => hostObserver?.disconnect());
+const referenceWidth = computed(() => {
+  const key = mode.value === 'print' && state.settings.layoutPrint ? 'print' : 'idle';
+  return state.settings.layoutWidths?.[key];
+});
+const sizing = computed(() => dashboardSize(availableWidth.value, referenceWidth.value));
+const wide = computed(() => width.value > 700 && sizing.value.grid);
+const canvasStyle = computed(() => ({
+  width: sizing.value.width + 'px',
+  zoom: sizing.value.scale,
+  '--dashboard-scale': sizing.value.scale,
+}));
+// how many screen pixels one CSS pixel of the grid is (interface scale). Measured instead of taken from the setting,
+// because browsers disagree on how CSS zoom shows up in pointer and element coordinates.
+const gridScale = ref(1);
+const gap = computed(() => (state.settings.compactCards !== false ? [14, 14] : [20, 20]));
+function measureScale() {
+  const g = document.querySelector('.grid');
+  if (g && g.offsetWidth) {
+    gridScale.value = g.getBoundingClientRect().width / g.offsetWidth || 1;
+    // The grid library's polyfilled observer can lag behind CSS zoom changes.
+    // Its public width state must use the same logical pixels as our canvas.
+    if (gridView.value) gridView.value.state.width = g.offsetWidth;
+  }
+}
+watch(
+  () => [state.editDash, state.uiZoom, width.value, availableWidth.value, sizing.value.scale],
+  () => nextTick(measureScale),
+);
+onMounted(() => nextTick(measureScale));
+
 const LK = () => (mode.value === 'print' ? 'layoutPrint' : 'layout');
 const HK = () => (mode.value === 'print' ? 'hiddenCardsPrint' : 'hiddenCards');
 const srcLayout = () =>
@@ -360,27 +389,6 @@ watch(
   () => state.settingsLoaded,
   (v) => v && reload(),
 );
-// ---- responsive grid: like a normal web page, the cards keep a usable width and move instead of shrinking ----
-// The 12 columns follow the window. On a wide screen a column is about REF_COL px; when a narrower window (a
-// laptop, a half-screen window) makes a card much narrower than that, the card takes more columns and the cards
-// after it move along and down, the way the columns of a web page wrap. Nothing is saved: the stored layout stays
-// as arranged, a wider window shows it as it is again, and Customize always edits the stored layout.
-const REF_COL = 136; // px per column on a 1920 px screen with the side menu
-const MIN_COL = REF_COL * 0.85; // a little narrower is fine (the card's content then fits itself), more is not
-const gridW = ref(0);
-let gridRO = null;
-function watchGrid() {
-  const g = document.querySelector('.grid');
-  gridRO?.disconnect();
-  if (!g) return;
-  gridRO = new ResizeObserver(() => (gridW.value = g.clientWidth));
-  gridRO.observe(g);
-  gridW.value = g.clientWidth;
-}
-onMounted(() => nextTick(watchGrid));
-watch(wide, (w) => w && nextTick(watchGrid));
-onBeforeUnmount(() => gridRO?.disconnect());
-const shown = computed(() => (state.editDash ? layout.value : reflow(layout.value, gridW.value / 12, MIN_COL)));
 const sorted = computed(() => [...layout.value].sort((a, b) => a.y - b.y || a.x - b.x));
 // phone / narrow window: one column. Its order is kept on its own (mobileOrder), so moving a card here does not
 // shuffle the desktop grid. Cards not in the list yet follow in desktop order.
@@ -393,6 +401,13 @@ const column = computed(() => {
 // grid-layout-plus also emits layout-updated on mount and on resize; only a Customize session writes settings
 function persist(force = false) {
   if (!state.editDash && !force) return;
+  if (state.editDash && wide.value && !state.settings.layoutWidths?.[mode.value]) {
+    const key = mode.value;
+    state.settings.layoutWidths = {
+      ...state.settings.layoutWidths,
+      [key]: sizing.value.width,
+    };
+  }
   state.settings[LK()] = layout.value.map(({ i, x, y, w, h }) => ({
     i,
     x,
@@ -895,174 +910,187 @@ function detachCard(i) {
       <DeviceStrip v-if="state.klippy === 'ready'" />
       <div v-else class="grow"></div>
     </div>
-    <GridLayout
-      v-if="wide"
-      :layout="shown"
-      @update:layout="(l) => state.editDash && (layout = l)"
-      class="grid"
-      :class="{ editing: state.editDash }"
-      :col-num="12"
-      :row-height="40"
-      :margin="gap"
-      :style="{ margin: -(gap[0] - 4) + 'px' }"
-      :transform-scale="gridScale"
-      :is-draggable="state.editDash"
-      :is-resizable="false"
-      vertical-compact
-      use-css-transforms
-      @layout-updated="() => persist()"
-    >
-      <GridItem
-        v-for="it in shown"
-        :key="it.i"
-        :i="it.i"
-        :x="it.x"
-        :y="it.y"
-        :w="it.w"
-        :h="it.h"
-        :min-w="minOf(it.i)[0]"
-        :min-h="minOf(it.i)[1]"
-        drag-ignore-from=".tools, .rz"
+    <div ref="gridHost" class="grid-host">
+      <GridLayout
+        v-if="wide"
+        v-model:layout="layout"
+        ref="gridView"
+        class="grid"
+        :class="{ editing: state.editDash }"
+        :col-num="12"
+        :row-height="40"
+        :margin="gap"
+        :style="canvasStyle"
+        :transform-scale="gridScale"
+        :is-draggable="state.editDash"
+        :is-resizable="false"
+        vertical-compact
+        use-css-transforms
+        @layout-updated="() => persist()"
+        @layout-ready="measureScale"
       >
-        <div
-          v-fit
-          :data-scale="MODULES[it.i]?.scale ? '' : null"
-          class="cell"
-          :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i, collapsed: folded(it.i) }"
-          :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null"
+        <GridItem
+          v-for="it in layout"
+          :key="it.i"
+          :i="it.i"
+          :x="it.x"
+          :y="it.y"
+          :w="it.w"
+          :h="it.h"
+          :min-w="minOf(it.i)[0]"
+          :min-h="minOf(it.i)[1]"
+          drag-ignore-from=".tools, .rz"
         >
-          <CellScope :id="it.i" :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
-            <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
-            <component v-else :is="MODULES[it.i].c" class="fill" />
-          </CellScope>
-          <template v-if="state.editDash"
-            ><span class="rz bl" @pointerdown.stop.prevent="rzStart(it, 'bl', $event)"></span
-            ><span class="rz br" @pointerdown.stop.prevent="rzStart(it, 'br', $event)"></span
-          ></template>
-          <div v-if="state.editDash" class="tools">
-            <button
-              v-if="isCustom(it.i) && state.settings.customCards?.[it.i]?.type !== 'cam'"
-              class="btn ibtn sm"
-              :aria-label="t('Edit {name}', { name: t(nameOf(it.i)) })"
-              @click="editCard(it.i)"
+          <div
+            v-fit
+            :data-scale="MODULES[it.i]?.scale ? '' : null"
+            class="cell"
+            :class="{ 'tint-cell': tintVar(it.i), cpop: colorFor === it.i, collapsed: folded(it.i) }"
+            :style="tintVar(it.i) ? { '--tint': tintVar(it.i) } : null"
+          >
+            <CellScope
+              :id="it.i"
+              :can="canCollapse(it.i)"
+              :collapsed="isCollapsed(it.i)"
+              @toggle="toggleCollapse(it.i)"
             >
-              <Icon name="pencil" :size="14" />
-            </button>
-            <button
-              v-if="isCustom(it.i)"
-              class="btn ibtn sm"
-              :aria-label="t('Duplicate {name}', { name: nameOf(it.i) })"
-              @click="duplicateCard(it.i)"
-            >
-              <Icon name="copy" :size="14" />
-            </button>
-            <button
-              v-else-if="it.i !== 'webcam'"
-              class="btn ibtn sm"
-              :aria-label="t('Title and icon of {name}', { name: t(nameOf(it.i)) })"
-              @click="openTitle(it.i)"
-            >
-              <Icon name="tag" :size="14" />
-            </button>
-            <button
-              v-if="MODULES[it.i]?.opts"
-              class="btn ibtn sm"
-              :aria-label="t('Options {name}', { name: t(nameOf(it.i)) })"
-              @click="optsFor = it.i"
-            >
-              <Icon name="gear" :size="15" />
-            </button>
-            <button
-              class="btn ibtn sm sw"
-              :aria-label="t('Card color')"
-              @click.stop="colorFor = colorFor === it.i ? null : it.i"
-            >
-              <i :style="{ background: tintVar(it.i) || 'var(--s3)' }"></i>
-            </button>
-            <button
-              class="btn ibtn sm"
-              :aria-label="t('Remove {name}', { name: t(nameOf(it.i)) })"
-              @click="removeCard(it.i)"
-            >
-              <Icon name="x" :size="16" />
-            </button>
-            <div v-if="colorFor === it.i" class="cp card" @mousedown.stop @click.stop>
-              <span class="lbl">{{ t('Card color') }}</span>
-              <div class="cps">
-                <button
-                  v-for="k in TINTS"
-                  :key="k"
-                  class="dot"
-                  :class="{ on: tintKey(it.i) === k }"
-                  :style="{ background: `var(--tn-${k})` }"
-                  :aria-label="k"
-                  @click="setTint(it.i, k)"
-                ></button>
-                <button
-                  class="dot none"
-                  :class="{ on: tintKey(it.i) === 'none' }"
-                  :aria-label="t('No color')"
-                  @click="setTint(it.i, 'none')"
-                ></button>
-              </div>
-              <label class="row cpc"
-                ><input
-                  type="color"
-                  :value="tintKey(it.i).startsWith('#') ? tintKey(it.i) : '#5aa9ee'"
-                  @input="setTint(it.i, $event.target.value)"
-                /><span>{{ t('Custom color') }}</span></label
-              >
+              <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
+              <component v-else :is="MODULES[it.i].c" class="fill" />
+            </CellScope>
+            <template v-if="state.editDash"
+              ><span class="rz bl" @pointerdown.stop.prevent="rzStart(it, 'bl', $event)"></span
+              ><span class="rz br" @pointerdown.stop.prevent="rzStart(it, 'br', $event)"></span
+            ></template>
+            <div v-if="state.editDash" class="tools">
               <button
-                class="btn clear"
-                style="align-self: flex-start; height: 30px; padding: 0 6px"
-                @click="resetTint(it.i)"
+                v-if="isCustom(it.i) && state.settings.customCards?.[it.i]?.type !== 'cam'"
+                class="btn ibtn sm"
+                :aria-label="t('Edit {name}', { name: t(nameOf(it.i)) })"
+                @click="editCard(it.i)"
               >
-                {{ t('Default') }}
+                <Icon name="pencil" :size="14" />
               </button>
+              <button
+                v-if="isCustom(it.i)"
+                class="btn ibtn sm"
+                :aria-label="t('Duplicate {name}', { name: nameOf(it.i) })"
+                @click="duplicateCard(it.i)"
+              >
+                <Icon name="copy" :size="14" />
+              </button>
+              <button
+                v-else-if="it.i !== 'webcam'"
+                class="btn ibtn sm"
+                :aria-label="t('Title and icon of {name}', { name: t(nameOf(it.i)) })"
+                @click="openTitle(it.i)"
+              >
+                <Icon name="tag" :size="14" />
+              </button>
+              <button
+                v-if="MODULES[it.i]?.opts"
+                class="btn ibtn sm"
+                :aria-label="t('Options {name}', { name: t(nameOf(it.i)) })"
+                @click="optsFor = it.i"
+              >
+                <Icon name="gear" :size="15" />
+              </button>
+              <button
+                class="btn ibtn sm sw"
+                :aria-label="t('Card color')"
+                @click.stop="colorFor = colorFor === it.i ? null : it.i"
+              >
+                <i :style="{ background: tintVar(it.i) || 'var(--s3)' }"></i>
+              </button>
+              <button
+                class="btn ibtn sm"
+                :aria-label="t('Remove {name}', { name: t(nameOf(it.i)) })"
+                @click="removeCard(it.i)"
+              >
+                <Icon name="x" :size="16" />
+              </button>
+              <div v-if="colorFor === it.i" class="cp card" @mousedown.stop @click.stop>
+                <span class="lbl">{{ t('Card color') }}</span>
+                <div class="cps">
+                  <button
+                    v-for="k in TINTS"
+                    :key="k"
+                    class="dot"
+                    :class="{ on: tintKey(it.i) === k }"
+                    :style="{ background: `var(--tn-${k})` }"
+                    :aria-label="k"
+                    @click="setTint(it.i, k)"
+                  ></button>
+                  <button
+                    class="dot none"
+                    :class="{ on: tintKey(it.i) === 'none' }"
+                    :aria-label="t('No color')"
+                    @click="setTint(it.i, 'none')"
+                  ></button>
+                </div>
+                <label class="row cpc"
+                  ><input
+                    type="color"
+                    :value="tintKey(it.i).startsWith('#') ? tintKey(it.i) : '#5aa9ee'"
+                    @input="setTint(it.i, $event.target.value)"
+                  /><span>{{ t('Custom color') }}</span></label
+                >
+                <button
+                  class="btn clear"
+                  style="align-self: flex-start; height: 30px; padding: 0 6px"
+                  @click="resetTint(it.i)"
+                >
+                  {{ t('Default') }}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </GridItem>
-    </GridLayout>
-    <div v-else class="col" style="gap: 20px">
-      <SortList
-        v-if="state.editDash"
-        class="mlist"
-        :model-value="column"
-        :item-key="(it) => it.i"
-        @update:model-value="(a) => (state.settings.mobileOrder = a.map((x) => x.i))"
-      >
-        <template #default="{ item: it }">
-          <span class="grow">{{ isCustom(it.i) ? nameOf(it.i) : t(nameOf(it.i)) }}</span>
-          <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit')" @click="editCard(it.i)">
-            <Icon name="pencil" :size="16" />
-          </button>
-          <button class="btn ibtn sm" :aria-label="t('Remove card')" @click="removeCard(it.i)">
-            <Icon name="x" :size="18" :stroke="2.4" />
-          </button>
-        </template>
-      </SortList>
-      <template v-else v-for="it in column" :key="it.i">
-        <div class="cell mcell" :class="{ collapsed: folded(it.i) }">
-          <CellScope :id="it.i" :can="canCollapse(it.i)" :collapsed="isCollapsed(it.i)" @toggle="toggleCollapse(it.i)">
-            <CustomCard
-              v-if="isCustom(it.i)"
+        </GridItem>
+      </GridLayout>
+      <div v-else class="col" style="gap: 20px">
+        <SortList
+          v-if="state.editDash"
+          class="mlist"
+          :model-value="column"
+          :item-key="(it) => it.i"
+          @update:model-value="(a) => (state.settings.mobileOrder = a.map((x) => x.i))"
+        >
+          <template #default="{ item: it }">
+            <span class="grow">{{ isCustom(it.i) ? nameOf(it.i) : t(nameOf(it.i)) }}</span>
+            <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit')" @click="editCard(it.i)">
+              <Icon name="pencil" :size="16" />
+            </button>
+            <button class="btn ibtn sm" :aria-label="t('Remove card')" @click="removeCard(it.i)">
+              <Icon name="x" :size="18" :stroke="2.4" />
+            </button>
+          </template>
+        </SortList>
+        <template v-else v-for="it in column" :key="it.i">
+          <div class="cell mcell" :class="{ collapsed: folded(it.i) }">
+            <CellScope
               :id="it.i"
-              :style="folded(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
-              @edit="editCard"
-            />
-            <component
-              v-else
-              :is="MODULES[it.i].c"
-              :style="
-                folded(it.i)
-                  ? null
-                  : { [MODULES[it.i].fixed ? 'height' : 'minHeight']: (fullH[it.i] || it.h) * 40 + 'px' }
-              "
-            />
-          </CellScope>
-        </div>
-      </template>
+              :can="canCollapse(it.i)"
+              :collapsed="isCollapsed(it.i)"
+              @toggle="toggleCollapse(it.i)"
+            >
+              <CustomCard
+                v-if="isCustom(it.i)"
+                :id="it.i"
+                :style="folded(it.i) ? null : { minHeight: (fullH[it.i] || it.h) * 40 + 'px' }"
+                @edit="editCard"
+              />
+              <component
+                v-else
+                :is="MODULES[it.i].c"
+                :style="
+                  folded(it.i)
+                    ? null
+                    : { [MODULES[it.i].fixed ? 'height' : 'minHeight']: (fullH[it.i] || it.h) * 40 + 'px' }
+                "
+              />
+            </CellScope>
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 
@@ -1486,8 +1514,11 @@ function detachCard(i) {
 .di > svg {
   flex-shrink: 0;
 }
+.grid-host {
+  min-width: 0;
+}
 .grid {
-  margin: -16px;
+  margin: 0;
 }
 :root.compact .top {
   padding-bottom: 6px;
@@ -1497,67 +1528,26 @@ function detachCard(i) {
   height: 100%;
   container: cell / inline-size; /* narrow cards adapt their header below */
 }
-/* a narrow card: header buttons that have an icon show only the icon, so the title and the fold chevron keep
-   their row instead of the buttons stacking into a column */
-@container cell (max-width: 360px) {
-  .cell :deep(.card-h .acts .btn:has(> svg)) {
-    font-size: 0 !important; /* beats the compact look's header button size */
-    gap: 0 !important;
-    min-width: 30px;
-    padding: 0 7px !important;
-    justify-content: center;
-  }
-  .cell :deep(.card-h h2) {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-  }
-  .cell :deep(.card-h .acts) {
-    flex-wrap: nowrap;
-    gap: 4px;
-    overflow: hidden; /* text-only buttons that still do not fit are cut, the chevron stays */
-  }
+/* Header actions are controls, not optional decoration: wrap instead of clipping.
+   Keep their labels and the fold button reachable even in a very narrow card. */
+.cell :deep(.card-h) {
+  flex-wrap: wrap;
+  height: auto;
+  position: static !important; /* a tall wrapped header must scroll away so body controls remain reachable */
 }
-/* the same when the buttons would wrap to a second row at any width (fit.js: hd-tight) */
-.cell :deep(.hd-tight > .card-h .acts .btn:has(> svg)) {
-  font-size: 0 !important; /* beats the compact look's header button size */
-  gap: 0 !important;
-  min-width: 30px;
-  padding: 0 7px !important;
-  justify-content: center;
-}
-.cell :deep(.hd-tight > .card-h h2) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.cell :deep(.card-h h2) {
   min-width: 0;
+  overflow-wrap: anywhere;
 }
-.cell :deep(.hd-tight > .card-h .acts) {
-  flex-wrap: nowrap;
-  gap: 4px;
-  overflow: hidden; /* text-only buttons that still do not fit are cut, the chevron stays */
-}
-/* still too wide: the header's optional extras go too (a chip with the temperature, a note after the title) */
-.cell :deep(.hd-tighter > .card-h [data-opt]),
-.cell :deep(.hd-tighter > .card-h > .chip) {
-  display: none;
-}
-/* a chip in the header shrinks before the chevron would be pushed out */
-.cell :deep(.card-h > .chip) {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cell :deep(.card-h > .clp) {
-  flex-shrink: 0;
-}
-/* the header buttons give way before the fold chevron does: they wrap (or get cut in a narrow card), the
-   chevron never leaves the card */
 .cell :deep(.card-h > .acts) {
   min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
   flex-shrink: 1;
+  overflow: visible;
+}
+.cell :deep(.card-h > .acts > *) {
+  flex-shrink: 0;
 }
 /* folded: only the title and the chevron, the header buttons go too */
 .cell.collapsed > :deep(.card > .card-h > .acts),
@@ -1600,11 +1590,19 @@ function detachCard(i) {
   flex-wrap: nowrap;
   overflow: hidden;
 }
-/* folded: the title gives way (cut short) before the chevron does */
-.cell.collapsed > :deep(.card > .card-h > h2),
-.cell.collapsed > :deep(.fill > .card-h > h2) {
-  flex-shrink: 1;
-  min-width: 40px;
+.cell.collapsed :deep(.card-h > h2) {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cell.collapsed :deep(.card-h > .chip),
+.cell.collapsed :deep(.card-h [data-opt]) {
+  display: none;
+}
+.cell :deep(.card-h > .clp) {
+  flex-shrink: 0;
 }
 .mcell {
   height: auto;

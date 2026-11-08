@@ -2,7 +2,9 @@
 
 ## 0.38.30
 
-- The dashboard adapts to the window like a web page: when a narrower screen or window would make cards too narrow, they take more columns and the cards after them wrap and move down, instead of each card shrinking its own content. A wider window shows the layout as it was arranged; nothing to set
+- Dashboard cards keep their saved positions while the grid and its controls scale together for smaller windows. Very narrow windows use the independent stacked layout; returning to a wider window restores the grid. Customize uses the same canvas, and resize never rewrites the saved layout
+- Card header buttons wrap instead of being clipped; tiny cards scroll instead of shrinking controls to 35%
+- Noise reduction does not modify unsupported camera stream configurations
 - A folded card's title bar fits its width: the chip and the extras give way and the chevron to unfold it stays in view
 - Settings > Cameras (was Webcams): with go2rtc sound, a noise reduction setting (off, light, normal, strong) writes the filter into go2rtc.yaml (the old file kept as go2rtc.yaml.bak) and restarts go2rtc
 - Webcam is called Camera in the menu and on the dashboard
