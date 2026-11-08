@@ -9,7 +9,7 @@ import { t } from '../i18n';
 const emit = defineEmits(['menu']);
 const ITEMS = [
   ['dashboard', 'dash', 'Dashboard'],
-  ['webcam', 'cam', 'Webcam'],
+  ['webcam', 'cam', 'Camera'],
   ['console', 'term', 'Console'],
   ['files', 'file', 'Files'],
 ];

@@ -2433,4 +2433,13 @@ export default {
   "Turn the camera sound off": "Camerageluid uit",
   "Turn the camera sound on": "Camerageluid aan",
   "Click anywhere on the page to hear the camera": "Klik ergens op de pagina om de camera te horen",
+  "Saved. Turn the camera sound off and on again to hear the change.": "Opgeslagen. Zet het camerageluid uit en weer aan om het verschil te horen.",
+  "Could not write go2rtc.yaml: {err}": "Kon go2rtc.yaml niet schrijven: {err}",
+  "Cameras are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.": "Camera’s worden door Moonraker bewaard, dus deze lijst is dezelfde in Mainsail en Fluidd. De eerste is de camera die wordt getoond als er geen is gekozen.",
+  "No cameras yet.": "Nog geen camera’s.",
+  "Add camera": "Camera toevoegen",
+  "Sound: noise reduction": "Geluid: ruisonderdrukking",
+  "Takes the steady noise of fans and motors out of the camera sound ({name} in go2rtc.yaml). Strong can make voices sound hollow. The change takes a moment: go2rtc restarts.": "Haalt het constante geluid van ventilatoren en motoren uit het camerageluid ({name} in go2rtc.yaml). Sterk kan stemmen hol laten klinken. De wijziging duurt even: go2rtc herstart.",
+  "The line has a filter of its own; picking a level here replaces it.": "De regel heeft een eigen filter; een niveau kiezen vervangt het.",
+  "Edit camera": "Camera bewerken",
 }

@@ -51,7 +51,7 @@ function snapshot(c) {
   <div class="split" style="min-height: calc(var(--main-h, 100vh) - 105px)">
     <section class="card grow" ref="wrap">
       <div class="card-h">
-        <h2>{{ lapse ? t('Timelapse') : all ? t('All cameras') : cam?.name || t('Webcam') }}</h2>
+        <h2>{{ lapse ? t('Timelapse') : all ? t('All cameras') : cam?.name || t('Camera') }}</h2>
         <div v-if="!lapse" class="acts">
           <button
             v-if="!all && printing"

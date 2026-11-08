@@ -474,7 +474,7 @@ defineExpose({ retry: start });
       v-show="src && status !== 'error'"
       :src="src"
       :style="{ transform }"
-      :alt="t('Webcam')"
+      :alt="t('Camera')"
       @load="gotFrame"
       @error="kind === 'mjpeg' && $event.target.src && fail()"
     />
@@ -492,7 +492,7 @@ defineExpose({ retry: start });
     <iframe
       v-else-if="mode === 'iframe'"
       :src="streamUrl"
-      :title="cam?.name || t('Webcam')"
+      :title="cam?.name || t('Camera')"
       allow="autoplay; fullscreen"
     ></iframe>
 

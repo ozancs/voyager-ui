@@ -2433,4 +2433,13 @@ export default {
   "Turn the camera sound off": "关闭摄像头声音",
   "Turn the camera sound on": "打开摄像头声音",
   "Click anywhere on the page to hear the camera": "点击页面任意位置即可听到摄像头声音",
+  "Saved. Turn the camera sound off and on again to hear the change.": "已保存。关闭再打开摄像头声音即可听到变化。",
+  "Could not write go2rtc.yaml: {err}": "无法写入 go2rtc.yaml: {err}",
+  "Cameras are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.": "摄像头由 Moonraker 保存，因此此列表与 Mainsail、Fluidd 相同。第一个是未选择时显示的摄像头。",
+  "No cameras yet.": "还没有摄像头。",
+  "Add camera": "添加摄像头",
+  "Sound: noise reduction": "声音：降噪",
+  "Takes the steady noise of fans and motors out of the camera sound ({name} in go2rtc.yaml). Strong can make voices sound hollow. The change takes a moment: go2rtc restarts.": "从摄像头声音中去除风扇和电机的持续噪音（go2rtc.yaml 中的 {name}）。“强”可能让人声发闷。更改需要片刻：go2rtc 会重启。",
+  "The line has a filter of its own; picking a level here replaces it.": "该行有自己的滤镜；在此选择级别会将其替换。",
+  "Edit camera": "编辑摄像头",
 }

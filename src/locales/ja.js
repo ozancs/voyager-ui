@@ -2433,4 +2433,13 @@ export default {
   "Turn the camera sound off": "カメラの音声をオフ",
   "Turn the camera sound on": "カメラの音声をオン",
   "Click anywhere on the page to hear the camera": "カメラの音を聞くにはページのどこかをクリックしてください",
+  "Saved. Turn the camera sound off and on again to hear the change.": "保存しました。変更を聞くにはカメラの音声を一度オフにしてからオンにしてください。",
+  "Could not write go2rtc.yaml: {err}": "go2rtc.yaml を書き込めませんでした: {err}",
+  "Cameras are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.": "カメラは Moonraker に保存されるため、この一覧は Mainsail や Fluidd と同じです。先頭のカメラが、未選択時に表示されるカメラです。",
+  "No cameras yet.": "カメラはまだありません。",
+  "Add camera": "カメラを追加",
+  "Sound: noise reduction": "音声: ノイズ低減",
+  "Takes the steady noise of fans and motors out of the camera sound ({name} in go2rtc.yaml). Strong can make voices sound hollow. The change takes a moment: go2rtc restarts.": "ファンやモーターの一定のノイズをカメラの音声から取り除きます（go2rtc.yaml の {name}）。強にすると声がこもることがあります。変更には少し時間がかかります: go2rtc が再起動します。",
+  "The line has a filter of its own; picking a level here replaces it.": "この行には独自のフィルターがあります。ここでレベルを選ぶと置き換わります。",
+  "Edit camera": "カメラを編集",
 }

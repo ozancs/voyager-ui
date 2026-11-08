@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.38.30
+
+- The dashboard adapts to the window like a web page: when a narrower screen or window would make cards too narrow, they take more columns and the cards after them wrap and move down, instead of each card shrinking its own content. A wider window shows the layout as it was arranged; nothing to set
+- A folded card's title bar fits its width: the chip and the extras give way and the chevron to unfold it stays in view
+- Settings > Cameras (was Webcams): with go2rtc sound, a noise reduction setting (off, light, normal, strong) writes the filter into go2rtc.yaml (the old file kept as go2rtc.yaml.bak) and restarts go2rtc
+- Webcam is called Camera in the menu and on the dashboard
+
 ## 0.38.29
 
 - Webcam sound: when go2rtc runs on the printer with a sound stream (found by itself in go2rtc.yaml), the webcam gets a round speaker button in its top right corner. Off in a newly opened browser and stays on through a reload of the page; on plays the sound over WebRTC, off closes the connection so the microphone stops. The volume slides out on hover (always shown while on with a touch screen) and is remembered in the browser

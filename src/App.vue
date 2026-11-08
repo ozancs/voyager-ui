@@ -61,7 +61,7 @@ import { api } from './api/moonraker';
 import { t } from './i18n';
 
 const LOADERS = {
-  webcam: ['Webcam', () => import('./views/WebcamPage.vue')],
+  webcam: ['Camera', () => import('./views/WebcamPage.vue')],
   console: ['Console', () => import('./views/ConsolePage.vue')],
   heightmap: ['Heightmap', () => import('./views/Heightmap.vue')],
   calibrations: ['Calibrations', () => import('./views/Calibrations.vue')],

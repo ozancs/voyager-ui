@@ -41,7 +41,7 @@ function snapshot() {
       >
         <option v-for="w in cams" :key="w.name" :value="w.name">{{ w.name }}</option>
       </select>
-      <h2 v-else>{{ cam?.name || t('Webcam') }}</h2>
+      <h2 v-else>{{ cam?.name || t('Camera') }}</h2>
       <div class="acts">
         <button
           class="btn ibtn"

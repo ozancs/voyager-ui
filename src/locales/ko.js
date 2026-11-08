@@ -2433,4 +2433,13 @@ export default {
   "Turn the camera sound off": "카메라 소리 끄기",
   "Turn the camera sound on": "카메라 소리 켜기",
   "Click anywhere on the page to hear the camera": "카메라 소리를 들으려면 페이지 아무 곳이나 클릭하세요",
+  "Saved. Turn the camera sound off and on again to hear the change.": "저장했습니다. 변경을 들으려면 카메라 소리를 껐다가 다시 켜세요.",
+  "Could not write go2rtc.yaml: {err}": "go2rtc.yaml을 쓸 수 없습니다: {err}",
+  "Cameras are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.": "카메라는 Moonraker에 저장되므로 이 목록은 Mainsail, Fluidd와 같습니다. 첫 번째가 아무것도 선택하지 않았을 때 표시되는 카메라입니다.",
+  "No cameras yet.": "아직 카메라가 없습니다.",
+  "Add camera": "카메라 추가",
+  "Sound: noise reduction": "소리: 소음 감소",
+  "Takes the steady noise of fans and motors out of the camera sound ({name} in go2rtc.yaml). Strong can make voices sound hollow. The change takes a moment: go2rtc restarts.": "팬과 모터의 일정한 소음을 카메라 소리에서 제거합니다 (go2rtc.yaml의 {name}). 강하게 하면 목소리가 먹먹해질 수 있습니다. 변경에는 잠시 걸립니다: go2rtc가 다시 시작됩니다.",
+  "The line has a filter of its own; picking a level here replaces it.": "이 줄에는 자체 필터가 있습니다. 여기서 단계를 고르면 대체됩니다.",
+  "Edit camera": "카메라 편집",
 }

@@ -40,13 +40,13 @@ const cam = computed(() => cams.value.find((c) => c.name === state.settings.cali
   </section>
   <section v-else-if="cam" class="card cm">
     <div class="card-h">
-      <h2>{{ t('Webcam') }}</h2>
+      <h2>{{ t('Camera') }}</h2>
       <select
         v-if="cams.length > 1"
         class="input"
         style="width: auto; height: 32px"
         :value="cam.name"
-        :aria-label="t('Webcam')"
+        :aria-label="t('Camera')"
         @change="state.settings.calibCam = $event.target.value"
       >
         <option v-for="c in cams" :key="c.name" :value="c.name">{{ c.name }}</option>

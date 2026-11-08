@@ -37,3 +37,22 @@ streams:
     expect(soundStream({})).toBe(null);
   });
 });
+
+import { readNoise, writeNoise, noiseFilter } from '../src/camAudio';
+describe('noise filter on the mic line', () => {
+  const base = `streams:\n  mic: exec:ffmpeg -hide_banner -f alsa -ac 1 -ar 16000 -i plughw:CARD=WEBCAM -c:a libopus -b:a 32k -f rtsp {output}\n`;
+  it('reads off, sets a level in front of the encoder, reads it back', () => {
+    expect(readNoise(base, 'mic')).toBe('off');
+    const on = writeNoise(base, 'mic', 'normal');
+    expect(on).toContain(`-i plughw:CARD=WEBCAM -af ${noiseFilter(20)} -c:a libopus`);
+    expect(readNoise(on, 'mic')).toBe('normal');
+    expect(readNoise(writeNoise(on, 'mic', 'strong'), 'mic')).toBe('strong');
+    expect(writeNoise(on, 'mic', 'off')).toBe(base);
+  });
+  it('leaves other lines alone and reports a filter of someone else as custom', () => {
+    const two = `streams:\n  cam: rtsp://x/y\n${base.slice(9)}`;
+    expect(writeNoise(two, 'mic', 'light')).toContain('  cam: rtsp://x/y\n');
+    expect(readNoise(base.replace('-c:a', '-af volume=2 -c:a'), 'mic')).toBe('custom');
+    expect(readNoise(base, 'nope')).toBe(null);
+  });
+});

@@ -75,3 +75,67 @@ async function detect() {
   const list = await res.json();
   return list && Object.prototype.hasOwnProperty.call(list, name) ? { base, name } : null;
 }
+
+// ---- noise filter on the sound stream (Settings > Cameras) ----
+// ffmpeg's own filters on the microphone line: a high-pass takes out the hum of fans and motors, a low-pass the hiss
+// above speech, and afftdn learns the steady noise and takes it out (tn=1: keeps learning, so a fan that changes
+// speed is followed). nr says how hard afftdn works.
+export const NOISE_LEVELS = { off: 0, light: 12, normal: 20, strong: 30 };
+const AF_RE = /\s-af\s+("[^"]*"|'[^']*'|\S+)/;
+export const noiseFilter = (nr) => `highpass=f=200,lowpass=f=6000,afftdn=nr=${nr}:nf=-30:tn=1`;
+// the microphone line of go2rtc.yaml: its start (up to and including the line's name and the colon) and the source
+function micLine(text, name) {
+  const re = new RegExp(`^([ \\t]+["']?${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']?:[ \\t]*)(.*)$`, 'm');
+  return text.match(re);
+}
+// what the line has now: a level name, 'custom' for a filter that is not one of ours, 'off' for none
+export function readNoise(text, name) {
+  const m = micLine(text, name);
+  if (!m) return null;
+  const af = m[2].match(AF_RE)?.[1]?.replace(/^["']|["']$/g, '') || '';
+  if (!af) return 'off';
+  for (const [k, nr] of Object.entries(NOISE_LEVELS)) if (nr && af === noiseFilter(nr)) return k;
+  return 'custom';
+}
+// the text with the line's filter set to a level (off: no -af at all); null when the line is not there
+export function writeNoise(text, name, level) {
+  const m = micLine(text, name);
+  if (!m) return null;
+  const nr = NOISE_LEVELS[level] ?? 0;
+  let src = m[2].replace(AF_RE, '');
+  if (nr) {
+    // after the input and in front of the encoder, where ffmpeg expects a filter: `-c:a`, or the output `-f`
+    // when there is no encoder (`-f alsa` before `-i` is the input's format, not that)
+    const inAt = src.search(/\s-i\s+\S+/);
+    const from = inAt >= 0 ? inAt + src.slice(inAt).match(/\s-i\s+\S+/)[0].length : 0;
+    const rel = src.slice(from).search(/\s-(c:a|codec:a|acodec|f)\s/);
+    const at = rel >= 0 ? from + rel : -1;
+    const ins = ` -af ${noiseFilter(nr)}`;
+    src = at >= 0 ? src.slice(0, at) + ins + src.slice(at) : src + ins;
+  }
+  return text.replace(m[0], m[1] + src);
+}
+// Settings > Cameras: read the level, or set one. Setting writes go2rtc.yaml (a copy of the old file stays as
+// go2rtc.yaml.bak) and restarts go2rtc through its own API, so the new filter is used from the next listen on.
+export async function getNoise() {
+  const s = await findCamAudio();
+  if (!s) return null;
+  const r = await api.fetch('/server/files/config/go2rtc.yaml');
+  if (!r.ok) return null;
+  const level = readNoise(await r.text(), s.name);
+  return level ? { level, name: s.name } : null;
+}
+export async function setNoise(level) {
+  const s = await findCamAudio();
+  if (!s) throw new Error('no sound stream');
+  const r = await api.fetch('/server/files/config/go2rtc.yaml');
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const before = await r.text();
+  const after = writeNoise(before, s.name, level);
+  if (after == null) throw new Error('stream line not found');
+  if (after === before) return;
+  const up = (name, text) => api.upload(new Blob([text], { type: 'text/plain' }), { root: 'config', name });
+  await up('go2rtc.yaml.bak', before);
+  await up('go2rtc.yaml', after);
+  await fetch(s.base + '/api/restart', { method: 'POST' }).catch(() => {});
+}

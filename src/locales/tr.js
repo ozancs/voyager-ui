@@ -2451,4 +2451,13 @@ export default {
   "Turn the camera sound off": "Kamera sesini kapat",
   "Turn the camera sound on": "Kamera sesini aç",
   "Click anywhere on the page to hear the camera": "Kamerayı duymak için sayfada herhangi bir yere tıkla",
+  "Saved. Turn the camera sound off and on again to hear the change.": "Kaydedildi. Değişikliği duymak için kamera sesini kapatıp yeniden aç.",
+  "Could not write go2rtc.yaml: {err}": "go2rtc.yaml yazılamadı: {err}",
+  "Cameras are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.": "Kameralar Moonraker’da saklanır, bu liste Mainsail ve Fluidd ile aynıdır. Buradaki ilki, hiçbiri seçilmediğinde gösterilen kameradır.",
+  "No cameras yet.": "Henüz kamera yok.",
+  "Add camera": "Kamera ekle",
+  "Sound: noise reduction": "Ses: gürültü azaltma",
+  "Takes the steady noise of fans and motors out of the camera sound ({name} in go2rtc.yaml). Strong can make voices sound hollow. The change takes a moment: go2rtc restarts.": "Fan ve motorların sürekli gürültüsünü kamera sesinden çıkarır (go2rtc.yaml içindeki {name}). Güçlü, sesleri boğuk gösterebilir. Değişiklik biraz sürer: go2rtc yeniden başlar.",
+  "The line has a filter of its own; picking a level here replaces it.": "Satırda kendi filtresi var; buradan bir seviye seçmek onun yerine geçer.",
+  "Edit camera": "Kamerayı düzenle",
 }

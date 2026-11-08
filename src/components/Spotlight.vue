@@ -43,7 +43,7 @@ const close = () => (state.spotlight = false);
 
 const PAGES = [
   ['dashboard', 'dash', 'Dashboard'],
-  ['webcam', 'cam', 'Webcam'],
+  ['webcam', 'cam', 'Camera'],
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
   ['calibrations', 'target', 'Calibrations'],
@@ -68,7 +68,7 @@ const SETTINGS = [
   ['appearance', 'Appearance', 'theme colour accent dark light scale size menu'],
   ['sounds', 'Sounds & alerts', 'sound audio beep volume error popup toast notification dashboard printing'],
   ['notify', 'Phone notifications', 'telegram discord ntfy pushover apprise notifier bildirim push'],
-  ['webcams', 'Webcams', 'camera kamera crowsnest stream'],
+  ['webcams', 'Cameras', 'webcam kamera crowsnest stream'],
   ['sync', 'Mainsail / Fluidd sync', 'shared settings import'],
   ['backup', 'Backup & restore settings', 'export import reset'],
 ];

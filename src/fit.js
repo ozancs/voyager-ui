@@ -48,7 +48,8 @@ function fitHeader(card) {
       return k.right > r.right + 1 || k.left < r.left - 1;
     });
   };
-  const over = () => wraps(hd) || cut();
+  // or simply wider than the header (a folded card: nothing wraps there, the overflow is hidden instead)
+  const over = () => wraps(hd) || cut() || hd.scrollWidth > hd.clientWidth + 1;
   if (!over()) return;
   card.classList.add('hd-tight');
   if (over()) card.classList.add('hd-tighter');
@@ -57,9 +58,11 @@ function fit(cell) {
   const card = cell.querySelector(':scope > .card, :scope > * > .card, :scope > .card, .card');
   if (!card) return;
   if (cell.classList.contains('collapsed')) {
-    // only the header shows: nothing to fit, and a zoomed header would slide away from the chevron
+    // only the header shows: nothing to zoom (a zoomed header would slide away from the chevron), but the header
+    // itself still has to fit, so its extras give way and the chevron stays in view
     card.style.zoom = '';
     card.classList.remove('fitted');
+    fitHeader(card);
     return;
   }
   const min = cell.hasAttribute('data-scale') ? MIN_SCALE : MIN;

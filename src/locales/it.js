@@ -2433,4 +2433,13 @@ export default {
   "Turn the camera sound off": "Disattiva l’audio della videocamera",
   "Turn the camera sound on": "Attiva l’audio della videocamera",
   "Click anywhere on the page to hear the camera": "Fai clic in un punto qualsiasi della pagina per sentire la videocamera",
+  "Saved. Turn the camera sound off and on again to hear the change.": "Salvato. Spegni e riaccendi l’audio della videocamera per sentire la differenza.",
+  "Could not write go2rtc.yaml: {err}": "Impossibile scrivere go2rtc.yaml: {err}",
+  "Cameras are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.": "Le videocamere sono salvate da Moonraker, quindi l’elenco è lo stesso in Mainsail e Fluidd. La prima è la videocamera mostrata quando nessuna è scelta.",
+  "No cameras yet.": "Nessuna videocamera ancora.",
+  "Add camera": "Aggiungi videocamera",
+  "Sound: noise reduction": "Audio: riduzione del rumore",
+  "Takes the steady noise of fans and motors out of the camera sound ({name} in go2rtc.yaml). Strong can make voices sound hollow. The change takes a moment: go2rtc restarts.": "Toglie il rumore costante di ventole e motori dall’audio della videocamera ({name} in go2rtc.yaml). Forte può rendere le voci cave. La modifica richiede un momento: go2rtc si riavvia.",
+  "The line has a filter of its own; picking a level here replaces it.": "La riga ha un filtro proprio; scegliere un livello qui lo sostituisce.",
+  "Edit camera": "Modifica videocamera",
 }

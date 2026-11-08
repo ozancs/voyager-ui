@@ -22,7 +22,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'pin', 'rail']);
 const NAV = [
   ['dashboard', 'dash', 'Dashboard'],
-  ['webcam', 'cam', 'Webcam'],
+  ['webcam', 'cam', 'Camera'],
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
   ['calibrations', 'target', 'Calibrations'],

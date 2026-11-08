@@ -8,6 +8,7 @@ import Toggle from './Toggle.vue';
 import ChipList from './ChipList.vue';
 import NotifierSettings from './NotifierSettings.vue';
 import ConsoleView from './ConsoleView.vue';
+import { getNoise, setNoise } from '../camAudio';
 import {
   state,
   saveSettings,
@@ -44,7 +45,7 @@ const TABS = [
   ['console', 'term', 'Console'],
   ['sounds', 'volume', 'Sounds & alerts'],
   ['notify', 'bell', 'Phone notifications'],
-  ['webcams', 'cam', 'Webcams'],
+  ['webcams', 'cam', 'Cameras'],
   ['sync', 'refresh', 'Mainsail / Fluidd'],
   ['backup', 'save', 'Backup & reset'],
 ];
@@ -53,6 +54,30 @@ const tab = computed({
   set: (v) => (state.settingsOpen = v),
 });
 const close = () => (state.settingsOpen = null);
+// Cameras: the sound stream's noise filter, read when the tab opens (null: no go2rtc sound on this printer)
+const noise = ref(null);
+const noiseBusy = ref(false);
+watch(
+  () => tab.value === 'webcams' && state.connected,
+  (on) =>
+    on &&
+    getNoise()
+      .then((n) => (noise.value = n))
+      .catch(() => {}),
+  { immediate: true },
+);
+async function pickNoise(level) {
+  if (!noise.value || noise.value.level === level) return;
+  noiseBusy.value = true;
+  try {
+    await setNoise(level);
+    noise.value = { ...noise.value, level };
+    toast(t('Saved. Turn the camera sound off and on again to hear the change.'));
+  } catch (e) {
+    toast(t('Could not write go2rtc.yaml: {err}', { err: e.message }), 'error');
+  }
+  noiseBusy.value = false;
+}
 const esc = (e) => {
   if (e.key === 'Escape' && !sub.value) close();
 };
@@ -1209,11 +1234,11 @@ const consoleSample = (() => {
             <!-- Notifications -->
             <template v-else-if="tab === 'notify'"><NotifierSettings /></template>
 
-            <!-- Webcams -->
+            <!-- Cameras -->
             <template v-else-if="tab === 'webcams'">
               <span class="hint">{{
                 t(
-                  'Webcams are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.',
+                  'Cameras are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.',
                 )
               }}</span>
               <div v-for="(w, i) in state.webcams" :key="w.name" class="rw">
@@ -1252,7 +1277,7 @@ const consoleSample = (() => {
                   </button>
                 </div>
               </div>
-              <div v-if="!state.webcams.length" class="hint">{{ t('No webcams yet.') }}</div>
+              <div v-if="!state.webcams.length" class="hint">{{ t('No cameras yet.') }}</div>
               <div v-if="state.webcams.length" class="rw">
                 <div class="k">
                   <b>{{ t('Picture at the end of each print') }}</b
@@ -1264,6 +1289,39 @@ const consoleSample = (() => {
                 </div>
                 <Toggle v-model="state.settings.endShot" :label="t('Picture at the end of each print')" />
               </div>
+              <!-- sound (go2rtc): the noise filter on the microphone line of go2rtc.yaml -->
+              <template v-if="noise">
+                <div class="rw">
+                  <div class="k">
+                    <b>{{ t('Sound: noise reduction') }}</b
+                    ><span>{{
+                      t(
+                        'Takes the steady noise of fans and motors out of the camera sound ({name} in go2rtc.yaml). Strong can make voices sound hollow. The change takes a moment: go2rtc restarts.',
+                        { name: noise.name },
+                      )
+                    }}</span>
+                  </div>
+                  <div class="seg v">
+                    <button
+                      v-for="[k, l] in [
+                        ['off', 'Off'],
+                        ['light', 'Light'],
+                        ['normal', 'Normal'],
+                        ['strong', 'Strong'],
+                      ]"
+                      :key="k"
+                      :class="{ on: noise.level === k }"
+                      :disabled="noiseBusy"
+                      @click="pickNoise(k)"
+                    >
+                      {{ t(l) }}
+                    </button>
+                  </div>
+                </div>
+                <span v-if="noise.level === 'custom'" class="hint">{{
+                  t('The line has a filter of its own; picking a level here replaces it.')
+                }}</span>
+              </template>
               <div class="row" style="justify-content: space-between; flex-wrap: wrap">
                 <button
                   class="btn clear"
@@ -1273,7 +1331,7 @@ const consoleSample = (() => {
                   "
                 >
                   <Icon name="code" :size="15" />{{ t('Edit crowsnest.conf') }}</button
-                ><button class="btn acc" @click="newCam"><Icon name="plus" :size="16" />{{ t('Add webcam') }}</button>
+                ><button class="btn acc" @click="newCam"><Icon name="plus" :size="16" />{{ t('Add camera') }}</button>
               </div>
             </template>
 
@@ -1361,7 +1419,7 @@ const consoleSample = (() => {
     </div>
   </Teleport>
 
-  <Modal v-if="cam" :title="cam._old ? t('Edit webcam') : t('Add webcam')" width="560px" @close="cam = null">
+  <Modal v-if="cam" :title="cam._old ? t('Edit camera') : t('Add camera')" width="560px" @close="cam = null">
     <label class="col" style="gap: 4px"
       ><span class="lbl">{{ t('Name') }}</span
       ><input v-model="cam.name" class="input" :aria-label="t('Name')"

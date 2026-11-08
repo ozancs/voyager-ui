@@ -44,6 +44,7 @@ import PhoenixCard from '../components/PhoenixCard.vue';
 import { hasPhoenix } from '../phoenix';
 import { t } from '../i18n';
 import { useEdgeAutoScroll } from '../autoscroll';
+import { reflow } from '../gridReflow';
 import interact from 'interactjs';
 import { nextTick } from 'vue';
 import {
@@ -70,7 +71,7 @@ const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7], fixed: true }, // fixed: keeps its height in one column
   temps: { c: TempsCard, n: 'Temperatures', min: [2, 3], def: [6, 8], scale: true },
   tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [2, 3], def: [12, 6] },
-  webcam: { c: WebcamCard, n: 'Webcam', min: [2, 3], def: [6, 8] },
+  webcam: { c: WebcamCard, n: 'Camera', min: [2, 3], def: [6, 8] },
   toolhead: { c: ToolheadCard, n: 'Toolhead', min: [2, 2], def: [12, 5], scale: true },
   favorites: { c: FavoritesCard, n: 'Favorites', min: [2, 2], def: [6, 3] },
   livez: { c: LiveZCard, n: 'Live Z (position and Z offset)', min: [2, 2], def: [3, 4], scale: true },
@@ -359,6 +360,27 @@ watch(
   () => state.settingsLoaded,
   (v) => v && reload(),
 );
+// ---- responsive grid: like a normal web page, the cards keep a usable width and move instead of shrinking ----
+// The 12 columns follow the window. On a wide screen a column is about REF_COL px; when a narrower window (a
+// laptop, a half-screen window) makes a card much narrower than that, the card takes more columns and the cards
+// after it move along and down, the way the columns of a web page wrap. Nothing is saved: the stored layout stays
+// as arranged, a wider window shows it as it is again, and Customize always edits the stored layout.
+const REF_COL = 136; // px per column on a 1920 px screen with the side menu
+const MIN_COL = REF_COL * 0.85; // a little narrower is fine (the card's content then fits itself), more is not
+const gridW = ref(0);
+let gridRO = null;
+function watchGrid() {
+  const g = document.querySelector('.grid');
+  gridRO?.disconnect();
+  if (!g) return;
+  gridRO = new ResizeObserver(() => (gridW.value = g.clientWidth));
+  gridRO.observe(g);
+  gridW.value = g.clientWidth;
+}
+onMounted(() => nextTick(watchGrid));
+watch(wide, (w) => w && nextTick(watchGrid));
+onBeforeUnmount(() => gridRO?.disconnect());
+const shown = computed(() => (state.editDash ? layout.value : reflow(layout.value, gridW.value / 12, MIN_COL)));
 const sorted = computed(() => [...layout.value].sort((a, b) => a.y - b.y || a.x - b.x));
 // phone / narrow window: one column. Its order is kept on its own (mobileOrder), so moving a card here does not
 // shuffle the desktop grid. Cards not in the list yet follow in desktop order.
@@ -455,7 +477,7 @@ function addCustom(type, cam) {
     type === 'btn'
       ? { type, name: '', icon: 'star', gcode: '', highlight: false }
       : type === 'cam'
-        ? { type, name: cam || 'Webcam' }
+        ? { type, name: cam || 'Camera' }
         : type === 'tabs'
           ? { type, name: 'Tabs', tabs: [], active: 0 }
           : type === 'ctl'
@@ -875,7 +897,8 @@ function detachCard(i) {
     </div>
     <GridLayout
       v-if="wide"
-      v-model:layout="layout"
+      :layout="shown"
+      @update:layout="(l) => state.editDash && (layout = l)"
       class="grid"
       :class="{ editing: state.editDash }"
       :col-num="12"
@@ -890,7 +913,7 @@ function detachCard(i) {
       @layout-updated="() => persist()"
     >
       <GridItem
-        v-for="it in layout"
+        v-for="it in shown"
         :key="it.i"
         :i="it.i"
         :x="it.x"
@@ -1515,9 +1538,20 @@ function detachCard(i) {
   gap: 4px;
   overflow: hidden; /* text-only buttons that still do not fit are cut, the chevron stays */
 }
-/* still too wide: the header's optional extras go too */
-.cell :deep(.hd-tighter > .card-h [data-opt]) {
+/* still too wide: the header's optional extras go too (a chip with the temperature, a note after the title) */
+.cell :deep(.hd-tighter > .card-h [data-opt]),
+.cell :deep(.hd-tighter > .card-h > .chip) {
   display: none;
+}
+/* a chip in the header shrinks before the chevron would be pushed out */
+.cell :deep(.card-h > .chip) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cell :deep(.card-h > .clp) {
+  flex-shrink: 0;
 }
 /* the header buttons give way before the fold chevron does: they wrap (or get cut in a narrow card), the
    chevron never leaves the card */
@@ -1563,6 +1597,14 @@ function detachCard(i) {
   position: static !important;
   border-radius: inherit !important;
   padding-left: 12px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+/* folded: the title gives way (cut short) before the chevron does */
+.cell.collapsed > :deep(.card > .card-h > h2),
+.cell.collapsed > :deep(.fill > .card-h > h2) {
+  flex-shrink: 1;
+  min-width: 40px;
 }
 .mcell {
   height: auto;
