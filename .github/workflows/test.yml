@@ -24,3 +24,4 @@ jobs:
       - run: npm run layout
       - run: npm run layout:resize
       - run: npm run layout:toolhead
+      - run: npm run layout:solver

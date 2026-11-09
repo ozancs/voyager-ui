@@ -1,5 +1,5 @@
 <script setup>
-// Problem Solver page (under Calibrations in the menu): from a problem to its likely causes and the next test.
+// Problem Solver, embedded in Calibrations: from a problem to its likely causes and the next test.
 // Search covers print quality, the machine and Klipper errors; a pasted error message finds its guide. Errors the
 // printer ran into (solver/issues.js) are listed first and open their guide with the message as evidence; marking
 // one solved removes its notification. A print problem can read the print it happened on (History or a file), then
@@ -20,6 +20,7 @@ import { buildFacts, systemToday } from '../solver/facts';
 import { readFile } from '../solver/load';
 import { openIssues, solveIssue } from '../solver/issues';
 
+defineProps({ embedded: Boolean });
 const step = ref('pick'); // pick | print | ask | result
 const q = ref('');
 const found = computed(() => findProblems(q.value));
@@ -46,7 +47,10 @@ function openIssue(it) {
 const issues = computed(() => openIssues());
 // opened from a notification: #/solver/<issue id>
 watch(
-  () => [route.arg, state.settingsLoaded],
+  () => [
+    route.name === 'calibrations' && route.arg.startsWith('solver/') ? route.arg.slice(7) : '',
+    state.settingsLoaded,
+  ],
   ([id]) => {
     const it = id && (state.settings.issues || []).find((x) => x.id === id);
     if (it && issue.value?.id !== it.id) openIssue(it);
@@ -261,7 +265,7 @@ function restart() {
   choice.value = null;
   q.value = '';
   step.value = 'pick';
-  if (route.arg) go('solver');
+  if (route.arg !== 'solver') go('calibrations', 'solver');
 }
 
 const STEPS = computed(() =>
@@ -278,10 +282,10 @@ const firstLine = (m) => String(m || '').split('\n')[0];
 </script>
 
 <template>
-  <section class="card ps">
+  <section class="card ps" :class="{ embedded }">
     <div class="hd">
       <div class="col" style="gap: 4px; min-width: 0">
-        <h2>{{ t('Problem Solver') }}</h2>
+        <h2 v-if="!embedded">{{ t('Problem Solver') }}</h2>
         <span class="mu">{{
           t('Print quality, the machine or a Klipper error: describe it or paste the error, then follow the steps.')
         }}</span>
@@ -575,6 +579,12 @@ const firstLine = (m) => String(m || '').split('\n')[0];
 </template>
 
 <style scoped>
+.ps.embedded {
+  padding: 0 !important;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
 .ps {
   gap: 16px;
 }

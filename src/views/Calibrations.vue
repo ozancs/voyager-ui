@@ -3,7 +3,7 @@
 // bed leveling, motors, other). The command lists are in calibrations.js. A tab runs the chosen command with
 // its parameters, follows its console output and shows the numbers that matter. Values Klipper keeps for
 // SAVE_CONFIG (PID, shaper) can be saved from here; the Shake&Tune tab is its own page (ShakeTune.vue).
-import { ref, computed, watchEffect } from 'vue';
+import { ref, computed, watchEffect, watch, defineAsyncComponent } from 'vue';
 import Icon from '../components/Icon.vue';
 import ShakeTune from './ShakeTune.vue';
 import ShaperGraphs from '../components/ShaperGraphs.vue';
@@ -13,6 +13,24 @@ import { state, S, gcode, toast, isPrinting } from '../store';
 import { availableGroups, buildCommand, missingParams, invalidParams, parseResult } from '../calibrations';
 import { route, go } from '../router';
 import { t } from '../i18n';
+
+const ProblemSolver = defineAsyncComponent(() => import('../components/ProblemSolver.vue'));
+const solverOpen = ref(false);
+const solverLoaded = ref(false);
+watch(
+  () => route.arg,
+  (arg) => {
+    if (arg === 'solver' || arg.startsWith('solver/')) {
+      solverOpen.value = true;
+      solverLoaded.value = true;
+    }
+  },
+  { immediate: true },
+);
+function toggleSolver(e) {
+  solverOpen.value = e.target.open;
+  if (solverOpen.value) solverLoaded.value = true;
+}
 
 // the demo printer's PA Sensei commands stay out of the calibration tabs (they are shown elsewhere)
 const groups = computed(() =>
@@ -80,6 +98,14 @@ function applyShaper(r) {
 <template>
   <div class="cal">
     <CalibPath />
+    <details class="card solver-panel" :open="solverOpen" @toggle="toggleSolver">
+      <summary>
+        <Icon name="l:scan-search" :size="18" />
+        <h2>{{ t('Problem Solver') }}</h2>
+        <Icon class="solver-chevron" name="chev" :size="16" />
+      </summary>
+      <div class="solver-body"><ProblemSolver v-if="solverLoaded" embedded /></div>
+    </details>
     <!-- under the guided calibrations: every calibration command the printer has, by kind -->
     <div v-if="groups.length" class="cmdh">
       <h2>{{ t('Calibration commands') }}</h2>
@@ -334,5 +360,38 @@ function applyShaper(r) {
 }
 .sm {
   font-size: 12px;
+}
+</style>
+
+<style scoped>
+.solver-panel {
+  display: block;
+}
+.solver-panel summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+.solver-panel summary::-webkit-details-marker {
+  display: none;
+}
+.solver-panel summary h2 {
+  margin: 0;
+  font-size: 14px;
+  flex: 1;
+}
+.solver-chevron {
+  transition: transform 0.15s;
+}
+.solver-panel[open] .solver-chevron {
+  transform: rotate(90deg);
+}
+.solver-body {
+  margin-top: 16px;
+}
+.solver-panel:not([open]) .solver-body {
+  display: none;
 }
 </style>

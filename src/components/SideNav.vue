@@ -8,7 +8,6 @@ import Icon from './Icon.vue';
 import PrinterBrand from './PrinterBrand.vue';
 import { state, useApiEvent, activeTasks } from '../store';
 import { healthIssues } from '../features';
-import { availableGroups } from '../calibrations';
 import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -26,7 +25,6 @@ const NAV = [
   ['console', 'term', 'Console'],
   ['heightmap', 'hmap', 'Heightmap'],
   ['calibrations', 'target', 'Calibrations'],
-  ['solver', 'l:scan-search', 'Problem Solver'],
   ['oznlab', 'sensor', 'PA Sensei'],
   ['files', 'file', 'G-code Files'],
   ['viewer', 'cube', 'G-code Viewer'],
@@ -34,16 +32,10 @@ const NAV = [
   ['machine', 'cpu', 'Machine'],
   ['health', 'heart', 'Health'],
 ];
-// Calibrations only shows up when the printer has one of the commands it knows
-const hasCal = computed(() => availableGroups(state.commands).length > 0);
 // the PA Sensei page only on printers that have the sensor's Klipper module: [pa_sensei ...], or [oznlab_sensor ...]
 // from before the rename
 const hasOznlab = computed(() => state.objects.some((o) => /^(pa_sensei|oznlab_sensor)( |$)/.test(o)));
-const navItems = computed(() =>
-  NAV.filter(
-    ([k]) => route.name === k || (k === 'calibrations' ? hasCal.value : k === 'oznlab' ? hasOznlab.value : true),
-  ),
-);
+const navItems = computed(() => NAV.filter(([k]) => route.name === k || (k === 'oznlab' ? hasOznlab.value : true)));
 const NAV2 = [
   ['quick', 'sliders', 'Printer settings'],
   ['config', 'code', 'Config files'],

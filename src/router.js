@@ -11,6 +11,9 @@ function parse() {
   route.name = name || 'dashboard';
   route.arg = rest.join('/');
   // Shake&Tune used to be its own page, it is a tab of Calibrations now
+  // Existing bookmarks and issue notifications now open the embedded solver.
+  if (route.name === 'solver')
+    [route.name, route.arg] = ['calibrations', 'solver' + (route.arg ? '/' + route.arg : '')];
   if (route.name === 'shaketune') [route.name, route.arg] = ['calibrations', 'shaketune'];
 }
 window.addEventListener('hashchange', parse);

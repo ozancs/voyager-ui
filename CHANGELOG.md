@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.32
+
+- Problem Solver lives in a compact expandable section below Guided calibrations, keeping the entire workflow in Calibrations and removing its separate sidebar entry
+- Search, existing bookmarks and issue notifications open the embedded solver; folding the section preserves the current answers
+
 ## 0.38.31
 
 - The top print status uses a subtle green tint while printing, yellow while paused and red after cancellation, independently of the accent colour
