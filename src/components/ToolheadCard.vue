@@ -640,7 +640,7 @@ onBeforeUnmount(() => {
 @container cell (max-width: 760px) {
   .toolhead > .toolhead-h {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 4px 8px;
   }
   .toolhead-h > :deep(h2) {
@@ -648,15 +648,15 @@ onBeforeUnmount(() => {
     grid-row: 1;
   }
   .toolhead-h > :deep(.clp) {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 1;
   }
   .toolhead-h > .gm {
     display: none;
   }
   .toolhead > .toolhead-h > .acts {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    grid-column: 2;
+    grid-row: 1;
     flex-wrap: nowrap;
     justify-content: flex-start;
   }
@@ -668,6 +668,20 @@ onBeforeUnmount(() => {
   }
   .toolhead-h .acts > :deep(.toolhead-style) {
     margin-left: auto;
+  }
+}
+
+/* Only use a second row when the title and controls no longer fit together. */
+@container cell (max-width: 360px) {
+  .toolhead > .toolhead-h {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .toolhead-h > :deep(.clp) {
+    grid-column: 2;
+  }
+  .toolhead > .toolhead-h > .acts {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 }
 

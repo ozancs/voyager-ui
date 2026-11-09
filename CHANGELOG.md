@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.33
+
+- Toolhead keeps its title, home/motor controls and Circle / Buttons selector on one row when space allows
+- The demo G-code Viewer opens a real sliced PETG Benchy, with its embedded thumbnails and file metadata; demo assets stay out of printer installations
+- README adds a screenshot tour, project background, community links and uninstall instructions
+
 ## 0.38.32
 
 - Problem Solver lives in a compact expandable section below Guided calibrations, keeping the entire workflow in Calibrations and removing its separate sidebar entry

@@ -20,3 +20,9 @@ Pushing a `v*` tag makes a GitHub release.
 ## Reading the code
 
 [ARCHITECTURE.md](ARCHITECTURE.md) explains how the pieces fit together and what writes to the printer. [CODE_MAP.md](CODE_MAP.md) lists every source file with what it does. Every file starts with a comment saying the same, and the code is formatted with Prettier so it reads the same everywhere.
+
+## README screenshots
+
+Run `node scripts/readme-screenshots.mjs` from the repository root to refresh the page tour in `docs/screenshots/`. The script starts a local demo server and captures real interface screenshots at 800 × 400 pixels. Install the browser first with `npx playwright install chromium` if needed. Inspect the results before committing; no real printer is contacted.
+
+The demo viewer opens the sliced Benchy in `src/demo/benchy/`. Its G-code and embedded thumbnails are demo-only assets and are not included in the production build.

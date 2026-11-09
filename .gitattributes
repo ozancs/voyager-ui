@@ -1,0 +1,2 @@
+# Keep the demo G-code byte size and embedded metadata stable on Windows.
+src/demo/benchy/*.gcode text eol=lf

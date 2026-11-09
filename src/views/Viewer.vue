@@ -575,6 +575,7 @@ onMounted(async () => {
   } catch {}
   // opened from the Files page with a file to show, otherwise the running job
   if (route.arg) load(route.arg);
+  else if (import.meta.env.VITE_DEMO) load('3dbenchy_PETG_57m14s.gcode');
   else if (curPrint.value) load(curPrint.value);
 });
 // a file sent from the Files page while this page is open
@@ -583,7 +584,10 @@ watch(
   (a) => route.name === 'viewer' && a && a !== file.value && load(a),
 );
 // opened before the printer answered (a direct link to the page): load the running job once it is known
-watch(curPrint, (f) => f && !file.value && !loading.value && load(f));
+watch(
+  curPrint,
+  (f) => f && !file.value && !loading.value && load(import.meta.env.VITE_DEMO ? '3dbenchy_PETG_57m14s.gcode' : f),
+);
 onBeforeUnmount(() => {
   stop();
   cancelAnimationFrame(posRaf);

@@ -3,6 +3,11 @@
 import { PHOENIX_FIXTURES } from './phoenixFixtures';
 import { currentHost, savePrinters, perPrinterKey } from '../printers';
 import { api } from '../api/moonraker';
+import benchyUrl from './benchy/3dbenchy_PETG_57m14s.gcode?url';
+import benchy48 from './benchy/48x48.png?url';
+import benchy300 from './benchy/300x300.png?url';
+import benchyMeta from './benchy/metadata.json';
+const BENCHY = '3dbenchy_PETG_57m14s.gcode';
 import demoMp4 from './timelapse.mp4?url';
 import demoWebm from './timelapse.webm?url'; // for a browser without H.264 (headless Chromium)
 
@@ -979,6 +984,7 @@ let gcodeScript = function (sc) {
   return 'ok';
 };
 const files = [
+  { filename: BENCHY, modified: Date.now() / 1000, ...benchyMeta },
   {
     filename: 'calicat_PLA.gcode.3mf', // OrcaSlicer "send as 3mf": a zip with Metadata/plate_1.gcode inside
     modified: Date.now() / 1000 - 1800,
@@ -1976,6 +1982,7 @@ function handle(m) {
       );
       return 'ok';
     case 'server.files.metadata':
+      if (p.filename === BENCHY) return { ...benchyMeta, modified: files.find((f) => f.filename === BENCHY)?.modified };
       // fan_duct is sliced for PETG and needs more than the active ABS spool has left: the pre-print check asks
       return /fan_duct/.test(p.filename || '')
         ? {
@@ -3145,6 +3152,7 @@ function fakeFetch(input, init) {
       new Response(body || '', { status: body != null ? 200 : 404, headers: { 'content-type': 'text/plain' } }),
     );
   }
+  if (p === '/server/files/gcodes/' + BENCHY) return realFetch(benchyUrl, init);
   if (p.startsWith('/server/files/gcodes/'))
     return Promise.resolve(
       /\.3mf$/i.test(p)
@@ -3171,6 +3179,8 @@ export function installDemo() {
     if (root === 'timelapse' && /\.jpg$/i.test(path))
       return svgUrl(tlSvg(TL_FILES.findIndex((f) => f.path === path) * 37 + 150, 'clip'));
     if (root === 'timelapse_frames') return svgUrl(tlSvg(+(path.match(/\d+/)?.[0] || 0)));
+    if (root === 'gcodes' && path === '.thumbs/benchy-48x48.png') return benchy48;
+    if (root === 'gcodes' && path === '.thumbs/benchy-300x300.png') return benchy300;
     if (root === 'gcodes' && /\.thumbs\/demo-/.test(path)) return svgUrl(thumbSvg(95));
     return fileUrl(root, path);
   };

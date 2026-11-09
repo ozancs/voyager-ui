@@ -81,6 +81,10 @@ try {
           `overflow ${style}/${editing}/${w}/${h}`,
         );
         assert.ok(fit.hh <= 70, 'header consumes too much height');
+        if (w >= 4) assert.ok(fit.hh <= 40, 'header wraps despite having enough room');
+        if (process.env.TOOLHEAD_SCREENSHOTS && !editing && style === 'buttons' && w === 4 && h === 4) {
+          await p.locator('.cell').screenshot({ path: '../toolhead-single-row.png' });
+        }
         if (process.env.TOOLHEAD_SCREENSHOTS && editing && style === 'buttons' && w === 4) {
           await p.locator('.cell').screenshot({ path: `../toolhead-fixed-${h}.png` });
         }

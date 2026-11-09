@@ -1,0 +1,30 @@
+{
+  "size": 5406679,
+  "estimated_time": 3434,
+  "layer_count": 240,
+  "layer_height": 0.2,
+  "first_layer_height": 0.2,
+  "object_height": 48,
+  "filament_type": "PETG",
+  "filament_total": 4994.02,
+  "filament_weight_total": 15.26,
+  "first_layer_extr_temp": 255,
+  "first_layer_bed_temp": 80,
+  "nozzle_diameter": 0.4,
+  "slicer": "OrcaSlicer",
+  "slicer_version": "2.5.0-alpha",
+  "thumbnails": [
+    {
+      "width": 48,
+      "height": 48,
+      "size": 1282,
+      "relative_path": ".thumbs/benchy-48x48.png"
+    },
+    {
+      "width": 300,
+      "height": 300,
+      "size": 13586,
+      "relative_path": ".thumbs/benchy-300x300.png"
+    }
+  ]
+}
