@@ -21,6 +21,10 @@ function measure(card) {
 function fit(cell) {
   const card = cell.querySelector(':scope > .card, :scope > * > .card, :scope > .card, .card');
   if (!card) return;
+  if (card.hasAttribute('data-self-fit')) {
+    card.style.zoom = '';
+    return;
+  }
   if (cell.classList.contains('collapsed')) {
     // only the header shows: nothing to fit, and a zoomed header would slide away from the chevron
     card.style.zoom = '';

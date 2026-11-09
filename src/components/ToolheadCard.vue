@@ -1,11 +1,12 @@
 <script setup>
 // Toolhead card: position (type a value to move), jog buttons per axis with the configured steps,
 // homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import CircleJog from './CircleJog.vue';
+import ToolheadStyle from './ToolheadStyle.vue';
 import { state, S, gcode, isPrinting, toast } from '../store';
 import { t } from '../i18n';
 const th = computed(() => S('toolhead'));
@@ -87,35 +88,65 @@ const dstep = ref(dpadSteps.value.includes(10) ? 10 : dpadSteps.value[Math.floor
 const zdir = computed(() => (state.settings.invertZ ? -1 : 1));
 // jog style: the round pad (default, as Mainsail's circle) or rows of buttons; Settings > Control has the same choice
 const circle = computed(() => state.settings.toolheadStyle !== 'buttons');
-const setStyle = (v) => (state.settings.toolheadStyle = v);
-// Buttons style laid out for the card's shape: one long row when the card is wide and low, otherwise stacked
-// (positions side by side on top, the axis rows under them, the D-pad with Z and the steps at the bottom). On the
-// dashboard grid it goes by the cell's proportions (the card is zoomed to fit, so its own width says little);
-// elsewhere by the width a row needs.
+// Measure both button arrangements in unscaled logical pixels. Pick the one that
+// keeps controls largest, then fit width AND height using a single stable scale.
 const root = ref(null);
-const stack = ref(false);
-let ro;
-function measure() {
-  const el = root.value;
-  if (!el) return;
-  const cell = el.closest('.cell[data-scale]');
-  if (cell) {
-    const w = cell.clientWidth,
-      h = cell.clientHeight;
-    stack.value = h > 0 && w / h < 2;
-  } else stack.value = el.clientWidth < 760;
+const viewport = ref(null);
+const body = ref(null);
+let ro, frame;
+function scheduleFit() {
+  cancelAnimationFrame(frame);
+  frame = requestAnimationFrame(fitMotion);
+}
+function fitMotion() {
+  const el = body.value,
+    host = viewport.value;
+  if (!el || !host) return;
+  if (!root.value.closest('.vgl-item')) {
+    el.style.cssText = '';
+    el.classList.toggle('stack', !circle.value && host.clientWidth < 900);
+    return;
+  }
+  const w = host.clientWidth,
+    h = host.clientHeight;
+  if (!w || !h) return;
+  const steps = Math.max(1, ...AX.value.map((r) => r.steps.length));
+  const jogWidth = steps * 2 * 36 + 52 + steps * 2 * 4;
+  const candidates = circle.value ? ['circle'] : ['row', 'stack'];
+  let best;
+  for (const kind of candidates) {
+    el.classList.toggle('stack', kind === 'stack');
+    const minW = kind === 'row' ? jogWidth + 190 + 148 + 44 + 52 + 56 : Math.max(320, jogWidth);
+    const width = Math.max(w, circle.value ? 300 : minW);
+    el.style.cssText = `zoom:1;width:${width}px;`;
+    if (circle.value) el.style.height = Math.max(260, h) + 'px';
+    const needW = Math.max(width, el.scrollWidth);
+    const needH = Math.max(el.offsetHeight, el.scrollHeight);
+    const scale = Math.min(1, w / needW, h / needH);
+    if (!best || scale > best.scale) best = { kind, width: needW, height: needH, scale };
+  }
+  el.classList.toggle('stack', best.kind === 'stack');
+  el.style.cssText = `width:${best.width}px;zoom:${Math.floor(best.scale * 1000) / 1000};`;
+  if (circle.value) el.style.height = best.height + 'px';
 }
 onMounted(() => {
-  ro = new ResizeObserver(measure);
-  const cell = root.value?.closest('.cell[data-scale]');
-  ro.observe(cell || root.value);
-  measure();
+  ro = new ResizeObserver(scheduleFit);
+  ro.observe(viewport.value);
+  scheduleFit();
 });
-onBeforeUnmount(() => ro?.disconnect());
+watch(
+  () => [circle.value, state.editDash, ctl.value],
+  () => nextTick(scheduleFit),
+  { deep: true },
+);
+onBeforeUnmount(() => {
+  ro?.disconnect();
+  cancelAnimationFrame(frame);
+});
 </script>
 <template>
-  <section ref="root" class="card spread">
-    <div class="card-h">
+  <section ref="root" class="card toolhead" data-self-fit :inert="state.editDash || undefined">
+    <div class="card-h toolhead-h">
       <CardTitle :text="t('Toolhead')" />
       <!-- the G-code state the printer is in: where a typed G1 goes and how E counts (the jog buttons always move
            by the step, whatever this says) -->
@@ -135,165 +166,163 @@ onBeforeUnmount(() => ro?.disconnect());
         {{ gm.absolute_extrude === false ? 'M83' : 'M82' }}</span
       >
       <div class="acts">
-        <button class="btn acc" :disabled="isPrinting" @click="gcode('G28')">
+        <button
+          class="btn acc"
+          :aria-label="t('Home All')"
+          :title="t('Home All')"
+          :disabled="isPrinting"
+          @click="gcode('G28')"
+        >
           <Icon name="home" :size="16" :stroke="2.4" />{{ t('Home All') }}
         </button>
         <button
           v-if="level"
           class="btn"
           :disabled="isPrinting || !homed.includes('z')"
+          :aria-label="t(level.label)"
+          :title="t(level.label)"
           :data-tip="homed.includes('z') ? level.cmd : t('Home first')"
           @click="gcode(level.cmd)"
         >
           <Icon name="tilt" :size="16" :stroke="2.4" />{{ t(level.label)
           }}<i v-if="level.applied" class="ap" :aria-label="t('applied')"></i>
         </button>
-        <button class="btn" :disabled="isPrinting" @click="gcode('M84')">
+        <button
+          class="btn"
+          :aria-label="t('Motors off')"
+          :title="t('Motors off')"
+          :disabled="isPrinting"
+          @click="gcode('M84')"
+        >
           <Icon name="power" :size="16" :stroke="2.4" />{{ t('Motors off') }}
         </button>
-        <div class="seg sty" role="radiogroup" :aria-label="t('Control style')">
-          <button
-            role="radio"
-            :aria-checked="circle"
-            :class="{ on: circle }"
-            :data-tip="t('Circle')"
-            :aria-label="t('Circle')"
-            @click="setStyle('circle')"
-          >
-            <Icon name="l:circle-dot" :size="15" />
-          </button>
-          <button
-            role="radio"
-            :aria-checked="!circle"
-            :class="{ on: !circle }"
-            :data-tip="t('Buttons')"
-            :aria-label="t('Buttons')"
-            @click="setStyle('buttons')"
-          >
-            <Icon name="l:rows-3" :size="15" />
-          </button>
-        </div>
+        <ToolheadStyle />
       </div>
       <CardCollapse />
     </div>
-    <div class="body" :class="{ circ: circle, stack: !circle && stack }">
-      <div class="grp pos3" :aria-label="t('Target position')" :data-tip="t('Target position')">
-        <div
-          v-for="(a, i) in ['X', 'Y', 'Z']"
-          :key="a"
-          class="pos"
-          :data-tip="
-            !can(a)
-              ? t('{axis} must be homed first', { axis: a })
-              : isPrinting
-                ? t('Not while printing')
-                : t('Type a position and press Enter')
-          "
-        >
-          <span class="ax">{{ a }}<i v-if="!can(a)" style="background: var(--dg)"></i></span>
-          <input
-            class="mono pin"
-            :value="edit[a] ?? (pos[i] ?? 0).toFixed(a === 'Z' ? 3 : 2)"
-            :disabled="!can(a) || isPrinting"
-            :aria-label="t('Move {axis} to position', { axis: a })"
-            @focus="onFocus(a, i, $event)"
-            @input="edit[a] = $event.target.value"
-            @keydown.enter="moveTo(a, $event)"
-            @keydown.esc="
-              edit[a] = undefined;
-              $event.target.blur();
-            "
-            @blur="edit[a] = undefined"
-          />
-        </div>
-      </div>
-      <div v-if="circle" class="pad" :aria-label="t('Relative jog')">
-        <CircleJog
-          :steps-x-y="ctl.circleXY || []"
-          :steps-z="ctl.circleZ || []"
-          :homed="homed"
-          :busy="isPrinting"
-          :zdir="zdir"
-          @jog="jog"
-          @home="gcode"
-        />
-      </div>
-      <template v-else>
-        <div class="grp jog">
+    <div ref="viewport" class="motion-viewport">
+      <div ref="body" class="body" :class="{ circ: circle }">
+        <div class="grp pos3" :aria-label="t('Target position')" :data-tip="t('Target position')">
           <div
-            v-for="r in AX"
-            :key="r.a"
-            class="jr"
-            :data-tip="!can(r.a) ? t('{axis} must be homed first', { axis: r.a }) : ''"
+            v-for="(a, i) in ['X', 'Y', 'Z']"
+            :key="a"
+            class="pos"
+            :data-tip="
+              !can(a)
+                ? t('{axis} must be homed first', { axis: a })
+                : isPrinting
+                  ? t('Not while printing')
+                  : t('Type a position and press Enter')
+            "
           >
-            <!-- prettier-ignore -->
-            <!-- prettier-ignore -->
-            <button v-for="st in r.steps" :key="'-' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, -st)">−{{ st }}</button>
-            <button
-              class="axb"
-              :class="{ homed: can(r.a) }"
-              :aria-label="t('Home {axis}', { axis: r.a })"
-              :disabled="isPrinting"
-              @click="gcode('G28 ' + r.a)"
-            >
-              {{ r.a }}
-            </button>
-            <!-- prettier-ignore -->
-            <!-- prettier-ignore -->
-            <button v-for="st in [...r.steps].reverse()" :key="'+' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, st)">+{{ st }}</button>
+            <span class="ax">{{ a }}<i v-if="!can(a)" style="background: var(--dg)"></i></span>
+            <input
+              class="mono pin"
+              :value="edit[a] ?? (pos[i] ?? 0).toFixed(a === 'Z' ? 3 : 2)"
+              :disabled="!can(a) || isPrinting"
+              :aria-label="t('Move {axis} to position', { axis: a })"
+              @focus="onFocus(a, i, $event)"
+              @input="edit[a] = $event.target.value"
+              @keydown.enter="moveTo(a, $event)"
+              @keydown.esc="
+                edit[a] = undefined;
+                $event.target.blur();
+              "
+              @blur="edit[a] = undefined"
+            />
           </div>
         </div>
-        <div class="grp dpad" :data-tip="!can('X') || !can('Y') ? t('Home X and Y first') : ''">
-          <span></span
-          ><button class="jb" aria-label="Y+" :disabled="!can('Y') || isPrinting" @click="jog('Y', dstep)">
-            <Icon name="up" :stroke="2.6" /></button
-          ><span></span>
-          <button class="jb" aria-label="X-" :disabled="!can('X') || isPrinting" @click="jog('X', -dstep)">
-            <Icon name="left" :stroke="2.6" />
-          </button>
-          <button class="axb homed" :aria-label="t('Home X Y')" :disabled="isPrinting" @click="gcode('G28 X Y')">
-            <Icon name="home" :size="18" :stroke="2.6" />
-          </button>
-          <button class="jb" aria-label="X+" :disabled="!can('X') || isPrinting" @click="jog('X', dstep)">
-            <Icon name="right" :stroke="2.6" />
-          </button>
-          <span></span
-          ><button class="jb" aria-label="Y-" :disabled="!can('Y') || isPrinting" @click="jog('Y', -dstep)">
-            <Icon name="down" :stroke="2.6" /></button
-          ><span></span>
+        <div v-if="circle" class="pad" :aria-label="t('Relative jog')">
+          <CircleJog
+            :steps-x-y="ctl.circleXY || []"
+            :steps-z="ctl.circleZ || []"
+            :homed="homed"
+            :busy="isPrinting"
+            :zdir="zdir"
+            @jog="jog"
+            @home="gcode"
+          />
         </div>
-        <div class="grp zcol" :data-tip="!can('Z') ? t('{axis} must be homed first', { axis: 'Z' }) : ''">
-          <button
-            class="jb"
-            :aria-label="state.settings.invertZ ? t('Bed up (Z-{n})', { n: dstep }) : 'Z+' + dstep"
-            :disabled="!can('Z') || isPrinting"
-            @click="jog('Z', zdir * Math.min(dstep, 25))"
-          >
-            <Icon name="up" :stroke="2.6" />
-          </button>
-          <!-- prettier-ignore -->
-          <button class="axb" :class="{ homed: can('Z') }" :aria-label="t('Home {axis}', { axis: 'Z' })" :disabled="isPrinting" @click="gcode('G28 Z')">Z</button>
-          <button
-            class="jb"
-            :aria-label="state.settings.invertZ ? t('Bed down (Z+{n})', { n: dstep }) : 'Z-' + dstep"
-            :disabled="!can('Z') || isPrinting"
-            @click="jog('Z', -zdir * Math.min(dstep, 25))"
-          >
-            <Icon name="down" :stroke="2.6" />
-          </button>
-        </div>
-        <div class="steps" role="group" :aria-label="t('D-pad step (mm)')">
-          <button
-            v-for="v in dpadSteps"
-            :key="v"
-            :class="{ on: dstep === v }"
-            :aria-label="t('Step {n} mm', { n: v })"
-            @click="dstep = v"
-          >
-            {{ v }}
-          </button>
-        </div>
-      </template>
+        <template v-else>
+          <div class="grp jog">
+            <div
+              v-for="r in AX"
+              :key="r.a"
+              class="jr"
+              :style="{
+                gridTemplateColumns: `repeat(${r.steps.length}, minmax(32px, 1fr)) 52px repeat(${r.steps.length}, minmax(32px, 1fr))`,
+              }"
+              :data-tip="!can(r.a) ? t('{axis} must be homed first', { axis: r.a }) : ''"
+            >
+              <!-- prettier-ignore -->
+              <!-- prettier-ignore -->
+              <button v-for="st in r.steps" :key="'-' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, -st)">−{{ st }}</button>
+              <button
+                class="axb"
+                :class="{ homed: can(r.a) }"
+                :aria-label="t('Home {axis}', { axis: r.a })"
+                :disabled="isPrinting"
+                @click="gcode('G28 ' + r.a)"
+              >
+                {{ r.a }}
+              </button>
+              <!-- prettier-ignore -->
+              <!-- prettier-ignore -->
+              <button v-for="st in [...r.steps].reverse()" :key="'+' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, st)">+{{ st }}</button>
+            </div>
+          </div>
+          <div class="grp dpad" :data-tip="!can('X') || !can('Y') ? t('Home X and Y first') : ''">
+            <span></span
+            ><button class="jb" aria-label="Y+" :disabled="!can('Y') || isPrinting" @click="jog('Y', dstep)">
+              <Icon name="up" :stroke="2.6" /></button
+            ><span></span>
+            <button class="jb" aria-label="X-" :disabled="!can('X') || isPrinting" @click="jog('X', -dstep)">
+              <Icon name="left" :stroke="2.6" />
+            </button>
+            <button class="axb homed" :aria-label="t('Home X Y')" :disabled="isPrinting" @click="gcode('G28 X Y')">
+              <Icon name="home" :size="18" :stroke="2.6" />
+            </button>
+            <button class="jb" aria-label="X+" :disabled="!can('X') || isPrinting" @click="jog('X', dstep)">
+              <Icon name="right" :stroke="2.6" />
+            </button>
+            <span></span
+            ><button class="jb" aria-label="Y-" :disabled="!can('Y') || isPrinting" @click="jog('Y', -dstep)">
+              <Icon name="down" :stroke="2.6" /></button
+            ><span></span>
+          </div>
+          <div class="grp zcol" :data-tip="!can('Z') ? t('{axis} must be homed first', { axis: 'Z' }) : ''">
+            <button
+              class="jb"
+              :aria-label="state.settings.invertZ ? t('Bed up (Z-{n})', { n: dstep }) : 'Z+' + dstep"
+              :disabled="!can('Z') || isPrinting"
+              @click="jog('Z', zdir * Math.min(dstep, 25))"
+            >
+              <Icon name="up" :stroke="2.6" />
+            </button>
+            <!-- prettier-ignore -->
+            <button class="axb" :class="{ homed: can('Z') }" :aria-label="t('Home {axis}', { axis: 'Z' })" :disabled="isPrinting" @click="gcode('G28 Z')">Z</button>
+            <button
+              class="jb"
+              :aria-label="state.settings.invertZ ? t('Bed down (Z+{n})', { n: dstep }) : 'Z-' + dstep"
+              :disabled="!can('Z') || isPrinting"
+              @click="jog('Z', -zdir * Math.min(dstep, 25))"
+            >
+              <Icon name="down" :stroke="2.6" />
+            </button>
+          </div>
+          <div class="steps" role="group" :aria-label="t('D-pad step (mm)')">
+            <button
+              v-for="v in dpadSteps"
+              :key="v"
+              :class="{ on: dstep === v }"
+              :aria-label="t('Step {n} mm', { n: v })"
+              @click="dstep = v"
+            >
+              {{ v }}
+            </button>
+          </div>
+        </template>
+      </div>
     </div>
   </section>
 </template>
@@ -505,9 +534,6 @@ onBeforeUnmount(() => ro?.disconnect());
   width: auto;
   max-width: 100%;
 }
-.sty button {
-  padding: 0 8px;
-}
 /* narrow card: the per-axis rows already do everything the D-pad does, so drop the D-pad instead of wrapping
    it to a second line (which made the card scroll inside the page). 580px: above it the D-pad still fits once
    v-fit shrinks the card to 75%. Last in the file so it wins over .grp */
@@ -587,5 +613,66 @@ onBeforeUnmount(() => ro?.disconnect());
   grid-area: steps;
   display: flex;
   margin-left: 0;
+}
+
+.motion-viewport {
+  min-width: 0;
+}
+.vgl-item .motion-viewport {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.motion-viewport > .body {
+  flex: 0 0 auto;
+}
+.motion-viewport .body:not(.circ):not(.stack) {
+  flex-wrap: nowrap;
+}
+.motion-viewport .body:not(.stack) > .pos3,
+.motion-viewport .dpad,
+.motion-viewport .zcol,
+.motion-viewport .steps {
+  flex-shrink: 0;
+}
+@container cell (max-width: 760px) {
+  .toolhead > .toolhead-h {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 8px;
+  }
+  .toolhead-h > :deep(h2) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .toolhead-h > :deep(.clp) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .toolhead-h > .gm {
+    display: none;
+  }
+  .toolhead > .toolhead-h > .acts {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  .toolhead-h .acts > .btn {
+    font-size: 0 !important;
+    gap: 0 !important;
+    width: 28px;
+    padding: 0 !important;
+  }
+  .toolhead-h .acts > :deep(.toolhead-style) {
+    margin-left: auto;
+  }
+}
+
+.editing .toolhead > .toolhead-h > .acts,
+.editing .toolhead > .toolhead-h > .gm {
+  display: none;
 }
 </style>

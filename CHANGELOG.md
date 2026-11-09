@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.38.31
+
+- The top print status uses a subtle green tint while printing, yellow while paused and red after cancellation, independently of the accent colour
+
+- Toolhead fits its motion controls to both available width and height, choosing the largest readable row or stacked layout; increasing height no longer introduces a scrollbar
+- Jog rows support the configured number of steps, including five Z steps, without wrapping onto another row
+- Narrow Toolhead headers use compact labelled icons and two rows; the fold control stays next to the title
+- Circle / Buttons can be changed in Customize without enabling motion controls; Cancel restores the previous style
+
 ## 0.38.30
 
 - Dashboard cards keep their saved positions while the grid and its controls scale together for smaller windows. Very narrow windows use the independent stacked layout; returning to a wider window restores the grid. Customize uses the same canvas, and resize never rewrites the saved layout

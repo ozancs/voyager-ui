@@ -228,6 +228,7 @@ export const LAYOUT_KEYS = [
   'customCards',
   'layoutPrint',
   'layoutWidths',
+  'toolheadStyle',
   'hiddenCardsPrint',
   'autoLayout',
   'cardColors',

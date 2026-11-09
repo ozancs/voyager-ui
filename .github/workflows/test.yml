@@ -23,3 +23,4 @@ jobs:
       - run: npm run build:demo
       - run: npm run layout
       - run: npm run layout:resize
+      - run: npm run layout:toolhead

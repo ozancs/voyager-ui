@@ -185,9 +185,9 @@ const fileName = computed(() => (S('print_stats').filename || '').split('/').pop
   align-items: center;
   gap: 14px;
   padding: 0 20px;
-  background: color-mix(in srgb, var(--ac) 9%, var(--bg));
-  border-bottom: 1px solid color-mix(in srgb, var(--ac) 22%, var(--bd));
-  --pst: var(--ac);
+  background: color-mix(in srgb, var(--ok) 9%, var(--bg));
+  border-bottom: 1px solid color-mix(in srgb, var(--ok) 22%, var(--bd));
+  --pst: var(--ok);
 }
 .pbar.paused {
   background: color-mix(in srgb, var(--wn) 9%, var(--bg));

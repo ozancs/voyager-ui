@@ -62,7 +62,9 @@ async function reprint() {
   if (f) startPrint(f, { reprint: true });
 }
 
-const stateColor = computed(() => (printState.value === 'paused' ? 'var(--wn)' : 'var(--ac)'));
+const stateColor = computed(
+  () => ({ printing: 'var(--ok)', paused: 'var(--wn)', cancelled: 'var(--dg)' })[printState.value] || null,
+);
 const label = computed(() => {
   if (!state.connected) return t('Disconnected');
   if (state.klippy !== 'ready') return t('Klipper {state}', { state: state.klippy });
@@ -304,7 +306,12 @@ onBeforeUnmount(() => ovObs?.disconnect());
       <div class="grow"></div>
     </template>
     <div v-else-if="active" class="grow"></div>
-    <div v-else class="pill">
+    <div
+      v-else
+      class="pill"
+      :class="{ 'state-tint': !!stateColor && !activity && state.connected && state.klippy === 'ready' }"
+      :style="{ '--pst': stateColor }"
+    >
       <div class="pth">
         <Icon v-if="activity" name="refresh" :size="18" :stroke="2" class="spin" />
         <img v-else-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
@@ -751,6 +758,9 @@ onBeforeUnmount(() => ovObs?.disconnect());
 .pbtn {
   height: 40px;
   flex-shrink: 0;
+}
+.pill.state-tint {
+  background: color-mix(in srgb, var(--pst) 8%, var(--s1));
 }
 /* compact print pill: no stretch, sits between the name and the buttons with air on both sides */
 .pill.job {

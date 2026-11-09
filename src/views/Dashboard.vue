@@ -16,6 +16,7 @@ import TempChartCard from '../components/TempChartCard.vue';
 import WebcamCard from '../components/WebcamCard.vue';
 import ConsoleCard from '../components/ConsoleCard.vue';
 import ToolheadCard from '../components/ToolheadCard.vue';
+import ToolheadStyle from '../components/ToolheadStyle.vue';
 import ExtruderCard from '../components/ExtruderCard.vue';
 import LimitsCard from '../components/LimitsCard.vue';
 import PrintCard from '../components/PrintCard.vue';
@@ -962,6 +963,7 @@ function detachCard(i) {
               ><span class="rz br" @pointerdown.stop.prevent="rzStart(it, 'br', $event)"></span
             ></template>
             <div v-if="state.editDash" class="tools">
+              <ToolheadStyle v-if="it.i === 'toolhead'" />
               <button
                 v-if="isCustom(it.i) && state.settings.customCards?.[it.i]?.type !== 'cam'"
                 class="btn ibtn sm"
