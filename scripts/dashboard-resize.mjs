@@ -9,6 +9,10 @@ await server.listen();
 const browser = await chromium.launch();
 try {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+  if (process.env.SLOW_BROWSER) {
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  }
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`http://127.0.0.1:${server.httpServer.address().port}`);
@@ -33,6 +37,22 @@ try {
         return { x: r.x, y: r.y, w: r.width, h: r.height };
       }),
     );
+  // CI can finish a resize transition later than a fixed sleep. Compare settled
+  // geometry, without relaxing the position/size assertions below.
+  async function settle() {
+    await page.evaluate(() => document.fonts.ready);
+    let previous = '',
+      stable = 0;
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+      const current = JSON.stringify(await rects());
+      stable = current === previous ? stable + 1 : 0;
+      if (stable >= 3) return;
+      previous = current;
+      await page.waitForTimeout(100);
+    }
+    throw new Error('Dashboard geometry did not settle within 5 seconds');
+  }
   let views = 0;
   for (const uiScale of [100, 125, 'auto']) {
     await page.setViewportSize({ width: 1920, height: 1080 });
@@ -43,12 +63,12 @@ try {
     }, uiScale);
     await page.waitForTimeout(500);
     await page.locator('.dbar').getByRole('button', { name: 'Done', exact: true }).click();
-    await page.waitForTimeout(500);
+    await settle();
     const before = await snapshot();
     const initial = await rects();
     for (const width of [1600, 1366, 1100, 1024, 768, 390, 1920]) {
       await page.setViewportSize({ width, height: 1080 });
-      await page.waitForTimeout(550);
+      await settle();
       assert.equal(await snapshot(), before, `saved layout changed at ${width}/${uiScale}`);
       const boxes = await rects();
       for (let i = 0; i < boxes.length; i++) {
@@ -81,7 +101,10 @@ try {
         assert.equal(boxes.length, initial.length);
         boxes.forEach((b, i) => {
           for (const key of ['x', 'y', 'w', 'h'])
-            assert.ok(Math.abs(b[key] - initial[i][key]) < 2, `layout did not return: ${key}`);
+            assert.ok(
+              Math.abs(b[key] - initial[i][key]) < 2,
+              `layout did not return at ${uiScale}: card ${i}, ${key}, ${b[key]} vs ${initial[i][key]}`,
+            );
         });
       }
       views++;
