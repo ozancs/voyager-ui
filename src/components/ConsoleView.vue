@@ -16,6 +16,7 @@ import Popover from './Popover.vue';
 import ExplainBox from './ExplainBox.vue';
 import { explain } from '../explain';
 import { describe } from '../gcodeHelp';
+import { consoleGroups } from '../consoleGroups';
 // search: only lines with this text (marked); errors: only error lines, each with the command sent before it
 const props = defineProps({
   limit: { type: Number, default: 400 },
@@ -76,29 +77,7 @@ const filtering = computed(() => props.errors || !!props.search.trim());
 // blocks to draw: with grouping on, a sent command and the lines that follow it, as long as they keep coming
 // (each within GAP seconds of the one before: what comes after a pause is something else, a periodic message or
 // another macro). A command nothing answered and lines outside a group stay single lines.
-const GAP = 10;
-const blocks = computed(() => {
-  const out = [];
-  let g = null;
-  for (const l of lines.value) {
-    if (!state.settings.consoleGroup) {
-      out.push({ key: l.id, lines: [l] });
-      continue;
-    }
-    if (l.type === 'command') {
-      g = { key: l.id, lines: [l], last: l.time };
-      out.push(g);
-    } else if (g && l.time - g.last <= GAP) {
-      g.lines.push(l);
-      g.last = l.time;
-    } else {
-      g = null;
-      out.push({ key: l.id, lines: [l] });
-    }
-  }
-  for (const b of out) b.grp = b.lines.length > 1 && b.lines[0].type === 'command';
-  return out;
-});
+const blocks = computed(() => consoleGroups(lines.value, state.settings.consoleGroup));
 // plain text of some lines, as shown (time, "> " before a sent command)
 const plain = (ls) =>
   ls

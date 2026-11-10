@@ -1,13 +1,12 @@
 <script setup>
 // Health page: MCU and CAN connection errors, TMC driver flags, host throttling and power, heater
 // behaviour, maintenance reminders based on print hours. The checks themselves are in features.js.
-import { copyText } from '../clipboard';
 import { ref, computed, onMounted } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
-import { state, S, prettyName, gcode, toast, THROTTLE } from '../store';
+import { state, S, prettyName, gcode, toast, THROTTLE, useApiEvent } from '../store';
 import { api } from '../api/moonraker';
-import { cmpVer, linkOf, flashSteps } from '../firmware';
+import { cmpVer, linkOf } from '../firmware';
 import { t } from '../i18n';
 import {
   counterGrowth,
@@ -36,6 +35,21 @@ async function loadHost() {
   } catch {}
 }
 onMounted(loadHost);
+useApiEvent('notify_proc_stat_update', ([p]) => {
+  if (host.value) Object.assign(host.value, p);
+});
+const hostMetrics = computed(() => [
+  { label: 'CPU', value: host.value?.system_cpu_usage?.cpu, unit: '%', max: 100 },
+  {
+    label: 'Memory',
+    value: host.value?.system_memory?.total
+      ? (host.value.system_memory.used / host.value.system_memory.total) * 100
+      : null,
+    unit: '%',
+    max: 100,
+  },
+  { label: 'CPU temp', value: host.value?.cpu_temp, unit: '°C', max: 100 },
+]);
 // Moonraker's flags: the first four are happening now, 'Previously …' ones happened at some point since boot
 // Read from the bits, not the flag names: bits 0-3 are happening now, 16-19 happened at some point since boot.
 // Moonraker sends flags ['?'] with bits 0 when it cannot read the state (no vcgencmd, not a Raspberry Pi).
@@ -50,14 +64,6 @@ const thrPast = computed(() => thrNames(16, 19));
 
 // ---------- MCUs / CAN ----------
 const flashOpen = ref(null); // the board whose flash steps are shown
-async function copyCmd(c) {
-  try {
-    await copyText(c);
-    toast(t('Copied'));
-  } catch {
-    toast(t('Select the command and copy it'), 'warn');
-  }
-}
 const mcus = computed(() => {
   health.tick;
   return state.objects
@@ -133,11 +139,13 @@ function baseOf(n) {
     .filter(([k, b]) => k.startsWith(n + '@') && (b.power || b.heat))
     .map(([k, b]) => {
       const tg = k.split('@').pop();
-      const p = b.power ? t('{p}% power at {tg}°', { p: Math.round(b.power * 100), tg }) : '';
-      const h = b.heat ? t('{s} s from cold to {tg}°', { s: b.heat, tg }) : '';
+      const p = b.power
+        ? t('Holding {tg}° previously used {p}% heater output', { p: Math.round(b.power * 100), tg })
+        : '';
+      const h = b.heat ? t('Warm-up to {tg}° previously took {s} s', { s: b.heat, tg }) : '';
       return [p, h].filter(Boolean).join(', ');
     });
-  return l.length ? t('Reference: {list}', { list: l.join('; ') }) : '';
+  return l.length ? t('Learned baseline: {list}', { list: l.join('; ') }) : '';
 }
 const pidFor = ref(null);
 function runPid() {
@@ -229,7 +237,8 @@ const ago = (ts) => {
 };
 // maintenance ring
 const RING = 2 * Math.PI * 22;
-const ringOff = (tk) => RING * (1 - Math.min(1, maintUsed(tk) / tk.hours));
+const progress = (tk) => Math.min(1, Math.max(0, maintUsed(tk) / Math.max(1, tk.hours)));
+const ringOff = (tk) => RING * (1 - progress(tk));
 const LV = { ok: 'var(--ok)', warn: 'var(--wn)', error: 'var(--dg)', idle: 'var(--mu2)', info: 'var(--bl)' };
 // the reference is taken again from the next steady hold and the next heat-up from cold; while the heater holds
 // right now, the new reference is the current reading within a few seconds, so say what happened
@@ -305,12 +314,15 @@ function measureAgain(h) {
           <div v-if="m.fw != null && m.fw < 0" class="fw wn">
             <Icon name="warn" :size="15" />
             <span class="grow">{{
-              t('Firmware is older than Klipper on the host ({host}). Flash it when the printer is free.', {
-                host: state.versions.klipper,
-              })
+              t(
+                'Firmware differs from the newer Klipper on the host ({host}). Check your board’s update instructions.',
+                {
+                  host: state.versions.klipper,
+                },
+              )
             }}</span>
             <button class="btn sm" @click="flashOpen = flashOpen === m.id ? null : m.id">
-              {{ flashOpen === m.id ? t('Hide') : t('How to flash') }}
+              {{ flashOpen === m.id ? t('Hide') : t('Firmware guidance') }}
             </button>
           </div>
           <div v-else-if="m.fw != null && m.fw > 0" class="fw">
@@ -321,25 +333,33 @@ function measureAgain(h) {
               })
             }}</span>
           </div>
-          <ol v-if="flashOpen === m.id" class="steps">
-            <li v-for="(st, k) in flashSteps(m.link, m.chip)" :key="k">
-              <span>{{ t(st.text, { chip: st.chip }) }}</span>
-              <div class="cmd">
-                <code class="mono">{{ st.cmd }}</code
-                ><button class="btn clear ibtn sm" :aria-label="t('Copy')" @click="copyCmd(st.cmd)">
-                  <Icon name="copy" :size="15" />
-                </button>
-              </div>
-            </li>
-            <li class="guide">
+          <div v-if="flashOpen === m.id" class="firmware-help">
+            <p>
               {{
                 t(
-                  'These are the usual steps. For your board in detail (bootloader, Katapult, CAN bridge), Esoterical’s CANBus guide is the one most people follow:',
+                  'Use the instructions for your exact board and revision. The MCU name alone does not identify the bootloader, clock, connection or flash method.',
                 )
               }}
-              <a href="https://canbus.esoterical.online/" target="_blank" rel="noopener">canbus.esoterical.online</a>
-            </li>
-          </ol>
+            </p>
+            <p>
+              {{
+                t(
+                  'Voyager does not generate flash commands or select firmware settings. Check the board manufacturer’s documentation before updating firmware.',
+                )
+              }}
+            </p>
+            <div class="row" style="gap: 12px; flex-wrap: wrap">
+              <a
+                href="https://www.klipper3d.org/Installation.html#building-and-flashing-the-micro-controller"
+                target="_blank"
+                rel="noopener"
+                >{{ t('Klipper firmware documentation') }} ↗</a
+              >
+              <a href="https://canbus.esoterical.online/" target="_blank" rel="noopener"
+                >{{ t('CAN / Katapult guide') }} ↗</a
+              >
+            </div>
+          </div>
         </div>
         <p class="mu sm" style="margin: 0">
           {{
@@ -379,7 +399,7 @@ function measureAgain(h) {
         <p class="mu sm" style="margin: 0">
           {{
             t(
-              'Each heater is compared only with its own first measurement at the same target: power while holding (for the hotend at the same part fan speed) and heat-up time from cold. After changing the heater, thermistor or sock, use Measure again.',
+              'Heater output is the average share of full power needed to hold a temperature, not a health score. Voyager learns your heater’s normal behaviour and compares later measurements at the same target and fan speed. Measure again clears the old baseline after hardware changes.',
             )
           }}
         </p>
@@ -438,30 +458,31 @@ function measureAgain(h) {
             <Icon name="refresh" :size="16" />
           </button>
         </div>
-        <div class="kv">
-          <div>
-            <span class="lbl">{{ t('CPU temp') }}</span
-            ><b class="mono">{{ host?.cpu_temp != null ? host.cpu_temp.toFixed(1) + '°' : '--' }}</b>
+        <div class="host-metrics">
+          <div v-for="metric in hostMetrics" :key="metric.label" class="host-metric">
+            <span class="lbl">{{ t(metric.label) }}</span>
+            <svg viewBox="0 0 100 60" aria-hidden="true">
+              <path d="M 10 50 A 40 40 0 0 1 90 50" class="gauge-bg" />
+              <path
+                v-if="metric.value != null"
+                d="M 10 50 A 40 40 0 0 1 90 50"
+                class="gauge-fill"
+                pathLength="100"
+                :stroke-dasharray="Math.min(100, Math.max(0, metric.value)) + ' 100'"
+              />
+            </svg>
+            <b>{{ metric.value == null ? '—' : metric.value.toFixed(0) + metric.unit }}</b>
+            <span class="mu sm">{{
+              metric.unit === '°C' ? t('Temperature · 0–100°C scale') : t('Current usage')
+            }}</span>
           </div>
-          <div>
-            <span class="lbl">CPU</span
-            ><b class="mono">{{
-              host?.system_cpu_usage?.cpu != null ? host.system_cpu_usage.cpu.toFixed(0) + '%' : '--'
+          <div class="host-metric power-state">
+            <Icon name="power" :size="28" />
+            <span class="lbl">{{ t('Power / throttling') }}</span>
+            <b :style="{ color: thrUnknown ? 'var(--mu)' : throttled.length ? 'var(--wn)' : 'var(--ok)' }">{{
+              thrUnknown ? t('Not reported') : throttled.length ? t('throttled') : t('OK')
             }}</b>
-          </div>
-          <div>
-            <span class="lbl">{{ t('Memory') }}</span
-            ><b class="mono">{{
-              host?.system_memory ? Math.round((host.system_memory.used / host.system_memory.total) * 100) + '%' : '--'
-            }}</b>
-          </div>
-          <div>
-            <span class="lbl">{{ t('Power') }}</span
-            ><b
-              :style="{ color: thrUnknown ? 'var(--mu)' : throttled.length ? 'var(--wn)' : 'var(--ok)' }"
-              :data-tip="thrUnknown ? t('Moonraker cannot read the power state on this host') : ''"
-              >{{ thrUnknown ? '--' : throttled.length ? t('throttled') : t('OK') }}</b
-            >
+            <span v-if="thrUnknown" class="mu sm">{{ t('This host does not report power flags.') }}</span>
           </div>
         </div>
         <span v-for="f in throttled" :key="f" class="mu sm">{{ f }}</span>
@@ -500,20 +521,34 @@ function measureAgain(h) {
             </button>
           </div>
           <div class="row" style="gap: 14px">
-            <svg class="ring" viewBox="0 0 52 52" aria-hidden="true">
-              <circle cx="26" cy="26" r="22" class="rt" />
-              <circle
-                cx="26"
-                cy="26"
-                r="22"
-                class="rv"
-                :stroke="
-                  maintUsed(tk) >= tk.hours ? 'var(--heat)' : maintUsed(tk) / tk.hours > 0.8 ? 'var(--wn)' : 'var(--k)'
-                "
-                :stroke-dasharray="RING"
-                :stroke-dashoffset="ringOff(tk)"
-              />
-            </svg>
+            <div
+              class="maintenance-progress"
+              role="progressbar"
+              :aria-label="t(tk.name)"
+              :aria-valuenow="Math.round(progress(tk) * 100)"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <svg class="ring" viewBox="0 0 52 52" aria-hidden="true">
+                <circle cx="26" cy="26" r="22" class="rt" />
+                <circle
+                  v-if="progress(tk) > 0"
+                  cx="26"
+                  cy="26"
+                  r="22"
+                  class="rv"
+                  :stroke="
+                    maintUsed(tk) >= tk.hours
+                      ? 'var(--heat)'
+                      : maintUsed(tk) / tk.hours > 0.8
+                        ? 'var(--wn)'
+                        : 'var(--ac)'
+                  "
+                  :stroke-dasharray="RING"
+                  :stroke-dashoffset="ringOff(tk)"
+                /></svg
+              ><span>{{ Math.round(progress(tk) * 100) }}%</span>
+            </div>
             <div class="col" style="gap: 2px">
               <b class="mono" style="font-size: 17px"
                 >{{ maintUsed(tk).toFixed(0)
@@ -717,6 +752,7 @@ function measureAgain(h) {
   display: inline-block;
 }
 .hg {
+  align-items: start;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
@@ -797,5 +833,78 @@ function measureAgain(h) {
 /* explanations under a card stay a comfortable line length on wide screens */
 .card > p.mu {
   max-width: 85ch;
+}
+</style>
+
+<style scoped>
+.maintenance-progress {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+.maintenance-progress > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+.firmware-help {
+  padding: 12px;
+  background: var(--s1);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.firmware-help p {
+  margin: 0 0 10px;
+}
+</style>
+
+<style scoped>
+.host-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.host-metric {
+  background: var(--s2);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  min-width: 0;
+}
+.host-metric svg {
+  width: 100%;
+  max-width: 120px;
+}
+.host-metric b {
+  font-size: 20px;
+}
+.gauge-bg,
+.gauge-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+.gauge-bg {
+  stroke: var(--s3);
+}
+.gauge-fill {
+  stroke: var(--ac);
+}
+.power-state {
+  justify-content: center;
+}
+@media (max-width: 600px) {
+  .host-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>

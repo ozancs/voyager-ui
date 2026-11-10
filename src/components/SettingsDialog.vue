@@ -2,6 +2,9 @@
 // Interface settings as a dialog (like Mainsail's), categories on the left. Opened from the gear in the top bar.
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import WebcamView from './WebcamView.vue';
+import CameraAudioPreview from './CameraAudioPreview.vue';
+import { SOUND_STYLES } from '../soundStyles';
+import voyagerLogo from '../../public/logo.svg?url';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import Toggle from './Toggle.vue';
@@ -57,6 +60,7 @@ const close = () => (state.settingsOpen = null);
 // Cameras: the sound stream's noise filter, read when the tab opens (null: no go2rtc sound on this printer)
 const noise = ref(null);
 const noiseBusy = ref(false);
+const audioPreview = ref(null);
 watch(
   () => tab.value === 'webcams' && state.connected,
   (on) =>
@@ -72,7 +76,8 @@ async function pickNoise(level) {
   try {
     await setNoise(level);
     noise.value = { ...noise.value, level };
-    toast(t('Saved. Turn the camera sound off and on again to hear the change.'));
+    audioPreview.value?.reconnect();
+    toast(t('Saved. Camera audio reconnects with the new filter.'));
   } catch (e) {
     toast(t('Could not write go2rtc.yaml: {err}', { err: e.message }), 'error');
   }
@@ -168,7 +173,7 @@ async function doImport(which) {
   try {
     const took = await importFrom(which);
     syncMsg.value = took.length
-      ? t('Taken over from {ui}: {what}', {
+      ? t('Imported shared values from {ui}: {what}', {
           ui: which === 'mainsail' ? 'Mainsail' : 'Fluidd',
           what: took
             .map((k) =>
@@ -176,7 +181,7 @@ async function doImport(which) {
             )
             .join(', '),
         })
-      : t('Nothing to take over.');
+      : t('No shared values to import.');
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -987,11 +992,10 @@ const consoleSample = (() => {
                     t('Shown in the browser tab and the top bar, so each printer is easy to find among open tabs.')
                   }}</span>
                 </div>
-                <div class="col v" style="gap: 10px; align-items: flex-end">
-                  <div class="row" style="gap: 8px; flex-wrap: wrap; justify-content: flex-end; max-width: 100%">
+                <div class="printer-icon-picker">
+                  <div class="printer-icon-controls">
                     <img
-                      v-if="iconUrl()"
-                      :src="iconUrl()"
+                      :src="iconUrl() || voyagerLogo"
                       width="34"
                       height="34"
                       alt=""
@@ -1217,7 +1221,17 @@ const consoleSample = (() => {
                   <div class="k">
                     <b>{{ t(l) }}</b>
                   </div>
-                  <div class="row" style="gap: 6px">
+                  <div class="row alert-controls" style="gap: 6px">
+                    <select
+                      class="input"
+                      :aria-label="t(l) + ' — ' + t('Sound style')"
+                      :value="snd.styles?.[tone] || (tone === 'error' ? 'urgent' : 'chime')"
+                      @change="snd.styles = { ...snd.styles, [tone]: $event.target.value }"
+                    >
+                      <option v-for="style in SOUND_STYLES" :key="style.id" :value="style.id">
+                        {{ t(style.label) }}
+                      </option>
+                    </select>
                     <button
                       class="btn clear ibtn sm"
                       :disabled="!snd.enabled"
@@ -1291,6 +1305,7 @@ const consoleSample = (() => {
               </div>
               <!-- sound (go2rtc): the noise filter on the microphone line of go2rtc.yaml -->
               <template v-if="noise">
+                <CameraAudioPreview ref="audioPreview" :busy="noiseBusy" />
                 <div class="rw">
                   <div class="k">
                     <b>{{ t('Sound: noise reduction') }}</b
@@ -1322,7 +1337,7 @@ const consoleSample = (() => {
                   t('The line has a filter of its own; picking a level here replaces it.')
                 }}</span>
               </template>
-              <div class="row" style="justify-content: space-between; flex-wrap: wrap">
+              <div class="row" style="justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 14px">
                 <button
                   class="btn clear"
                   @click="
@@ -1359,23 +1374,23 @@ const consoleSample = (() => {
                 </div>
                 <div class="row" style="gap: 6px; flex-wrap: wrap; justify-content: flex-end">
                   <button v-if="sync.mainsail" class="btn" @click="doImport('mainsail')">
-                    <Icon name="download" :size="15" />{{ t('Take over from Mainsail') }}</button
+                    <Icon name="download" :size="15" />{{ t('Import shared values from Mainsail') }}</button
                   ><button v-if="sync.fluidd" class="btn" @click="doImport('fluidd')">
-                    <Icon name="download" :size="15" />{{ t('Take over from Fluidd') }}</button
+                    <Icon name="download" :size="15" />{{ t('Import shared values from Fluidd') }}</button
                   ><button
                     v-if="sync.mainsail || sync.fluidd"
                     class="btn"
                     :disabled="sync.busy || !state.settings.sync"
                     @click="doPush"
                   >
-                    <Icon name="upload" :size="15" />{{ t('Write now') }}
+                    <Icon name="upload" :size="15" />{{ t('Send shared values to other interfaces') }}
                   </button>
                 </div>
               </div>
               <span v-if="syncMsg" class="hint ok">{{ syncMsg }}</span>
               <span class="hint">{{
                 t(
-                  'The other UI shows the new values after its page is reloaded. Dashboard layout, colours and favorites stay separate, they mean different things in each UI.',
+                  'Import copies only printer name, movement steps and presets into Voyager. It does not reset your dashboard, colours or favorites. Send updates the same shared values in Mainsail / Fluidd; reload that interface to see them.',
                 )
               }}</span>
             </template>
@@ -1798,5 +1813,37 @@ const consoleSample = (() => {
 }
 .part:hover {
   background: var(--s2);
+}
+</style>
+
+<style scoped>
+.printer-icon-picker {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.printer-icon-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.printer-icon-controls img {
+  flex: 0 0 34px;
+}
+.printer-icon-controls select {
+  min-width: 0;
+  max-width: 160px;
+}
+.alert-controls select {
+  width: 145px;
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .printer-icon-controls {
+    flex-wrap: wrap;
+  }
+  .printer-icon-controls select {
+    flex: 1;
+  }
 }
 </style>

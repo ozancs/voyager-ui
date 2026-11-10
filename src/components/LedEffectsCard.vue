@@ -7,9 +7,9 @@ import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import { state, S, gcode, toast } from '../store';
 import { t } from '../i18n';
+import { effectNames } from '../ledEffects';
 const effects = computed(() =>
-  state.objects
-    .filter((o) => o.startsWith('led_effect '))
+  effectNames(state.objects, S('configfile').config || S('configfile').settings)
     .map((o) => ({ obj: o, name: o.slice(11), on: !!S(o).enabled }))
     .sort((a, b) => a.name.localeCompare(b.name)),
 );
@@ -25,7 +25,7 @@ const toggle = (e) => run(`SET_LED_EFFECT EFFECT=${e.name}${e.on ? ' STOP=1' : '
           class="btn ibtn sm"
           :aria-label="t('Stop all effects')"
           :data-tip="t('Stop all effects')"
-          :disabled="!effects.some((e) => e.on)"
+          :disabled="!effects.length"
           @click="run('STOP_LED_EFFECTS')"
         >
           <Icon name="sq" :size="14" :stroke="2.4" />
@@ -33,6 +33,9 @@ const toggle = (e) => run(`SET_LED_EFFECT EFFECT=${e.name}${e.on ? ' STOP=1' : '
       </div>
       <CardCollapse />
     </div>
+    <p v-if="!effects.length" class="mu">
+      {{ t('LED Effects is installed. Add an [led_effect name] section to your Klipper config to create an effect.') }}
+    </p>
     <div class="fx">
       <button
         v-for="e in effects"

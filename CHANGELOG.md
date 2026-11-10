@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.38.34
+
+- LED Effects card detection also checks Klipper config and plugin commands
+- Machine files support a right-click menu for opening, editing, downloading, renaming and deleting
+- Printer icon previews include Voyager and stay beside the selector
+- Five smooth alert sound styles can be selected per event
+- Phone notifications discover existing Telegram bots and notifier configs in shared config folders; edits preserve the original file and other settings, with a backup and concurrent-change check
+- Camera noise reduction has a receive-only audio preview that reconnects after filter changes; Add camera has more spacing
+- Shared-settings import/export labels explain exactly what is copied
+- Health adds host gauges, clearer heater baseline explanations and visible maintenance progress rings
+- Firmware guidance links to documentation instead of generating board-specific flash commands
+- PA Sensei lifecycle messages stay grouped in the console across long operations
+
 ## 0.38.33
 
 - Toolhead keeps its title, home/motor controls and Circle / Buttons selector on one row when space allows

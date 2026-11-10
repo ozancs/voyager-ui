@@ -2,7 +2,7 @@
 // File browser for any Moonraker root (config, logs, gcodes...) used on the Machine page: list,
 // sort, upload by drag and drop, new file or folder, rename, delete, download (folders as zip), move by
 // dragging onto a folder. Text files open in the config editor, images in ImageViewer.
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import ImageViewer from './ImageViewer.vue';
@@ -21,6 +21,29 @@ const dirs = ref([]),
 const sort = ref({ k: 'filename', d: 1 });
 const up = ref(null);
 const fileInput = ref(null);
+const context = ref(null);
+const contextEl = ref(null);
+async function showContext(event, item) {
+  context.value = {
+    item,
+    x: Math.max(8, Math.min(event.clientX, innerWidth - 232)),
+    y: Math.max(8, Math.min(event.clientY, innerHeight - 250)),
+  };
+  await nextTick();
+  contextEl.value?.querySelector('button')?.focus();
+}
+function contextAction(action) {
+  const it = context.value.item;
+  context.value = null;
+  if (action === 'open') open(it);
+  else if (action === 'download') {
+    picked.value = new Set([key(it)]);
+    dlPicked();
+  } else modal.value = { kind: action, item: it, value: it.name };
+}
+watch([root, path], () => {
+  context.value = null;
+});
 const modal = ref(null); // { kind: 'newfile'|'newdir'|'rename'|'delete', item, value }
 // images open in a viewer (Shake&Tune and similar tools save their graphs as png next to the config)
 const IMG = /\.(png|jpe?g|gif|webp|svg|bmp)$/i;
@@ -353,6 +376,17 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
             class="click fr"
             :class="{ tgt: it.dir && overDir === it.name, sel: picked.has(key(it)) }"
             @click="open(it)"
+            @contextmenu.prevent.stop="showContext($event, it)"
+            @keydown.shift.f10.prevent="
+              showContext(
+                {
+                  clientX: $event.currentTarget.getBoundingClientRect().left,
+                  clientY: $event.currentTarget.getBoundingClientRect().top,
+                },
+                it,
+              )
+            "
+            tabindex="0"
             @dragover="it.dir && (overDir = it.name)"
             @dragleave="it.dir && overDir === it.name && (overDir = null)"
             @drop.prevent.stop="dDrop($event, it.dir ? it.name : '')"
@@ -410,6 +444,32 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
       </table>
     </div>
   </section>
+  <Teleport to="body">
+    <div
+      v-if="context"
+      ref="contextEl"
+      class="file-context card"
+      role="menu"
+      v-away="() => (context = null)"
+      :style="{ left: context.x + 'px', top: context.y + 'px' }"
+    >
+      <span class="mu">{{ context.item.name }}</span>
+      <button class="btn clear" role="menuitem" @click="contextAction('open')">
+        <Icon name="file" :size="16" />{{
+          context.item.dir ? t('Open folder') : EDITABLE.test(context.item.name) ? t('Edit') : t('Open')
+        }}
+      </button>
+      <button class="btn clear" role="menuitem" @click="contextAction('download')">
+        <Icon name="download" :size="16" />{{ t('Download') }}
+      </button>
+      <button class="btn clear" role="menuitem" @click="contextAction('rename')">
+        <Icon name="pencil" :size="16" />{{ t('Rename') }}
+      </button>
+      <button class="btn clear" role="menuitem" @click="contextAction('delete')">
+        <Icon name="trash" :size="16" />{{ t('Delete') }}
+      </button>
+    </div>
+  </Teleport>
   <Modal v-if="modal" :title="t(TITLES[modal.kind])" @close="modal = null">
     <template v-if="modal.kind === 'bulkdelete'">
       <p style="margin: 0">
@@ -567,5 +627,27 @@ th.s {
 .sep {
   color: var(--mu);
   padding: 0 1px;
+}
+</style>
+
+<style scoped>
+.file-context {
+  position: fixed;
+  z-index: 10000;
+  width: 224px;
+  max-width: calc(100vw - 16px);
+  padding: 8px;
+  gap: 4px;
+  box-shadow: 0 8px 30px #0006;
+}
+.file-context > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.file-context button {
+  justify-content: flex-start;
 }
 </style>

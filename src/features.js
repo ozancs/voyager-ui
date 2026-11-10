@@ -1,3 +1,4 @@
+import { soundNotes } from './soundStyles';
 // Things that run in the background for the whole app:
 // macro prompts, error toasts, sounds, job queue, config index (for search), health sampling.
 import { reactive, watch, computed, markRaw } from 'vue';
@@ -142,42 +143,17 @@ const unlock = () => {
 window.addEventListener('pointerdown', unlock, { once: false, passive: true });
 window.addEventListener('keydown', unlock, { passive: true });
 
-// each event has its own character so it is known without looking: finished rises and resolves, paused is
-// two soft low knocks, heated is one short bell, an error is a loud falling siren played three times
-const TONES = {
-  complete: [
-    [523, 0, 0.16, 'triangle'],
-    [659, 0.13, 0.16, 'triangle'],
-    [784, 0.26, 0.16, 'triangle'],
-    [1047, 0.39, 0.5, 'triangle'],
-  ],
-  error: [0, 0.5, 1].flatMap((d) => [
-    [880, d, 0.2, 'sawtooth', 1.4],
-    [587, d + 0.2, 0.26, 'sawtooth', 1.4],
-  ]),
-  paused: [
-    [392, 0, 0.22],
-    [294, 0.3, 0.34],
-  ],
-  partReady: [
-    [784, 0, 0.22],
-    [1047, 0.26, 0.42],
-  ],
-  heated: [
-    [1319, 0, 0.6],
-    [2637, 0, 0.25, 'sine', 0.3],
-  ],
-};
 export function playSound(kind) {
   const cfg = state.settings.sound || {};
   const a = audio();
   if (!a) return;
   const vol = (cfg.volume ?? 0.6) * 0.25;
   const t0 = a.currentTime + 0.02;
-  for (const [f, at, len, type, gain = 1] of TONES[kind] || []) {
+  const style = cfg.styles?.[kind] || (kind === 'error' ? 'urgent' : 'chime');
+  for (const { hz: f, at, length: len, gain } of soundNotes(kind, style)) {
     const o = a.createOscillator(),
       g = a.createGain();
-    o.type = type || 'sine';
+    o.type = 'sine';
     o.frequency.value = f;
     g.gain.setValueAtTime(0, t0 + at);
     g.gain.linearRampToValueAtTime(Math.min(0.5, vol * gain), t0 + at + 0.015);

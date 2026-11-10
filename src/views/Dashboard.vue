@@ -1,4 +1,5 @@
 <script setup>
+import { hasLedEffects } from '../ledEffects';
 // Dashboard: the status tiles (DeviceStrip) and a grid of cards the user arranges (grid-layout-plus).
 // MODULES lists every card type with its size limits. `scale`: made smaller than its content, the card shrinks all of
 // it to fit (fit.js) instead of scrolling, so it can go down to a small minimum size. Customize mode: drag, resize (also from the bottom-left
@@ -49,6 +50,7 @@ import interact from 'interactjs';
 import { nextTick } from 'vue';
 import {
   state,
+  S,
   isPrinting,
   DEFAULT_LAYOUT,
   LEGACY_DEFAULT_IDS,
@@ -93,7 +95,7 @@ const MODULES = {
     n: 'LED effects',
     min: [2, 3],
     def: [6, 5],
-    need: () => state.objects.some((o) => o.startsWith('led_effect ')),
+    need: () => hasLedEffects(state.objects, S('configfile').config || S('configfile').settings, state.commands),
   },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
@@ -420,7 +422,9 @@ function persist(force = false) {
 const bottom = () => Math.max(0, ...layout.value.map((x) => x.y + x.h));
 // klipper-led_effect: the LED effects card goes on the dashboard by itself the first time effects are found
 watch(
-  () => state.settingsLoaded && state.objects.some((o) => o.startsWith('led_effect ')),
+  () =>
+    state.settingsLoaded &&
+    hasLedEffects(state.objects, S('configfile').config || S('configfile').settings, state.commands),
   (on) => {
     if (!on || state.settings.ledfxSeen) return;
     state.settings.ledfxSeen = true;
