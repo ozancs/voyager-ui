@@ -36,13 +36,29 @@ try {
   assert.equal(before.height, after.height);
   assert.equal(before.y, after.y);
   await page.screenshot({ path: '../settings-appearance.png' });
+  await page.evaluate(() => {
+    window.previewOscillators = 0;
+    const original = AudioContext.prototype.createOscillator;
+    AudioContext.prototype.createOscillator = function (...args) {
+      window.previewOscillators++;
+      return original.apply(this, args);
+    };
+  });
   await tab('sounds');
   assert.equal(await page.locator('.alert-controls select').count(), 4);
+  const soundOptions = await page
+    .locator('.alert-controls select')
+    .evaluateAll((nodes) => nodes.map((n) => [...n.options].map((o) => o.value)));
+  assert(!soundOptions[2].includes('soft'), 'Error sounds must not offer notification bells');
+  assert(!soundOptions[0].includes('urgent'), 'Notifications must not offer error alarms');
+  assert(soundOptions[1].includes('attention'), 'Pauses need attention sounds');
+
   await page.locator('.alert-controls select').first().selectOption('bright');
   assert.equal(
     await page.evaluate(async () => (await import('/src/store.js')).state.settings.sound.styles.complete),
     'bright',
   );
+  assert((await page.evaluate(() => window.previewOscillators)) > 0, 'Selection must autoplay');
   await page.locator('.alert-controls button').first().click();
   await page.screenshot({ path: '../settings-sounds.png' });
   // Isolated config transport: no credentials or writes go to a real printer.
@@ -88,6 +104,15 @@ try {
   await page.goto(base + '/#/health');
   await page.waitForTimeout(1800);
   await page.locator('.host-metrics').waitFor();
+  const healthRows = await page
+    .locator('.hg > section')
+    .evaluateAll((nodes) =>
+      nodes
+        .slice(0, 4)
+        .map((n) => ({ id: n.id, top: n.getBoundingClientRect().top, bottom: n.getBoundingClientRect().bottom })),
+    );
+  assert(Math.abs(healthRows[0].bottom - healthRows[1].bottom) < 2, JSON.stringify(healthRows));
+  assert(Math.abs(healthRows[2].bottom - healthRows[3].bottom) < 2, JSON.stringify(healthRows));
   await page.getByRole('button', { name: 'Firmware guidance' }).first().click();
   assert.equal(await page.locator('.firmware-help code').count(), 0);
   assert.equal(await page.locator('.firmware-help a').count(), 2);

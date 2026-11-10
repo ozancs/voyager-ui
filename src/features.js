@@ -143,22 +143,39 @@ const unlock = () => {
 window.addEventListener('pointerdown', unlock, { once: false, passive: true });
 window.addEventListener('keydown', unlock, { passive: true });
 
-export function playSound(kind) {
+let previewNodes = [];
+export function playSound(kind, previewStyle) {
+  if (previewStyle) {
+    for (const node of previewNodes) {
+      try {
+        node.stop();
+      } catch {}
+    }
+    previewNodes = [];
+  }
   const cfg = state.settings.sound || {};
   const a = audio();
   if (!a) return;
   const vol = (cfg.volume ?? 0.6) * 0.25;
   const t0 = a.currentTime + 0.02;
-  const style = cfg.styles?.[kind] || (kind === 'error' ? 'urgent' : 'chime');
-  for (const { hz: f, at, length: len, gain } of soundNotes(kind, style)) {
+  const style = previewStyle || cfg.styles?.[kind] || (kind === 'error' ? 'urgent' : 'chime');
+  for (const { hz: f, at, length: len, gain, type = 'sine', endHz, sustain } of soundNotes(kind, style)) {
     const o = a.createOscillator(),
       g = a.createGain();
-    o.type = 'sine';
-    o.frequency.value = f;
+    o.type = type;
+    o.frequency.setValueAtTime(f, t0 + at);
+    if (endHz) o.frequency.linearRampToValueAtTime(endHz, t0 + at + len);
     g.gain.setValueAtTime(0, t0 + at);
     g.gain.linearRampToValueAtTime(Math.min(0.5, vol * gain), t0 + at + 0.015);
+    if (sustain) g.gain.setValueAtTime(Math.min(0.5, vol * gain), t0 + at + len - 0.08);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + len);
     o.connect(g).connect(a.destination);
+    if (previewStyle) previewNodes.push(o);
+    o.onended = () => {
+      o.disconnect();
+      g.disconnect();
+      previewNodes = previewNodes.filter((n) => n !== o);
+    };
     o.start(t0 + at);
     o.stop(t0 + at + len + 0.05);
   }

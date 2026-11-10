@@ -34,7 +34,11 @@ const toggle = (e) => run(`SET_LED_EFFECT EFFECT=${e.name}${e.on ? ' STOP=1' : '
       <CardCollapse />
     </div>
     <p v-if="!effects.length" class="mu">
-      {{ t('LED Effects is installed. Add an [led_effect name] section to your Klipper config to create an effect.') }}
+      {{
+        t(
+          'No effects configured yet. This card lists [led_effect name] entries from your active Klipper configuration. Installing the plugin alone does not create effects.',
+        )
+      }}
     </p>
     <div class="fx">
       <button

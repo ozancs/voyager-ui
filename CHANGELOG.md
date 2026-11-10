@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.38.35
+
+- Health cards align by row, with heater rows and host gauges filling the available space
+- Separate notification, attention and error sound categories with three distinct sounds each
+- Sound selection previews immediately; incompatible saved choices fall back to the matching category
+- Shared-settings buttons wrap without crowding the host label
+- LED Effects can be added manually, with guidance when no effects are configured
+- Footer version follows the application build version
+
 ## 0.38.34
 
 - LED Effects card detection also checks Klipper config and plugin commands

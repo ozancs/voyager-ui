@@ -752,7 +752,7 @@ function measureAgain(h) {
   display: inline-block;
 }
 .hg {
-  align-items: start;
+  align-items: stretch;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
@@ -789,6 +789,8 @@ function measureAgain(h) {
   height: 30px;
 }
 .hr {
+  flex: 1;
+  min-height: 72px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -865,11 +867,13 @@ function measureAgain(h) {
 
 <style scoped>
 .host-metrics {
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 .host-metric {
+  justify-content: center;
   background: var(--s2);
   border-radius: 10px;
   padding: 12px;

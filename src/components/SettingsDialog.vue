@@ -3,7 +3,7 @@
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import WebcamView from './WebcamView.vue';
 import CameraAudioPreview from './CameraAudioPreview.vue';
-import { SOUND_STYLES } from '../soundStyles';
+import { soundStylesFor, resolveSoundStyle, soundCategory } from '../soundStyles';
 import voyagerLogo from '../../public/logo.svg?url';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
@@ -1220,15 +1220,19 @@ const consoleSample = (() => {
                 <div v-for="[k, l, tone] in SOUNDS" :key="k" class="rw">
                   <div class="k">
                     <b>{{ t(l) }}</b>
+                    <span class="hint">{{ t(soundCategory(tone)) }}</span>
                   </div>
                   <div class="row alert-controls" style="gap: 6px">
                     <select
                       class="input"
                       :aria-label="t(l) + ' — ' + t('Sound style')"
-                      :value="snd.styles?.[tone] || (tone === 'error' ? 'urgent' : 'chime')"
-                      @change="snd.styles = { ...snd.styles, [tone]: $event.target.value }"
+                      :value="resolveSoundStyle(tone, snd.styles?.[tone])"
+                      @change="
+                        snd.styles = { ...snd.styles, [tone]: $event.target.value };
+                        playSound(tone, $event.target.value);
+                      "
                     >
-                      <option v-for="style in SOUND_STYLES" :key="style.id" :value="style.id">
+                      <option v-for="style in soundStylesFor(tone)" :key="style.id" :value="style.id">
                         {{ t(style.label) }}
                       </option>
                     </select>
@@ -1236,7 +1240,7 @@ const consoleSample = (() => {
                       class="btn clear ibtn sm"
                       :disabled="!snd.enabled"
                       :aria-label="t('Play')"
-                      @click="playSound(tone)"
+                      @click="playSound(tone, resolveSoundStyle(tone, snd.styles?.[tone]))"
                     >
                       <Icon name="play" :size="14" /></button
                     ><Toggle v-model="snd[k]" :label="t(l)" />
@@ -1363,7 +1367,7 @@ const consoleSample = (() => {
                 </div>
                 <Toggle v-model="state.settings.sync" :label="t('Keep shared settings in sync')" />
               </div>
-              <div class="rw">
+              <div class="rw sync-host">
                 <div class="k">
                   <b>{{ t('Found on this host') }}</b
                   ><span v-if="!sync.checked">{{ t('Checking…') }}</span
@@ -1372,11 +1376,11 @@ const consoleSample = (() => {
                     t('Neither Mainsail nor Fluidd has settings in the Moonraker database.')
                   }}</span>
                 </div>
-                <div class="row" style="gap: 6px; flex-wrap: wrap; justify-content: flex-end">
+                <div class="sync-actions">
                   <button v-if="sync.mainsail" class="btn" @click="doImport('mainsail')">
-                    <Icon name="download" :size="15" />{{ t('Import shared values from Mainsail') }}</button
+                    <Icon name="download" :size="15" />{{ t('Import from Mainsail') }}</button
                   ><button v-if="sync.fluidd" class="btn" @click="doImport('fluidd')">
-                    <Icon name="download" :size="15" />{{ t('Import shared values from Fluidd') }}</button
+                    <Icon name="download" :size="15" />{{ t('Import from Fluidd') }}</button
                   ><button
                     v-if="sync.mainsail || sync.fluidd"
                     class="btn"
@@ -1404,7 +1408,7 @@ const consoleSample = (() => {
                     t('Favorites, dashboard layout, cards, presets, theme and all other UI settings in one file.')
                   }}</span>
                 </div>
-                <div class="row" style="gap: 6px; flex-wrap: wrap; justify-content: flex-end">
+                <div class="sync-actions">
                   <button class="btn acc" @click="download">
                     <Icon name="download" :size="16" :stroke="2.4" />{{ t('Download backup') }}</button
                   ><button class="btn" @click="restoreFile.click()">
@@ -1845,5 +1849,30 @@ const consoleSample = (() => {
   .printer-icon-controls select {
     flex: 1;
   }
+}
+</style>
+
+<style scoped>
+.rw.sync-host {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.sync-host .k {
+  width: auto;
+  flex: none;
+}
+.sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sync-actions .btn {
+  flex: 1 1 220px;
+  white-space: normal;
+  height: auto;
+  min-height: 36px;
+  padding: 8px 12px;
 }
 </style>
