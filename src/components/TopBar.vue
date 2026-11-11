@@ -477,7 +477,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
       </div>
     </div>
     <button
-      v-if="!state.editDash && !tabs"
+      v-if="!state.editDash"
       class="btn ibtn hide-s"
       :aria-label="t('Customize dashboard')"
       :data-tip="tabs ? t('Customize dashboard') : null"

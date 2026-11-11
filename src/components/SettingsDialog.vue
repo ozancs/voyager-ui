@@ -1082,7 +1082,7 @@ const consoleSample = (() => {
                   </button>
                 </div>
               </div>
-              <div class="rw col">
+              <div class="rw">
                 <div class="k">
                   <b>{{ t('Menu style') }}</b
                   ><span>{{
@@ -1091,7 +1091,7 @@ const consoleSample = (() => {
                     )
                   }}</span>
                 </div>
-                <div class="seg v">
+                <div class="seg v wide">
                   <button
                     v-for="[k, l] in [
                       ['classic', 'Classic'],
