@@ -934,7 +934,8 @@ and E-STOP.
 Top tabs menu style: the pages as pills in the top bar, an icon and the name. When they do not all fit they turn  
 into round icons: pointing at one (or tabbing to it) opens its name over the icons beside it, without moving  
 them, so the row never jumps under the pointer. When even the icons do not fit, the rest go under More; the page  
-that is open always keeps a button of its own (it takes the last place when it would be under More).
+that is open always keeps a button of its own (it takes the last place when it would be under More). Printer  
+settings and config files are always under More.
 
 **[src/components/UpdateModal.vue](../src/components/UpdateModal.vue)**  
 Log of a running update (Moonraker's update manager). Shows the output lines as they come in  

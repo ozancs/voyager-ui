@@ -2,7 +2,8 @@
 // Top tabs menu style: the pages as pills in the top bar, an icon and the name. When they do not all fit they turn
 // into round icons: pointing at one (or tabbing to it) opens its name over the icons beside it, without moving
 // them, so the row never jumps under the pointer. When even the icons do not fit, the rest go under More; the page
-// that is open always keeps a button of its own (it takes the last place when it would be under More).
+// that is open always keeps a button of its own (it takes the last place when it would be under More). Printer
+// settings and config files are always under More.
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import Popover from './Popover.vue';
@@ -11,7 +12,8 @@ import { route, go } from '../router';
 import { t } from '../i18n';
 import { NAV2, navItems, healthBadge } from '../nav';
 
-const items = computed(() => [...navItems.value, ...NAV2]);
+// the pages; the setup ones (printer settings, config files) are always under More
+const items = navItems;
 const label = (it) => t(it[3] || it[2]);
 const icon = (it) => (it[0] === 'dashboard' ? 'home2' : it[1]);
 function open(k) {
@@ -34,7 +36,7 @@ function measure() {
   const have = b.clientWidth;
   // with names: all of them, or the first ones and More (a round icon) for the rest, as long as at least
   // MIN_NAMED keep their names. Fewer than that: icons only, which fit about three times as many.
-  const all = w.reduce((a, x) => a + x, 0) + gap * (w.length - 1);
+  const all = w.reduce((a, x) => a + x + gap, ICON_W); // More is always there
   if (all <= have) {
     iconMode.value = false;
     fit.value = w.length;
@@ -55,7 +57,7 @@ function measure() {
   iconMode.value = true;
   const each = ICON_W + gap;
   fit.value =
-    w.length * each - gap <= have ? w.length : Math.max(0, Math.min(w.length, Math.floor((have - ICON_W) / each)));
+    w.length * each + ICON_W <= have ? w.length : Math.max(0, Math.min(w.length, Math.floor((have - ICON_W) / each)));
 }
 // the buttons shown: the first ones that fit, with the open page swapped in for the last one when it is further on
 const shown = computed(() => {
@@ -66,7 +68,7 @@ const shown = computed(() => {
   if (cur >= fit.value && s.length) s[s.length - 1] = l[cur];
   return s;
 });
-const rest = computed(() => items.value.filter((it) => !shown.value.includes(it)));
+const rest = computed(() => [...items.value.filter((it) => !shown.value.includes(it)), ...NAV2]);
 const restOn = computed(() => rest.value.some(([k]) => k === route.name));
 const moreOpen = ref(false);
 const moreBtn = ref(null);
@@ -116,7 +118,6 @@ watch(
         >
       </button>
       <button
-        v-if="rest.length"
         ref="moreBtn"
         class="tp ic"
         :class="{ on: restOn, open: moreOpen }"
