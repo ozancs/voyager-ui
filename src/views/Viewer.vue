@@ -281,7 +281,8 @@ async function ensureViewer() {
   gp.updateMaxFeedColor('#d41216');
   toolColors(v);
   v.buildObjects.objectCallback = (o) => {
-    if (!o?.name || o.cancelled) return;
+    if (!picking.value || !o?.name || o.cancelled) return;
+    picking.value = false;
     state.excludePick = o.name;
     emit('exclude');
   };
@@ -390,7 +391,7 @@ function finish() {
   v.setCursorVisiblity(showNozzle.value);
   v.toggleTravels(travel.value);
   refreshObjects();
-  if (tracking.value) return track();
+  if (tracking.value) return startTracking();
   pos.value = size.value;
   v.gcodeProcessor.updateFilePosition(size.value);
   clip();
@@ -477,19 +478,76 @@ watch(speed, (s) => (set.viewerSpeed = s));
 const curPrint = computed(() => S('print_stats').filename);
 const active = computed(() => state.klippy === 'ready' && ['printing', 'paused'].includes(printState.value));
 const tracking = computed(() => follow.value && active.value && !!file.value && file.value === curPrint.value);
-function track() {
-  if (!viewer || !tracking.value) return;
+// Following the print. The printer reports where it is a few times a second; in between, the model grows and the
+// nozzle glides towards the last reported place (eased, frame by frame) instead of jumping on each report.
+const tgt = { fp: 0, xyz: null };
+const cur = { fp: 0, xyz: null };
+let followRaf = 0,
+  lastFrame = 0,
+  shownFp = -1;
+function readTarget() {
   const fp = S('virtual_sdcard').file_position || 0;
   // a little behind the printer: the planner is ahead of the move that is happening
-  goTo(fp > 350 ? fp - 350 : fp, false);
+  tgt.fp = Math.min(size.value, fp > 350 ? fp - 350 : fp);
   const lp = S('motion_report').live_position || S('toolhead').position;
   const off = S('gcode_move').homing_origin || [0, 0, 0];
-  if (lp)
-    viewer.updateToolPosition([
-      { axes: 'X', position: lp[0] - off[0] },
-      { axes: 'Y', position: lp[1] - off[1] },
-      { axes: 'Z', position: lp[2] - off[2] },
-    ]);
+  tgt.xyz = lp ? [lp[0] - off[0], lp[1] - off[1], lp[2] - off[2]] : null;
+}
+function showFp(fp) {
+  pos.value = Math.round(fp);
+  if (Math.abs(pos.value - shownFp) < 40) return;
+  shownFp = pos.value;
+  viewer.gcodeProcessor.updateFilePosition(pos.value);
+  clip();
+}
+function showNozzleAt(p) {
+  viewer.updateToolPosition([
+    { axes: 'X', position: p[0] },
+    { axes: 'Y', position: p[1] },
+    { axes: 'Z', position: p[2] },
+  ]);
+}
+function followFrame(now) {
+  followRaf = 0;
+  if (!viewer || !tracking.value || playing.value) return;
+  const dt = Math.min(250, now - (lastFrame || now));
+  lastFrame = now;
+  const k = 1 - Math.exp(-dt / 180); // about 180 ms to close most of the gap
+  // the model only grows: a target behind (a new layer of the same file, a restart) is taken at once
+  cur.fp = tgt.fp < cur.fp ? tgt.fp : cur.fp + (tgt.fp - cur.fp) * k;
+  showFp(cur.fp);
+  if (tgt.xyz) {
+    const far = !cur.xyz || Math.hypot(...tgt.xyz.map((v, i) => v - cur.xyz[i])) > 80; // a travel across the bed
+    cur.xyz = far ? [...tgt.xyz] : cur.xyz.map((v, i) => v + (tgt.xyz[i] - v) * k);
+    showNozzleAt(cur.xyz);
+  }
+  const moving =
+    Math.abs(tgt.fp - cur.fp) > 2 || (tgt.xyz && cur.xyz && tgt.xyz.some((v, i) => Math.abs(v - cur.xyz[i]) > 0.02));
+  if (moving) followRaf = requestAnimationFrame(followFrame);
+  else lastFrame = 0;
+}
+function track() {
+  if (!viewer || !tracking.value) return;
+  readTarget();
+  if (!followRaf) followRaf = requestAnimationFrame(followFrame);
+}
+// starting to follow (a load of the running file, the switch turned on): the model is cut at the printer's place
+// at once, everything above it hidden, and the following goes on from there
+function startTracking() {
+  if (!viewer) return;
+  stop();
+  readTarget();
+  cur.fp = tgt.fp;
+  cur.xyz = tgt.xyz && [...tgt.xyz];
+  shownFp = -1;
+  pos.value = Math.round(cur.fp);
+  viewer.gcodeProcessor.updateFilePosition(pos.value);
+  // a redraw of every segment: without it a model loaded whole stays whole while the printer is near the start
+  for (const r of viewer.gcodeProcessor.renderInstances || []) r.forceRedraw = true;
+  shownFp = pos.value;
+  if (cur.xyz) showNozzleAt(cur.xyz);
+  clip();
+  viewer.forceRender();
 }
 watch(
   () => [S('virtual_sdcard').file_position, S('motion_report').live_position],
@@ -497,17 +555,28 @@ watch(
 );
 watch(tracking, (on) => {
   if (!viewer || !size.value) return;
-  if (on) {
-    stop();
-    viewer.gcodeProcessor.updateFilePosition(0);
-    viewer.forceRender();
-    track();
-  } else if (pos.value < size.value && !active.value) goTo(size.value, false); // the print ended: all of it
+  if (on) startTracking();
+  else {
+    cancelAnimationFrame(followRaf);
+    followRaf = 0;
+    if (pos.value < size.value && !active.value) goTo(size.value, false); // the print ended: all of it
+  }
 });
-// the objects of the running print: click one to exclude it
+// the objects of the running print: the boxes show only while picking one to exclude (the Exclude button)
+const canPick = computed(
+  () => !!(file.value && file.value === curPrint.value && active.value && eo.value.objects?.length),
+);
+const picking = ref(false);
+watch(canPick, (c) => !c && (picking.value = false));
+watch(picking, () => refreshObjects());
+function pickKey(e) {
+  if (e.key === 'Escape' && picking.value) picking.value = false;
+}
+onMounted(() => window.addEventListener('keydown', pickKey));
+onBeforeUnmount(() => window.removeEventListener('keydown', pickKey));
 function refreshObjects() {
   if (!viewer) return;
-  const on = file.value === curPrint.value && active.value && eo.value.objects?.length;
+  const on = canPick.value && picking.value;
   const list = on
     ? eo.value.objects.map((o) => {
         const xs = o.polygon.map((p) => p[0]),
@@ -591,6 +660,7 @@ watch(
 onBeforeUnmount(() => {
   stop();
   cancelAnimationFrame(posRaf);
+  cancelAnimationFrame(followRaf);
   clearTimeout(rt);
   ro?.disconnect();
   loadRequest++;
@@ -646,9 +716,15 @@ onBeforeUnmount(() => {
             </button>
           </div>
         </div>
-        <span v-if="file && file === curPrint && active && eo.objects?.length" class="hint mono">{{
-          t('Click an object to exclude it')
-        }}</span>
+        <div v-if="canPick && tab === '3d'" class="pick">
+          <template v-if="picking">
+            <span class="mono">{{ t('Click an object to exclude it') }}</span>
+            <button class="btn" @click="picking = false">{{ t('Cancel') }}</button>
+          </template>
+          <button v-else class="btn" @click="picking = true">
+            <Icon name="excl" :size="15" />{{ t('Exclude object') }}
+          </button>
+        </div>
       </div>
       <ObjectMap v-if="tab === 'map'" style="flex: 1; min-height: 400px" @pick="emit('exclude')" />
       <template v-if="size && tab === '3d'">
@@ -908,13 +984,26 @@ onBeforeUnmount(() => {
   color: var(--mu);
   pointer-events: none;
 }
-.hint {
+/* exclude an object: a button in the corner, the object boxes show only after it is pressed */
+.pick {
   position: absolute;
   bottom: 10px;
   right: 12px;
-  font-size: 11px;
-  color: var(--mu);
-  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pick > span {
+  font-size: 12px;
+  color: var(--tx);
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.pick .btn {
+  height: 32px;
+  background: var(--s2);
 }
 .pb {
   display: flex;
