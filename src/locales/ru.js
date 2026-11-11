@@ -2487,4 +2487,6 @@ export default {
   "Power / throttling": "Питание / троттлинг",
   "Not reported": "Не сообщается",
   "This host does not report power flags.": "Этот хост не сообщает флаги питания.",
+  "Renamed to {name}": "Переименовано в {name}",
+  "New name": "Новое имя",
 }

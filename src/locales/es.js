@@ -2487,4 +2487,6 @@ export default {
   "Power / throttling": "Alimentación / limitación",
   "Not reported": "No informado",
   "This host does not report power flags.": "Este host no informa de indicadores de alimentación.",
+  "Renamed to {name}": "Renombrado a {name}",
+  "New name": "Nombre nuevo",
 }

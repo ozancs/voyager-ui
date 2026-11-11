@@ -2487,4 +2487,6 @@ export default {
   "Power / throttling": "Alimentation / bridage",
   "Not reported": "Non signalé",
   "This host does not report power flags.": "Cet hôte ne signale pas les indicateurs d’alimentation.",
+  "Renamed to {name}": "Renommé en {name}",
+  "New name": "Nouveau nom",
 }

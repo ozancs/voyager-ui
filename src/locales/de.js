@@ -2487,4 +2487,6 @@ export default {
   "Power / throttling": "Stromversorgung / Drosselung",
   "Not reported": "Nicht gemeldet",
   "This host does not report power flags.": "Dieser Host meldet keine Stromversorgungs-Flags.",
+  "Renamed to {name}": "Umbenannt in {name}",
+  "New name": "Neuer Name",
 }

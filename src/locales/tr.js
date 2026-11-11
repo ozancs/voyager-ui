@@ -2505,4 +2505,6 @@ export default {
   "Power / throttling": "Güç / kısma",
   "Not reported": "Bildirilmiyor",
   "This host does not report power flags.": "Bu host güç bayraklarını bildirmiyor.",
+  "Renamed to {name}": "{name} olarak yeniden adlandırıldı",
+  "New name": "Yeni ad",
 }

@@ -2487,4 +2487,6 @@ export default {
   "Power / throttling": "电源 / 降频",
   "Not reported": "未报告",
   "This host does not report power flags.": "此主机不报告电源标志。",
+  "Renamed to {name}": "已重命名为 {name}",
+  "New name": "新名称",
 }

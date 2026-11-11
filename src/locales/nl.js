@@ -2487,4 +2487,6 @@ export default {
   "Power / throttling": "Voeding / throttling",
   "Not reported": "Niet gemeld",
   "This host does not report power flags.": "Deze host meldt geen voedingsvlaggen.",
+  "Renamed to {name}": "Hernoemd naar {name}",
+  "New name": "Nieuwe naam",
 }

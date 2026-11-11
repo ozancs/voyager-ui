@@ -2487,4 +2487,6 @@ export default {
   "Power / throttling": "전원 / 스로틀링",
   "Not reported": "보고되지 않음",
   "This host does not report power flags.": "이 호스트는 전원 플래그를 보고하지 않습니다.",
+  "Renamed to {name}": "{name}(으)로 이름을 바꿨습니다",
+  "New name": "새 이름",
 }

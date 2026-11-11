@@ -2487,4 +2487,6 @@ export default {
   "Power / throttling": "Zasilanie / dławienie",
   "Not reported": "Nie zgłoszono",
   "This host does not report power flags.": "Ten host nie zgłasza flag zasilania.",
+  "Renamed to {name}": "Zmieniono nazwę na {name}",
+  "New name": "Nowa nazwa",
 }

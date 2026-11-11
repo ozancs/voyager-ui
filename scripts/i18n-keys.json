@@ -2481,5 +2481,7 @@
 "Current usage",
 "Power / throttling",
 "Not reported",
-"This host does not report power flags."
+"This host does not report power flags.",
+"Renamed to {name}",
+"New name"
 ]

@@ -1,7 +1,7 @@
 <script setup>
 // G-code files page: folders, thumbnails, metadata, search, print, add to queue, upload, rename,
 // delete and the edit button (opens small files in the config editor).
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { isGcodeFile, UPLOAD_ACCEPT } from '../gcode3mf';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
@@ -168,6 +168,72 @@ async function preheat(f) {
   if (b && has('heater_bed')) await setHeater('heater_bed', b).catch(() => {});
   if (!e && !b) toast(t('No temperatures in file metadata'));
 }
+// right-click menu on a file or folder (or Shift+F10 on the focused row): the row's own actions in one list
+const ctx = ref(null); // { f, dir, x, y }
+const ctxEl = ref(null);
+async function showCtx(e, f, dir = false) {
+  const r = e.currentTarget?.getBoundingClientRect?.();
+  const x = e.clientX ?? r?.left ?? 0,
+    y = e.clientY ?? r?.bottom ?? 0;
+  ctx.value = { f, dir, x, y };
+  if (!dir) sel.value = f.filename;
+  await nextTick();
+  // near the bottom of the window the menu opens upwards (measured, the zoomed page included)
+  const el = ctxEl.value;
+  if (el) {
+    const z = window.__uiZoom || 1;
+    const h = el.getBoundingClientRect().height;
+    if (y + h > innerHeight - 8) ctx.value.y = Math.max(8, (y - h) / z);
+    else ctx.value.y = y / z;
+    ctx.value.x = Math.min(x, innerWidth - el.getBoundingClientRect().width - 8) / z;
+  }
+  el?.querySelector('button:not(:disabled)')?.focus();
+}
+watch(path, () => (ctx.value = null));
+function ctxDo(action) {
+  const { f, dir } = ctx.value;
+  ctx.value = null;
+  if (dir) {
+    if (action === 'open') open(f);
+    else if (action === 'rename') ren.value = { f, dir: true, value: f.dirname };
+    return;
+  }
+  if (action === 'print') print(f);
+  else if (action === 'queue') addQ([f]);
+  else if (action === 'preheat') preheat(f);
+  else if (action === 'view') view(f);
+  else if (action === 'edit') editFile(f);
+  else if (action === 'rename') ren.value = { f, dir: false, value: f.filename.split('/').pop() };
+  else if (action === 'delete') del.value = [f];
+  else if (action === 'download') {
+    const a = document.createElement('a');
+    a.href = api.fileUrl('gcodes', rel(f));
+    a.download = f.filename.split('/').pop();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+}
+// rename a file or folder in the folder shown
+const ren = ref(null); // { f, dir, value }
+async function doRename() {
+  const r = ren.value;
+  const name = (r?.value || '').trim();
+  const old = r.dir ? r.f.dirname : r.f.filename.split('/').pop();
+  if (!name || name === old || /[/\\]/.test(name)) {
+    ren.value = null;
+    return;
+  }
+  const base = path.value;
+  ren.value = null;
+  try {
+    await api.call('server.files.move', { source: `${base}/${old}`, dest: `${base}/${name}` });
+    toast(t('Renamed to {name}', { name }));
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+  load();
+}
 function doDelete() {
   const fs = del.value;
   const base = path.value;
@@ -333,10 +399,22 @@ function onDrop(e) {
         </label>
       </div>
       <div v-if="grid" class="file-grid">
-        <button v-for="d in dirs" :key="d.dirname" class="btn file-tile" @click="open(d)">
+        <button
+          v-for="d in dirs"
+          :key="d.dirname"
+          class="btn file-tile"
+          @click="open(d)"
+          @contextmenu.prevent="showCtx($event, d, true)"
+        >
           <Icon name="folder" :size="32" /><span>{{ d.dirname }}</span>
         </button>
-        <article v-for="f in list" :key="f.filename" class="file-tile" :class="{ selected: picked.has(f.filename) }">
+        <article
+          v-for="f in list"
+          :key="f.filename"
+          class="file-tile"
+          :class="{ selected: picked.has(f.filename) }"
+          @contextmenu.prevent="showCtx($event, f)"
+        >
           <div class="file-image">
             <img v-if="thumb(f, true)" :src="thumb(f, true)" alt="" loading="lazy" />
             <Icon v-else name="cube" :size="42" />
@@ -403,7 +481,15 @@ function onDrop(e) {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="d in dirs" :key="'d' + d.dirname" class="click" @click="open(d)">
+            <tr
+              v-for="d in dirs"
+              :key="'d' + d.dirname"
+              class="click"
+              tabindex="0"
+              @click="open(d)"
+              @contextmenu.prevent="showCtx($event, d, true)"
+              @keydown.shift.f10.prevent="showCtx($event, d, true)"
+            >
               <td></td>
               <td>
                 <div class="th fo"><Icon name="folder" :size="22" /></div>
@@ -421,8 +507,11 @@ function onDrop(e) {
               :key="f.filename"
               class="click"
               :class="{ sel: sel === f.filename || picked.has(f.filename) }"
+              tabindex="0"
               @click="sel = f.filename"
               @dblclick="!isPrinting && print(f)"
+              @contextmenu.prevent="showCtx($event, f)"
+              @keydown.shift.f10.prevent="showCtx($event, f)"
             >
               <td @click.stop>
                 <input
@@ -526,6 +615,59 @@ function onDrop(e) {
     </section>
     <div class="side-col"><QueueCard /></div>
   </div>
+  <Teleport to="body">
+    <div
+      v-if="ctx"
+      ref="ctxEl"
+      v-away="() => (ctx = null)"
+      class="fctx card"
+      role="menu"
+      :style="{ left: ctx.x + 'px', top: ctx.y + 'px' }"
+    >
+      <span class="mu">{{ ctx.dir ? ctx.f.dirname : ctx.f.filename.split('/').pop() }}</span>
+      <template v-if="ctx.dir">
+        <button class="btn clear" role="menuitem" @click="ctxDo('open')">
+          <Icon name="folder" :size="16" />{{ t('Open folder') }}
+        </button>
+        <button class="btn clear" role="menuitem" @click="ctxDo('rename')">
+          <Icon name="pencil" :size="16" />{{ t('Rename') }}
+        </button>
+      </template>
+      <template v-else>
+        <button class="btn clear" role="menuitem" :disabled="isPrinting" @click="ctxDo('print')">
+          <Icon name="play" :size="16" />{{ t('Print') }}
+        </button>
+        <button v-if="state.queue.enabled" class="btn clear" role="menuitem" @click="ctxDo('queue')">
+          <Icon name="list" :size="16" />{{ t('Add to queue') }}
+        </button>
+        <button class="btn clear" role="menuitem" @click="ctxDo('preheat')">
+          <Icon name="flame" :size="16" />{{ t('Preheat') }}
+        </button>
+        <button class="btn clear" role="menuitem" @click="ctxDo('view')">
+          <Icon name="cube" :size="16" />{{ t('Open in the G-code viewer') }}
+        </button>
+        <button class="btn clear" role="menuitem" :disabled="!!editBlocked(ctx.f)" @click="ctxDo('edit')">
+          <Icon name="code" :size="16" />{{ t('Edit') }}
+        </button>
+        <button class="btn clear" role="menuitem" @click="ctxDo('download')">
+          <Icon name="download" :size="16" />{{ t('Download') }}
+        </button>
+        <button class="btn clear" role="menuitem" @click="ctxDo('rename')">
+          <Icon name="pencil" :size="16" />{{ t('Rename') }}
+        </button>
+        <button class="btn clear dgf" role="menuitem" @click="ctxDo('delete')">
+          <Icon name="trash" :size="16" />{{ t('Delete') }}
+        </button>
+      </template>
+    </div>
+  </Teleport>
+  <Modal v-if="ren" :title="t('Rename')" @close="ren = null">
+    <input v-model="ren.value" class="input mono" :aria-label="t('New name')" autofocus @keydown.enter="doRename" />
+    <template #foot
+      ><button class="btn lg" @click="ren = null">{{ t('Cancel') }}</button
+      ><button class="btn lg acc" @click="doRename">{{ t('Rename') }}</button></template
+    >
+  </Modal>
   <Modal
     v-if="del"
     :title="del.length > 1 ? t('Delete {n} files?', { n: del.length }) : t('Delete file?')"
@@ -554,6 +696,35 @@ function onDrop(e) {
   </Modal>
 </template>
 <style scoped>
+/* right-click menu (teleported to the page, so it is not cut by the card) */
+.fctx.card {
+  position: fixed;
+  z-index: 10000;
+  width: 240px;
+  max-width: calc(100vw - 16px);
+  padding: 6px;
+  gap: 0;
+  box-shadow: 0 8px 30px #0006;
+}
+.fctx > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 8px 6px;
+  font-size: 12px;
+}
+.fctx.card button.btn {
+  justify-content: flex-start;
+  height: 32px;
+  min-height: 32px;
+  min-height: 0;
+  padding: 0 10px;
+  gap: 10px;
+  font-size: 13px;
+}
+.fctx button.dgf {
+  color: var(--dg);
+}
 .drop {
   position: relative;
 }

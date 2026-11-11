@@ -3,6 +3,7 @@
 ## 0.38.38
 
 - G-code Files: dragging files from the computer over the list shows a large drop target with the folder they will go to
+- G-code Files: right-click a file (or Shift+F10) for print, queue, preheat, viewer, edit, download, rename and delete; on a folder, open and rename. Files and folders can be renamed here now
 
 ## 0.38.37
 
