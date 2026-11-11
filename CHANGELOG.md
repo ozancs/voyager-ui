@@ -9,6 +9,7 @@
 - Side menu: the setup group (printer settings, config files, interface settings) sits at the bottom, apart from the pages
 - Update manager: the System row lists the packages that can be updated (click to open) and the update dialog shows them too
 - System update: when it stops because some packages need others removed (PackageKit's "Exit Failed"), a card explains it and gives the apt commands to run over SSH with a copy button, with the raw log under Details. Nothing is removed from the UI
+- Print card and print bar: the text macros send with M117 (heat soak, filament change...) shows under the file name while printing, and an empty M117 hides it again. A message too long for its place slides to its end and back instead of being cut (thanks @DubMonstaa, #14)
 
 ## 0.38.37
 

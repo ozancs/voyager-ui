@@ -6,6 +6,7 @@ import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import PauseAtLayer from './PauseAtLayer.vue';
 import ImageZoom from './ImageZoom.vue';
+import Marquee from './Marquee.vue';
 import {
   state,
   S,
@@ -30,6 +31,8 @@ const ask = ref(false);
 const zoom = ref(false); // the thumbnail shown large
 const ps = computed(() => S('print_stats'));
 const active = computed(() => ['printing', 'paused'].includes(printState.value));
+// what the macros say with M117 (heat soak, filament change...), until an empty M117 clears it
+const msg = computed(() => (S('display_status').message || '').trim());
 const thumb = computed(() => {
   const m = state.currentMeta;
   if (!m?.thumbnails?.length) return null;
@@ -117,6 +120,7 @@ async function reprint() {
         <span class="chip" :style="{ color }"><i></i>{{ t(printState) }}</span>
         <span class="fn">{{ ps.filename || t('No file loaded') }}</span>
       </div>
+      <Marquee v-if="active && msg" class="msg" :text="msg" />
       <div class="stats">
         <div :style="{ minWidth: '9ch' }">
           <span class="lbl">{{ t('Layer') }}</span
@@ -243,6 +247,11 @@ async function reprint() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.msg {
+  margin-top: -6px;
+  font-size: 13px;
+  color: var(--mu);
 }
 .chip {
   text-transform: capitalize;

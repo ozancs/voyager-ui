@@ -6,6 +6,7 @@ import { ref, computed } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import Popover from './Popover.vue';
+import Marquee from './Marquee.vue';
 import {
   state,
   S,
@@ -48,6 +49,8 @@ const pauseNext = computed(
       ?.enable,
 );
 const fileName = computed(() => (S('print_stats').filename || '').split('/').pop());
+// the macros' M117 text, next to the file name until an empty M117 clears it
+const msg = computed(() => (S('display_status').message || '').trim());
 </script>
 
 <template>
@@ -59,7 +62,8 @@ const fileName = computed(() => (S('print_stats').filename || '').split('/').pop
       <div class="row top">
         <b class="st">{{ paused ? t('Paused') : t('Printing') }}</b>
         <span class="mono pct">{{ (progress * 100).toFixed(1) }}%</span>
-        <span class="fn" :title="S('print_stats').filename">{{ fileName }}</span>
+        <span class="fn" :title="S('print_stats').filename">{{ fileName }}</span
+        ><Marquee v-if="msg" class="msg" :text="msg" />
       </div>
       <div class="bar state" :style="{ height: '6px' }">
         <div :style="{ width: progress * 100 + '%' }"></div>
@@ -238,6 +242,11 @@ const fileName = computed(() => (S('print_stats').filename || '').split('/').pop
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+}
+.msg {
+  font-size: 12px;
+  color: var(--tx);
+  flex: 0 1 auto;
 }
 .bar.state {
   background: color-mix(in srgb, var(--pst) 18%, var(--s1));

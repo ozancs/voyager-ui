@@ -2543,6 +2543,11 @@ gcodeScript = function (sc) {
     );
     return 'ok';
   }
+  // M117: Klipper keeps the text in display_status.message (an empty M117 clears it)
+  if (/^M117\b/.test(S)) {
+    pushStatus({ display_status: { message: sc.trim().slice(4).trim() || null } });
+    return 'ok';
+  }
   if (S === 'TURN_OFF_HEATERS') {
     pushStatus({ extruder: { target: 0 }, heater_bed: { target: 0 }, 'heater_generic chamber': { target: 0 } });
     return 'ok';

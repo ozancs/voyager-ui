@@ -659,6 +659,10 @@ All printer macros as buttons or as a compact list. The button grid follows the 
 columns, tall card -> a column. "fit" mode shrinks buttons so everything is visible, "scroll" mode keeps a minimum  
 size and scrolls. Order, names and hidden macros come from the card options (Customize -> gear).
 
+**[src/components/Marquee.vue](../src/components/Marquee.vue)**  
+A line of text that is wider than its place glides to its end and back, instead of being cut with "…".  
+Short text stands still; with reduced motion asked for it is cut as before.
+
 **[src/components/MiniMeshCard.vue](../src/components/MiniMeshCard.vue)**  
 Small bed mesh preview for the dashboard: the probed heights as coloured cells, with range and  
 the active profile. The full view is the Heightmap page.
