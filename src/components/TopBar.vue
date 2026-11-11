@@ -15,6 +15,7 @@ import PowerList from './PowerList.vue';
 import { powerAsk, flipPower } from '../power';
 import LockButton from './LockButton.vue';
 import JobMenu from './JobMenu.vue';
+import TopTabs from './TopTabs.vue';
 const pAsk = computed(() => powerAsk.value);
 const closeAsk = () => (powerAsk.value = null);
 import {
@@ -42,7 +43,8 @@ import { activity } from '../activity';
 
 const emit = defineEmits(['exclude', 'menu']);
 // the printer name and switcher; off when the full height side menu has them (App.vue)
-defineProps({ brand: { type: Boolean, default: true } });
+// tabs: the Top tabs menu style, the pages as pills in this bar and the buttons as icons
+const props = defineProps({ brand: { type: Boolean, default: true }, tabs: Boolean });
 const fileInput = ref(null);
 const uploading = ref(null);
 const showBell = ref(false);
@@ -207,7 +209,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
 </script>
 
 <template>
-  <header class="tb" :class="{ pilled: active && state.settings.printBar === 'top', ovup: ovOpen }">
+  <header class="tb" :class="{ pilled: active && state.settings.printBar === 'top', ovup: ovOpen, tabs }">
     <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')">
       <Icon name="menu" :size="22" />
     </button>
@@ -217,7 +219,19 @@ onBeforeUnmount(() => ovObs?.disconnect());
         <div class="col" style="gap: 0; min-width: 0">
           <b ref="nameEl" class="pn" :class="{ marq: over > 0 }" :style="{ '--ov': over + 'px' }"
             ><span>{{ printerName }}</span></b
-          ><span class="mono mu" style="font-size: 11px">{{ hostName }}</span>
+          ><span
+            v-if="!tabs || state.klippy !== 'ready' || !topHeaters.length"
+            class="mono mu"
+            style="font-size: 11px"
+            >{{ hostName }}</span
+          ><!-- top tabs: the hotend and bed under the name, where the address is otherwise (it shows on hover) -->
+          <span v-else class="mono bt" :title="hostName"
+            ><span v-for="h in topHeaters" :key="h" :class="{ hot: S(h).target > 0 }"
+              ><Icon :name="h.startsWith('extruder') ? 'nozzle' : 'bed'" :size="12" />{{
+                S(h).temperature != null ? S(h).temperature.toFixed(0) + '°' : '--'
+              }}<small v-if="S(h).target > 0">/{{ S(h).target.toFixed(0) }}</small></span
+            ></span
+          >
         </div>
       </a>
       <button
@@ -270,9 +284,10 @@ onBeforeUnmount(() => ovObs?.disconnect());
         </button>
       </Popover>
     </template>
+    <TopTabs v-if="tabs" />
     <!-- a running print: in its own band under the top bar by default; "moved up" it is this compact pill -->
     <template v-if="active && state.settings.printBar === 'top'">
-      <div class="grow"></div>
+      <div v-if="!tabs" class="grow"></div>
       <div class="pill job" :style="{ '--pst': stateColor }">
         <div class="pth">
           <img v-if="thumb && S('print_stats').filename" :src="thumb" alt="" /><Icon
@@ -303,9 +318,9 @@ onBeforeUnmount(() => ovObs?.disconnect());
         </button>
         <JobMenu @exclude="emit('exclude')" />
       </div>
-      <div class="grow"></div>
+      <div v-if="!tabs" class="grow"></div>
     </template>
-    <div v-else-if="active" class="grow"></div>
+    <div v-else-if="active" :class="{ grow: !tabs }"></div>
     <div
       v-else
       class="pill"
@@ -333,7 +348,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
               : S('print_stats').filename || t('No file loaded')
         }}</span>
       </div>
-      <div class="grow"></div>
+      <div v-if="!tabs" class="grow"></div>
       <button
         v-if="state.queue.jobs?.length"
         class="btn pbtn qb"
@@ -343,7 +358,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
         <Icon name="queue" :size="16" /><span class="mono">{{ state.queue.jobs.length }}</span>
       </button>
       <button
-        v-if="S('print_stats').filename && state.klippy === 'ready'"
+        v-if="!tabs && S('print_stats').filename && state.klippy === 'ready'"
         class="btn pbtn"
         :aria-label="t('Print this file again')"
         @click="reprint"
@@ -352,7 +367,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
       </button>
     </div>
     <!-- hotend and bed on every page; the dashboard's tiles show more -->
-    <div v-if="state.klippy === 'ready' && topHeaters.length" class="tmp hide-s">
+    <div v-if="!tabs && state.klippy === 'ready' && topHeaters.length" class="tmp hide-s">
       <span
         v-for="h in topHeaters"
         :key="h"
@@ -366,23 +381,37 @@ onBeforeUnmount(() => ovObs?.disconnect());
         ><small v-if="S(h).target > 0 && heatEta(h)?.secs" class="eta">{{ fmtEta(heatEta(h).secs) }}</small></span
       >
     </div>
-    <button class="btn lg srch hide-s" :aria-label="t('Search (Ctrl+K)')" @click="state.spotlight = true">
-      <Icon name="search" :size="18" :stroke="2.4" /><kbd class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
-    </button>
     <button
-      class="btn lg hide-s"
+      class="btn lg srch hide-s"
+      :aria-label="t('Search (Ctrl+K)')"
+      :data-tip="tabs ? t('Search (Ctrl+K)') : null"
+      @click="state.spotlight = true"
+    >
+      <Icon name="search" :size="18" :stroke="2.4" /><kbd v-if="!tabs" class="hide-m">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
+    </button>
+    <!-- top tabs: Save Config only when there is something to save -->
+    <button
+      v-if="!tabs || savePending"
+      class="btn lg hide-s sv"
+      :class="{ pend: tabs && savePending && !active }"
       :disabled="!savePending || active"
       :aria-label="t('Save Config')"
-      :data-tip="active && savePending ? t('Save Config restarts Klipper. Available when the print is done.') : null"
+      :data-tip="
+        active && savePending
+          ? t('Save Config restarts Klipper. Available when the print is done.')
+          : tabs
+            ? t('Save Config')
+            : null
+      "
       @click="gcode('SAVE_CONFIG')"
     >
-      <Icon name="save" :stroke="2.4" /><span class="hide-m">{{ t('Save Config') }}</span>
+      <Icon name="save" :stroke="2.4" /><span v-if="!tabs" class="hide-m">{{ t('Save Config') }}</span>
     </button>
     <button
       class="btn lg hide-s upb"
       :class="{ dropon: dropOn }"
       :aria-label="t('Upload & Print')"
-      :data-tip="t('Click, or drop a G-code file here')"
+      :data-tip="tabs ? t('Upload & Print') : t('Click, or drop a G-code file here')"
       :disabled="uploading !== null"
       @click="fileInput.click()"
       @dragenter.prevent="dropOn = true"
@@ -391,7 +420,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
       @drop.prevent="onDrop"
     >
       <Icon name="upload" :stroke="2.4" /><span v-if="uploading !== null">{{ Math.round(uploading * 100) + '%' }}</span
-      ><span v-else class="hide-m">{{ t('Upload & Print') }}</span>
+      ><span v-else-if="!tabs" class="hide-m">{{ t('Upload & Print') }}</span>
     </button>
     <input ref="fileInput" type="file" :accept="UPLOAD_ACCEPT" hidden @change="onFile" />
     <span class="grp hide-s" aria-hidden="true"></span>
@@ -447,10 +476,21 @@ onBeforeUnmount(() => ovObs?.disconnect());
         </div>
       </div>
     </div>
-    <button v-if="!state.editDash" class="btn ibtn hide-s" :aria-label="t('Customize dashboard')" @click="customize">
+    <button
+      v-if="!state.editDash && !tabs"
+      class="btn ibtn hide-s"
+      :aria-label="t('Customize dashboard')"
+      :data-tip="tabs ? t('Customize dashboard') : null"
+      @click="customize"
+    >
       <Icon name="customize" :size="22" :stroke="2.2" />
     </button>
-    <button class="btn ibtn hide-s" :aria-label="t('Interface settings')" @click="state.settingsOpen = 'general'">
+    <button
+      class="btn ibtn hide-s"
+      :aria-label="t('Interface settings')"
+      :data-tip="tabs ? t('Interface settings') : null"
+      @click="state.settingsOpen = 'general'"
+    >
       <Icon name="gear" :size="22" :stroke="2.4" />
     </button>
     <div class="rel more">
@@ -561,7 +601,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
       </div>
     </div>
     <button class="btn lg dgf estop" :aria-label="t('E-STOP')" @click="estop">
-      <Icon name="stop" :size="22" :stroke="2.6" /><span class="hide-s">{{ t('E-STOP') }}</span>
+      <Icon name="stop" :size="22" :stroke="2.6" /><span class="hide-s es">{{ t('E-STOP') }}</span>
     </button>
   </header>
   <Modal v-if="pAsk" :title="t('Turn off {name}?', { name: prettyName(pAsk.device) })" @close="closeAsk">
@@ -1077,5 +1117,111 @@ onBeforeUnmount(() => ovObs?.disconnect());
   outline: 2px dashed var(--ac);
   outline-offset: 2px;
   background: color-mix(in srgb, var(--ac) 18%, var(--s2));
+}
+/* Top tabs: the bar sits on the dark frame above the page panel; the pages are pills, the buttons round icons */
+.tb.tabs {
+  height: 76px;
+  gap: 8px;
+  padding: 0 18px 0 22px;
+  background: transparent;
+  border-bottom: 0;
+}
+.tb.tabs .brand {
+  width: auto;
+  max-width: 230px;
+  margin-right: 18px;
+}
+.tb.tabs > .btn:not(.clear),
+.tb.tabs > .rel > .btn,
+.tb.tabs > :deep(.btn.lock) {
+  height: 44px;
+  min-width: 44px;
+  border-radius: 16px;
+  background: var(--s1);
+}
+.tb.tabs > .btn:not(.clear):hover:not(:disabled),
+.tb.tabs > .rel > .btn:hover:not(:disabled),
+.tb.tabs > :deep(.btn.lock:hover:not(:disabled)) {
+  background: var(--s2);
+}
+.tb.tabs > .btn.lg:not(.estop) {
+  width: 44px;
+  padding: 0;
+}
+.tb.tabs > .btn.estop {
+  background: #c93a3a;
+  padding: 0 18px;
+}
+.tb.tabs > .btn.estop:hover:not(:disabled) {
+  background: #d64545;
+}
+.tb.tabs > .btn:not(.dgf):not(.clear):not(.on):not(:disabled) > :deep(svg),
+.tb.tabs > .rel > .btn:not(.clear) > :deep(svg),
+.tb.tabs > :deep(.btn.lock:not(.on) > svg) {
+  color: var(--tx);
+}
+.tb.tabs > .btn.sv.pend {
+  background: color-mix(in srgb, var(--ac) 16%, var(--s1));
+}
+.tb.tabs > .btn.sv.pend > :deep(svg) {
+  color: var(--ac);
+}
+.tb.tabs .grp {
+  width: 10px;
+}
+.tb.tabs .pill {
+  flex: 0 1 auto;
+  max-width: 300px;
+  height: 46px;
+  gap: 10px;
+  padding: 0 18px 0 4px;
+  border-radius: 999px;
+}
+.tb.tabs .pill.job {
+  max-width: 440px;
+  padding-right: 4px;
+}
+.tb.tabs .pill .pth {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+}
+.tb.tabs .pill .pbtn,
+.tb.tabs .pill .jb {
+  height: 38px;
+  border-radius: 999px;
+}
+.tb.tabs {
+  gap: 6px;
+}
+.bt {
+  display: flex;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--mu);
+  white-space: nowrap;
+}
+.bt > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.bt .hot {
+  color: var(--tx);
+}
+.bt small {
+  color: var(--mu);
+  font-size: 10.5px;
+}
+/* a narrower window: the idle status box goes first (the page shows the printer's state), then E-STOP's label */
+:root.ew-lt-1500 .tb.tabs .pill:not(.job) {
+  display: none;
+}
+:root.ew-lt-1300 .tb.tabs .estop {
+  padding: 0;
+  width: 52px;
+}
+:root.ew-lt-1300 .tb.tabs .estop .es {
+  display: none;
 }
 </style>

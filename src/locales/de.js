@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "Menü ausklappen",
   "Collapse menu": "Menü einklappen",
   "Menu style": "Menüstil",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Klassisch: das Menü unter der oberen Leiste. Die anderen gehen über die ganze Höhe, mit dem Drucker oben, und klappen zu Symbolen ein. Gilt, wenn das Menü immer sichtbar ist und der Bildschirm breit genug.",
   "Floating": "Schwebend",
   "Attached": "Angelegt",
   "Frame": "Rahmen",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Achte darauf, dass der laufende Kernel nicht in der Liste der zu entfernenden Pakete steht, prüfe ihn mit uname -r.",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "Tipp: Mit enable_packagekit: False im Abschnitt [update_manager] der moonraker.conf aktualisiert Moonraker mit apt-get upgrade. Pakete, die eine Entfernung erfordern, werden dann übersprungen und der Rest ohne diesen Fehler aktualisiert.",
   "{n} packages can be updated": "{n} Pakete können aktualisiert werden",
+  "Top tabs": "Tabs oben",
+  "Files": "Dateien",
+  "Viewer": "Viewer",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Klassisch: das Menü unter der oberen Leiste. Schwebend, Angelegt und Rahmen laufen über die volle Höhe mit dem Drucker oben und klappen zu Symbolen ein. Tabs oben: die Seiten als Tabs in der oberen Leiste. Gilt, wenn das Menü auf einem breiten Bildschirm immer sichtbar ist.",
 }

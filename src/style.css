@@ -48,6 +48,11 @@
   --tn-mix: 12%;
   color-scheme: dark;
 }
+/* the Top tabs menu style rounds the whole interface a little more */
+:root.ui-tabs {
+  --r: 20px;
+  --rb: 12px;
+}
 /* light theme: same structure, paper-white surfaces, deeper inks so tints stay readable */
 :root[data-theme='light'] {
   --bg: #eef0f3;

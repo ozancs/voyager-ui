@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "Expandir menú",
   "Collapse menu": "Contraer menú",
   "Menu style": "Estilo del menú",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Clásico: el menú bajo la barra superior. Los demás ocupan toda la altura, con la impresora arriba, y se pliegan a iconos. Se usa cuando el menú está siempre visible en una pantalla ancha.",
   "Floating": "Flotante",
   "Attached": "Pegado",
   "Frame": "Marco",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Asegúrate de que el kernel en uso no esté en la lista a eliminar, compruébalo con uname -r.",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "Consejo: con enable_packagekit: False en la sección [update_manager] de moonraker.conf, Moonraker actualiza con apt-get upgrade. Los paquetes que requieren eliminar otros se omiten y el resto se actualiza sin este error.",
   "{n} packages can be updated": "{n} paquetes se pueden actualizar",
+  "Top tabs": "Pestañas arriba",
+  "Files": "Archivos",
+  "Viewer": "Visor",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Clásico: el menú bajo la barra superior. Flotante, Pegado y Marco ocupan toda la altura con la impresora arriba y se pliegan a iconos. Pestañas arriba: las páginas como pestañas en la barra superior. Se usa cuando el menú está siempre visible en una pantalla ancha.",
 }

@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "展开菜单",
   "Collapse menu": "收起菜单",
   "Menu style": "菜单样式",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "经典：菜单在顶栏下方。其他样式占满整个高度，打印机在顶部，可折叠为图标。在菜单始终显示且屏幕较宽时使用。",
   "Floating": "悬浮",
   "Attached": "贴边",
   "Frame": "框架",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "请用 uname -r 确认正在运行的内核不在待移除列表中。",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "提示：在 moonraker.conf 的 [update_manager] 部分写入 enable_packagekit: False 后，Moonraker 会使用 apt-get upgrade 更新。需要移除其他包的软件包会被跳过，其余的正常更新，不会出现此错误。",
   "{n} packages can be updated": "{n} 个软件包可更新",
+  "Top tabs": "顶部标签",
+  "Files": "文件",
+  "Viewer": "查看器",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "经典：菜单位于顶栏下方。悬浮、贴边和框架占满整个高度，打印机在顶部，可折叠为图标。顶部标签：页面以标签形式显示在顶栏中。在宽屏上菜单始终可见时使用。",
 }

@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "Rozwiń menu",
   "Collapse menu": "Zwiń menu",
   "Menu style": "Styl menu",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Klasyczny: menu pod górnym paskiem. Pozostałe zajmują całą wysokość, z drukarką na górze, i zwijają się do ikon. Działa, gdy menu jest zawsze widoczne na szerokim ekranie.",
   "Floating": "Pływający",
   "Attached": "Przyległy",
   "Frame": "Ramka",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Upewnij się poleceniem uname -r, że działającego jądra nie ma na liście do usunięcia.",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "Wskazówka: z enable_packagekit: False w sekcji [update_manager] pliku moonraker.conf Moonraker aktualizuje przez apt-get upgrade. Pakiety wymagające usunięcia innych są wtedy pomijane, a reszta aktualizuje się bez tego błędu.",
   "{n} packages can be updated": "Pakiety do aktualizacji: {n}",
+  "Top tabs": "Karty u góry",
+  "Files": "Pliki",
+  "Viewer": "Podgląd",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Klasyczne: menu pod górnym paskiem. Pływający, Przyległy i Ramka zajmują całą wysokość z drukarką na górze i zwijają się do ikon. Karty u góry: strony jako karty na górnym pasku. Działa, gdy menu jest zawsze widoczne na szerokim ekranie.",
 }

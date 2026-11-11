@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "Розгорнути меню",
   "Collapse menu": "Згорнути меню",
   "Menu style": "Стиль меню",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Класичний: меню під верхньою панеллю. Інші займають усю висоту, принтер угорі, і згортаються до значків. Діє, коли меню завжди видно на широкому екрані.",
   "Floating": "Плаваючий",
   "Attached": "Прикріплений",
   "Frame": "Рамка",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Перевірте командою uname -r, що робочого ядра немає у списку на видалення.",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "Порада: з enable_packagekit: False у розділі [update_manager] файлу moonraker.conf Moonraker оновлює через apt-get upgrade. Пакети, що потребують видалення інших, пропускаються, решта оновлюється без цієї помилки.",
   "{n} packages can be updated": "Можна оновити пакетів: {n}",
+  "Top tabs": "Вкладки зверху",
+  "Files": "Файли",
+  "Viewer": "Перегляд",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Класичний: меню під верхньою панеллю. Плаваючий, Прикріплений і Рамка займають усю висоту, принтер угорі, згортаються до значків. Вкладки зверху: сторінки як вкладки у верхній панелі. Діє, коли меню завжди видно на широкому екрані.",
 }

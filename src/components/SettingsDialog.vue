@@ -1082,12 +1082,12 @@ const consoleSample = (() => {
                   </button>
                 </div>
               </div>
-              <div class="rw">
+              <div class="rw col">
                 <div class="k">
                   <b>{{ t('Menu style') }}</b
                   ><span>{{
                     t(
-                      'Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.',
+                      'Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.',
                     )
                   }}</span>
                 </div>
@@ -1098,6 +1098,7 @@ const consoleSample = (() => {
                       ['float', 'Floating'],
                       ['attached', 'Attached'],
                       ['frame', 'Frame'],
+                      ['tabs', 'Top tabs'],
                     ]"
                     :key="k"
                     :class="{ on: (state.settings.navStyle || 'classic') === k }"

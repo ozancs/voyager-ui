@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "Déplier le menu",
   "Collapse menu": "Replier le menu",
   "Menu style": "Style du menu",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Classique : le menu sous la barre du haut. Les autres prennent toute la hauteur, l'imprimante en haut, et se replient en icônes. Utilisé quand le menu est toujours visible sur un écran large.",
   "Floating": "Flottant",
   "Attached": "Accolé",
   "Frame": "Cadre",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Vérifiez que le noyau en cours n'est pas dans la liste à supprimer, avec uname -r.",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "Astuce : avec enable_packagekit: False dans la section [update_manager] de moonraker.conf, Moonraker met à jour avec apt-get upgrade. Les paquets qui demandent une suppression sont alors ignorés et le reste est mis à jour sans cette erreur.",
   "{n} packages can be updated": "{n} paquets peuvent être mis à jour",
+  "Top tabs": "Onglets en haut",
+  "Files": "Fichiers",
+  "Viewer": "Visionneuse",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Classique : le menu sous la barre du haut. Flottant, Accolé et Cadre occupent toute la hauteur avec l'imprimante en haut et se replient en icônes. Onglets en haut : les pages en onglets dans la barre du haut. Utilisé quand le menu est toujours visible sur un écran large.",
 }

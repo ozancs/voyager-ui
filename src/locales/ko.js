@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "메뉴 펼치기",
   "Collapse menu": "메뉴 접기",
   "Menu style": "메뉴 스타일",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "클래식: 상단 바 아래의 메뉴. 나머지는 전체 높이로 프린터가 맨 위에 있고 아이콘으로 접힙니다. 메뉴가 항상 표시되고 화면이 넓을 때 사용됩니다.",
   "Floating": "플로팅",
   "Attached": "붙임",
   "Frame": "프레임",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "제거 목록에 실행 중인 커널이 없는지 uname -r로 확인하세요.",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "팁: moonraker.conf의 [update_manager] 섹션에 enable_packagekit: False를 넣으면 Moonraker가 apt-get upgrade로 업데이트합니다. 제거가 필요한 패키지는 건너뛰고 나머지는 이 오류 없이 업데이트됩니다.",
   "{n} packages can be updated": "{n}개 패키지 업데이트 가능",
+  "Top tabs": "상단 탭",
+  "Files": "파일",
+  "Viewer": "뷰어",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "클래식: 상단 바 아래의 메뉴. 플로팅, 붙임, 프레임은 전체 높이로 표시되고 프린터가 맨 위에 있으며 아이콘으로 접힙니다. 상단 탭: 페이지를 상단 바의 탭으로 표시. 넓은 화면에서 메뉴를 항상 표시할 때 사용됩니다.",
 }

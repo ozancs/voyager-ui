@@ -156,7 +156,11 @@ const navMode = computed(() => (narrow.value ? 'hidden' : state.settings.navMode
 // pinned on a wide screen: the menu runs the full height as a panel of its own, the printer at its top; it
 // collapses to a rail of icons
 const navStyle = computed(() => state.settings.navStyle || 'classic'); // Settings > Menu style
-const side = computed(() => navMode.value === 'pinned' && navStyle.value !== 'classic');
+const side = computed(() => navMode.value === 'pinned' && !['classic', 'tabs'].includes(navStyle.value));
+// top tabs: the pages as pills in the top bar, the page in a panel with rounded top corners under it. Its softer
+// corners go to the whole interface (dialogs too), so the class sits on the root
+const tabs = computed(() => navMode.value === 'pinned' && navStyle.value === 'tabs');
+watch(tabs, (on) => document.documentElement.classList.toggle('ui-tabs', on), { immediate: true });
 const rail = computed(() => side.value && !!state.settings.navRail);
 // the button inside the menu: pinned -> hidden, hidden/auto -> pinned
 function pinNav() {
@@ -217,7 +221,7 @@ startIssues();
   <div
     class="shell"
     ref="shell"
-    :class="[{ booting: state.connected && !state.booted, side }, side && 'nav-' + navStyle]"
+    :class="[{ booting: state.connected && !state.booted, side }, (side || tabs) && 'nav-' + navStyle]"
   >
     <SideNav
       v-if="side"
@@ -228,91 +232,96 @@ startIssues();
       @rail="state.settings.navRail = !state.settings.navRail"
     />
     <div class="scol">
-      <TopBar :brand="!side" @exclude="state.showExclude = true" @menu="toggleNav" />
+      <TopBar :brand="!side" :tabs="tabs" @exclude="state.showExclude = true" @menu="toggleNav" />
       <SettingsDialog v-if="state.settingsOpen" />
       <PrintersDialog v-if="state.printersOpen" @close="state.printersOpen = false" />
-      <PrintBar
-        v-if="printActive && state.settings.printBar !== 'top' && !(route.name === 'dashboard' && state.dashPrintCard)"
-        @exclude="state.showExclude = true"
-      />
-      <FavoritesBar v-if="showFavBar" />
-      <div class="body">
-        <!-- the shadow the bars above cast once the page is scrolled, so the page reads as going under them -->
-        <div class="shade" :class="{ on: scrolled }" aria-hidden="true"></div>
-        <SideNav
-          v-if="!side"
-          :open="navOpen"
-          :mode="navMode"
-          @close="navOpen = false"
-          @pin="pinNav"
-          @mouseenter="navMode === 'auto' && peek(true)"
-          @mouseleave="navMode === 'auto' && peek(false)"
+      <!-- the page panel: only a box of its own in the top tabs style, otherwise its parts sit in the column -->
+      <div class="pnl">
+        <PrintBar
+          v-if="
+            printActive && state.settings.printBar !== 'top' && !(route.name === 'dashboard' && state.dashPrintCard)
+          "
+          @exclude="state.showExclude = true"
         />
-        <div v-if="navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
-        <button
-          v-if="navMode !== 'pinned' && !navOpen && !narrow"
-          class="navtab"
-          :aria-label="t('Show / hide the side menu')"
-          :data-tip="t('Menu')"
-          @click="navMode === 'hidden' ? pinNav() : (navOpen = true)"
-          @mouseenter="navMode === 'auto' && peek(true)"
-        >
-          <Icon name="chevr2" :size="16" :stroke="2.4" />
-        </button>
-        <main
-          class="main"
-          :class="{ stale: !state.connected && state.booted }"
-          @scroll.passive="scrolled = $event.target.scrollTop > 2"
-        >
-          <div v-if="!state.connected" class="banner">
-            <Icon name="refresh" :size="20" class="spin" />
-            <div class="grow">
-              <b>{{ t('Connecting to Moonraker…') }}</b
-              ><span
-                v-if="state.conn.attempts"
-                class="mono"
-                style="font-weight: 400; font-size: 12px; margin-left: 10px; color: var(--mu)"
-                >{{ t('attempt {n}', { n: state.conn.attempts }) }}</span
-              >
-              <pre v-if="state.conn.probe">{{ state.conn.probe }}</pre>
-            </div>
-            <button v-if="state.conn.attempts > 1" class="btn" @click="state.printersOpen = true">
-              <Icon name="printer3d" :size="16" />{{ t('Printers') }}
-            </button>
-          </div>
-          <div v-else-if="notReady" class="banner err">
-            <Icon name="warn" :size="20" />
-            <div class="grow">
-              <b>{{ t('Klipper {state}', { state: state.klippy }) }}</b>
-              <pre>{{ state.klippyMessage }}</pre>
-              <ExplainBox v-if="klippyExplain" :e="klippyExplain" class="kx" />
-            </div>
-            <button class="btn lg" @click="restartKlipper()">
-              {{ t('Restart') }}
-            </button>
-            <button class="btn lg acc" @click="restartKlipper(true)">{{ t('Firmware Restart') }}</button>
-          </div>
-          <component
-            :is="view"
-            :key="route.name === 'config' ? 'config' : route.name"
-            @exclude="state.showExclude = true"
+        <FavoritesBar v-if="showFavBar" />
+        <div class="body">
+          <!-- the shadow the bars above cast once the page is scrolled, so the page reads as going under them -->
+          <div class="shade" :class="{ on: scrolled }" aria-hidden="true"></div>
+          <SideNav
+            v-if="!side && !tabs"
+            :open="navOpen"
+            :mode="navMode"
+            @close="navOpen = false"
+            @pin="pinNav"
+            @mouseenter="navMode === 'auto' && peek(true)"
+            @mouseleave="navMode === 'auto' && peek(false)"
           />
-          <footer class="ft mono">
-            <button class="ver" :data-tip="t('What’s new')" @click="state.whatsNew = true">
-              <b>{{ APP_NAME }}</b> v{{ VERSION }}
-            </button>
-            <span v-if="state.versions.klipper">Klipper {{ state.versions.klipper }}</span>
-            <span v-if="state.versions.moonraker">Moonraker {{ state.versions.moonraker }}</span>
-            <span v-if="state.versions.host">{{ state.versions.host }}</span>
-            <span class="grow"></span>
-            <button class="ver" @click="state.reportOpen = true">{{ t('Report a problem') }}</button>
-            <a class="ver" :href="REPO_URL" target="_blank" rel="noopener">GitHub</a>
-            <Handoff />
-            <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">{{
-              t('Open {name}', { name: 'Mainsail' })
-            }}</a>
-          </footer>
-        </main>
+          <div v-if="navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
+          <button
+            v-if="navMode !== 'pinned' && !navOpen && !narrow"
+            class="navtab"
+            :aria-label="t('Show / hide the side menu')"
+            :data-tip="t('Menu')"
+            @click="navMode === 'hidden' ? pinNav() : (navOpen = true)"
+            @mouseenter="navMode === 'auto' && peek(true)"
+          >
+            <Icon name="chevr2" :size="16" :stroke="2.4" />
+          </button>
+          <main
+            class="main"
+            :class="{ stale: !state.connected && state.booted }"
+            @scroll.passive="scrolled = $event.target.scrollTop > 2"
+          >
+            <div v-if="!state.connected" class="banner">
+              <Icon name="refresh" :size="20" class="spin" />
+              <div class="grow">
+                <b>{{ t('Connecting to Moonraker…') }}</b
+                ><span
+                  v-if="state.conn.attempts"
+                  class="mono"
+                  style="font-weight: 400; font-size: 12px; margin-left: 10px; color: var(--mu)"
+                  >{{ t('attempt {n}', { n: state.conn.attempts }) }}</span
+                >
+                <pre v-if="state.conn.probe">{{ state.conn.probe }}</pre>
+              </div>
+              <button v-if="state.conn.attempts > 1" class="btn" @click="state.printersOpen = true">
+                <Icon name="printer3d" :size="16" />{{ t('Printers') }}
+              </button>
+            </div>
+            <div v-else-if="notReady" class="banner err">
+              <Icon name="warn" :size="20" />
+              <div class="grow">
+                <b>{{ t('Klipper {state}', { state: state.klippy }) }}</b>
+                <pre>{{ state.klippyMessage }}</pre>
+                <ExplainBox v-if="klippyExplain" :e="klippyExplain" class="kx" />
+              </div>
+              <button class="btn lg" @click="restartKlipper()">
+                {{ t('Restart') }}
+              </button>
+              <button class="btn lg acc" @click="restartKlipper(true)">{{ t('Firmware Restart') }}</button>
+            </div>
+            <component
+              :is="view"
+              :key="route.name === 'config' ? 'config' : route.name"
+              @exclude="state.showExclude = true"
+            />
+            <footer class="ft mono">
+              <button class="ver" :data-tip="t('What’s new')" @click="state.whatsNew = true">
+                <b>{{ APP_NAME }}</b> v{{ VERSION }}
+              </button>
+              <span v-if="state.versions.klipper">Klipper {{ state.versions.klipper }}</span>
+              <span v-if="state.versions.moonraker">Moonraker {{ state.versions.moonraker }}</span>
+              <span v-if="state.versions.host">{{ state.versions.host }}</span>
+              <span class="grow"></span>
+              <button class="ver" @click="state.reportOpen = true">{{ t('Report a problem') }}</button>
+              <a class="ver" :href="REPO_URL" target="_blank" rel="noopener">GitHub</a>
+              <Handoff />
+              <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">{{
+                t('Open {name}', { name: 'Mainsail' })
+              }}</a>
+            </footer>
+          </main>
+        </div>
       </div>
     </div>
     <BottomNav @menu="toggleNav" />
@@ -400,6 +409,26 @@ startIssues();
 }
 .shell.side {
   flex-direction: row;
+}
+.pnl {
+  display: contents;
+}
+/* top tabs: the bar on a dark frame, the page in a panel from edge to edge with rounded top corners */
+.shell.nav-tabs {
+  background: color-mix(in srgb, var(--bg) 52%, #000);
+}
+.shell.nav-tabs .pnl {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-radius: 26px 26px 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--bd) 70%, transparent);
+  overflow: hidden;
+}
+:root[data-theme='light'] .shell.nav-tabs {
+  background: color-mix(in srgb, var(--bg) 88%, #000);
 }
 .shell.side .scol {
   padding-left: 12px;

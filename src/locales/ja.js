@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "メニューを展開",
   "Collapse menu": "メニューを折りたたむ",
   "Menu style": "メニューのスタイル",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "クラシック：上部バーの下にメニュー。その他は全高で、プリンターが上部にあり、アイコンに折りたためます。メニューが常に表示され、画面が広いときに使われます。",
   "Floating": "フローティング",
   "Attached": "アタッチ",
   "Frame": "フレーム",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "削除リストに実行中のカーネルが含まれていないことを uname -r で確認してください。",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "ヒント: moonraker.conf の [update_manager] セクションに enable_packagekit: False を書くと、Moonraker は apt-get upgrade で更新します。削除が必要なパッケージはスキップされ、残りはこのエラーなしで更新されます。",
   "{n} packages can be updated": "{n} 個のパッケージを更新できます",
+  "Top tabs": "上部タブ",
+  "Files": "ファイル",
+  "Viewer": "ビューア",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "クラシック: 上部バーの下にメニュー。フローティング、アタッチ、フレームは全高に表示され、プリンターが上にあり、アイコンに折りたためます。上部タブ: ページを上部バーのタブとして表示。ワイド画面でメニューを常に表示するときに使われます。",
 }

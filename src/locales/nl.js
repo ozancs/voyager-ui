@@ -2384,7 +2384,6 @@ export default {
   "Expand menu": "Menu uitklappen",
   "Collapse menu": "Menu inklappen",
   "Menu style": "Menustijl",
-  "Classic: the menu under the top bar. The others run the full height with the printer at the top and fold to icons. Used when the menu is always visible on a wide screen.": "Klassiek: het menu onder de bovenbalk. De andere lopen over de hele hoogte, met de printer bovenaan, en klappen in tot pictogrammen. Geldt als het menu altijd zichtbaar is op een breed scherm.",
   "Floating": "Zwevend",
   "Attached": "Vast",
   "Frame": "Kader",
@@ -2494,4 +2493,8 @@ export default {
   "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Controleer met uname -r dat de draaiende kernel niet in de lijst met te verwijderen pakketten staat.",
   "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "Tip: met enable_packagekit: False in de sectie [update_manager] van moonraker.conf werkt Moonraker bij met apt-get upgrade. Pakketten die een verwijdering nodig hebben worden dan overgeslagen en de rest wordt zonder deze fout bijgewerkt.",
   "{n} packages can be updated": "{n} pakketten kunnen worden bijgewerkt",
+  "Top tabs": "Tabbladen boven",
+  "Files": "Bestanden",
+  "Viewer": "Viewer",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Klassiek: het menu onder de bovenbalk. Zwevend, Vast en Kader lopen over de volle hoogte met de printer bovenaan en klappen in tot iconen. Tabbladen boven: de pagina's als tabbladen in de bovenbalk. Geldt als het menu op een breed scherm altijd zichtbaar is.",
 }

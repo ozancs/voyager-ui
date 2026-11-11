@@ -1214,7 +1214,7 @@ function applyScale() {
   state.uiZoom = z;
   // width breakpoints above the phone layout follow the zoomed width, not the raw window width
   const ew = window.innerWidth / z;
-  for (const bp of [1200, 1300, 1750, 1900]) el.classList.toggle('ew-lt-' + bp, ew <= bp);
+  for (const bp of [1200, 1300, 1500, 1750, 1900]) el.classList.toggle('ew-lt-' + bp, ew <= bp);
   try {
     localStorage.setItem(APP + '-uiscale', String(pref));
   } catch {}

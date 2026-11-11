@@ -7,7 +7,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import Icon from './Icon.vue';
 import PrinterBrand from './PrinterBrand.vue';
 import { state, useApiEvent, activeTasks } from '../store';
-import { healthIssues } from '../features';
+import { NAV2, navItems, healthBadge } from '../nav';
 import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -19,39 +19,11 @@ const props = defineProps({
   rail: Boolean,
 });
 const emit = defineEmits(['close', 'pin', 'rail']);
-const NAV = [
-  ['dashboard', 'dash', 'Dashboard'],
-  ['webcam', 'cam', 'Camera'],
-  ['console', 'term', 'Console'],
-  ['heightmap', 'hmap', 'Heightmap'],
-  ['calibrations', 'target', 'Calibrations'],
-  ['oznlab', 'sensor', 'PA Sensei'],
-  ['files', 'file', 'G-code Files'],
-  ['viewer', 'cube', 'G-code Viewer'],
-  ['history', 'clock', 'History'],
-  ['machine', 'cpu', 'Machine'],
-  ['health', 'heart', 'Health'],
-];
-// the PA Sensei page only on printers that have the sensor's Klipper module: [pa_sensei ...], or [oznlab_sensor ...]
-// from before the rename
-const hasOznlab = computed(() => state.objects.some((o) => /^(pa_sensei|oznlab_sensor)( |$)/.test(o)));
-const navItems = computed(() => NAV.filter(([k]) => route.name === k || (k === 'oznlab' ? hasOznlab.value : true)));
-const NAV2 = [
-  ['quick', 'sliders', 'Printer settings'],
-  ['config', 'code', 'Config files'],
-];
 function nav(n, a) {
   go(n, a ?? (n === 'config' ? state.lastCfg || 'printer.cfg' : undefined));
   emit('close');
 }
-const hBadge = computed(() => {
-  const l = healthIssues.value;
-  if (!l.length) return null;
-  return {
-    n: l.length,
-    c: l.some((i) => i.level === 'error') ? 'var(--dg)' : l.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--s3)',
-  };
-});
+const hBadge = healthBadge;
 // a short window: everything in the menu gets smaller together until it fits, instead of a scrollbar (down to
 // 60 %; below that it scrolls after all). Not for the menu that slides over the page.
 const navEl = ref(null);
