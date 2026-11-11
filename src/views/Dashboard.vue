@@ -286,10 +286,13 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 const gridHost = ref(null);
 const gridView = ref(null);
 const availableWidth = ref(0);
+const padX = ref(0); // the page's side padding: how far past its edge the grid may reach (see grid-host)
 let hostObserver;
 onMounted(() => {
   hostObserver = new ResizeObserver(([entry]) => {
     availableWidth.value = entry.contentRect.width;
+    const main = gridHost.value?.closest('main');
+    if (main) padX.value = parseFloat(getComputedStyle(main).paddingLeft) || 0;
   });
   hostObserver.observe(gridHost.value);
 });
@@ -916,7 +919,7 @@ function detachCard(i) {
     </div>
     <!-- the grid keeps a gap around every card, also on its outer side: the host reaches that far past the page
          edges, so the cards line up with the tiles above and the bars -->
-    <div ref="gridHost" class="grid-host" :style="wide ? { margin: `0 ${-gap[0]}px` } : null">
+    <div ref="gridHost" class="grid-host" :style="wide ? { margin: `0 ${-Math.min(gap[0], padX)}px` } : null">
       <GridLayout
         v-if="wide"
         v-model:layout="layout"
