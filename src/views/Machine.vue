@@ -101,6 +101,12 @@ const updateGroups = computed(() => {
     { id: 'current', entries: order(current) },
   ];
 });
+// the system packages Moonraker would update (apt / PackageKit), listed under the System row and in its dialog
+const pkgs = computed(() => {
+  const l = upd.value?.version_info?.system?.package_list;
+  return Array.isArray(l) ? l.filter((p) => typeof p === 'string') : [];
+});
+const showPkgs = ref(false);
 function needs(v) {
   if (v.package_count) return v.package_count > 0;
   if (v.commits_behind?.length) return true;
@@ -145,16 +151,14 @@ async function doUpdate(name) {
   busy.value = name;
   state.update = { app: name, lines: [], complete: false };
   try {
-    if (name === 'system') await api.call('machine.update.system', {});
-    else
-      try {
-        await api.call('machine.update.upgrade', { name });
-      } catch (e) {
-        // Moonraker older than 0.8 (stock QIDI and similar) has no upgrade method: use the older per-type ones
-        if (e.code !== -32601 && !/method not found/i.test(e.message)) throw e;
-        if (name === 'klipper' || name === 'moonraker') await api.call('machine.update.' + name, {});
-        else await api.call('machine.update.client', { name });
-      }
+    try {
+      await api.call('machine.update.upgrade', { name });
+    } catch (e) {
+      // Moonraker older than 0.8 (stock QIDI and similar) has no upgrade method: use the older per-type ones
+      if (e.code !== -32601 && !/method not found/i.test(e.message)) throw e;
+      if (name === 'klipper' || name === 'moonraker' || name === 'system') await api.call('machine.update.' + name, {});
+      else await api.call('machine.update.client', { name });
+    }
   } catch (e) {
     if (state.update) {
       state.update.lines.push('!! ' + e.message);
@@ -244,51 +248,69 @@ const viewLog = ref(null);
               <span class="chip">{{ group.entries.length }}</span>
             </summary>
             <div :class="{ 'current-grid': group.id === 'current' }">
-              <div v-for="[name, v] in group.entries" :key="name" :id="'upd-' + name" class="it">
-                <div class="grow update-info">
-                  <b>{{ name === 'system' ? t('System') : name }}</b
-                  ><span
-                    class="mono mu"
-                    style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
-                    >{{ name === 'system' ? t('{n} packages', { n: v.package_count }) : verText(v)
-                    }}<template v-if="name !== 'system' && needs(v)"> → {{ v.remote_version }}</template
-                    ><template v-if="v.is_dirty"> · {{ t('dirty') }}</template
-                    ><template v-if="v.detached"> · {{ t('detached') }}</template></span
+              <template v-for="[name, v] in group.entries" :key="name"
+                ><div :id="'upd-' + name" class="it">
+                  <div class="grow update-info">
+                    <b>{{ name === 'system' ? t('System') : name }}</b
+                    ><button
+                      v-if="name === 'system' && pkgs.length"
+                      class="pkt mono mu"
+                      :aria-expanded="showPkgs"
+                      @click="showPkgs = !showPkgs"
+                    >
+                      <Icon
+                        name="chev"
+                        :size="12"
+                        :stroke="2.4"
+                        :style="{ transform: showPkgs ? 'rotate(90deg)' : '' }"
+                      />{{ t('{n} packages can be updated', { n: v.package_count }) }}</button
+                    ><span
+                      v-else
+                      class="mono mu"
+                      style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
+                      >{{ name === 'system' ? t('{n} packages', { n: v.package_count }) : verText(v)
+                      }}<template v-if="name !== 'system' && needs(v)"> → {{ v.remote_version }}</template
+                      ><template v-if="v.is_dirty"> · {{ t('dirty') }}</template
+                      ><template v-if="v.detached"> · {{ t('detached') }}</template></span
+                    >
+                  </div>
+                  <!-- roll back sits left of the status, in a slot every row keeps so the status buttons line up -->
+                  <span
+                    v-if="name !== 'system' && anyRollback && (group.id === 'attention' || canRollback(v))"
+                    class="rbs"
+                    ><button
+                      v-if="canRollback(v)"
+                      class="btn clear ibtn sm"
+                      :disabled="!!busy"
+                      :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
+                      :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
+                      @click="rb = name"
+                    >
+                      <Icon name="rewind" :size="16" /></button
+                  ></span>
+                  <button v-if="needs(v)" class="btn upb" :disabled="!!busy" @click="confirm = name">
+                    <Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}
+                  </button>
+                  <span
+                    v-else-if="group.id === 'attention'"
+                    class="chip"
+                    :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"
+                    ><i></i
+                    >{{
+                      v.detached
+                        ? t('Pinned')
+                        : v.is_dirty
+                          ? t('dirty')
+                          : v.is_valid === false
+                            ? t('Invalid')
+                            : t('Up to date')
+                    }}</span
                   >
                 </div>
-                <!-- roll back sits left of the status, in a slot every row keeps so the status buttons line up -->
-                <span
-                  v-if="name !== 'system' && anyRollback && (group.id === 'attention' || canRollback(v))"
-                  class="rbs"
-                  ><button
-                    v-if="canRollback(v)"
-                    class="btn clear ibtn sm"
-                    :disabled="!!busy"
-                    :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
-                    :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
-                    @click="rb = name"
-                  >
-                    <Icon name="rewind" :size="16" /></button
-                ></span>
-                <button v-if="needs(v)" class="btn upb" :disabled="!!busy" @click="confirm = name">
-                  <Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}
-                </button>
-                <span
-                  v-else-if="group.id === 'attention'"
-                  class="chip"
-                  :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"
-                  ><i></i
-                  >{{
-                    v.detached
-                      ? t('Pinned')
-                      : v.is_dirty
-                        ? t('dirty')
-                        : v.is_valid === false
-                          ? t('Invalid')
-                          : t('Up to date')
-                  }}</span
-                >
-              </div>
+                <div v-if="name === 'system' && showPkgs && pkgs.length" class="cl pkl mono">
+                  <span v-for="p in pkgs" :key="p">{{ p }}</span>
+                </div></template
+              >
             </div>
           </component>
         </template>
@@ -366,6 +388,12 @@ const viewLog = ref(null);
         >· {{ t('{n} commits', { n: cv.commits_behind.length }) }}</span
       >
     </div>
+    <template v-if="confirm === 'system' && pkgs.length">
+      <div class="mu" style="font-size: 13px">{{ t('{n} packages can be updated', { n: pkgs.length }) }}</div>
+      <div class="cl pkl mono">
+        <span v-for="p in pkgs" :key="p">{{ p }}</span>
+      </div>
+    </template>
     <div v-if="commits.length" class="cl">
       <div v-for="c in commits" :key="c.sha" class="ci">
         <span class="grow">{{ c.subject }}</span
@@ -499,6 +527,25 @@ const viewLog = ref(null);
   background: var(--s2);
   border-radius: 10px;
   padding: 6px 10px;
+}
+.pkl {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.pkt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--mu);
+}
+.pkt:hover {
+  color: var(--tx);
 }
 .ci {
   display: flex;

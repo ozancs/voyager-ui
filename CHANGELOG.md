@@ -7,6 +7,8 @@
 - G-code viewer: the object boxes and names show only after pressing Exclude object in the corner (Esc or Cancel hides them again)
 - G-code viewer: Follow print shows the model cut at the printer's place as soon as the file opens (it could show the whole model until the slider was moved), and follows smoothly: the model grows and the nozzle glides between the printer's reports
 - Side menu: the setup group (printer settings, config files, interface settings) sits at the bottom, apart from the pages
+- Update manager: the System row lists the packages that can be updated (click to open) and the update dialog shows them too
+- System update: when it stops because some packages need others removed (PackageKit's "Exit Failed"), a card explains it and gives the apt commands to run over SSH with a copy button, with the raw log under Details. Nothing is removed from the UI
 
 ## 0.38.37
 

@@ -2483,5 +2483,10 @@
 "Not reported",
 "This host does not report power flags.",
 "Renamed to {name}",
-"New name"
+"New name",
+"System update could not finish",
+"Some packages can only be updated if other packages are removed. This is not done automatically: connect over SSH, run the commands below, check the packages it wants to remove and confirm.",
+"Make sure the running kernel is not in the list to remove, check it with uname -r.",
+"Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.",
+"{n} packages can be updated"
 ]

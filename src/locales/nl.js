@@ -2489,4 +2489,9 @@ export default {
   "This host does not report power flags.": "Deze host meldt geen voedingsvlaggen.",
   "Renamed to {name}": "Hernoemd naar {name}",
   "New name": "Nieuwe naam",
+  "System update could not finish": "Systeemupdate kon niet worden voltooid",
+  "Some packages can only be updated if other packages are removed. This is not done automatically: connect over SSH, run the commands below, check the packages it wants to remove and confirm.": "Sommige pakketten kunnen alleen worden bijgewerkt als andere pakketten worden verwijderd. Dat gebeurt niet automatisch: maak verbinding via SSH, voer de commando's hieronder uit, controleer de pakketten die verwijderd worden en bevestig.",
+  "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Controleer met uname -r dat de draaiende kernel niet in de lijst met te verwijderen pakketten staat.",
+  "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "Tip: met enable_packagekit: False in de sectie [update_manager] van moonraker.conf werkt Moonraker bij met apt-get upgrade. Pakketten die een verwijdering nodig hebben worden dan overgeslagen en de rest wordt zonder deze fout bijgewerkt.",
+  "{n} packages can be updated": "{n} pakketten kunnen worden bijgewerkt",
 }

@@ -2489,4 +2489,9 @@ export default {
   "This host does not report power flags.": "此主机不报告电源标志。",
   "Renamed to {name}": "已重命名为 {name}",
   "New name": "新名称",
+  "System update could not finish": "系统更新未能完成",
+  "Some packages can only be updated if other packages are removed. This is not done automatically: connect over SSH, run the commands below, check the packages it wants to remove and confirm.": "部分软件包需要先移除其他软件包才能更新。这不会自动进行：请通过 SSH 连接，运行下面的命令，检查将被移除的软件包后再确认。",
+  "Make sure the running kernel is not in the list to remove, check it with uname -r.": "请用 uname -r 确认正在运行的内核不在待移除列表中。",
+  "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "提示：在 moonraker.conf 的 [update_manager] 部分写入 enable_packagekit: False 后，Moonraker 会使用 apt-get upgrade 更新。需要移除其他包的软件包会被跳过，其余的正常更新，不会出现此错误。",
+  "{n} packages can be updated": "{n} 个软件包可更新",
 }

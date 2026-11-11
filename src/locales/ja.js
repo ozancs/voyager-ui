@@ -2489,4 +2489,9 @@ export default {
   "This host does not report power flags.": "このホストは電源フラグを報告しません。",
   "Renamed to {name}": "{name} に名前を変更しました",
   "New name": "新しい名前",
+  "System update could not finish": "システム更新を完了できませんでした",
+  "Some packages can only be updated if other packages are removed. This is not done automatically: connect over SSH, run the commands below, check the packages it wants to remove and confirm.": "一部のパッケージは他のパッケージを削除しないと更新できません。これは自動では行いません。SSHで接続して下のコマンドを実行し、削除されるパッケージを確認してから承認してください。",
+  "Make sure the running kernel is not in the list to remove, check it with uname -r.": "削除リストに実行中のカーネルが含まれていないことを uname -r で確認してください。",
+  "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "ヒント: moonraker.conf の [update_manager] セクションに enable_packagekit: False を書くと、Moonraker は apt-get upgrade で更新します。削除が必要なパッケージはスキップされ、残りはこのエラーなしで更新されます。",
+  "{n} packages can be updated": "{n} 個のパッケージを更新できます",
 }

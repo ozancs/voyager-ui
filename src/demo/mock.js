@@ -1386,7 +1386,8 @@ const versions = {
     version: 'v0.14.5',
     remote_version: 'v' + __APP_VERSION__,
   },
-  system: { package_count: 0 },
+  // a test can list system packages (__demoSysPkgs) and make their update fail like PackageKit does (__demoSysFail)
+  system: { package_count: (globalThis.__demoSysPkgs || []).length, package_list: globalThis.__demoSysPkgs || [] },
 };
 const updStatus = () => ({ busy: false, version_info: JSON.parse(JSON.stringify(versions)) });
 function finishUpdate(name) {
@@ -1891,6 +1892,25 @@ function handle(m) {
       return 'ok';
     }
     case 'machine.update.upgrade':
+      if (p.name === 'system' && globalThis.__demoSysFail) {
+        const lines = [
+          'Updating system packages...',
+          'Transaction Update packages: Exit Failed',
+          '!! Error updating system packages',
+        ];
+        lines.forEach((message, i) =>
+          setTimeout(
+            () =>
+              wsAll({
+                jsonrpc: '2.0',
+                method: 'notify_update_response',
+                params: [{ application: 'system', proc_id: 1, message, complete: i === lines.length - 1 }],
+              }),
+            200 * (i + 1),
+          ),
+        );
+        return 'ok';
+      }
       setTimeout(() => {
         let n = 0;
         const t = setInterval(() => {

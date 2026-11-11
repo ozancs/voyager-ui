@@ -2507,4 +2507,9 @@ export default {
   "This host does not report power flags.": "Bu host güç bayraklarını bildirmiyor.",
   "Renamed to {name}": "{name} olarak yeniden adlandırıldı",
   "New name": "Yeni ad",
+  "System update could not finish": "Sistem güncellemesi tamamlanamadı",
+  "Some packages can only be updated if other packages are removed. This is not done automatically: connect over SSH, run the commands below, check the packages it wants to remove and confirm.": "Bazı paketlerin güncellenmesi için başka paketlerin kaldırılması gerekiyor. Bu işlem otomatik yapılmaz: SSH ile bağlanıp aşağıdaki komutları çalıştırın, kaldırılacak paketleri kontrol edip onaylayın.",
+  "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Kaldırılacak listede çalışan kernel olmadığını uname -r ile kontrol edin.",
+  "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "İpucu: moonraker.conf içindeki [update_manager] bölümüne enable_packagekit: False yazılırsa Moonraker apt-get upgrade kullanır. Kaldırma gerektiren paketler atlanır, geri kalanı bu hata olmadan güncellenir.",
+  "{n} packages can be updated": "{n} paket güncellenebilir",
 }

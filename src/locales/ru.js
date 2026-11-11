@@ -2489,4 +2489,9 @@ export default {
   "This host does not report power flags.": "Этот хост не сообщает флаги питания.",
   "Renamed to {name}": "Переименовано в {name}",
   "New name": "Новое имя",
+  "System update could not finish": "Не удалось завершить обновление системы",
+  "Some packages can only be updated if other packages are removed. This is not done automatically: connect over SSH, run the commands below, check the packages it wants to remove and confirm.": "Некоторые пакеты можно обновить, только удалив другие пакеты. Это не делается автоматически: подключитесь по SSH, выполните команды ниже, проверьте пакеты, которые будут удалены, и подтвердите.",
+  "Make sure the running kernel is not in the list to remove, check it with uname -r.": "Проверьте командой uname -r, что работающего ядра нет в списке на удаление.",
+  "Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.": "Совет: с enable_packagekit: False в разделе [update_manager] файла moonraker.conf Moonraker обновляет через apt-get upgrade. Пакеты, требующие удаления других, пропускаются, остальное обновляется без этой ошибки.",
+  "{n} packages can be updated": "Можно обновить пакетов: {n}",
 }

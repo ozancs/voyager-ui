@@ -5,6 +5,7 @@ import { ref, watch, nextTick, computed, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import { state } from '../store';
 import { t } from '../i18n';
+import { copyText } from '../clipboard';
 const box = ref(null);
 const u = computed(() => state.update);
 watch(
@@ -33,6 +34,20 @@ const title = computed(() =>
   ['all', 'full'].includes(u.value?.app) ? t('Updating everything') : t('Updating {name}', { name: u.value?.app }),
 );
 const failed = computed(() => u.value?.lines.some((l) => /^!!|error|failed/i.test(l)));
+// PackageKit gives up when an upgrade needs other packages removed (a new libcamera taking the old camera streamer
+// and old kernels with it) and Moonraker only says "Exit Failed". Nothing is removed from here: the user runs apt
+// over SSH and checks what it wants to remove.
+const SYS_FAIL = /Error updating system packages|Transaction Update packages: Exit Failed/i;
+const sysFail = computed(() => !!u.value?.complete && u.value.lines.some((l) => SYS_FAIL.test(l)));
+const CMDS = 'sudo apt update\nsudo apt full-upgrade';
+const copied = ref(false);
+async function copy() {
+  try {
+    await copyText(CMDS);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 1500);
+  } catch {}
+}
 </script>
 <template>
   <div v-if="u" class="ov">
@@ -50,7 +65,39 @@ const failed = computed(() => u.value?.lines.some((l) => /^!!|error|failed/i.tes
           ><i></i>{{ u.complete ? (failed ? t('Finished with errors') : t('Complete')) : t('Running') }}</span
         >
       </div>
-      <div ref="box" class="log mono">
+      <div v-if="sysFail" class="sf">
+        <h3 class="row">
+          <Icon name="warn" :size="17" style="color: var(--wn)" />{{ t('System update could not finish') }}
+        </h3>
+        <p>
+          {{
+            t(
+              'Some packages can only be updated if other packages are removed. This is not done automatically: connect over SSH, run the commands below, check the packages it wants to remove and confirm.',
+            )
+          }}
+        </p>
+        <div class="cmd">
+          <pre class="mono">{{ CMDS }}</pre>
+          <button class="btn sm" @click="copy">
+            <Icon :name="copied ? 'check' : 'copy'" :size="14" />{{ copied ? t('Copied') : t('Copy') }}
+          </button>
+        </div>
+        <p class="mu">{{ t('Make sure the running kernel is not in the list to remove, check it with uname -r.') }}</p>
+        <p class="mu">
+          {{
+            t(
+              'Tip: with enable_packagekit: False in the [update_manager] section of moonraker.conf, Moonraker updates with apt-get upgrade. Packages that need a removal are then skipped and the rest is updated without this error.',
+            )
+          }}
+        </p>
+      </div>
+      <details v-if="sysFail" class="det">
+        <summary>{{ t('Details') }}</summary>
+        <div class="log mono sm">
+          <div v-for="(l, i) in u.lines" :key="i" :class="{ e: /^!!|error|failed/i.test(l) }">{{ l }}</div>
+        </div>
+      </details>
+      <div v-else ref="box" class="log mono">
         <div v-if="!u.lines.length" class="mu">
           {{ t('Waiting for Moonraker…') }}
           <template v-if="waited >= 4"
@@ -108,6 +155,47 @@ const failed = computed(() => u.value?.lines.some((l) => /^!!|error|failed/i.tes
   color: var(--mu);
   white-space: pre-wrap;
   word-break: break-word;
+}
+.log.sm {
+  height: 200px;
+  margin-top: 8px;
+}
+.sf {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sf h3 {
+  margin: 0;
+  gap: 8px;
+  font-size: 15px;
+}
+.sf p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.cmd {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.cmd pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+.det summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--mu);
 }
 .log .e {
   color: var(--dg);
