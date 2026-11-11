@@ -398,7 +398,7 @@ function checkFirmware() {
     .map((o) => (o === 'mcu' ? 'mcu' : o.slice(4)));
   if (!behind.length) return unnotify('fw:');
   notify(
-    'fw:' + host + ':' + behind.join(','),
+    'fw:' + host,
     t('{boards}: firmware older than Klipper {host}. Health shows how to flash.', { boards: behind.join(', '), host }),
     'info',
   );

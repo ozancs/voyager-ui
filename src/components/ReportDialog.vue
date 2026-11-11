@@ -38,7 +38,7 @@ const env = computed(() => {
     `Voyager UI ${VERSION}`,
     `Klipper ${v.klipper || '?'}, Moonraker ${v.moonraker || '?'}`,
     `Klipper state: ${state.klippy}${state.klippy !== 'ready' && state.klippyMessage ? ' (' + mask(state.klippyMessage).split('\n')[0].slice(0, 160) + ')' : ''}`,
-    `Browser: ${browser} on ${os}, window ${innerWidth}x${innerHeight}, interface size ${state.settings.uiScale ?? 100}`,
+    `Browser: ${browser} on ${os}, window ${innerWidth}x${innerHeight}, interface size ${state.uiScale ?? 100}`,
     `Page: ${route.name}${route.arg ? '/' + route.arg : ''}`,
   ];
 });

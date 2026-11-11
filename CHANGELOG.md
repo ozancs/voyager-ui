@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.38.37
+
+- Interface size is kept per browser: a laptop at 90 % and a monitor at 100 % each remember their own
+- Scrolling the console with the mouse scrolls only the console: reaching its end no longer starts scrolling the page
+- A dismissed firmware notice stays dismissed when the boards come back in another order or only some of them
+- Translations for the new texts of 0.38.34 and 0.38.35 (camera sound, notifier editing, shared values, heater baseline, firmware guidance, power flags) in all 13 languages
+
+## 0.38.36
+
+- Same as 0.38.35 (the tag went out without the changes, they are in 0.38.37)
+
 ## 0.38.35
 
 - Health cards align by row, with heater rows and host gauges filling the available space

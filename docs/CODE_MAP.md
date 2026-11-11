@@ -73,6 +73,10 @@ Copy text to the clipboard. The Clipboard API exists only on https or localhost,
 opened over plain http on its LAN address, so the old way (a hidden text box and the copy command) is tried  
 when the API is missing or refuses. Resolves when the text was copied, throws when neither way worked.
 
+**[src/consoleGroups.js](../src/consoleGroups.js)**  
+Sensei lifecycle messages are plain text in Mainsail too. They are not  
+protocol acknowledgements: only Klipper may emit an actual `ok`.
+
 **[src/controls.js](../src/controls.js)**  
 Helpers of the Controls card: reading a value out of a printer object and testing a switch condition.
 
@@ -81,6 +85,10 @@ crowsnest.conf as a form: the [cam N] sections with the options people change (m
 fps, flags). Only the lines of the keys shown are touched; everything else in the file, comments included, stays  
 as written. Values in the file: "key: value" or "key = value".  
 crowsnest refuses to start when one of these is missing from a [cam] section
+
+**[src/dashboardSize.js](../src/dashboardSize.js)**  
+A stable logical canvas preserves card positions and proportions on resize.  
+Below 65%, switch to the independent stacked layout rather than tiny controls.
 
 **[src/endShot.js](../src/endShot.js)**  
 The last picture of each print: when a print ends (done, cancelled or stopped by an error) the first webcam's  
@@ -94,8 +102,7 @@ check. Used under the Klipper error banner and behind the ? on error lines in th
 general advice for the error as Klipper words it; they do not know the printer, so they say "usually".
 
 **[src/features.js](../src/features.js)**  
-Things that run in the background for the whole app:  
-macro prompts, error toasts, sounds, job queue, config index (for search), health sampling.
+(no description yet)
 
 **[src/firmware.js](../src/firmware.js)**  
 MCU firmware compared with Klipper on the host. After a Klipper update the boards still run the code they were  
@@ -109,7 +116,7 @@ v-fit: when a dashboard card is only a little too small for its content, shrink 
 showing a scrollbar. Up to 25% smaller; beyond that the card stays at 75% and scrolls (it used to jump back to  
 100%, so opening something inside a card, like an MMU gate menu, suddenly blew the whole card up). Measured on the card itself and on  
 inner scroll areas marked data-fit (the temperatures table). Console logs and editors are not touched.  
-Cards marked data-scale (controls: toolhead, extruder, system loads...) keep shrinking as a whole, much further.
+The dashboard canvas may already be scaled: do not compound it into unreadably small controls.
 
 **[src/fleet.js](../src/fleet.js)**  
 All printers overview: reads the state of every saved printer over plain HTTP (no second websocket), every few  
@@ -136,11 +143,6 @@ The parameters of common Klipper commands, for the hint under the console's comm
 tell a client which parameters a command takes (its help is one line of text), so they are listed here; a macro's  
 own parameters are read from its template instead (macros.js). Classic G-codes take letters (X10), the extended  
 commands take NAME=value.
-
-**[src/dashboardSize.js](../src/dashboardSize.js)**
-The dashboard's logical canvas and scale, measured against the available content width. The grid keeps its
-saved coordinates; below the readable scale threshold it uses the independent stacked layout. Reference
-widths travel with layout backups, separately for idle and printing dashboards.
 
 **[src/heatEta.js](../src/heatEta.js)**  
 How long until a heater reaches its target, or whether it will at all.  
@@ -182,6 +184,9 @@ Built-in icons as SVG path data (24x24 viewBox, stroke only), drawn by Icon.vue.
 The larger icon set for the pickers (src/icons-extra.js, Lucide) is its own chunk: it loads the first time a  
 picker opens or a button that uses one of its icons is shown. Its names are stored with an 'l:' prefix.
 
+**[src/ledEffects.js](../src/ledEffects.js)**  
+Config fallback also supports older LED Effect builds without exported status objects.
+
 **[src/legacy.js](../src/legacy.js)**  
 Runs before anything else reads localStorage: browser data saved under the earlier names of this UI  
 (oznlab_klipperui, carbon-ui) is moved to the current name once.
@@ -202,6 +207,9 @@ language, starts the store (connection to Moonraker) and mounts App.vue.
 **[src/meshPalette.js](../src/meshPalette.js)**  
 Colour scales for the bed mesh, low (-lim) to high (+lim). Shared by the 2D grid, the 3D surface, the legend  
 and the mini mesh card. 'voyager' is the original orange / grey / blue.
+
+**[src/notificationConfig.js](../src/notificationConfig.js)**  
+Read notifier/bot connections without logging credentials; edit only selected keys in the original section.
 
 **[src/paths.js](../src/paths.js)**  
 Turning a selection in a file list into file paths (used for downloads).
@@ -270,6 +278,9 @@ listed belongs to 'other'. Parts not picked keep what this printer has now.
 **[src/smart.js](../src/smart.js)**  
 "Smart" commands for the Ctrl+K box: "chamber 40", "bed off", "fan 50", "speed 120", "z offset -0.05", "home xy"...  
 Every result is checked against the printer (heater exists, max_temp, homed axes, axis limits) before it is offered.
+
+**[src/soundStyles.js](../src/soundStyles.js)**  
+Distinct pitches, rhythms and timbres; IDs remain compatible with saved preferences.
 
 **[src/store.js](../src/store.js)**  
 The app state and the connection to Moonraker.  
@@ -349,11 +360,7 @@ folding, autocomplete, checks, diff against the saved file or a backup, docs lin
 Full console page: the console plus a searchable list of commands and macros with their help text.
 
 **[src/views/Dashboard.vue](../src/views/Dashboard.vue)**  
-Dashboard: the status tiles (DeviceStrip) and a grid of cards the user arranges (grid-layout-plus).  
-MODULES lists every card type with its size limits. `scale`: made smaller than its content, the card shrinks all of  
-it to fit (fit.js) instead of scrolling, so it can go down to a small minimum size. Customize mode: drag, resize (also from the bottom-left  
-corner), hide, colour and add cards, a separate layout while printing, undo and saved backups. On narrow  
-screens the cards stack in one column with their own order (mobileOrder).
+(no description yet)
 
 **[src/views/Files.vue](../src/views/Files.vue)**  
 G-code files page: folders, thumbnails, metadata, search, print, add to queue, upload, rename,  
@@ -439,6 +446,9 @@ webcam picture, the camera remembered in the settings.
 **[src/components/CamOverlay.vue](../src/components/CamOverlay.vue)**  
 The print over the camera picture: file, progress, layer, time left, ETA and the hotend and bed temperatures,  
 in a strip along the bottom. Shown while a print runs or is paused; also in full screen.
+
+**[src/components/CameraAudioPreview.vue](../src/components/CameraAudioPreview.vue)**  
+Explicit, receive-only microphone preview. Closes on leaving settings; reconnects after a filter change.
 
 **[src/components/CardCollapse.vue](../src/components/CardCollapse.vue)**  
 The fold chevron at the end of a card header. Shown only for a card on the dashboard (CellScope provides the  
@@ -762,7 +772,7 @@ The printer list: printers this copy of the UI can switch between, each with a n
 Kept in this browser (printers.js). Saving and picking a printer reloads the page on that printer.
 
 **[src/components/ProblemSolver.vue](../src/components/ProblemSolver.vue)**  
-Problem Solver page (under Calibrations in the menu): from a problem to its likely causes and the next test.  
+Problem Solver, embedded in Calibrations: from a problem to its likely causes and the next test.  
 Search covers print quality, the machine and Klipper errors; a pasted error message finds its guide. Errors the  
 printer ran into (solver/issues.js) are listed first and open their guide with the message as evidence; marking  
 one solved removes its notification. A print problem can read the print it happened on (History or a file), then  
@@ -900,6 +910,9 @@ On/off switch bound with v-model.
 **[src/components/ToolheadCard.vue](../src/components/ToolheadCard.vue)**  
 Toolhead card: position (type a value to move), jog buttons per axis with the configured steps,  
 homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
+
+**[src/components/ToolheadStyle.vue](../src/components/ToolheadStyle.vue)**  
+Shared by the live card and Customize toolbar; changes presentation only.
 
 **[src/components/Tooltip.vue](../src/components/Tooltip.vue)**  
 Global tooltip: any element with aria-label or data-tip shows it after hovering ~0.8s.

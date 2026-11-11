@@ -46,18 +46,7 @@ export const PARTS = [
   {
     id: 'look',
     name: 'Appearance and language',
-    keys: [
-      'theme',
-      'accent',
-      'accentReach',
-      'bgDark',
-      'uiScale',
-      'scale100',
-      'navMode',
-      'printBar',
-      'lang',
-      'heightmap',
-    ],
+    keys: ['theme', 'accent', 'accentReach', 'bgDark', 'scale100', 'navMode', 'printBar', 'lang', 'heightmap'],
   },
   {
     id: 'printer',

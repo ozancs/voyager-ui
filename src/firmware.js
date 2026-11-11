@@ -53,3 +53,9 @@ export function flashSteps(link, chip) {
   steps.push({ text: 'Start Klipper', cmd: 'sudo service klipper start' });
   return steps;
 }
+
+// Board discovery order/subsets can change during reconnects. Acknowledgement belongs
+// to the host version, not that transient list. Also normalises pre-existing saved IDs.
+export function notificationDismissKey(key) {
+  return typeof key === 'string' && key.startsWith('fw:') ? key.split(':').slice(0, 2).join(':') : key;
+}

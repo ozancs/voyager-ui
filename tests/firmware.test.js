@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cmpVer, linkOf, flashSteps } from '../src/firmware.js';
+import { cmpVer, linkOf, flashSteps, notificationDismissKey } from '../src/firmware.js';
 
 describe('mcu firmware check', () => {
   it('compares Klipper versions by tag, then commits', () => {
@@ -23,5 +23,22 @@ describe('mcu firmware check', () => {
     expect(can[can.length - 1].cmd).toBe('sudo service klipper start');
     const usb = flashSteps({ kind: 'serial', path: '/dev/serial/by-id/usb-Klipper' });
     expect(usb.map((s) => s.cmd)).toContain('make flash FLASH_DEVICE=/dev/serial/by-id/usb-Klipper');
+  });
+});
+
+describe('firmware notification dismissal across restarts', () => {
+  const host = 'v0.13.0-824-g56a9c605-dirty';
+  it('honours old stored dismissals despite board order or incomplete rediscovery', () => {
+    const saved = JSON.stringify(['fw:' + host + ':mcu,EBBCan']);
+    const dismissed = new Set(JSON.parse(saved).map(notificationDismissKey));
+    for (const suffix of ['', ':EBBCan,mcu', ':mcu', ':EBBCan']) {
+      expect(dismissed.has(notificationDismissKey('fw:' + host + suffix))).toBe(true);
+    }
+    expect(dismissed.has(notificationDismissKey('fw:v0.13.0-825-gnew:mcu,EBBCan'))).toBe(false);
+  });
+  it('does not merge other notification identities', () => {
+    for (const key of ['upd:klipper:1:2', 'issue:123', 'klippy:error', 'mr:warning']) {
+      expect(notificationDismissKey(key)).toBe(key);
+    }
   });
 });

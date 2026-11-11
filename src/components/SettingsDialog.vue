@@ -130,7 +130,7 @@ async function pickIcon(e) {
     toast(t('This file is not an image'), 'error');
   }
 }
-const zoomNow = computed(() => uiZoomFor(state.settings.uiScale ?? 100));
+const zoomNow = computed(() => uiZoomFor(state.uiScale ?? 100));
 const deskPerm = ref(desktopPermission());
 async function setDesktop(on) {
   if (on && deskPerm.value !== 'granted') deskPerm.value = await askDesktop();
@@ -1034,7 +1034,7 @@ const consoleSample = (() => {
                   ><span
                     >{{
                       t(
-                        'Auto keeps the layout the same on every screen: a laptop shows the same cards side by side as a 1920 px monitor, only smaller.',
+                        'Only this browser. Auto keeps the layout the same on every screen: a laptop shows the same cards side by side as a 1920 px monitor, only smaller.',
                       )
                     }}
                     <span class="mono">{{ Math.round(zoomNow * 100) }}%</span></span
@@ -1044,8 +1044,8 @@ const consoleSample = (() => {
                   <button
                     v-for="k in [80, 90, 100, 110, 125, 'auto']"
                     :key="k"
-                    :class="{ on: String(state.settings.uiScale ?? 100) === String(k) }"
-                    @click="state.settings.uiScale = k"
+                    :class="{ on: String(state.uiScale ?? 100) === String(k) }"
+                    @click="state.uiScale = k"
                   >
                     {{ k === 'auto' ? t('Auto') : k + '%' }}
                   </button>

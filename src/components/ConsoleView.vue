@@ -395,6 +395,7 @@ mark {
   flex: 1;
   min-height: 120px;
   overflow: auto;
+  overscroll-behavior: contain; /* at its top or bottom the wheel stops here instead of scrolling the page */
   padding: 10px 14px;
   background: var(--k-bg);
   border: none;

@@ -11,6 +11,7 @@ import { currentHost, currentPrinter, perPrinterKey } from './printers';
 import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
+import { notificationDismissKey } from './firmware';
 
 export const VERSION = __APP_VERSION__;
 export const APP = 'voyager-ui';
@@ -327,6 +328,16 @@ export const state = reactive({
   anchor: '', // element id to scroll to after navigation
   updStatus: null, // last machine.update.status
   uiZoom: 1, // current page zoom, see applyScale
+  // Interface size of this browser (percent or 'auto'): kept in the browser, not in the printer's settings, so a
+  // laptop at 90 % and a monitor at 100 % each keep their own
+  uiScale: (() => {
+    try {
+      const v = localStorage.getItem('voyager-ui-uiscale');
+      return v === 'auto' ? 'auto' : +v || 100;
+    } catch {
+      return 100;
+    }
+  })(),
   power: [], // Moonraker [power] devices: { device, status, locked_while_printing, type }
   login: null, // { needed, sources, source } when Moonraker asks for a login
   settingsOpen: null, // name of the settings dialog tab while it is open
@@ -851,11 +862,13 @@ export function pushConsole(message, type = 'response', time = Date.now() / 1000
 // ---------- notifications (only important things, like Mainsail) ----------
 let dismissed = new Set();
 try {
-  dismissed = new Set(JSON.parse(localStorage.getItem(perPrinterKey(APP + '-dismissed')) || '[]'));
+  dismissed = new Set(
+    JSON.parse(localStorage.getItem(perPrinterKey(APP + '-dismissed')) || '[]').map(notificationDismissKey),
+  );
 } catch {}
 // action: { label, run } shown as a button on the notification (it opens something, it never runs G-code)
 export function notify(key, msg, kind = 'warn', action = null) {
-  if (dismissed.has(key) || state.notifications.some((n) => n.id === key)) return;
+  if (dismissed.has(notificationDismissKey(key)) || state.notifications.some((n) => n.id === key)) return;
   state.notifications.unshift({ id: key, msg, kind, time: Date.now() / 1000, action });
 }
 export function unnotify(prefix) {
@@ -871,7 +884,7 @@ export function dismiss(n) {
     return;
   }
   if (!String(n.id).startsWith('klippy:')) {
-    dismissed.add(n.id);
+    dismissed.add(notificationDismissKey(n.id));
     try {
       localStorage.setItem(perPrinterKey(APP + '-dismissed'), JSON.stringify([...dismissed].slice(-200)));
     } catch {}
@@ -1191,7 +1204,7 @@ export function uiZoomFor(pref, w = window.innerWidth) {
   return Math.min(1.6, Math.max(0.6, w / REF_WIDTH));
 }
 function applyScale() {
-  const pref = state.settings.uiScale ?? 100;
+  const pref = state.uiScale ?? 100;
   const z = +uiZoomFor(pref).toFixed(3);
   const el = document.documentElement;
   if (z === 1) el.style.removeProperty('zoom');
@@ -1206,7 +1219,7 @@ function applyScale() {
     localStorage.setItem(APP + '-uiscale', String(pref));
   } catch {}
 }
-watch(() => state.settings.uiScale, applyScale, { immediate: true });
+watch(() => state.uiScale, applyScale, { immediate: true });
 let rsz;
 window.addEventListener('resize', () => {
   clearTimeout(rsz);
