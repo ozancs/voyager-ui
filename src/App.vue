@@ -151,7 +151,11 @@ const navOpen = ref(false);
 const scrolled = ref(false); // the page is scrolled: the shade under the bars shows
 // side menu: pinned (in the layout), hidden (button opens it over the page), auto (opens when the mouse reaches the left edge)
 const narrow = ref(window.innerWidth <= 1100);
-window.addEventListener('resize', () => (narrow.value = window.innerWidth <= 1100));
+const phone = ref(window.innerWidth <= 720);
+window.addEventListener('resize', () => {
+  narrow.value = window.innerWidth <= 1100;
+  phone.value = window.innerWidth <= 720;
+});
 const navMode = computed(() => (narrow.value ? 'hidden' : state.settings.navMode || 'pinned'));
 // pinned on a wide screen: the menu runs the full height as a panel of its own, the printer at its top; it
 // collapses to a rail of icons
@@ -159,7 +163,8 @@ const navStyle = computed(() => state.settings.navStyle || 'classic'); // Settin
 const side = computed(() => navMode.value === 'pinned' && !['classic', 'tabs'].includes(navStyle.value));
 // top tabs: the pages as pills in the top bar, the page in a panel with rounded top corners under it. Its softer
 // corners go to the whole interface (dialogs too), so the class sits on the root
-const tabs = computed(() => navMode.value === 'pinned' && navStyle.value === 'tabs');
+// It stays on narrower windows too (the tabs shrink down to one), only phones keep their bottom bar.
+const tabs = computed(() => navStyle.value === 'tabs' && !phone.value);
 watch(tabs, (on) => document.documentElement.classList.toggle('ui-tabs', on), { immediate: true });
 const rail = computed(() => side.value && !!state.settings.navRail);
 // the button inside the menu: pinned -> hidden, hidden/auto -> pinned
@@ -256,9 +261,9 @@ startIssues();
             @mouseenter="navMode === 'auto' && peek(true)"
             @mouseleave="navMode === 'auto' && peek(false)"
           />
-          <div v-if="navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
+          <div v-if="!tabs && navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
           <button
-            v-if="navMode !== 'pinned' && !navOpen && !narrow"
+            v-if="!tabs && navMode !== 'pinned' && !navOpen && !narrow"
             class="navtab"
             :aria-label="t('Show / hide the side menu')"
             :data-tip="t('Menu')"
@@ -413,7 +418,8 @@ startIssues();
 .pnl {
   display: contents;
 }
-/* top tabs: the bar on a dark frame, the page in a panel from edge to edge with rounded top corners */
+/* top tabs: the bar on a dark frame, the page in a panel from edge to edge with rounded top corners; the open
+   page's tab is a folder that opens into it (TopTabs) */
 .shell.nav-tabs {
   background: color-mix(in srgb, var(--bg) 52%, #000);
 }
@@ -423,13 +429,18 @@ startIssues();
   display: flex;
   flex-direction: column;
   background: var(--bg);
-  border-radius: 26px 26px 0 0;
-  border-top: 1px solid color-mix(in srgb, var(--bd) 70%, transparent);
+  border-radius: 22px 22px 0 0;
   overflow: hidden;
 }
-/* the favorites start where the page does */
+/* the favorites start where the page does; the bars at the top of the panel take its colour, so the open tab's
+   folder runs into them without a seam (the print bar keeps its progress colour) */
 .shell.nav-tabs :deep(.fb) {
   padding: 0 28px;
+  background: var(--bg);
+}
+.shell.nav-tabs :deep(.pbar) {
+  padding: 0 28px;
+  background: var(--bg);
 }
 :root[data-theme='light'] .shell.nav-tabs {
   background: color-mix(in srgb, var(--bg) 88%, #000);

@@ -1213,6 +1213,10 @@ onBeforeUnmount(() => ovObs?.disconnect());
   color: var(--mu);
   font-size: 10.5px;
 }
+/* the pages are in the bar itself: no menu button */
+.tb.tabs .menu {
+  display: none;
+}
 /* a narrower window: the idle status box goes first (the page shows the printer's state), then E-STOP's label */
 :root.ew-lt-1500 .tb.tabs .pill:not(.job) {
   display: none;

@@ -931,11 +931,11 @@ PrintBar band underneath), search, Save Config, upload & print, notifications, c
 and E-STOP.
 
 **[src/components/TopTabs.vue](../src/components/TopTabs.vue)**  
-Top tabs menu style: the pages as pills in the top bar, an icon and the name. When they do not all fit they turn  
-into round icons: pointing at one (or tabbing to it) opens its name over the icons beside it, without moving  
-them, so the row never jumps under the pointer. When even the icons do not fit, the rest go under More; the page  
-that is open always keeps a button of its own (it takes the last place when it would be under More). Printer  
-settings and config files are always under More.
+Top tabs menu style: the pages as folder tabs along the bottom of the top bar. The open page is a folder that  
+joins the page panel below (it slides from tab to tab); pointing at another tab shows a light box floating in  
+it, never joined to the panel, so it does not look open. Printer settings and config files are under More.  
+When the window gets narrower the tabs never go away, they get smaller: names and icons, tighter, icons only  
+(the name shows above the tab on hover), and at the narrowest one tab with the open page that lists them all.
 
 **[src/components/UpdateModal.vue](../src/components/UpdateModal.vue)**  
 Log of a running update (Moonraker's update manager). Shows the output lines as they come in  
