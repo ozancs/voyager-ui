@@ -222,14 +222,46 @@ async function mkdir() {
       toast(e.message, 'error');
     }
 }
+// files dragged from the computer onto the list: a large drop target says where they will go (as on the
+// Machine page's config files)
+const over = ref(false);
+let depth = 0;
+const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes('Files');
+function dEnter(e) {
+  if (!hasFiles(e)) return;
+  depth++;
+  over.value = true;
+}
+function dLeave(e) {
+  if (!hasFiles(e)) return;
+  if (--depth <= 0) {
+    depth = 0;
+    over.value = false;
+  }
+}
 function onDrop(e) {
   e.preventDefault();
-  upload({ target: { files: e.dataTransfer.files, value: '' } });
+  depth = 0;
+  over.value = false;
+  if (e.dataTransfer?.files?.length) upload({ target: { files: e.dataTransfer.files, value: '' } });
 }
 </script>
 <template>
   <div class="split">
-    <section class="card grow" style="flex: 1 1 auto" @dragover.prevent @drop="onDrop">
+    <section
+      class="card grow drop"
+      style="flex: 1 1 auto"
+      @dragenter="dEnter"
+      @dragleave="dLeave"
+      @dragover.prevent
+      @drop="onDrop"
+    >
+      <div v-if="over" class="dz">
+        <div class="big">
+          <span class="ring"><Icon name="upload" :size="34" :stroke="2.2" /></span>
+          <b>{{ t('Drop to upload to /{p}', { p: path }) }}</b>
+        </div>
+      </div>
       <div class="row" style="gap: 10px; flex-wrap: wrap">
         <button class="btn clear" :disabled="path === 'gcodes'" :aria-label="t('Up one folder')" @click="upDir">
           <Icon name="left" :size="16" />
@@ -522,6 +554,47 @@ function onDrop(e) {
   </Modal>
 </template>
 <style scoped>
+.drop {
+  position: relative;
+}
+/* the drop target: over the whole list, its card in the middle of what is on screen (sticky, the list can be long) */
+.dz {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  border: 2px dashed var(--ac);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.dz .big {
+  position: sticky;
+  top: calc(50vh - 110px);
+  margin: 60px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 36px;
+  border-radius: 20px;
+  background: var(--s1);
+  border: 1px solid color-mix(in srgb, var(--ac) 45%, var(--bd));
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  font-size: 15px;
+}
+.dz .ring {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ac);
+  color: var(--oa);
+}
 .file-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));

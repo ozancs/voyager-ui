@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.38
+
+- G-code Files: dragging files from the computer over the list shows a large drop target with the folder they will go to
+
 ## 0.38.37
 
 - Interface size is kept per browser: a laptop at 90 % and a monitor at 100 % each remember their own
