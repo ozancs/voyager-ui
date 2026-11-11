@@ -118,9 +118,10 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
         >{{ hBadge.n }}</span
       >
     </button>
-    <div v-if="!side" class="sep"></div>
-    <div v-else-if="!rail" class="sl">{{ t('Setup') }}</div>
-    <div v-else class="sep"></div>
+    <!-- the setup group sits at the bottom, apart from the pages above (push: takes the free space above it) -->
+    <div v-if="!side" class="sep push"></div>
+    <div v-else-if="!rail" class="sl push">{{ t('Setup') }}</div>
+    <div v-else class="sep push"></div>
     <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)">
       <Icon :name="i" /><span>{{ t(l) }}</span>
     </button>
@@ -275,9 +276,13 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
   margin: 6px 4px;
   flex-shrink: 0;
 }
+.sep.push,
+.sl.push {
+  margin-top: auto;
+}
 .ft {
   flex-shrink: 0;
-  margin-top: auto;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   gap: 8px;

@@ -6,6 +6,7 @@
 - G-code Files: right-click a file (or Shift+F10) for print, queue, preheat, viewer, edit, download, rename and delete; on a folder, open and rename. Files and folders can be renamed here now
 - G-code viewer: the object boxes and names show only after pressing Exclude object in the corner (Esc or Cancel hides them again)
 - G-code viewer: Follow print shows the model cut at the printer's place as soon as the file opens (it could show the whole model until the slider was moved), and follows smoothly: the model grows and the nozzle glides between the printer's reports
+- Side menu: the setup group (printer settings, config files, interface settings) sits at the bottom, apart from the pages
 
 ## 0.38.37
 
