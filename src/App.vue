@@ -427,6 +427,10 @@ startIssues();
   border-top: 1px solid color-mix(in srgb, var(--bd) 70%, transparent);
   overflow: hidden;
 }
+/* the favorites start where the page does */
+.shell.nav-tabs :deep(.fb) {
+  padding: 0 28px;
+}
 :root[data-theme='light'] .shell.nav-tabs {
   background: color-mix(in srgb, var(--bg) 88%, #000);
 }

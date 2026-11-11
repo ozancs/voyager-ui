@@ -914,7 +914,9 @@ function detachCard(i) {
       <DeviceStrip v-if="state.klippy === 'ready'" />
       <div v-else class="grow"></div>
     </div>
-    <div ref="gridHost" class="grid-host">
+    <!-- the grid keeps a gap around every card, also on its outer side: the host reaches that far past the page
+         edges, so the cards line up with the tiles above and the bars -->
+    <div ref="gridHost" class="grid-host" :style="wide ? { margin: `0 ${-gap[0]}px` } : null">
       <GridLayout
         v-if="wide"
         v-model:layout="layout"
