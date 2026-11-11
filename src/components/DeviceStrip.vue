@@ -754,8 +754,13 @@ function sensorExtra(id) {
 .dc.open {
   z-index: 60;
 }
+/* presets with long names wrap to more rows instead of running out of the box */
+.pop .seg {
+  flex-wrap: wrap;
+}
 .pop .seg button {
-  padding: 0 6px;
+  flex: 1 1 auto;
+  padding: 0 8px;
 }
 .hd {
   display: flex;
