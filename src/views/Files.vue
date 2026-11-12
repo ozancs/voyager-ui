@@ -6,6 +6,7 @@ import { isGcodeFile, UPLOAD_ACCEPT } from '../gcode3mf';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
 import QueueCard from '../components/QueueCard.vue';
+import HistoryStats from '../components/HistoryStats.vue';
 import { queueApi, downloadMany } from '../features';
 import {
   state,
@@ -464,6 +465,7 @@ async function moveTo(dest) {
 }
 </script>
 <template>
+  <HistoryStats link class="hstats" />
   <div class="split">
     <section
       class="card grow drop"
@@ -1119,5 +1121,8 @@ th.s:hover {
   margin-left: auto;
   font-size: 12px;
   white-space: nowrap;
+}
+.hstats {
+  margin-bottom: 20px;
 }
 </style>

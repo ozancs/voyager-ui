@@ -46,6 +46,9 @@
   --plate: #15171a;
   --shade: rgba(0, 0, 0, 0.18);
   --tn-mix: 12%;
+  /* how much accent a selected option takes (segment, toggled button): set by Accent strength below */
+  --ac-sel: 14%;
+  --ac-ink: 30%;
   color-scheme: dark;
 }
 /* the Top tabs menu style rounds the whole interface a little more */
@@ -335,8 +338,8 @@ a.btn {
   color: var(--dg);
 }
 .btn.on {
-  background: var(--s3);
-  color: var(--tx);
+  background: color-mix(in srgb, var(--ac) var(--ac-sel), var(--s3));
+  color: color-mix(in srgb, var(--ac) var(--ac-ink), var(--tx));
 }
 .btn.dgf {
   background: #c93a3a;
@@ -402,8 +405,8 @@ a.btn {
   color: var(--tx);
 }
 .seg button.on {
-  background: var(--s3);
-  color: var(--tx);
+  background: color-mix(in srgb, var(--ac) var(--ac-sel), var(--s3));
+  color: color-mix(in srgb, var(--ac) var(--ac-ink), var(--tx));
 }
 
 .toggle {
@@ -819,21 +822,16 @@ input[type='checkbox']:focus-visible {
   margin-block: auto;
 }
 
-/* Accent strength (Settings > Appearance): how far the accent colour reaches beyond buttons. 'subtle' is the
-   default and changes nothing; the other two tint the outline of cards, dialogs and pop-ups. */
-:root[data-accent='normal'] .card:not(.tint),
-:root[data-accent='normal'] .pop,
-:root[data-accent='normal'] .md {
-  border-color: color-mix(in srgb, var(--ac) 22%, var(--bd));
+/* Accent strength (Settings > Appearance): how far the accent colour reaches. Subtle: buttons and the selected
+   option of a choice, lightly. Normal and strong: the selected options more, and the whole theme leans to the
+   accent (the page, cards and panels take a little of it, baseColor.js). Outlines stay neutral. */
+:root[data-accent='normal'] {
+  --ac-sel: 22%;
+  --ac-ink: 50%;
 }
-:root[data-accent='strong'] .card:not(.tint),
-:root[data-accent='strong'] .pop,
-:root[data-accent='strong'] .md {
-  border-color: color-mix(in srgb, var(--ac) 55%, var(--bd));
-}
-:root[data-accent='strong'] .card > .card-h {
-  border-bottom: 1px solid color-mix(in srgb, var(--ac) 25%, transparent);
-  padding-bottom: 8px;
+:root[data-accent='strong'] {
+  --ac-sel: 32%;
+  --ac-ink: 75%;
 }
 
 /* the small tiles above the dashboard: none (subtle), a light (normal) or full (strong) category colour.
@@ -854,7 +852,7 @@ input[type='checkbox']:focus-visible {
   --kc: var(--spool);
 }
 /* normal: the fill that shows the level (fan speed, heater power) takes the category colour, a faint wash
-   behind it. strong: a stronger fill and wash, and a coloured outline */
+   behind it. strong: a stronger fill and wash */
 :root[data-accent='normal'] .ds .dc[class*='k-'] {
   --k: var(--kc);
   --ka: 22%;
@@ -874,9 +872,6 @@ input[type='checkbox']:focus-visible {
     color-mix(in srgb, var(--lc, var(--kc)) var(--ka), transparent),
     color-mix(in srgb, var(--lc, var(--kc)) calc(var(--ka) / 2), transparent) 60px
   );
-}
-:root[data-accent='strong'] .ds .dc[class*='k-']:not(.edit):not(.over) {
-  border-color: color-mix(in srgb, var(--kc) 35%, transparent);
 }
 
 /* Tablet mode (tablet.js): finger-sized controls */

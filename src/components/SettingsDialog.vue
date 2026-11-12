@@ -1,7 +1,9 @@
 <script setup>
 // Interface settings as a dialog (like Mainsail's), categories on the left. Opened from the gear in the top bar.
 import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { hexToHsl } from '../baseColor';
 import WebcamView from './WebcamView.vue';
+import TempChartCard from './TempChartCard.vue';
 import CameraAudioPreview from './CameraAudioPreview.vue';
 import { soundStylesFor, resolveSoundStyle, soundCategory } from '../soundStyles';
 import voyagerLogo from '../../public/logo.svg?url';
@@ -145,7 +147,22 @@ const SOUNDS = [
   ['error', 'Error / Klipper shutdown', 'error'],
   ['heated', 'Heater reached target', 'heated'],
 ];
-const ACCENTS = ['#ff6b1a', '#f5b23a', '#38d6ff', '#3dd68c', '#f5c451', '#8b6cff', '#ff3d7f', '#e5484d'];
+// Theme colour: '' is the built-in graphite. The swatch shows the colour itself at a middle brightness, so the
+// dark picks can be told apart (the page they give is much darker, or near white in the light theme)
+const BASES = ['', '#14213d', '#132a2a', '#17261f', '#261a2e', '#2a211c'];
+function baseSwatch(c) {
+  const h = hexToHsl(c || '#16181c');
+  return { background: `hsl(${h.h} ${Math.min(h.s * 1.3, 45)}% 36%)` };
+}
+// moving the volume slider plays the finished sound at that volume, a few times a second at most
+let volT = 0;
+function hearVolume() {
+  const now = Date.now();
+  if (now - volT < 350) return;
+  volT = now;
+  playSound('complete', resolveSoundStyle('complete', snd.value.styles?.complete));
+}
+const ACCENTS = ['#ff6b1a', '#f5b23a', '#38d6ff', '#3dd68c', '#8b6cff', '#ff3d7f'];
 const heaters = computed(() => S('heaters').available_heaters || []);
 function addPreset() {
   state.settings.presets.push({
@@ -458,6 +475,7 @@ const consoleSample = (() => {
           <div class="pn">
             <!-- General -->
             <template v-if="tab === 'general'">
+              <h3 class="sec">{{ t('Printer') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Printer name') }}</b
@@ -483,6 +501,25 @@ const consoleSample = (() => {
                   <option v-for="[k, n] in LANGS" :key="k" :value="k">{{ n }}</option>
                 </select>
               </div>
+              <h3 class="sec">{{ t('Printing') }}</h3>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Check the file before printing') }}</b
+                  ><span>{{
+                    t(
+                      'Compares material, spool weight, nozzle, temperatures and height with the printer and asks when something does not fit.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle v-model="state.settings.preprintCheck" :label="t('Check the file before printing')" />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Show Klipper errors as pop-ups') }}</b>
+                </div>
+                <Toggle v-model="state.settings.errorToasts" :label="t('Error pop-ups')" />
+              </div>
+              <h3 class="sec">{{ t('Search and updates') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Search inside scripts and notes') }}</b
@@ -509,23 +546,7 @@ const consoleSample = (() => {
                   @update:model-value="state.settings.autoUpdateCheck = $event"
                 />
               </div>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('Show Klipper errors as pop-ups') }}</b>
-                </div>
-                <Toggle v-model="state.settings.errorToasts" :label="t('Error pop-ups')" />
-              </div>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('Check the file before printing') }}</b
-                  ><span>{{
-                    t(
-                      'Compares material, spool weight, nozzle, temperatures and height with the printer and asks when something does not fit.',
-                    )
-                  }}</span>
-                </div>
-                <Toggle v-model="state.settings.preprintCheck" :label="t('Check the file before printing')" />
-              </div>
+              <h3 class="sec">{{ t('Setup') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('First-start setup') }}</b
@@ -551,6 +572,7 @@ const consoleSample = (() => {
 
             <!-- Dashboard -->
             <template v-else-if="tab === 'dashboard'">
+              <h3 class="sec">{{ t('Layout') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Cards and layout') }}</b
@@ -580,6 +602,7 @@ const consoleSample = (() => {
                 </div>
                 <Toggle v-model="state.settings.autoLayout" :label="t('Separate dashboard while printing')" />
               </div>
+              <h3 class="sec">{{ t('Temperatures') }}</h3>
               <div v-for="g in SENSOR_LISTS" :key="g.key" class="rw col">
                 <div class="k">
                   <b>{{ t(g.title) }}</b
@@ -613,6 +636,8 @@ const consoleSample = (() => {
                   </button>
                 </div>
               </div>
+              <!-- the graph itself, so the sensors and the range picked above show at once -->
+              <div class="tprev"><TempChartCard /></div>
             </template>
 
             <!-- Control -->
@@ -830,6 +855,7 @@ const consoleSample = (() => {
 
             <!-- Console -->
             <template v-else-if="tab === 'console'">
+              <h3 class="sec">{{ t('What the log shows') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Hide temperature lines') }}</b
@@ -846,6 +872,18 @@ const consoleSample = (() => {
                 </div>
                 <Toggle v-model="state.settings.consoleGroup" :label="t('Group commands with their replies')" />
               </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Newest line on top') }}</b
+                  ><span>{{
+                    t(
+                      'The input moves above the log and the newest line comes right under it. A command and its replies keep their order.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle v-model="state.settings.consoleNewestFirst" :label="t('Newest line on top')" />
+              </div>
+              <h3 class="sec">{{ t('Look') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Text theme') }}</b
@@ -870,13 +908,6 @@ const consoleSample = (() => {
               </div>
               <div class="rw">
                 <div class="k">
-                  <b>{{ t('Command help on hover') }}</b
-                  ><span>{{ t('Pointing at a command you sent says what it does.') }}</span>
-                </div>
-                <Toggle v-model="state.settings.consoleHelp" :label="t('Command help on hover')" />
-              </div>
-              <div class="rw">
-                <div class="k">
                   <b>{{ t('Timestamps') }}</b
                   ><span>{{ t('The time in front of each line.') }}</span>
                 </div>
@@ -891,15 +922,12 @@ const consoleSample = (() => {
               </div>
               <div class="rw">
                 <div class="k">
-                  <b>{{ t('Newest line on top') }}</b
-                  ><span>{{
-                    t(
-                      'The input moves above the log and the newest line comes right under it. A command and its replies keep their order.',
-                    )
-                  }}</span>
+                  <b>{{ t('Command help on hover') }}</b
+                  ><span>{{ t('Pointing at a command you sent says what it does.') }}</span>
                 </div>
-                <Toggle v-model="state.settings.consoleNewestFirst" :label="t('Newest line on top')" />
+                <Toggle v-model="state.settings.consoleHelp" :label="t('Command help on hover')" />
               </div>
+              <h3 class="sec">{{ t('Typing') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Paste several lines') }}</b
@@ -909,6 +937,7 @@ const consoleSample = (() => {
                 </div>
                 <Toggle v-model="state.settings.consoleMultiline" :label="t('Paste several lines')" />
               </div>
+              <h3 class="sec">{{ t('Preview') }}</h3>
               <!-- how the console looks with the choices above: sample lines only, nothing is sent -->
               <div class="rw col">
                 <div class="k">
@@ -921,6 +950,7 @@ const consoleSample = (() => {
 
             <!-- Appearance -->
             <template v-else-if="tab === 'appearance'">
+              <h3 class="sec">{{ t('Theme') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Mode') }}</b>
@@ -957,10 +987,38 @@ const consoleSample = (() => {
               </div>
               <div class="rw">
                 <div class="k">
-                  <b>{{ t('Accent') }}</b
-                  ><span>{{ t('Colour of actions, section headings and the logo.') }}</span>
+                  <b>{{ t('Theme colour') }}</b
+                  ><span>{{
+                    t(
+                      'Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.',
+                    )
+                  }}</span>
                 </div>
-                <div class="row v" style="flex-wrap: wrap; gap: 10px; justify-content: flex-end">
+                <div class="row v" style="flex-wrap: wrap; gap: 10px">
+                  <button
+                    v-for="c in BASES"
+                    :key="c || 'default'"
+                    class="swc"
+                    :class="{ on: (state.settings.baseColor || '') === c }"
+                    :style="baseSwatch(c)"
+                    :aria-label="c ? t('Theme colour') + ' ' + c : t('Default')"
+                    :data-tip="c ? c : t('Default')"
+                    @click="state.settings.baseColor = c"
+                  ></button
+                  ><label class="swc cu" :aria-label="t('Custom theme colour')"
+                    ><input
+                      type="color"
+                      :value="state.settings.baseColor || '#16181c'"
+                      @input="state.settings.baseColor = $event.target.value"
+                  /></label>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Accent') }}</b
+                  ><span>{{ t('Colour of actions, selected options, section headings and the logo.') }}</span>
+                </div>
+                <div class="row v" style="flex-wrap: wrap; gap: 10px">
                   <button
                     v-for="c in ACCENTS"
                     :key="c"
@@ -980,7 +1038,7 @@ const consoleSample = (() => {
                   <b>{{ t('Accent strength') }}</b
                   ><span>{{
                     t(
-                      'How much colour the interface uses. Normal and strong also colour card outlines and the small tiles by kind: fans, heaters, lights.',
+                      'How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).',
                     )
                   }}</span>
                 </div>
@@ -1042,6 +1100,7 @@ const consoleSample = (() => {
                   />
                 </div>
               </div>
+              <h3 class="sec">{{ t('Size') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Interface size') }}</b
@@ -1076,6 +1135,34 @@ const consoleSample = (() => {
                 </div>
                 <Toggle :model-value="state.tablet" :label="t('Tablet mode')" @update:model-value="setTablet" />
               </div>
+              <h3 class="sec">{{ t('Menu') }}</h3>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Menu style') }}</b
+                  ><span>{{
+                    t(
+                      'Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.',
+                    )
+                  }}</span>
+                </div>
+                <div class="seg v wide">
+                  <button
+                    v-for="[k, l] in [
+                      ['classic', 'Classic'],
+                      ['float', 'Floating'],
+                      ['attached', 'Attached'],
+                      ['frame', 'Frame'],
+                      ['tabs', 'Top tabs'],
+                      ['dock', 'Bottom dock'],
+                    ]"
+                    :key="k"
+                    :class="{ on: (state.settings.navStyle || 'classic') === k }"
+                    @click="state.settings.navStyle = k"
+                  >
+                    {{ t(l) }}
+                  </button>
+                </div>
+              </div>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Side menu') }}</b
@@ -1091,32 +1178,6 @@ const consoleSample = (() => {
                     :key="k"
                     :class="{ on: (state.settings.navMode || 'pinned') === k }"
                     @click="state.settings.navMode = k"
-                  >
-                    {{ t(l) }}
-                  </button>
-                </div>
-              </div>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('Menu style') }}</b
-                  ><span>{{
-                    t(
-                      'Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.',
-                    )
-                  }}</span>
-                </div>
-                <div class="seg v wide">
-                  <button
-                    v-for="[k, l] in [
-                      ['classic', 'Classic'],
-                      ['float', 'Floating'],
-                      ['attached', 'Attached'],
-                      ['frame', 'Frame'],
-                      ['tabs', 'Top tabs'],
-                    ]"
-                    :key="k"
-                    :class="{ on: (state.settings.navStyle || 'classic') === k }"
-                    @click="state.settings.navStyle = k"
                   >
                     {{ t(l) }}
                   </button>
@@ -1151,6 +1212,7 @@ const consoleSample = (() => {
 
             <!-- Sounds -->
             <template v-else-if="tab === 'sounds'">
+              <h3 class="sec">{{ t('Sound') }}</h3>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Play sounds') }}</b
@@ -1171,61 +1233,10 @@ const consoleSample = (() => {
                   class="rng v"
                   :style="{ '--f': (snd.volume - 0.1) / 0.9 }"
                   :aria-label="t('Volume')"
+                  @input="hearVolume"
                 />
               </div>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('System notifications') }}</b
-                  ><span>{{
-                    deskPerm === 'denied'
-                      ? t(
-                          'The browser blocks notifications for this page. Allow them in the site settings of the browser.',
-                        )
-                      : deskPerm === 'unsupported'
-                        ? t('This browser cannot show notifications for this page (it needs https or localhost).')
-                        : t('A notification from the browser when this tab is in the background or minimized.')
-                  }}</span>
-                </div>
-                <Toggle
-                  :model-value="!!snd.desktop && deskPerm === 'granted'"
-                  :disabled="deskPerm === 'denied' || deskPerm === 'unsupported'"
-                  :label="t('System notifications')"
-                  @update:model-value="setDesktop"
-                />
-              </div>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('Read events aloud') }}</b
-                  ><span>{{ t('The browser says what happened, in the interface language.') }}</span>
-                </div>
-                <div class="row" style="gap: 6px">
-                  <button
-                    class="btn clear ibtn sm"
-                    :aria-label="t('Test')"
-                    @click="speak(t('Print finished: {file}', { file: 'benchy' }))"
-                  >
-                    <Icon name="play" :size="14" /></button
-                  ><Toggle v-model="snd.speak" :label="t('Read events aloud')" />
-                </div>
-              </div>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('Part ready alert') }}</b>
-                  <span class="hint">{{ t('Alert when the bed cools after a print. Keep this page open.') }}</span>
-                </div>
-                <Toggle v-model="snd.partReady" :label="t('Part ready alert')" />
-              </div>
-              <label v-if="snd.partReady" class="rw">
-                <span>{{ t('Bed temperature for removal') }} (°C)</span>
-                <input
-                  class="input mono"
-                  type="number"
-                  min="10"
-                  max="60"
-                  :value="snd.partReadyTemp ?? 35"
-                  @change="snd.partReadyTemp = Math.min(60, Math.max(10, $event.target.valueAsNumber || 35))"
-                />
-              </label>
+              <h3 class="sec">{{ t('Events') }}</h3>
               <template v-if="snd.enabled || snd.desktop || snd.speak">
                 <span class="hint">{{
                   t(
@@ -1262,6 +1273,60 @@ const consoleSample = (() => {
                   </div>
                 </div>
               </template>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Part ready alert') }}</b>
+                  <span class="hint">{{ t('Alert when the bed cools after a print. Keep this page open.') }}</span>
+                </div>
+                <Toggle v-model="snd.partReady" :label="t('Part ready alert')" />
+              </div>
+              <label v-if="snd.partReady" class="rw">
+                <span>{{ t('Bed temperature for removal') }} (°C)</span>
+                <input
+                  class="input mono"
+                  type="number"
+                  min="10"
+                  max="60"
+                  :value="snd.partReadyTemp ?? 35"
+                  @change="snd.partReadyTemp = Math.min(60, Math.max(10, $event.target.valueAsNumber || 35))"
+                />
+              </label>
+              <h3 class="sec">{{ t('Other ways to be told') }}</h3>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('System notifications') }}</b
+                  ><span>{{
+                    deskPerm === 'denied'
+                      ? t(
+                          'The browser blocks notifications for this page. Allow them in the site settings of the browser.',
+                        )
+                      : deskPerm === 'unsupported'
+                        ? t('This browser cannot show notifications for this page (it needs https or localhost).')
+                        : t('A notification from the browser when this tab is in the background or minimized.')
+                  }}</span>
+                </div>
+                <Toggle
+                  :model-value="!!snd.desktop && deskPerm === 'granted'"
+                  :disabled="deskPerm === 'denied' || deskPerm === 'unsupported'"
+                  :label="t('System notifications')"
+                  @update:model-value="setDesktop"
+                />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Read events aloud') }}</b
+                  ><span>{{ t('The browser says what happened, in the interface language.') }}</span>
+                </div>
+                <div class="row" style="gap: 6px">
+                  <button
+                    class="btn clear ibtn sm"
+                    :aria-label="t('Test')"
+                    @click="speak(t('Print finished: {file}', { file: 'benchy' }))"
+                  >
+                    <Icon name="play" :size="14" /></button
+                  ><Toggle v-model="snd.speak" :label="t('Read events aloud')" />
+                </div>
+              </div>
             </template>
 
             <!-- Notifications -->
@@ -1269,48 +1334,53 @@ const consoleSample = (() => {
 
             <!-- Cameras -->
             <template v-else-if="tab === 'webcams'">
+              <h3 class="sec">{{ t('Cameras') }}</h3>
               <span class="hint">{{
                 t(
                   'Cameras are stored by Moonraker, so this list is the same in Mainsail and Fluidd. The first one here is the camera shown wherever none is picked.',
                 )
               }}</span>
-              <div v-for="(w, i) in state.webcams" :key="w.name" class="rw">
-                <div class="k">
-                  <b>{{ w.name }}</b
-                  ><span class="mono"
-                    >{{ SERVICES.find(([k]) => k === w.service)?.[1] || w.service }} ·
-                    {{ w.stream_url || w.snapshot_url }}</span
-                  >
-                </div>
-                <div class="row" style="gap: 6px">
-                  <template v-if="state.webcams.length > 1"
+              <!-- the cameras as small cards with their live picture -->
+              <div class="camg">
+                <div v-for="(w, i) in state.webcams" :key="w.name" class="camc">
+                  <div class="cpv"><WebcamView :cam="w" :overlay="false" /></div>
+                  <div class="cmeta">
+                    <b>{{ w.name }}</b
+                    ><span v-if="i === 0 && state.webcams.length > 1" class="first">{{ t('Default') }}</span>
+                  </div>
+                  <span class="mono curl">{{ SERVICES.find(([k]) => k === w.service)?.[1] || w.service }}</span>
+                  <div class="cacts">
+                    <template v-if="state.webcams.length > 1"
+                      ><button
+                        class="btn clear ibtn sm"
+                        :disabled="i === 0"
+                        :aria-label="t('Move up')"
+                        :data-tip="i === 1 ? t('First: shown wherever no camera is picked') : t('Move up')"
+                        @click="moveCam(w.name, -1)"
+                      >
+                        <Icon name="left" :size="15" :stroke="2.4" /></button
+                      ><button
+                        class="btn clear ibtn sm"
+                        :disabled="i === state.webcams.length - 1"
+                        :aria-label="t('Move down')"
+                        @click="moveCam(w.name, 1)"
+                      >
+                        <Icon name="right" :size="15" :stroke="2.4" /></button
+                    ></template>
+                    <span class="grow"></span>
+                    <button class="btn sm" @click="editCam(w)"><Icon name="pencil" :size="15" />{{ t('Edit') }}</button
                     ><button
                       class="btn clear ibtn sm"
-                      :disabled="i === 0"
-                      :aria-label="t('Move up')"
-                      :data-tip="i === 1 ? t('First: shown wherever no camera is picked') : t('Move up')"
-                      @click="moveCam(w.name, -1)"
+                      :aria-label="t('Remove {name}', { name: w.name })"
+                      @click="delCam = w"
                     >
-                      <Icon name="up" :size="15" :stroke="2.4" /></button
-                    ><button
-                      class="btn clear ibtn sm"
-                      :disabled="i === state.webcams.length - 1"
-                      :aria-label="t('Move down')"
-                      @click="moveCam(w.name, 1)"
-                    >
-                      <Icon name="down" :size="15" :stroke="2.4" /></button
-                  ></template>
-                  <button class="btn" @click="editCam(w)"><Icon name="pencil" :size="15" />{{ t('Edit') }}</button
-                  ><button
-                    class="btn clear ibtn sm"
-                    :aria-label="t('Remove {name}', { name: w.name })"
-                    @click="delCam = w"
-                  >
-                    <Icon name="trash" :size="15" />
-                  </button>
+                      <Icon name="trash" :size="15" />
+                    </button>
+                  </div>
                 </div>
+                <button class="camc add" @click="newCam"><Icon name="plus" :size="22" />{{ t('Add camera') }}</button>
               </div>
-              <div v-if="!state.webcams.length" class="hint">{{ t('No cameras yet.') }}</div>
+              <h3 v-if="state.webcams.length || noise" class="sec">{{ t('Pictures and sound') }}</h3>
               <div v-if="state.webcams.length" class="rw">
                 <div class="k">
                   <b>{{ t('Picture at the end of each print') }}</b
@@ -1364,8 +1434,8 @@ const consoleSample = (() => {
                     go('config', 'config/crowsnest.conf');
                   "
                 >
-                  <Icon name="code" :size="15" />{{ t('Edit crowsnest.conf') }}</button
-                ><button class="btn acc" @click="newCam"><Icon name="plus" :size="16" />{{ t('Add camera') }}</button>
+                  <Icon name="code" :size="15" />{{ t('Edit crowsnest.conf') }}
+                </button>
               </div>
             </template>
 
@@ -1563,7 +1633,7 @@ const consoleSample = (() => {
 }
 .dlg {
   /* large enough that a tab (Appearance has the most) fits without scrolling on a usual screen */
-  width: 1200px;
+  width: 1320px;
   max-width: 100%;
   height: calc((100vh - 96px) / var(--zoom, 1));
   max-height: 1080px;
@@ -1629,6 +1699,7 @@ const consoleSample = (() => {
   box-shadow: inset 3px 0 0 var(--ac);
 }
 .pn {
+  container-type: inline-size;
   flex: 1;
   min-width: 0;
   overflow: auto;
@@ -1643,6 +1714,27 @@ const consoleSample = (() => {
   gap: 18px;
   padding: 14px 0;
   border-bottom: 1px solid var(--bd);
+}
+/* the controls of every row start on one line: the text on the left, the controls in a column of their own,
+   aligned to its left edge, so the switches, segments and swatches line up down the page */
+.rw:not(.col) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 500px;
+  column-gap: 32px;
+  row-gap: 8px;
+}
+.rw:not(.col) > .k {
+  grid-column: 1;
+}
+.rw:not(.col) > :not(.k) {
+  grid-column: 2;
+  justify-self: start;
+  max-width: 100%;
+}
+@container (max-width: 820px) {
+  .rw:not(.col) {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
 }
 .rw.col {
   flex-direction: column;
@@ -1673,14 +1765,14 @@ const consoleSample = (() => {
   color: var(--mu);
 }
 .v {
-  width: 320px;
-  max-width: 55%;
+  width: 340px;
+  max-width: 100%;
   flex-shrink: 0;
 }
 /* more choices than fit in the usual width: as wide as they need, wrapping onto a second row on a narrow dialog */
 .v.wide {
   width: auto;
-  max-width: 62%;
+  max-width: 100%;
   flex-wrap: wrap;
 }
 .unit {
@@ -1720,13 +1812,17 @@ const consoleSample = (() => {
   color: var(--mu);
   font-size: 13px;
 }
+/* each preset a panel of its own: name and remove on top, the temperatures, then its G-code */
 .pr {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px 12px;
   flex-wrap: wrap;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--bd);
+  padding: 14px 16px;
+  margin-top: 12px;
+  border-radius: var(--rb);
+  background: var(--bg);
+  border: 1px solid var(--bd);
 }
 .pr .pg {
   flex-basis: 100%;
@@ -1807,8 +1903,11 @@ const consoleSample = (() => {
   .nv button.on span {
     display: inline;
   }
-  .rw {
-    flex-wrap: wrap;
+  .rw:not(.col) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rw:not(.col) > :not(.k) {
+    grid-column: 1;
   }
   .v {
     width: 100%;
@@ -1832,6 +1931,101 @@ const consoleSample = (() => {
 }
 .part:hover {
   background: var(--s2);
+}
+.tprev {
+  height: 300px;
+  display: flex;
+  margin-top: 4px;
+}
+.tprev > :deep(.card) {
+  flex: 1;
+  min-height: 0;
+}
+/* setting groups: a heading with room above it and a line over it, so each group reads as its own part */
+.sec {
+  margin: 34px 0 2px;
+  padding-top: 22px;
+  border-top: 1px solid var(--bd);
+  font-size: 15px;
+  color: var(--tx);
+}
+.pn > .sec:first-child {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: 0;
+}
+.rw:has(+ .sec) {
+  border-bottom: 0;
+}
+.camg {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+  margin: 12px 0 6px;
+}
+.camc {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: var(--rb);
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  min-width: 0;
+}
+.cpv {
+  aspect-ratio: 16 / 9;
+  border-radius: calc(var(--rb) - 3px);
+  overflow: hidden;
+  background: #000;
+  display: flex;
+}
+.cpv > :deep(*) {
+  flex: 1;
+  min-width: 0;
+}
+.cmeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px 0;
+  min-width: 0;
+}
+.cmeta b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.first {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ac) 16%, var(--s2));
+  color: color-mix(in srgb, var(--ac) 60%, var(--tx));
+}
+.curl {
+  padding: 0 4px;
+  font-size: 11.5px;
+  color: var(--mu);
+}
+.cacts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.camc.add {
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  border-style: dashed;
+  color: var(--mu);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.camc.add:hover {
+  color: var(--tx);
 }
 </style>
 

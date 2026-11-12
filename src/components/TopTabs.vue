@@ -1,5 +1,5 @@
 <script setup>
-// Top tabs menu style: the pages as folder tabs along the bottom of the top bar. The open page is a folder that
+// Top tabs menu style: the pages as folder tabs along the bottom of the top bar, the icon above the name. The open page is a folder that
 // joins the page panel below (it slides from tab to tab); pointing at another tab shows a light box floating in
 // it, never joined to the panel, so it does not look open. Printer settings and config files are under More.
 // When the window gets narrower the tabs never go away, they get smaller: names and icons, tighter, icons only
@@ -90,16 +90,16 @@ watch(
     <div class="gw" aria-hidden="true">
       <div ref="g0" class="track l0">
         <span v-for="it in items" :key="it[0]" class="tab"
-          ><Icon :name="icon(it)" :size="18" /><span class="lb">{{ label(it) }}</span></span
+          ><Icon :name="icon(it)" :size="20" /><span class="lb">{{ label(it) }}</span></span
         ><span class="tab"
-          ><Icon name="grid" :size="18" /><span class="lb">{{ t('More') }}</span></span
+          ><Icon name="grid" :size="20" /><span class="lb">{{ t('More') }}</span></span
         >
       </div>
       <div ref="g1" class="track l1">
         <span v-for="it in items" :key="it[0]" class="tab"
-          ><Icon :name="icon(it)" :size="18" /><span class="lb">{{ label(it) }}</span></span
+          ><Icon :name="icon(it)" :size="20" /><span class="lb">{{ label(it) }}</span></span
         ><span class="tab"
-          ><Icon name="grid" :size="18" /><span class="lb">{{ t('More') }}</span></span
+          ><Icon name="grid" :size="20" /><span class="lb">{{ t('More') }}</span></span
         >
       </div>
     </div>
@@ -120,7 +120,7 @@ watch(
         :aria-label="label(it)"
         @click="open(it[0])"
       >
-        <Icon :name="icon(it)" :size="18" /><span class="lb">{{ label(it) }}</span
+        <Icon :name="icon(it)" :size="20" /><span class="lb">{{ label(it) }}</span
         ><span class="tip" aria-hidden="true">{{ label(it) }}</span
         ><span
           v-if="it[0] === 'health' && healthBadge"
@@ -137,7 +137,7 @@ watch(
         :aria-label="t('More')"
         @click.stop="moreOpen = !moreOpen"
       >
-        <Icon name="grid" :size="18" /><span class="lb">{{ t('More') }}</span
+        <Icon name="grid" :size="20" /><span class="lb">{{ t('More') }}</span
         ><span class="tip" aria-hidden="true">{{ t('More') }}</span>
       </button>
     </div>
@@ -233,7 +233,7 @@ watch(
 .folder {
   position: absolute;
   bottom: 0;
-  height: 46px;
+  height: 58px;
   /* a little lighter at the top, the panel's colour where it meets the panel: the open tab still reads as open
      when the page is very dark (Darker background) or light */
   background: linear-gradient(color-mix(in srgb, var(--tx) 7%, var(--bg)), var(--bg) 80%);
@@ -267,16 +267,19 @@ watch(
   position: relative;
   z-index: 2;
   flex-shrink: 0;
-  height: 46px;
-  padding: 0 16px;
+  height: 58px;
+  min-width: 70px;
+  padding: 0 12px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 4px;
   border: 0;
   background: none;
   color: var(--mu);
   font: inherit;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -289,8 +292,8 @@ watch(
 .tab::before {
   content: '';
   position: absolute;
-  inset: 8px 3px;
-  border-radius: 11px;
+  inset: 6px 3px;
+  border-radius: 12px;
   background: color-mix(in srgb, var(--tx) 6%, transparent);
   opacity: 0;
   transform: scale(0.9);
@@ -322,14 +325,17 @@ watch(
   color: var(--tx);
   font-weight: 600;
 }
+.tab.on > :deep(svg) {
+  color: var(--ac);
+}
 /* level 1: tighter */
 .l1 {
   gap: 0;
 }
 .l1 .tab {
-  padding: 0 11px;
-  gap: 6px;
-  font-size: 13px;
+  min-width: 0;
+  padding: 0 8px;
+  font-size: 11px;
 }
 /* level 2: icons only, the name shows above the tab on hover */
 .l2 {
@@ -337,6 +343,7 @@ watch(
 }
 .l2 .tab {
   width: 46px;
+  min-width: 0;
   padding: 0;
   justify-content: center;
 }
@@ -373,6 +380,9 @@ watch(
 }
 /* level 3: the one tab */
 .one {
+  flex-direction: row;
+  gap: 8px;
+  font-size: 14px;
   padding: 0 14px 0 16px;
 }
 .chev {

@@ -2531,5 +2531,22 @@
   "the whole section is removed",
   "{name} cannot be moved into itself.",
   "{n} file(s) in the folder are not G-code and were left out.",
-  "{n} moved to /{dir}"
+  "{n} moved to /{dir}",
+  "Theme colour",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.",
+  "Custom theme colour",
+  "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.",
+  "Bottom dock",
+  "Colour of actions, selected options, section headings and the logo.",
+  "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).",
+  "Search and updates",
+  "Layout",
+  "What the log shows",
+  "Look",
+  "Typing",
+  "Theme",
+  "Sound",
+  "Events",
+  "Other ways to be told",
+  "Pictures and sound"
 ]

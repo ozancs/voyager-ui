@@ -32,6 +32,13 @@ gcode_shell_command), runs it on request, remembers the last result, and can run
 changed (an edit in any UI, SAVE_CONFIG). A shell command holds Klipper's G-code queue while it runs, so it never  
 runs during a print: a backup asked for then waits until the print is over.
 
+**[src/baseColor.js](../src/baseColor.js)**  
+Appearance > Theme colour: one colour that tints the whole interface, not only the page behind the cards. The  
+built-in themes are a set of greys a little towards blue, each surface a step lighter or darker than the next  
+(page, cards, inner panels, borders, hover). This keeps those steps and only swaps the hue and saturation for  
+the picked colour's, so light and dark stay as bright as they are and every surface moves together. Custom  
+card colours stay as they are.
+
 **[src/calc.js](../src/calc.js)**  
 Small pure helpers for the Health page and the dashboard grid, unit tested in tests/utils.test.js.
 
@@ -218,7 +225,7 @@ Colour scales for the bed mesh, low (-lim) to high (+lim). Shared by the 2D grid
 and the mini mesh card. 'voyager' is the original orange / grey / blue.
 
 **[src/nav.js](../src/nav.js)**  
-The pages of the main menu, shared by the side menu (SideNav) and the top tabs (TopTabs):  
+The pages of the main menu (History is not one: its statistics head the G-code Files page, which links to it), shared by the side menu (SideNav) and the top tabs (TopTabs):  
 [route, icon, label, short label for the tabs]
 
 **[src/notificationConfig.js](../src/notificationConfig.js)**  
@@ -534,6 +541,11 @@ can be dragged to swap places and hidden with the eye. Which tiles exist comes f
 **[src/components/DevicesCard.vue](../src/components/DevicesCard.vue)**  
 Fans, output pins, LEDs and filament sensors as a list (Mainsail's "Miscellaneous" panel).
 
+**[src/components/DockNav.vue](../src/components/DockNav.vue)**  
+Bottom dock menu style: the pages on a floating shelf at the bottom of the window, like the macOS dock. The top  
+bar is left to the printer and its print. Pointing at a page lifts it a little and shows its name above it;  
+the open page has a dot under it. Printer settings and config files sit after a divider.
+
 **[src/components/Donut.vue](../src/components/Donut.vue)**  
 Small ring gauge (a value out of max) used for CPU, memory and MCU load.
 
@@ -598,6 +610,10 @@ boards answer, boards Klipper already uses do not show up there.
 **[src/components/HealthCard.vue](../src/components/HealthCard.vue)**  
 Small dashboard card with the health issues found by features.js (MCU errors, throttling, driver  
 flags, due maintenance). Details are on the Health page.
+
+**[src/components/HistoryStats.vue](../src/components/HistoryStats.vue)**  
+Print statistics: totals, jobs by status (pie) and the last 14 days (bars). On the History page it gets the  
+jobs the page already loaded; on the G-code Files page it loads them itself (from the cache first).
 
 **[src/components/Icon.vue](../src/components/Icon.vue)**  
 Draws an icon by name. Built-in names come from icons.js (stroke paths). Names starting with  
@@ -963,7 +979,7 @@ PrintBar band underneath), search, Save Config, upload & print, notifications, c
 and E-STOP.
 
 **[src/components/TopTabs.vue](../src/components/TopTabs.vue)**  
-Top tabs menu style: the pages as folder tabs along the bottom of the top bar. The open page is a folder that  
+Top tabs menu style: the pages as folder tabs along the bottom of the top bar, the icon above the name. The open page is a folder that  
 joins the page panel below (it slides from tab to tab); pointing at another tab shows a light box floating in  
 it, never joined to the panel, so it does not look open. Printer settings and config files are under More.  
 When the window gets narrower the tabs never go away, they get smaller: names and icons, tighter, icons only  

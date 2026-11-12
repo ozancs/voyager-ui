@@ -1,4 +1,4 @@
-// The pages of the main menu, shared by the side menu (SideNav) and the top tabs (TopTabs):
+// The pages of the main menu (History is not one: its statistics head the G-code Files page, which links to it), shared by the side menu (SideNav) and the top tabs (TopTabs):
 // [route, icon, label, short label for the tabs]
 import { computed } from 'vue';
 import { state } from './store';
@@ -14,7 +14,6 @@ export const NAV = [
   ['oznlab', 'sensor', 'PA Sensei'],
   ['files', 'file', 'G-code Files', 'Files'],
   ['viewer', 'cube', 'G-code Viewer', 'Viewer'],
-  ['history', 'clock', 'History'],
   ['machine', 'cpu', 'Machine'],
   ['health', 'heart', 'Health'],
 ];

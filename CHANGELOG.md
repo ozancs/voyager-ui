@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.38.42
+
+- New menu style Bottom dock: the pages on a floating shelf at the bottom of the window, the one you point at lifts a little and shows its name. The top bar is the print's: file, progress, layer, time left and ETA
+- Top tabs: the icon above the name; the open page's tab joins the page panel, its icon in the accent
+- History is no longer in the menu: its statistics head the G-code Files page, with a button to the full print history
+- Appearance > Theme colour: one colour tints the whole interface (page, cards, panels, borders, grey text) in dark and light; Background: Darker still works with it
+- Accent strength reworked: selected options (segments, toggled buttons) take the accent, lightly on Subtle. Normal and Strong lean the page, cards and panels a little to the accent instead of drawing coloured outlines around cards and tiles
+- Settings: wider, every control starts on one line, and each tab is split into named groups (Theme, Size, Menu; Layout, Temperatures; Sound, Events...)
+- Settings > Dashboard: the temperature graph right under its settings, so sensor and range changes show at once
+- Settings > Cameras: the cameras as small cards with their live picture
+- Settings > Presets: each preset in its own panel
+- Settings > Sounds: moving the volume slider plays the sound at that volume
+- Accent colours fit on one row
+
 ## 0.38.41
 
 - Calibrations: Klipper's own input shaper result (without Shake&Tune) as a table per axis: every shaper it tried with frequency, vibrations left, smoothing and max_accel, the recommended one marked, and Apply on each row. The Input shaper tab also shows the last run from the console

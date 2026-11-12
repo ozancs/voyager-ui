@@ -12,6 +12,7 @@ import { loadLong, sampleLong, backfillLong, saveLong } from './temphist';
 import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 import { notificationDismissKey } from './firmware';
+import { applyBase } from './baseColor';
 
 export const VERSION = __APP_VERSION__;
 export const APP = 'voyager-ui';
@@ -23,6 +24,7 @@ const NS = APP;
 export const DEFAULT_SETTINGS = () => ({
   accent: '#ff6b1a',
   bgDark: false, // Appearance > Background: a darker page behind the cards (dark mode)
+  baseColor: '', // Appearance > Theme colour: tints every surface (baseColor.js); '' is the built-in graphite
   printerIcon: { kind: 'voyager', logo: '', theme: '', img: '' }, // tab icon and top bar logo, see printerIcon.js
   favorites: [], // filled once from the macros the printer has (see resolveDefaultFavorites)
   presets: [
@@ -295,6 +297,7 @@ export const state = reactive({
   klippyMessage: '',
   running: null, // { cmd, script, at }: a command this page sent that is still running (shown in the top bar when idle)
   objects: [],
+  themeTick: 0, // bumped when the system light / dark changes (the theme colour follows it)
   status: {},
   macros: [],
   commands: {},
@@ -1192,6 +1195,24 @@ function applyTheme() {
   } catch {}
 }
 watch(() => state.settings.theme, applyTheme, { immediate: true });
+// the theme colour follows the theme (light / dark) and Background: Darker
+watch(
+  [
+    () => state.settings.baseColor,
+    () => state.settings.theme,
+    () => !!state.settings.bgDark,
+    () => state.themeTick,
+    () => state.settings.accentReach,
+  ],
+  () =>
+    applyBase(
+      state.settings.baseColor,
+      document.documentElement.dataset.theme,
+      !!state.settings.bgDark,
+      state.settings.accentReach,
+    ),
+  { immediate: true },
+);
 // how far the accent colour reaches beyond buttons (style.css reads the attribute)
 watch(
   () => state.settings.accentReach,
@@ -1245,7 +1266,10 @@ watch(
   (c) => document.documentElement.classList.toggle('compact', c),
   { immediate: true },
 );
-mqDark?.addEventListener?.('change', applyTheme);
+mqDark?.addEventListener?.('change', () => {
+  applyTheme();
+  state.themeTick++;
+});
 watch(
   () => state.settings.accent,
   (a) => document.documentElement.style.setProperty('--ac-raw', a || '#ff6b1a'),

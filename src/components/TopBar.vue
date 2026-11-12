@@ -34,6 +34,7 @@ import {
   prettyName,
   restartKlipper,
   activeExtruder,
+  layerInfo,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -44,7 +45,14 @@ import { activity } from '../activity';
 const emit = defineEmits(['exclude', 'menu']);
 // the printer name and switcher; off when the full height side menu has them (App.vue)
 // tabs: the Top tabs menu style, the pages as pills in this bar and the buttons as icons
-const props = defineProps({ brand: { type: Boolean, default: true }, tabs: Boolean });
+const props = defineProps({ brand: { type: Boolean, default: true }, tabs: Boolean, dock: Boolean });
+// a print shown in the bar itself: when moved up, and always with the bottom dock menu (the bar is the print's)
+const pillTop = computed(() => isPrinting.value && (props.dock || state.settings.printBar === 'top'));
+const etaTxt = computed(() =>
+  printTimes.value.eta
+    ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    : '--',
+);
 const fileInput = ref(null);
 const uploading = ref(null);
 const showBell = ref(false);
@@ -212,7 +220,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
 </script>
 
 <template>
-  <header class="tb" :class="{ pilled: active && state.settings.printBar === 'top', ovup: ovOpen, tabs }">
+  <header class="tb" :class="{ pilled: pillTop, ovup: ovOpen, tabs, dock }">
     <button class="menu btn clear ibtn" :aria-label="t('Menu')" @click="emit('menu')">
       <Icon name="menu" :size="22" />
     </button>
@@ -289,7 +297,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
     </template>
     <TopTabs v-if="tabs" />
     <!-- a running print: in its own band under the top bar by default; "moved up" it is this compact pill -->
-    <template v-if="active && state.settings.printBar === 'top'">
+    <template v-if="pillTop">
       <div v-if="!tabs" class="grow"></div>
       <div class="pill job" :style="{ '--pst': stateColor }">
         <div class="pth">
@@ -310,8 +318,13 @@ onBeforeUnmount(() => ovObs?.disconnect());
             <div :style="{ width: progress * 100 + '%' }"></div>
           </div>
         </div>
+        <span v-if="dock" class="mono meta jl">{{
+          t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' })
+        }}</span>
         <span class="mono meta jl">{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span>
+        <span v-if="dock" class="mono meta jl">{{ t('ETA {time}', { time: etaTxt }) }}</span>
         <button
+          v-if="!dock"
           class="btn ibtn jb"
           :aria-label="t('Move the print down into its own bar')"
           :data-tip="t('Move the print down into its own bar')"
@@ -1245,6 +1258,21 @@ onBeforeUnmount(() => ovObs?.disconnect());
   width: 52px;
 }
 :root.ew-lt-1300 .tb.tabs .estop .es {
+  display: none;
+}
+.tb.dock .pill.job {
+  flex: 1 1 auto;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-right: 10px;
+}
+.tb.dock .pill.job .jf {
+  max-width: 320px;
+}
+.tb.dock .pill.job .meta {
+  font-size: 12.5px;
+}
+.tb.dock .menu {
   display: none;
 }
 </style>

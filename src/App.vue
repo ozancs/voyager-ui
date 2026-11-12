@@ -9,6 +9,7 @@ import TopBar from './components/TopBar.vue';
 import FavoritesBar from './components/FavoritesBar.vue';
 import PrintBar from './components/PrintBar.vue';
 import SideNav from './components/SideNav.vue';
+import DockNav from './components/DockNav.vue';
 import BottomNav from './components/BottomNav.vue';
 import ThumbZoom from './components/ThumbZoom.vue';
 import ExcludeModal from './components/ExcludeModal.vue';
@@ -163,12 +164,14 @@ const navMode = computed(() => (narrow.value ? 'hidden' : state.settings.navMode
 // pinned on a wide screen: the menu runs the full height as a panel of its own, the printer at its top; it
 // collapses to a rail of icons
 const navStyle = computed(() => state.settings.navStyle || 'classic'); // Settings > Menu style
-const side = computed(() => navMode.value === 'pinned' && !['classic', 'tabs'].includes(navStyle.value));
+const side = computed(() => navMode.value === 'pinned' && !['classic', 'tabs', 'dock'].includes(navStyle.value));
 // top tabs: the pages as pills in the top bar, the page in a panel with rounded top corners under it. Its softer
 // corners go to the whole interface (dialogs too), so the class sits on the root
 // It stays on narrower windows too (the tabs shrink down to one), only phones keep their bottom bar.
 const tabs = computed(() => navStyle.value === 'tabs' && !phone.value);
 watch(tabs, (on) => document.documentElement.classList.toggle('ui-tabs', on), { immediate: true });
+// bottom dock: the pages on a shelf at the bottom, the top bar is the printer's (phones keep their bottom bar)
+const dock = computed(() => navStyle.value === 'dock' && !phone.value);
 const rail = computed(() => side.value && !!state.settings.navRail);
 // the button inside the menu: pinned -> hidden, hidden/auto -> pinned
 function pinNav() {
@@ -205,7 +208,8 @@ function measureChrome() {
   const el = shell.value;
   if (!el) return;
   const main = el.querySelector('.main');
-  if (main) el.style.setProperty('--main-h', main.clientHeight + 'px');
+  // with the bottom dock the page ends above the shelf
+  if (main) el.style.setProperty('--main-h', main.clientHeight - (dock.value ? 84 : 0) + 'px');
 }
 onMounted(() => {
   measureChrome();
@@ -215,7 +219,7 @@ onMounted(() => {
   if (main) ro.observe(main);
 });
 onBeforeUnmount(() => ro?.disconnect());
-watch([printActive, showFavBar, () => state.settings.printBar, () => state.dashPrintCard], () =>
+watch([printActive, showFavBar, () => state.settings.printBar, () => state.dashPrintCard, dock], () =>
   nextTick(measureChrome),
 );
 const klippyExplain = computed(() => (notReady.value ? explain(state.klippyMessage) : null));
@@ -229,7 +233,7 @@ startIssues();
   <div
     class="shell"
     ref="shell"
-    :class="[{ booting: state.connected && !state.booted, side }, (side || tabs) && 'nav-' + navStyle]"
+    :class="[{ booting: state.connected && !state.booted, side }, (side || tabs || dock) && 'nav-' + navStyle]"
   >
     <SideNav
       v-if="side"
@@ -240,14 +244,17 @@ startIssues();
       @rail="state.settings.navRail = !state.settings.navRail"
     />
     <div class="scol">
-      <TopBar :brand="!side" :tabs="tabs" @exclude="state.showExclude = true" @menu="toggleNav" />
+      <TopBar :brand="!side" :tabs="tabs" :dock="dock" @exclude="state.showExclude = true" @menu="toggleNav" />
       <SettingsDialog v-if="state.settingsOpen" />
       <PrintersDialog v-if="state.printersOpen" @close="state.printersOpen = false" />
       <!-- the page panel: only a box of its own in the top tabs style, otherwise its parts sit in the column -->
       <div class="pnl">
         <PrintBar
           v-if="
-            printActive && state.settings.printBar !== 'top' && !(route.name === 'dashboard' && state.dashPrintCard)
+            printActive &&
+            !dock &&
+            state.settings.printBar !== 'top' &&
+            !(route.name === 'dashboard' && state.dashPrintCard)
           "
           @exclude="state.showExclude = true"
         />
@@ -256,7 +263,7 @@ startIssues();
           <!-- the shadow the bars above cast once the page is scrolled, so the page reads as going under them -->
           <div class="shade" :class="{ on: scrolled }" aria-hidden="true"></div>
           <SideNav
-            v-if="!side && !tabs"
+            v-if="!side && !tabs && !dock"
             :open="navOpen"
             :mode="navMode"
             @close="navOpen = false"
@@ -264,9 +271,9 @@ startIssues();
             @mouseenter="navMode === 'auto' && peek(true)"
             @mouseleave="navMode === 'auto' && peek(false)"
           />
-          <div v-if="!tabs && navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
+          <div v-if="!tabs && !dock && navMode === 'auto' && !navOpen" class="edge" @mouseenter="peek(true)"></div>
           <button
-            v-if="!tabs && navMode !== 'pinned' && !navOpen && !narrow"
+            v-if="!tabs && !dock && navMode !== 'pinned' && !navOpen && !narrow"
             class="navtab"
             :aria-label="t('Show / hide the side menu')"
             :data-tip="t('Menu')"
@@ -328,6 +335,7 @@ startIssues();
         </div>
       </div>
     </div>
+    <DockNav v-if="dock" />
     <BottomNav @menu="toggleNav" />
     <ThumbZoom />
     <MachineDialogs />
@@ -673,6 +681,10 @@ startIssues();
 }
 .main {
   padding-bottom: 24px !important;
+}
+/* bottom dock: the page scrolls out from under the shelf */
+.shell.nav-dock .main {
+  padding-bottom: 104px !important;
 }
 .bootpill {
   position: fixed;
