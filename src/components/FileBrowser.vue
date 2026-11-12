@@ -13,6 +13,8 @@ import { downloadMany } from '../features';
 import { t } from '../i18n';
 import { undoable, isHidden, stillSame } from '../undo';
 import { nameTaken } from '../fileNames';
+import { droppedFiles, pickedFolderFiles, moveItems, DRAG_TYPE, isRowDrag } from '../fileMove';
+import FolderPicker from './FolderPicker.vue';
 const roots = ref(['config']);
 const root = ref('config');
 const path = ref('');
@@ -37,6 +39,8 @@ function contextAction(action) {
   const it = context.value.item;
   context.value = null;
   if (action === 'open') open(it);
+  else if (action === 'move')
+    moveOf.value = picked.value.has(key(it)) ? pickedRows.value.map((x) => x.name) : [it.name];
   else if (action === 'download') {
     picked.value = new Set([key(it)]);
     dlPicked();
@@ -130,11 +134,21 @@ function upDir() {
   load();
 }
 async function upload(e, sub = '') {
-  const fs = [...e.target.files];
+  const fs = [...e.target.files].map((file) => ({ file, dir: '' }));
   e.target.value = '';
-  const dest = [path.value, sub].filter(Boolean).join('/');
+  return uploadList(fs, sub);
+}
+function uploadFolder(e) {
+  const list = pickedFolderFiles(e.target.files);
+  e.target.value = '';
+  return uploadList(list);
+}
+// files with the folder each goes into (inside the one shown, or the folder row they were dropped on)
+async function uploadList(list, sub = '') {
+  const fs = list.map((x) => x.file);
   let ok = 0;
-  for (const f of fs) {
+  for (const { file: f, dir } of list) {
+    const dest = [path.value, sub, dir].filter(Boolean).join('/');
     up.value = 0;
     try {
       await api.upload(f, { root: root.value, path: dest, onProgress: (p) => (up.value = p) });
@@ -167,11 +181,50 @@ function dLeave(e) {
     overDir.value = null;
   }
 }
-function dDrop(e, dir = '') {
+async function dDrop(e, dir = '') {
   depth = 0;
   over.value = false;
   overDir.value = null;
-  if (e.dataTransfer?.files?.length) upload({ target: { files: e.dataTransfer.files, value: '' } }, dir);
+  if (isRowDrag(e)) return dir || dir === '..' ? moveDropped(e, dir) : undefined;
+  if (e.dataTransfer?.files?.length) uploadList(await droppedFiles(e.dataTransfer), dir); // folders too
+}
+// ---- moving rows: dragged onto a folder row or "..", or "Move to…" ----
+const folderInput = ref(null);
+const moveOf = ref(null);
+function dragStart(e, it) {
+  const names = picked.value.has(key(it)) && picked.value.size > 1 ? pickedRows.value.map((x) => x.name) : [it.name];
+  e.dataTransfer.setData(DRAG_TYPE, JSON.stringify(names));
+  e.dataTransfer.effectAllowed = 'move';
+}
+function rowOver(e, it) {
+  if (!it.dir) return;
+  if (isRowDrag(e)) e.preventDefault();
+  overDir.value = it.name;
+}
+async function moveDropped(e, dir) {
+  let names = [];
+  try {
+    names = JSON.parse(e.dataTransfer.getData(DRAG_TYPE) || '[]');
+  } catch {}
+  const to = dir === '..' ? full.value.split('/').slice(0, -1).join('/') || root.value : full.value + '/' + dir;
+  if (
+    await moveItems(
+      full.value,
+      names.filter((n) => n !== dir),
+      to,
+    )
+  ) {
+    picked.value = new Set();
+    load();
+  }
+}
+async function moveTo(dest) {
+  const names = moveOf.value || [];
+  moveOf.value = null;
+  if (await moveItems(full.value, names, dest)) {
+    picked.value = new Set();
+    load();
+  }
 }
 let modalBusy = false;
 async function confirmModal() {
@@ -330,12 +383,25 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
       <button class="btn ibtn" style="width: 40px; height: 40px" :aria-label="t('Refresh')" @click="load">
         <Icon name="refresh" :size="18" />
       </button>
+      <button
+        class="btn ibtn"
+        style="width: 40px; height: 40px"
+        :aria-label="t('Upload a folder')"
+        :data-tip="t('Upload a folder')"
+        @click="folderInput.click()"
+      >
+        <Icon name="folder" :size="18" /><Icon name="up" :size="11" :stroke="3" class="fu" />
+      </button>
       <input ref="fileInput" type="file" multiple hidden @change="upload" />
+      <input ref="folderInput" type="file" webkitdirectory multiple hidden @change="uploadFolder" />
     </div>
     <div v-if="picked.size" class="bulk row">
       <b>{{ t('{n} selected', { n: picked.size }) }}</b>
       <span class="grow"></span>
       <button class="btn" @click="dlPicked"><Icon name="download" :size="16" />{{ t('Download') }}</button>
+      <button class="btn" @click="moveOf = pickedRows.map((x) => x.name)">
+        <Icon name="folder" :size="16" />{{ t('Move to…') }}
+      </button>
       <button class="btn dg" @click="modal = { kind: 'bulkdelete' }">
         <Icon name="trash" :size="16" />{{ t('Delete') }}
       </button>
@@ -377,7 +443,15 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
           </tr>
         </thead>
         <tbody>
-          <tr v-if="path" class="click" @click="upDir">
+          <tr
+            v-if="path"
+            class="click"
+            :class="{ tgt: overDir === '..' }"
+            @click="upDir"
+            @dragover="isRowDrag($event) && ($event.preventDefault(), (overDir = '..'))"
+            @dragleave="overDir === '..' && (overDir = null)"
+            @drop.prevent.stop="dDrop($event, '..')"
+          >
             <td></td>
             <td><Icon name="folder" :size="18" style="color: var(--mu)" /></td>
             <td colspan="4" class="mono">..</td>
@@ -399,7 +473,9 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
               )
             "
             tabindex="0"
-            @dragover="it.dir && (overDir = it.name)"
+            draggable="true"
+            @dragstart="dragStart($event, it)"
+            @dragover="rowOver($event, it)"
             @dragleave="it.dir && overDir === it.name && (overDir = null)"
             @drop.prevent.stop="dDrop($event, it.dir ? it.name : '')"
           >
@@ -477,6 +553,9 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
       <button class="btn clear" role="menuitem" @click="contextAction('rename')">
         <Icon name="pencil" :size="16" />{{ t('Rename') }}
       </button>
+      <button class="btn clear" role="menuitem" @click="contextAction('move')">
+        <Icon name="folder" :size="16" />{{ t('Move to…') }}
+      </button>
       <button class="btn clear" role="menuitem" @click="contextAction('delete')">
         <Icon name="trash" :size="16" />{{ t('Delete') }}
       </button>
@@ -514,6 +593,7 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
     >
   </Modal>
   <ImageViewer v-if="img" :root="root" :list="img.list" :start="img.start" @close="img = null" />
+  <FolderPicker v-if="moveOf" :root="root" :start="full" :count="moveOf.length" @pick="moveTo" @close="moveOf = null" />
 </template>
 <style scoped>
 .drop {
@@ -662,5 +742,9 @@ th.s {
 }
 .file-context button {
   justify-content: flex-start;
+}
+.fu {
+  position: absolute;
+  margin: 3px 0 0 1px;
 }
 </style>

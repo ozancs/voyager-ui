@@ -12,6 +12,18 @@ import Toggle from '../components/Toggle.vue';
 import { PALETTES, paletteColor, cssGradient } from '../meshPalette';
 import { state, S, gcode, isPrinting, askConfirm } from '../store';
 import { t } from '../i18n';
+// gantry levelling before a mesh: QGL on a Voron 2.4, Z tilt on a Trident; homes first when needed
+const level = computed(() => {
+  const o = state.objects;
+  if (o.includes('quad_gantry_level'))
+    return { cmd: 'QUAD_GANTRY_LEVEL', label: 'QGL', applied: S('quad_gantry_level').applied };
+  const z = o.find((n) => n === 'z_tilt_ng' || n === 'z_tilt');
+  return z ? { cmd: 'Z_TILT_ADJUST', label: 'Z Tilt', applied: S(z).applied } : null;
+});
+function runLevel() {
+  const homed = (S('toolhead').homed_axes || '').length === 3;
+  gcode((homed ? '' : 'G28\n') + level.value.cmd);
+}
 const bm = computed(() => S('bed_mesh'));
 const useProbed = ref(true);
 // view options, kept in settings: colour range (auto = the mesh's own extremes) and the 3D z axis height
@@ -197,6 +209,10 @@ async function removeProfile(p) {
             <Icon name="x" :stroke="2.4" />{{ t('Clear') }}
           </button>
         </div>
+        <button v-if="level" class="btn lg lvl" :disabled="isPrinting" @click="runLevel">
+          <Icon name="tilt" :stroke="2.4" />{{ t(level.label)
+          }}<Icon v-if="level.applied" name="check" :size="14" :stroke="2.6" />
+        </button>
       </section>
       <section class="card">
         <div class="card-h">
@@ -374,6 +390,10 @@ async function removeProfile(p) {
 }
 .st b {
   font-size: 20px;
+}
+.lvl {
+  width: 100%;
+  margin-top: 8px;
 }
 .g2 {
   display: grid;

@@ -7,6 +7,7 @@ import Modal from './Modal.vue';
 import Icon from './Icon.vue';
 import { state, S, gcode, toast, layerInfo } from '../store';
 import { t } from '../i18n';
+import { pauseQueue, setPauseQueue } from '../pauseQueue';
 defineProps({ compact: Boolean });
 const has = (c) => Object.keys(state.commands || {}).some((k) => k.toUpperCase() === c);
 const avail = computed(() => has('SET_PAUSE_AT_LAYER') || has('SET_PAUSE_NEXT_LAYER'));
@@ -22,31 +23,45 @@ const nextLayer = computed(
     S('gcode_macro SET_PAUSE_NEXT_LAYER').pause_next_layer ||
     {},
 );
-const pending = computed(() =>
-  nextLayer.value.enable ? t('next layer') : atLayer.value.enable ? t('layer {n}', { n: atLayer.value.layer }) : '',
-);
+const pending = computed(() => {
+  if (nextLayer.value.enable) return t('next layer');
+  if (!atLayer.value.enable) return '';
+  const more = pauseQueue.value.filter((n) => n !== atLayer.value.layer).length;
+  return t('layer {n}', { n: atLayer.value.layer }) + (more ? ` (+${more})` : '');
+});
 const open = ref(false);
-const layer = ref(0);
+const layer = ref(''); // one layer or several: 50, 120, 200
 function show() {
-  layer.value = Math.max(1, (layerInfo.value.cur || 0) + 1);
+  layer.value = String(Math.max(1, (layerInfo.value.cur || 0) + 1));
   open.value = true;
 }
+const layers = computed(() =>
+  String(layer.value)
+    .split(/[\s,;]+/)
+    .filter(Boolean)
+    .map(Number),
+);
 async function set(n) {
   open.value = false;
   try {
     if (n === 'next') await gcode('SET_PAUSE_NEXT_LAYER ENABLE=1');
     else {
       const total = layerInfo.value.total;
-      if (!(n >= 1) || (total && n > total))
+      const cur = layerInfo.value.cur || 0;
+      const list = layers.value;
+      if (!list.length || list.some((x) => !(x >= 1) || (total && x > total)))
         return toast(t('Layer must be between 1 and {n}', { n: total || '?' }), 'warn');
-      if (n <= (layerInfo.value.cur || 0)) return toast(t('That layer is already printed'), 'warn');
-      await gcode(`SET_PAUSE_AT_LAYER ENABLE=1 LAYER=${Math.round(n)}`);
+      if (list.every((x) => x <= cur)) return toast(t('That layer is already printed'), 'warn');
+      // the first goes to Klipper now, the rest wait their turn (pauseQueue.js)
+      const q = setPauseQueue(list.filter((x) => x > cur));
+      await gcode(`SET_PAUSE_AT_LAYER ENABLE=1 LAYER=${q[0]}`);
     }
   } catch (e) {
     toast(e.message, 'error');
   }
 }
 async function clear() {
+  setPauseQueue([]);
   try {
     if (nextLayer.value.enable) await gcode('SET_PAUSE_NEXT_LAYER ENABLE=0');
     if (atLayer.value.enable) await gcode('SET_PAUSE_AT_LAYER ENABLE=0');
@@ -82,18 +97,20 @@ async function clear() {
           }})</span
         >
         <input
-          v-model.number="layer"
-          type="number"
+          v-model="layer"
           class="input mono"
-          :min="1"
-          :max="layerInfo.total || undefined"
+          inputmode="numeric"
+          :placeholder="t('e.g. 50, 120, 200')"
           @keydown.enter="set(layer)"
         />
+        <span class="mu" style="font-size: 12px">{{ t('Several layers: separate them with commas.') }}</span>
       </label>
       <template #foot>
         <button v-if="has('SET_PAUSE_NEXT_LAYER')" class="btn lg" @click="set('next')">{{ t('Next layer') }}</button>
         <button class="btn lg acc" :disabled="!has('SET_PAUSE_AT_LAYER')" @click="set(layer)">
-          {{ t('Pause at layer {n}', { n: layer }) }}
+          {{
+            layers.length > 1 ? t('Pause at {n} layers', { n: layers.length }) : t('Pause at layer {n}', { n: layer })
+          }}
         </button>
       </template>
     </Modal>

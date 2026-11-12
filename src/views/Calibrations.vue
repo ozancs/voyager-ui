@@ -10,7 +10,15 @@ import ShaperGraphs from '../components/ShaperGraphs.vue';
 import CalibPath from '../components/CalibPath.vue';
 import CalibSide from '../components/CalibSide.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
-import { availableGroups, buildCommand, missingParams, invalidParams, parseResult } from '../calibrations';
+import {
+  availableGroups,
+  buildCommand,
+  missingParams,
+  invalidParams,
+  parseResult,
+  lastShaperRun,
+} from '../calibrations';
+import ShaperResults from '../components/ShaperResults.vue';
 import { route, go } from '../router';
 import { t } from '../i18n';
 
@@ -87,7 +95,13 @@ const runLines = computed(() =>
     ? state.console.filter((l) => l.id > run.value.since && l.type !== 'command').map((l) => strip(l.message))
     : [],
 );
-const result = computed(() => (run.value ? parseResult(run.value.cmd, runLines.value) : { rows: [], shapers: [] }));
+const result = computed(() =>
+  run.value ? parseResult(run.value.cmd, runLines.value) : { rows: [], shapers: [], fitted: [] },
+);
+// input shaper: the last SHAPER_CALIBRATE seen in the console when nothing was run from this page
+const lastShaper = computed(() =>
+  tab.value?.key === 'shaper' && !result.value.fitted.length ? lastShaperRun(state.console) : null,
+);
 function applyShaper(r) {
   const A = r.axis.toUpperCase();
   gcode(`SET_INPUT_SHAPER SHAPER_TYPE_${A}=${r.type} SHAPER_FREQ_${A}=${r.freq}`);
@@ -210,7 +224,8 @@ function applyShaper(r) {
             <h2>{{ t('Result') }}</h2>
             <span class="mono mu sm">{{ run.cmd }}</span>
           </div>
-          <div v-for="(r, i) in result.shapers" :key="'s' + i" class="rec">
+          <ShaperResults v-if="result.fitted.length" :fitted="result.fitted" />
+          <div v-for="(r, i) in result.fitted.length ? [] : result.shapers" :key="'s' + i" class="rec">
             <div class="grow">
               <b class="mono">{{ r.axis.toUpperCase() }} · {{ r.type.toUpperCase() }} @ {{ r.freq }} Hz</b>
               <span v-if="r.maxAccel" class="mu sm">max_accel ≤ {{ r.maxAccel }}</span>
@@ -228,10 +243,19 @@ function applyShaper(r) {
           <pre class="log">{{ runLines.slice(-14).join('\n') || (run.running ? t('Waiting for output…') : '') }}</pre>
         </section>
 
+        <section v-if="lastShaper" class="card">
+          <div class="card-h">
+            <h2>{{ t('Last input shaper result') }}</h2>
+            <span class="mono mu sm">{{
+              new Date(lastShaper.time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }}</span>
+          </div>
+          <ShaperResults :fitted="lastShaper.fitted" />
+        </section>
         <ShaperGraphs v-if="tab.key === 'shaper'" />
         <section v-if="savePending" class="card">
           <p class="sm" style="margin: 0">{{ t('Klipper has new values waiting for SAVE_CONFIG.') }}</p>
-          <button class="btn lg" :disabled="isPrinting" @click="gcode('SAVE_CONFIG')">
+          <button class="btn lg" :disabled="isPrinting" @click="state.saveAsk = true">
             <Icon name="save" :size="16" />{{ t('Save config and restart') }}
           </button>
         </section>

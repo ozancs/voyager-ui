@@ -140,7 +140,8 @@ async function setDesktop(on) {
 }
 const SOUNDS = [
   ['complete', 'Print finished', 'complete'],
-  ['paused', 'Print paused (e.g. runout)', 'paused'],
+  ['paused', 'Print paused', 'paused'],
+  ['runout', 'Filament runout', 'runout'],
   ['error', 'Error / Klipper shutdown', 'error'],
   ['heated', 'Heater reached target', 'heated'],
 ];

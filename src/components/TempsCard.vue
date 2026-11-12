@@ -27,6 +27,21 @@ function commitTarget(s, e) {
   if (v !== '' && Number.isFinite(n) && n !== s.target) setHeater(s.name, n);
 }
 const presets = allPresets;
+// sensor groups from the Edit list: sensors without a group first, then one heading per group in the order the
+// groups first appear
+const grouped = computed(() => {
+  const g = state.settings.sensorGroups || {};
+  const list = sensors.value;
+  if (!list.some((s) => g[s.name])) return list;
+  const order = [''];
+  for (const s of list) if (!order.includes(g[s.name] || '')) order.push(g[s.name]);
+  const out = [];
+  for (const name of order) {
+    const part = list.filter((s) => (g[s.name] || '') === name);
+    part.forEach((s, i) => out.push(i === 0 && name ? { ...s, head: name } : s));
+  }
+  return out;
+});
 </script>
 <template>
   <section class="card temps">
@@ -90,57 +105,64 @@ const presets = allPresets;
           </tr>
         </thead>
         <tbody>
-          <tr v-for="s in sensors" :key="s.name">
-            <td class="nm">
-              <SensorIcon :name="s.name" :color="colorOf(s.ci, s.name)" class="ic" />{{ s.label
-              }}<template v-if="s.isHeater && s.target > 0 && heatEta(s.name)"
-                ><small
-                  v-if="heatEta(s.name).levels != null"
-                  class="eta lv mono"
-                  :data-tip="t('Levels off around {n}°, short of the target', { n: heatEta(s.name).levels.toFixed(0) })"
-                  >~{{ heatEta(s.name).levels.toFixed(0) }}°</small
-                ><small v-else class="eta mono" :data-tip="t('Time to reach the target')">{{
-                  fmtEta(heatEta(s.name).secs)
-                }}</small></template
-              >
-            </td>
-            <td class="mono v" :style="{ color: heatColor(s.temperature) }">
-              {{ s.temperature != null ? s.temperature.toFixed(1) + '°' : '--' }}
-            </td>
-            <td>
-              <input
-                v-if="s.isHeater || s.isTempFan"
-                class="tg mono"
-                :class="{ on: s.target > 0 }"
-                type="number"
-                :value="edit[s.name] ?? s.target?.toFixed(0)"
-                @focus="
-                  edit[s.name] = s.target?.toFixed(0);
-                  typed[s.name] = false;
-                "
-                @input="
-                  edit[s.name] = $event.target.value;
-                  typed[s.name] = true;
-                "
-                @keydown.enter="
-                  commitTarget(s, $event);
-                  $event.target.blur();
-                "
-                @keydown.esc.stop="$event.target.blur()"
-                @blur="edit[s.name] = undefined"
-                :aria-label="t('{name} target', { name: s.label })"
-              />
-            </td>
-            <td class="mono mu">
-              {{
-                s.power != null
-                  ? Math.round(s.power * 100) + '%'
-                  : s.speed != null
-                    ? t('fan {n}%', { n: Math.round(s.speed * 100) })
-                    : ''
-              }}
-            </td>
-          </tr>
+          <template v-for="s in grouped" :key="s.name">
+            <tr v-if="s.head" class="ghd">
+              <td colspan="4">{{ s.head }}</td>
+            </tr>
+            <tr>
+              <td class="nm">
+                <SensorIcon :name="s.name" :color="colorOf(s.ci, s.name)" class="ic" />{{ s.label
+                }}<template v-if="s.isHeater && s.target > 0 && heatEta(s.name)"
+                  ><small
+                    v-if="heatEta(s.name).levels != null"
+                    class="eta lv mono"
+                    :data-tip="
+                      t('Levels off around {n}°, short of the target', { n: heatEta(s.name).levels.toFixed(0) })
+                    "
+                    >~{{ heatEta(s.name).levels.toFixed(0) }}°</small
+                  ><small v-else class="eta mono" :data-tip="t('Time to reach the target')">{{
+                    fmtEta(heatEta(s.name).secs)
+                  }}</small></template
+                >
+              </td>
+              <td class="mono v" :style="{ color: heatColor(s.temperature) }">
+                {{ s.temperature != null ? s.temperature.toFixed(1) + '°' : '--' }}
+              </td>
+              <td>
+                <input
+                  v-if="s.isHeater || s.isTempFan"
+                  class="tg mono"
+                  :class="{ on: s.target > 0 }"
+                  type="number"
+                  :value="edit[s.name] ?? s.target?.toFixed(0)"
+                  @focus="
+                    edit[s.name] = s.target?.toFixed(0);
+                    typed[s.name] = false;
+                  "
+                  @input="
+                    edit[s.name] = $event.target.value;
+                    typed[s.name] = true;
+                  "
+                  @keydown.enter="
+                    commitTarget(s, $event);
+                    $event.target.blur();
+                  "
+                  @keydown.esc.stop="$event.target.blur()"
+                  @blur="edit[s.name] = undefined"
+                  :aria-label="t('{name} target', { name: s.label })"
+                />
+              </td>
+              <td class="mono mu">
+                {{
+                  s.power != null
+                    ? Math.round(s.power * 100) + '%'
+                    : s.speed != null
+                      ? t('fan {n}%', { n: Math.round(s.speed * 100) })
+                      : ''
+                }}
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
@@ -233,5 +255,12 @@ const presets = allPresets;
   justify-content: space-between;
   font-size: 10px;
   color: var(--mu2);
+}
+.ghd td {
+  padding-top: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mu);
+  border-bottom: 0;
 }
 </style>

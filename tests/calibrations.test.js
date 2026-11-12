@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { availableGroups, buildCommand, missingParams, parseResult, GROUPS } from '../src/calibrations.js';
+import {
+  availableGroups,
+  buildCommand,
+  missingParams,
+  parseResult,
+  lastShaperRun,
+  GROUPS,
+} from '../src/calibrations.js';
 
 describe('calibrations', () => {
   it('shows only the tabs the printer has', () => {
@@ -60,5 +67,31 @@ describe('PA Sensei', () => {
     expect(r).toContainEqual(['z offset', '0.123']);
     expect(r).toContainEqual(['pressure advance', '0.0412']);
     expect(r).toContainEqual(['slicer max flow', '26.0 mm³/s']);
+  });
+});
+
+describe('input shaper results', () => {
+  const out = [
+    "Fitted shaper 'mzv' frequency = 53.8 Hz (vibrations = 1.6%, smoothing ~= 0.059)",
+    "To avoid too much smoothing with 'mzv', suggested max_accel <= 9900 mm/sec^2",
+    "Fitted shaper 'ei' frequency = 63.2 Hz (vibrations = 0.4%, smoothing ~= 0.071)",
+    "To avoid too much smoothing with 'ei', suggested max_accel <= 8000 mm/sec^2",
+    'Recommended shaper_type_x = ei, shaper_freq_x = 63.2 Hz',
+  ];
+  it('lists every fitted shaper and marks the recommended one', () => {
+    const r = parseResult('SHAPER_CALIBRATE', out);
+    expect(r.fitted).toEqual([
+      { axis: 'x', type: 'mzv', freq: 53.8, vib: 1.6, smooth: 0.059, maxAccel: 9900, best: false },
+      { axis: 'x', type: 'ei', freq: 63.2, vib: 0.4, smooth: 0.071, maxAccel: 8000, best: true },
+    ]);
+  });
+  it('finds the last run in the console', () => {
+    const con = [
+      { type: 'command', message: 'SHAPER_CALIBRATE AXIS=X', time: 5 },
+      ...out.map((m) => ({ type: 'response', message: '// ' + m })),
+    ];
+    expect(lastShaperRun(con).time).toBe(5);
+    expect(lastShaperRun(con).fitted).toHaveLength(2);
+    expect(lastShaperRun([{ type: 'command', message: 'G28' }])).toBeNull();
   });
 });

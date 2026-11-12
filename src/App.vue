@@ -28,11 +28,13 @@ import FirstRun from './components/FirstRun.vue';
 import Handoff from './components/Handoff.vue';
 import LoginScreen from './components/LoginScreen.vue';
 import SettingsDialog from './components/SettingsDialog.vue';
+import SaveConfigDialog from './components/SaveConfigDialog.vue';
 import PrintersDialog from './components/PrintersDialog.vue';
 import { initSync } from './sync';
 import { initFeatures } from './features';
 import { initTimelapse } from './timelapse';
 import { initZOffset } from './zoffset';
+import { initPauseQueue } from './pauseQueue';
 import './lock';
 import FloatingCam from './components/FloatingCam.vue';
 import LockScreen from './components/LockScreen.vue';
@@ -45,6 +47,7 @@ import './tablet';
 initFeatures();
 initTimelapse();
 initZOffset();
+initPauseQueue();
 import {
   state,
   gcode,
@@ -333,6 +336,7 @@ startIssues();
     <LoginScreen />
     <ExcludeModal v-if="state.showExclude" @close="state.showExclude = false" />
     <UpdateModal />
+    <SaveConfigDialog />
     <PreprintDialog />
     <SpoolPicker v-if="state.spoolPick" />
     <GuardDialog />

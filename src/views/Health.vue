@@ -198,6 +198,13 @@ function done(tk) {
 function addTask() {
   editT.value = { id: 'm' + Date.now(), name: '', hours: 100, unit: 'h', isNew: true };
 }
+// common tasks to start from in the new-task dialog: chamber filters wear by print hours (Nevermore, Bento Box)
+const PRESETS = [
+  { name: 'Replace HEPA filter', hours: 300 },
+  { name: 'Replace activated carbon', hours: 200 },
+  { name: 'Clean the fans', hours: 400 },
+  { name: 'Replace PTFE tube', hours: 600 },
+];
 function saveTask() {
   const t = editT.value;
   editT.value = null;
@@ -579,6 +586,17 @@ function measureAgain(h) {
   </div>
 
   <Modal v-if="editT" :title="editT.isNew ? t('New maintenance task') : t('Edit task')" @close="editT = null">
+    <div v-if="editT.isNew" class="pre">
+      <button
+        v-for="p in PRESETS"
+        :key="p.name"
+        class="chip"
+        :class="{ on: editT.name === t(p.name) }"
+        @click="Object.assign(editT, { name: t(p.name), hours: p.hours, unit: 'h' })"
+      >
+        {{ t(p.name) }}
+      </button>
+    </div>
     <label class="col" style="gap: 4px"
       ><span class="lbl">{{ t('Task') }}</span
       ><input v-model="editT.name" class="input" :placeholder="t('e.g. Check belt tension')"
@@ -835,6 +853,27 @@ function measureAgain(h) {
 /* explanations under a card stay a comfortable line length on wide screens */
 .card > p.mu {
   max-width: 85ch;
+}
+.pre {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 15px;
+  background: var(--s2);
+  color: var(--mu);
+  font-size: 13px;
+}
+.chip:hover,
+.chip.on {
+  color: var(--tx);
+}
+.chip.on {
+  background: var(--s3, var(--s2));
+  box-shadow: inset 0 0 0 1px var(--mu2);
 }
 </style>
 

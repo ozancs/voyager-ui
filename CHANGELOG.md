@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.38.41
+
+- Calibrations: Klipper's own input shaper result (without Shake&Tune) as a table per axis: every shaper it tried with frequency, vibrations left, smoothing and max_accel, the recommended one marked, and Apply on each row. The Input shaper tab also shows the last run from the console
+- Files and Machine file list: upload a whole folder (keeps its subfolders), Move to… for one or many picked items, and drag rows onto a folder (or the up row) to move them. A move never overwrites a file with the same name
+- G-code Files: pin files to the top of their folder (right-click > Pin to top)
+- G-code Files: the search also finds files in other folders, listed under the table; click one to open its folder
+- G-code Files: an empty job queue no longer takes a column
+- Save Config asks first and lists what Klipper will write to printer.cfg (changed values, removed sections)
+- Pause at layer: several layers at once, e.g. 50, 120, 200. The next one is armed after each pause
+- Dashboard: new Speed & flow graph card, the toolhead speed and volumetric flow over the last five minutes
+- Temperatures: sensors can be put in groups (Edit > Group); the card shows a heading over each group
+- Heightmap: QGL or Z tilt button next to Calibrate, homing first when needed
+- Webcam card: a light switch in the header when the printer has a light (output_pin, LED or neopixel named light, LED, lamp or chamber)
+- History: filter by Spoolman spool
+- Health > Maintenance: ready-made tasks in the new task dialog (HEPA filter, activated carbon, fans, PTFE tube)
+- Alerts: filament runout has its own sound and toggle; the pause after a runout no longer plays a second sound
+- Console: the macro dialog lines (action:prompt) are hidden from the log
+- Top tabs: the open tab is lit a little at the top, so it stands out with the darker background too, and its curved feet no longer show small bumps (most visible in light mode)
+
 ## 0.38.40
 
 - Menu style Top tabs: the pages as folder tabs along the top bar; the open page's tab opens into the page panel below. The tabs get smaller as the window narrows, down to one tab that lists every page. Printer settings and config files sit under More

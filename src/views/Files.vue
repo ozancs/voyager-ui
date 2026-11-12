@@ -25,6 +25,8 @@ import { t } from '../i18n';
 import { startPrint, uploadName } from '../preprint';
 import { undoable, isHidden, stillSame } from '../undo';
 import { nameTaken } from '../fileNames';
+import { droppedFiles, pickedFolderFiles, moveItems, DRAG_TYPE, isRowDrag } from '../fileMove';
+import FolderPicker from '../components/FolderPicker.vue';
 const path = ref('gcodes');
 const grid = ref(state.settings.filesView === 'grid');
 watch(grid, (value) => {
@@ -122,6 +124,7 @@ const addQ = (fs) => queueApi.add(fs.map(rel)).catch((e) => toast(e.message, 'er
 let rt;
 useApiEvent('notify_filelist_changed', ([p]) => {
   if (p?.item?.root !== 'gcodes') return;
+  allFiles.value = null;
   clearTimeout(rt);
   rt = setTimeout(load, 300);
 });
@@ -133,8 +136,42 @@ const list = computed(() => {
   return files.value
     .filter((x) => !isHidden('g:' + path.value + '/' + x.filename))
     .filter((x) => !f || x.filename.toLowerCase().includes(f))
-    .sort((a, b) => ((a[k] ?? 0) > (b[k] ?? 0) ? d : -d));
+    .sort((a, b) => pinned(b) - pinned(a) || ((a[k] ?? 0) > (b[k] ?? 0) ? d : -d));
 });
+// search reaches every folder: the matches outside this one are listed under the table and open their folder
+const allFiles = ref(null);
+let allReq = null;
+watch(q, (v) => {
+  if (v && !allFiles.value && !allReq)
+    allReq = api
+      .call('server.files.list', { root: 'gcodes' })
+      .then((r) => (allFiles.value = r.filter((f) => isGcodeFile(f.path) && !/(^|\/)\./.test(f.path))))
+      .catch(() => {})
+      .finally(() => (allReq = null));
+});
+const elsewhere = computed(() => {
+  const f = q.value.toLowerCase();
+  if (!f || !allFiles.value) return [];
+  const here = path.value === 'gcodes' ? '' : path.value.slice(7);
+  return allFiles.value
+    .filter((x) => x.path.toLowerCase().split('/').pop().includes(f))
+    .filter((x) => x.path.split('/').slice(0, -1).join('/') !== here)
+    .sort((a, b) => b.modified - a.modified)
+    .slice(0, 50);
+});
+function openElsewhere(x) {
+  state.anchor = 'file:' + x.path;
+  takeAnchor();
+  load();
+}
+// files pinned to the top of their folder (right-click > Pin to top), kept by their path from the gcodes root
+const pinned = (f) => +(state.settings.pinnedFiles || []).includes(rel(f));
+function togglePin(f) {
+  const l = [...(state.settings.pinnedFiles || [])];
+  const i = l.indexOf(rel(f));
+  i >= 0 ? l.splice(i, 1) : l.push(rel(f));
+  state.settings.pinnedFiles = l;
+}
 function thumb(f, large = false) {
   const t = [...(f.thumbnails || [])]
     .sort((a, b) => (large ? b.width - a.width : a.width - b.width))
@@ -215,6 +252,7 @@ function ctxDo(action) {
   ctx.value = null;
   if (dir) {
     if (action === 'open') open(f);
+    else if (action === 'move') moveOf.value = [f.dirname];
     else if (action === 'rename') ren.value = { f, dir: true, value: f.dirname };
     return;
   }
@@ -225,6 +263,8 @@ function ctxDo(action) {
   else if (action === 'edit') editFile(f);
   else if (action === 'rename') ren.value = { f, dir: false, value: f.filename.split('/').pop() };
   else if (action === 'delete') del.value = [f];
+  else if (action === 'move') moveOf.value = picked.value.has(f.filename) ? [...picked.value] : [f.filename];
+  else if (action === 'pin') togglePin(f);
   else if (action === 'download') {
     const a = document.createElement('a');
     a.href = api.fileUrl('gcodes', rel(f));
@@ -311,15 +351,27 @@ function doDelete() {
   });
 }
 async function upload(e) {
-  const fs = [...e.target.files];
+  const fs = [...e.target.files].map((file) => ({ file, dir: '' }));
   e.target.value = '';
-  for (const f of fs) {
+  return uploadList(fs);
+}
+// a whole folder from the computer: everything printable in it, its folders kept
+function uploadFolder(e) {
+  const list = pickedFolderFiles(e.target.files);
+  e.target.value = '';
+  return uploadList(list);
+}
+async function uploadList(fs) {
+  let skipped = 0;
+  for (const { file: f, dir: sub } of fs) {
     // only files the printer can print: anything else would sit in the folder unseen (this list does not show it)
     if (!isGcodeFile(f.name)) {
-      toast(t('{name} is not a G-code file, so it was not uploaded.', { name: f.name }), 'warn');
+      if (!sub) toast(t('{name} is not a G-code file, so it was not uploaded.', { name: f.name }), 'warn');
+      else skipped++;
       continue;
     }
-    const dir = path.value === 'gcodes' ? '' : path.value.slice(7);
+    const here = path.value === 'gcodes' ? '' : path.value.slice(7);
+    const dir = [here, sub].filter(Boolean).join('/');
     const name = await uploadName(f.name, dir);
     if (!name) continue;
     up.value = { name, p: 0 };
@@ -333,6 +385,7 @@ async function upload(e) {
       toast(err.message, 'error');
     }
   }
+  if (skipped) toast(t('{n} file(s) in the folder are not G-code and were left out.', { n: skipped }), 'warn');
   up.value = null;
 }
 async function mkdir() {
@@ -362,11 +415,52 @@ function dLeave(e) {
     over.value = false;
   }
 }
-function onDrop(e) {
+async function onDrop(e) {
   e.preventDefault();
   depth = 0;
   over.value = false;
-  if (e.dataTransfer?.files?.length) upload({ target: { files: e.dataTransfer.files, value: '' } });
+  if (isRowDrag(e)) return; // a row let go somewhere that is not a folder
+  if (e.dataTransfer?.files?.length) uploadList(await droppedFiles(e.dataTransfer)); // folders too
+}
+// ---- moving: rows dragged onto a folder (or the Up button), or "Move to…" ----
+const folderInput = ref(null);
+const moveOf = ref(null); // names waiting for the folder picker
+const dragOver = ref(null); // folder name (or '..') the rows are over
+function dragStart(e, name) {
+  // the picked files go together when the dragged one is among them
+  const names = picked.value.has(name) && picked.value.size > 1 ? [...picked.value] : [name];
+  e.dataTransfer.setData(DRAG_TYPE, JSON.stringify(names));
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dragOn(e, target) {
+  if (!isRowDrag(e)) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  dragOver.value = target;
+}
+async function dropOn(e, target) {
+  dragOver.value = null;
+  if (!isRowDrag(e)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  let names = [];
+  try {
+    names = JSON.parse(e.dataTransfer.getData(DRAG_TYPE) || '[]');
+  } catch {}
+  const to = target === '..' ? path.value.split('/').slice(0, -1).join('/') || 'gcodes' : path.value + '/' + target;
+  names = names.filter((n) => n !== target);
+  if (await moveItems(path.value, names, to)) {
+    picked.value = new Set();
+    load();
+  }
+}
+async function moveTo(dest) {
+  const names = moveOf.value || [];
+  moveOf.value = null;
+  if (await moveItems(path.value, names, dest)) {
+    picked.value = new Set();
+    load();
+  }
 }
 </script>
 <template>
@@ -386,7 +480,16 @@ function onDrop(e) {
         </div>
       </div>
       <div class="row" style="gap: 10px; flex-wrap: wrap">
-        <button class="btn clear" :disabled="path === 'gcodes'" :aria-label="t('Up one folder')" @click="upDir">
+        <button
+          class="btn clear"
+          :class="{ dropto: dragOver === '..' }"
+          :disabled="path === 'gcodes'"
+          :aria-label="t('Up one folder')"
+          @click="upDir"
+          @dragover="path !== 'gcodes' && dragOn($event, '..')"
+          @dragleave="dragOver = null"
+          @drop="dropOn($event, '..')"
+        >
           <Icon name="left" :size="16" />
         </button>
         <b class="mono">{{ path }} /</b>
@@ -428,6 +531,9 @@ function onDrop(e) {
         >
           <Icon name="trash" :size="16" />{{ t('Delete ({n})', { n: picked.size }) }}
         </button>
+        <button v-if="picked.size" class="btn" style="height: 40px" @click="moveOf = [...picked]">
+          <Icon name="folder" :size="16" />{{ t('Move ({n})', { n: picked.size }) }}
+        </button>
         <button class="btn" style="height: 40px" @click="newDir = ''">
           <Icon name="folder" :size="16" />{{ t('New folder') }}
         </button>
@@ -437,7 +543,18 @@ function onDrop(e) {
         <button class="btn acc" style="height: 40px" :disabled="!!up" @click="fileInput.click()">
           <Icon name="upload" :size="16" :stroke="2.4" />{{ up ? Math.round(up.p * 100) + '%' : t('Upload') }}
         </button>
+        <button
+          class="btn ibtn"
+          style="width: 40px; height: 40px"
+          :disabled="!!up"
+          :aria-label="t('Upload a folder')"
+          :data-tip="t('Upload a folder')"
+          @click="folderInput.click()"
+        >
+          <Icon name="folder" :size="18" />
+        </button>
         <input ref="fileInput" type="file" multiple :accept="UPLOAD_ACCEPT" hidden @change="upload" />
+        <input ref="folderInput" type="file" webkitdirectory multiple hidden @change="uploadFolder" />
       </div>
       <div class="row" style="justify-content: space-between">
         <div class="seg">
@@ -460,8 +577,14 @@ function onDrop(e) {
           v-for="d in dirs"
           :key="d.dirname"
           class="btn file-tile"
+          :class="{ dropto: dragOver === d.dirname }"
+          draggable="true"
           @click="open(d)"
           @contextmenu.prevent="showCtx($event, d, true)"
+          @dragstart="dragStart($event, d.dirname)"
+          @dragover="dragOn($event, d.dirname)"
+          @dragleave="dragOver = null"
+          @drop="dropOn($event, d.dirname)"
         >
           <Icon name="folder" :size="32" /><span>{{ d.dirname }}</span>
         </button>
@@ -470,7 +593,9 @@ function onDrop(e) {
           :key="f.filename"
           class="file-tile"
           :class="{ selected: picked.has(f.filename) }"
+          draggable="true"
           @contextmenu.prevent="showCtx($event, f)"
+          @dragstart="dragStart($event, f.filename)"
         >
           <div class="file-image">
             <img v-if="thumb(f, true)" :src="thumb(f, true)" alt="" loading="lazy" />
@@ -483,7 +608,7 @@ function onDrop(e) {
               @change="togglePick(f.filename)"
             />
           </div>
-          <b>{{ f.filename }}</b>
+          <b><Icon v-if="pinned(f)" name="bookmark" :size="13" class="pinm" />{{ f.filename }}</b>
           <span class="mono mu">{{ fmtTime(fileTime(f) || f.estimated_time) }} · {{ fmtBytes(f.size) }}</span>
           <div class="row">
             <button class="btn acc" :disabled="isPrinting" @click="print(f)">{{ t('Print') }}</button>
@@ -542,8 +667,14 @@ function onDrop(e) {
               v-for="d in dirs"
               :key="'d' + d.dirname"
               class="click"
+              :class="{ dropto: dragOver === d.dirname }"
               tabindex="0"
+              draggable="true"
               @click="open(d)"
+              @dragstart="dragStart($event, d.dirname)"
+              @dragover="dragOn($event, d.dirname)"
+              @dragleave="dragOver = null"
+              @drop="dropOn($event, d.dirname)"
               @keydown.enter.self="open(d)"
               @contextmenu.prevent="showCtx($event, d, true)"
               @keydown.shift.f10.prevent="showCtx($event, d, true)"
@@ -566,6 +697,8 @@ function onDrop(e) {
               class="click"
               :class="{ sel: sel === f.filename || picked.has(f.filename) }"
               tabindex="0"
+              draggable="true"
+              @dragstart="dragStart($event, f.filename)"
               @click="sel = f.filename"
               @dblclick="!isPrinting && print(f)"
               @contextmenu.prevent="showCtx($event, f)"
@@ -590,7 +723,7 @@ function onDrop(e) {
                   />
                 </div>
               </td>
-              <td class="nm">{{ f.filename }}</td>
+              <td class="nm"><Icon v-if="pinned(f)" name="bookmark" :size="13" class="pinm" />{{ f.filename }}</td>
               <td class="mono mu">{{ fmtBytes(f.size) }}</td>
               <td
                 class="mono"
@@ -660,8 +793,16 @@ function onDrop(e) {
             </tr>
           </tbody>
         </table>
-        <div v-if="!loading && !dirs.length && !list.length" class="empty">
+        <div v-if="!loading && !q && !dirs.length && !list.length" class="empty">
           {{ t('No G-code files here. Drop files on this card to upload.') }}
+        </div>
+        <div v-if="q && !list.length && !elsewhere.length" class="empty">{{ t('No files match “{q}”.', { q }) }}</div>
+        <div v-if="elsewhere.length" class="elsewhere">
+          <h3>{{ t('In other folders') }}</h3>
+          <button v-for="x in elsewhere" :key="x.path" class="ew" @click="openElsewhere(x)">
+            <Icon name="file" :size="15" /><span class="nm">{{ x.path.split('/').pop() }}</span
+            ><span class="mono mu dir">/{{ x.path.split('/').slice(0, -1).join('/') }}</span>
+          </button>
         </div>
       </div>
       <div class="row mono mu" style="justify-content: space-between; font-size: 12px">
@@ -671,7 +812,8 @@ function onDrop(e) {
         }}</span>
       </div>
     </section>
-    <div class="side-col"><QueueCard /></div>
+    <!-- an empty queue takes no room: jobs added from a row bring it back -->
+    <div v-if="!state.queue.enabled || state.queue.jobs?.length" class="side-col"><QueueCard /></div>
   </div>
   <Teleport to="body">
     <div
@@ -690,6 +832,9 @@ function onDrop(e) {
         <button class="btn clear" role="menuitem" @click="ctxDo('rename')">
           <Icon name="pencil" :size="16" />{{ t('Rename') }}
         </button>
+        <button class="btn clear" role="menuitem" @click="ctxDo('move')">
+          <Icon name="folder" :size="16" />{{ t('Move to…') }}
+        </button>
       </template>
       <template v-else>
         <button class="btn clear" role="menuitem" :disabled="isPrinting" @click="ctxDo('print')">
@@ -700,6 +845,9 @@ function onDrop(e) {
         </button>
         <button class="btn clear" role="menuitem" @click="ctxDo('preheat')">
           <Icon name="flame" :size="16" />{{ t('Preheat') }}
+        </button>
+        <button class="btn clear" role="menuitem" @click="ctxDo('pin')">
+          <Icon name="bookmark" :size="16" />{{ pinned(ctx.f) ? t('Unpin') : t('Pin to top') }}
         </button>
         <button class="btn clear" role="menuitem" @click="ctxDo('view')">
           <Icon name="cube" :size="16" />{{ t('Open in the G-code viewer') }}
@@ -713,12 +861,23 @@ function onDrop(e) {
         <button class="btn clear" role="menuitem" @click="ctxDo('rename')">
           <Icon name="pencil" :size="16" />{{ t('Rename') }}
         </button>
+        <button class="btn clear" role="menuitem" @click="ctxDo('move')">
+          <Icon name="folder" :size="16" />{{ t('Move to…') }}
+        </button>
         <button class="btn clear dgf" role="menuitem" @click="ctxDo('delete')">
           <Icon name="trash" :size="16" />{{ t('Delete') }}
         </button>
       </template>
     </div>
   </Teleport>
+  <FolderPicker
+    v-if="moveOf"
+    root="gcodes"
+    :start="path"
+    :count="moveOf.length"
+    @pick="moveTo"
+    @close="moveOf = null"
+  />
   <Modal v-if="ren" :title="t('Rename')" @close="ren = null">
     <input
       ref="renEl"
@@ -762,6 +921,18 @@ function onDrop(e) {
   </Modal>
 </template>
 <style scoped>
+.pinm {
+  color: var(--ac);
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+/* a folder that dragged rows would go into */
+.dropto,
+tr.dropto td {
+  outline: 2px dashed var(--ac);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--ac) 12%, transparent) !important;
+}
 /* right-click menu (teleported to the page, so it is not cut by the card) */
 .fctx.card {
   position: fixed;
@@ -912,5 +1083,41 @@ th.s {
 }
 th.s:hover {
   color: var(--tx);
+}
+.elsewhere {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 10px;
+}
+.elsewhere h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mu);
+}
+.ew {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 9px;
+  text-align: left;
+  color: var(--tx);
+}
+.ew:hover {
+  background: var(--s2);
+}
+.ew .nm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ew .dir {
+  margin-left: auto;
+  font-size: 12px;
+  white-space: nowrap;
 }
 </style>

@@ -15,10 +15,14 @@ const errors = [
   { id: 'lowAlarm', label: 'Low warning horn' },
 ];
 export function soundCategory(kind) {
-  return kind === 'error' ? 'Error alarms' : kind === 'paused' ? 'Attention sounds' : 'Notification sounds';
+  return kind === 'error'
+    ? 'Error alarms'
+    : kind === 'paused' || kind === 'runout'
+      ? 'Attention sounds'
+      : 'Notification sounds';
 }
 export function soundStylesFor(kind) {
-  return kind === 'error' ? errors : kind === 'paused' ? warnings : notifications;
+  return kind === 'error' ? errors : kind === 'paused' || kind === 'runout' ? warnings : notifications;
 }
 export function resolveSoundStyle(kind, saved) {
   const styles = soundStylesFor(kind);
@@ -28,10 +32,12 @@ export function resolveSoundStyle(kind, saved) {
       ? 'urgent'
       : kind === 'paused'
         ? 'attention'
-        : 'chime';
+        : kind === 'runout'
+          ? 'knock'
+          : 'chime';
 }
 export function soundNotes(kind, styleId) {
-  if (!['complete', 'paused', 'error', 'heated', 'partReady'].includes(kind)) return [];
+  if (!['complete', 'paused', 'runout', 'error', 'heated', 'partReady'].includes(kind)) return [];
   const note = (hz, at, length, gain, extra = {}) => ({ hz, at, length, gain, ...extra });
   switch (resolveSoundStyle(kind, styleId)) {
     case 'soft':

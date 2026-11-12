@@ -234,7 +234,9 @@ watch(
   position: absolute;
   bottom: 0;
   height: 46px;
-  background: var(--bg);
+  /* a little lighter at the top, the panel's colour where it meets the panel: the open tab still reads as open
+     when the page is very dark (Darker background) or light */
+  background: linear-gradient(color-mix(in srgb, var(--tx) 7%, var(--bg)), var(--bg) 80%);
   border-radius: 14px 14px 0 0;
   z-index: 1;
 }
@@ -251,15 +253,15 @@ watch(
   width: 14px;
   height: 14px;
 }
+/* the curved feet: the panel's colour with a quarter circle cut out, drawn exactly inside their own box (a shadow
+   spread past it and left small bumps) */
 .folder::before {
   left: -14px;
-  border-bottom-right-radius: 14px;
-  box-shadow: 6px 6px 0 6px var(--bg);
+  background: radial-gradient(circle at 0 0, transparent 13.5px, var(--bg) 14px);
 }
 .folder::after {
   right: -14px;
-  border-bottom-left-radius: 14px;
-  box-shadow: -6px 6px 0 6px var(--bg);
+  background: radial-gradient(circle at 100% 0, transparent 13.5px, var(--bg) 14px);
 }
 .tab {
   position: relative;

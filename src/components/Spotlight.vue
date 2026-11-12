@@ -87,7 +87,7 @@ const ACTIONS = computed(() => [
     t: 'Save config',
     s: 'SAVE_CONFIG, restarts Klipper',
     icon: 'save',
-    run: () => gcode('SAVE_CONFIG'),
+    run: () => (state.saveAsk = true),
     dest: 'Runs SAVE_CONFIG',
     off: isPrinting.value,
   },

@@ -258,13 +258,30 @@ watch(
     alertEvent('partReady', message);
   },
 );
+// filament runout: a filament sensor that stops seeing filament during a print. Klipper pauses right after, so
+// that pause does not play its own sound on top of this one.
+let runoutAt = 0;
+watch(
+  () =>
+    state.objects
+      .filter((o) => /^filament_(switch|motion)_sensor /.test(o))
+      .map((o) => (S(o).enabled !== false && S(o).filament_detected === false ? o : ''))
+      .join(','),
+  (now, before) => {
+    if (!state.booted || !['printing', 'paused'].includes(printState.value)) return;
+    const gone = now.split(',').find((o) => o && !(before || '').split(',').includes(o));
+    if (!gone) return;
+    runoutAt = Date.now();
+    alertEvent('runout', t('Filament runout: {sensor}', { sensor: prettyName(gone) }));
+  },
+);
 watch(printState, (now, before) => {
   if (!state.booted) return;
   if (now === 'complete' && before === 'printing')
     alertEvent('complete', t('Print finished: {file}', { file: shortFile() }));
   else if (now === 'error' && (before === 'printing' || before === 'paused'))
     alertEvent('error', t('Print stopped with an error: {msg}', { msg: S('print_stats').message || '' }));
-  else if (now === 'paused' && before === 'printing')
+  else if (now === 'paused' && before === 'printing' && Date.now() - runoutAt > 20000)
     alertEvent('paused', t('Print paused: {file}', { file: shortFile() }));
 });
 watch(

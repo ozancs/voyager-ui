@@ -35,8 +35,8 @@ const lines = computed(() => {
   let l = props.sample || state.console;
   l = l.filter(
     (x) =>
-      !(x.type === 'command' && /NAME=_ui_|MSG=action:prompt_end/.test(x.message)) &&
-      !x.message.startsWith('// action:'),
+      // action:prompt lines are the macro dialog protocol: the dialog shows them, the log does not need to
+      !(x.type === 'command' && /NAME=_ui_|MSG="?action:/.test(x.message)) && !/^(\/\/ ?)?action:/.test(x.message),
   );
   if (state.settings.consoleHideTemps) l = l.filter((x) => !TEMP_RE.test(x.message));
   if (props.errors) {

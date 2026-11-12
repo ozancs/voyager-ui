@@ -98,6 +98,7 @@ export const DEFAULT_SETTINGS = () => ({
     complete: true,
     error: true,
     paused: true,
+    runout: true, // its own sound; the pause that follows a runout stays quiet
     heated: false,
     partReady: false,
     partReadyTemp: 35,
@@ -353,6 +354,7 @@ export const state = reactive({
   whatsNew: false, // the changelog dialog (WhatsNew.vue)
   reportOpen: false, // Report a problem (ReportDialog.vue)
   dashEditReq: 0, // bumped by the top bar to start customizing the dashboard
+  saveAsk: false, // Save Config asks first, showing what changes (SaveConfigDialog.vue)
   etaLearn: { k: null, n: 0, byFile: {} }, // how much real prints differ from the slicer estimate (median of past
   // prints), and the real time of files printed before
 });
@@ -383,6 +385,7 @@ export function mergeSettings(v) {
     devices: { ...def.devices, ...(v.devices || {}) },
     strip: { ...def.strip, ...(v.strip || {}) },
     control: { ...def.control, ...(v.control || {}) },
+    sound: { ...def.sound, ...(v.sound || {}) },
     heightmap: { ...def.heightmap, ...(v.heightmap || {}) },
     printerIcon: { ...def.printerIcon, ...(v.printerIcon || {}) },
   };

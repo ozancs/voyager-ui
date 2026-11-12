@@ -487,17 +487,28 @@ const OZNLAB = [
 
 export function parseResult(cmd, lines) {
   const rows = [],
-    shapers = [];
-  let accel = {};
+    shapers = [],
+    fitted = []; // every shaper Klipper tried, per axis: { axis, type, freq, vib, smooth, maxAccel, best }
+  let accel = {},
+    tried = [];
   for (const text of lines)
     for (const line of String(text).split('\n')) {
       let m;
-      if ((m = /smoothing with '(\w+)', suggested max_accel <= ([\d.]+)/i.exec(line)))
+      if (
+        (m = /Fitted shaper '(\w+)' frequency = ([\d.]+) Hz \(vibrations = ([\d.]+)%, smoothing ~= ([\d.]+)\)/i.exec(
+          line,
+        ))
+      )
+        tried.push({ type: m[1].toLowerCase(), freq: +m[2], vib: +m[3], smooth: +m[4] });
+      else if ((m = /smoothing with '(\w+)', suggested max_accel <= ([\d.]+)/i.exec(line)))
         accel[m[1].toLowerCase()] = +m[2];
       else if ((m = /Recommended shaper_type_([xy]) = (\w+), shaper_freq_[xy] = ([\d.]+) Hz/i.exec(line))) {
-        const type = m[2].toLowerCase();
-        shapers.push({ axis: m[1].toLowerCase(), type, freq: +m[3], maxAccel: accel[type] ?? null });
+        const type = m[2].toLowerCase(),
+          axis = m[1].toLowerCase();
+        shapers.push({ axis, type, freq: +m[3], maxAccel: accel[type] ?? null });
+        for (const f of tried) fitted.push({ axis, ...f, maxAccel: accel[f.type] ?? null, best: f.type === type });
         accel = {};
+        tried = [];
       } else if ((m = /PID parameters:\s*pid_Kp=([\d.]+)\s+pid_Ki=([\d.]+)\s+pid_Kd=([\d.]+)/i.exec(line)))
         rows.push(['pid_Kp', m[1]], ['pid_Ki', m[2]], ['pid_Kd', m[3]]);
       else if ((m = /probe accuracy results:\s*(.+)/i.exec(line)))
@@ -520,5 +531,18 @@ export function parseResult(cmd, lines) {
             break;
           }
     }
-  return { rows, shapers };
+  return { rows, shapers, fitted };
+}
+// the output of the last SHAPER_CALIBRATE in the console (run from anywhere: a macro, the console, another UI)
+export function lastShaperRun(consoleLines) {
+  let i = consoleLines.length - 1;
+  while (i >= 0 && !(consoleLines[i].type === 'command' && /^\s*SHAPER_CALIBRATE\b/i.test(consoleLines[i].message)))
+    i--;
+  if (i < 0) return null;
+  const lines = consoleLines
+    .slice(i + 1)
+    .filter((l) => l.type !== 'command')
+    .map((l) => String(l.message || '').replace(/^\/\/\s?/gm, ''));
+  const r = parseResult('SHAPER_CALIBRATE', lines);
+  return r.fitted.length ? { ...r, time: consoleLines[i].time } : null;
 }

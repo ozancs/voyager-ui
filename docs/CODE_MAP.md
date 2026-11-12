@@ -104,6 +104,11 @@ general advice for the error as Klipper words it; they do not know the printer, 
 **[src/features.js](../src/features.js)**  
 (no description yet)
 
+**[src/fileMove.js](../src/fileMove.js)**  
+Moving files between folders and uploading whole folders, for every file list (G-code files, the config file  
+browser): dragging rows onto a folder, "Move to…" with a folder picker, and folders dropped or picked from the  
+computer with everything inside.
+
 **[src/fileNames.js](../src/fileNames.js)**  
 Moonraker's move, copy and upload put a file over one that is already there without asking: a new file, a  
 duplicate or a rename under a name in use would wipe the other file. So the folder is looked at first.
@@ -221,6 +226,12 @@ Read notifier/bot connections without logging credentials; edit only selected ke
 
 **[src/paths.js](../src/paths.js)**  
 Turning a selection in a file list into file paths (used for downloads).
+
+**[src/pauseQueue.js](../src/pauseQueue.js)**  
+Pause at several layers in one go (50, 120, 200): Klipper's SET_PAUSE_AT_LAYER holds one layer at a time, so  
+the rest wait here and the next one is set as soon as the one before has paused the print. Kept in the settings  
+(per printer, with the file it belongs to), so a reload or another browser carries on. Needs a page open on  
+this printer between the pauses; the first one is in Klipper and works without.
 
 **[src/phoenix.js](../src/phoenix.js)**  
 Phoenix print recovery (a separate Klipper module, github: phoenix-for-klipper). Shown only on printers that  
@@ -561,6 +572,9 @@ Floating webcam: the "float" button on a webcam card lifts its camera into a sma
 while scrolling and on every page. Drag it by its bar, resize it from the corner, close it and the camera is  
 back in its card. Position and size are kept for this browser.
 
+**[src/components/FolderPicker.vue](../src/components/FolderPicker.vue)**  
+"Move to…": pick a folder of a root (gcodes, config) by walking into it. Emits pick with the full path.
+
 **[src/components/GateFilament.vue](../src/components/GateFilament.vue)**  
 Set what is loaded in one MMU gate / AFC lane: material, colour, name, temperature and the Spoolman spool.  
 Happy Hare:  MMU_GATE_MAP GATE=n MATERIAL=.. COLOR=rrggbb NAME=.. TEMP=.. SPOOLID=.. AVAILABLE=0|1  
@@ -818,6 +832,10 @@ A bare range input that follows the pointer while dragging: the fill and the liv
 the printer's value is only taken over again once it has caught up (or after a short wait), so the thumb never  
 jumps back while a command is on its way.
 
+**[src/components/SaveConfigDialog.vue](../src/components/SaveConfigDialog.vue)**  
+Save Config asks first and shows what Klipper is about to write into printer.cfg (save_config_pending_items):  
+each section and its values, the ones being removed struck through. Klipper restarts after the save.
+
 **[src/components/SearchSelect.vue](../src/components/SearchSelect.vue)**  
 A select whose list can be searched: type to narrow it (every word must appear, in any order), arrows to move,  
 Enter to pick, Esc to close. The list opens under the field, in the page flow, so a modal never cuts it off.  
@@ -841,6 +859,11 @@ command calling calibrate_shaper.py or graph_shaper.py (the usual "generate shap
 it here and the PNGs it writes into the config folder show up below. Nothing is installed by this UI: without  
 such a macro it says what is needed.
 
+**[src/components/ShaperResults.vue](../src/components/ShaperResults.vue)**  
+Every input shaper Klipper's SHAPER_CALIBRATE tried, per axis: frequency, the vibrations left (as a bar),  
+smoothing and the largest acceleration that keeps the smoothing low. The one Klipper recommends is marked;  
+any of them can be applied until Klipper restarts. Read from the console, so no Shake&Tune is needed.
+
 **[src/components/SideNav.vue](../src/components/SideNav.vue)**  
 Side menu: the pages, a badge with the number of health issues, and the footer (connection state,  
 slow requests, "new version" hint that opens the update manager). Can be pinned, hidden or auto-hide.  
@@ -858,6 +881,11 @@ Speed factor (M220) and flow (M221): slider, -/+ and a typed value. The slider s
 sends it when released; a typed value is sent on Enter, Esc or leaving the field puts the current value back.  
 Used by the Print controls card and, when that card is not on the dashboard, by the Machine Limits card (speed)  
 and the Extruder card (flow).
+
+**[src/components/SpeedFlowChart.vue](../src/components/SpeedFlowChart.vue)**  
+Speed and flow over the last minutes: the toolhead's live speed (mm/s) and the volumetric flow (mm³/s) from  
+Klipper's motion_report, sampled every second while this card is on the page. Two lines on one time axis, each  
+with its own scale; the newest values in the header.
 
 **[src/components/SpoolCard.vue](../src/components/SpoolCard.vue)**  
 Active Spoolman spool: filament name, colour, remaining weight. Only shown when Moonraker has  

@@ -186,6 +186,10 @@ const status = {
   },
   configfile: {
     save_config_pending: true,
+    save_config_pending_items: {
+      'bed_mesh default': { version: '1', points: '\n0.01, 0.02\n0.03, 0.01' },
+      probe: { z_offset: '1.425' },
+    },
     settings: {
       mcu: { serial: '/dev/serial/by-id/usb-Klipper_stm32h723xx_2A0012345151313234353533-if00' },
       'neopixel hotend_rgb': { chain_count: 3, color_order: ['GRBW'] },
@@ -1741,6 +1745,7 @@ function handle(m) {
           { message: 'G28', type: 'command', time: Date.now() / 1000 - 60 },
           { message: 'ok', type: 'response', time: Date.now() / 1000 - 59 },
           { message: '!! Move out of range', type: 'response', time: Date.now() / 1000 - 30 },
+          { message: 'SHAPER_CALIBRATE', type: 'command', time: Date.now() / 1000 - 25 },
           {
             message: "Fitted shaper 'zv' frequency = 58.4 Hz (vibrations = 8.7%, smoothing ~= 0.047)",
             type: 'response',
@@ -2203,6 +2208,7 @@ function handle(m) {
             filament_used: 1200 + k * 50,
             exists: k % 3 > 0,
             metadata: { estimated_time: 660, slicer: 'OrcaSlicer', slicer_version: '2.4.2' },
+            auxiliary_data: k % 4 ? [{ provider: 'spoolman', name: 'spool_ids', value: [k % 2 ? 12 : 14] }] : [],
           })),
           {
             job_id: '1',

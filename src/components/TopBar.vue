@@ -406,7 +406,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
             ? t('Save Config')
             : null
       "
-      @click="gcode('SAVE_CONFIG')"
+      @click="state.saveAsk = true"
     >
       <Icon name="save" :stroke="2.4" /><span v-if="!tabs" class="hide-m">{{ t('Save Config') }}</span>
     </button>
@@ -525,7 +525,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
           :disabled="!savePending || active"
           @click="
             showMore = false;
-            gcode('SAVE_CONFIG');
+            state.saveAsk = true;
           "
         >
           <Icon name="save" :size="18" />{{ t('Save Config')

@@ -80,6 +80,32 @@ const STATUS = {
   in_progress: { c: 'var(--bl)', i: 'play' },
 };
 const st = (s) => STATUS[s] || { c: 'var(--mu)', i: 'info' };
+// filter by Spoolman spool: Moonraker stores the spools a job used in auxiliary_data (spool_ids)
+const spoolOf = (j) => (j.auxiliary_data || []).find((d) => d.name === 'spool_ids')?.value || [];
+const spoolIds = computed(() => [...new Set(jobs.value.flatMap(spoolOf))].sort((a, b) => a - b));
+const spoolF = ref('');
+const spoolNames = ref({});
+watch(
+  () => spoolIds.value.length,
+  async (n) => {
+    if (!n || Object.keys(spoolNames.value).length) return;
+    try {
+      const r = await api.call('server.spoolman.proxy', {
+        request_method: 'GET',
+        path: '/v1/spool',
+        use_v2_response: true,
+      });
+      const o = {};
+      for (const s of r.response || [])
+        o[s.id] = [s.filament?.vendor?.name, s.filament?.name].filter(Boolean).join(' ');
+      spoolNames.value = o;
+    } catch {
+      /* names are a nicety; the ids still work */
+    }
+  },
+  { immediate: true },
+);
+const spoolLabel = (id) => '#' + id + (spoolNames.value[id] ? ' ' + spoolNames.value[id] : '');
 const filtered = computed(() => {
   const f = q.value.toLowerCase();
   const { k, d } = sort.value;
@@ -88,11 +114,12 @@ const filtered = computed(() => {
   return jobs.value
     .filter((j) => !isHidden('j:' + j.job_id))
     .filter((j) => !f || j.filename.toLowerCase().includes(f) || j.status.includes(f))
+    .filter((j) => !spoolF.value || spoolOf(j).includes(+spoolF.value))
     .sort((a, b) => (val(a) > val(b) ? d : val(a) < val(b) ? -d : 0));
 });
 const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / per.value)));
 const shown = computed(() => filtered.value.slice(page.value * per.value, (page.value + 1) * per.value));
-watch([q, per], () => (page.value = 0));
+watch([q, per, spoolF], () => (page.value = 0));
 // fewer pages after a delete: stay on the last one that exists
 watch(pages, (n) => page.value > n - 1 && (page.value = n - 1));
 function sortBy(k) {
@@ -329,6 +356,16 @@ const fmtFil = (mm) => (mm >= 1000 ? (mm / 1000).toFixed(2) + ' m' : mm.toFixed(
       <div class="card-h">
         <h2 class="row"><Icon name="clock" :size="18" />{{ t('Print History') }}</h2>
         <div class="acts">
+          <select
+            v-if="spoolIds.length"
+            v-model="spoolF"
+            class="input spf"
+            :aria-label="t('Filter by spool')"
+            :data-tip="t('Filter by spool')"
+          >
+            <option value="">{{ t('All spools') }}</option>
+            <option v-for="id in spoolIds" :key="id" :value="String(id)">{{ spoolLabel(id) }}</option>
+          </select>
           <label class="row input sr"
             ><Icon name="search" :size="16" /><input
               v-model="q"
@@ -669,5 +706,9 @@ th.s:hover {
     flex-wrap: wrap;
     justify-content: center;
   }
+}
+.spf {
+  height: 40px;
+  max-width: 200px;
 }
 </style>

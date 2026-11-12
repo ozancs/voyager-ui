@@ -52,6 +52,18 @@ function pickColor(s, v) {
     saveSettings();
   }
 }
+// groups: a name per sensor (Chamber, Electronics...); the Temperatures card puts a heading over each group.
+// Only the card's picker sets them; the graph keeps one list.
+const groupOf = (s) => state.settings.sensorGroups?.[s] || '';
+const groupNames = computed(() => [...new Set(Object.values(state.settings.sensorGroups || {}).filter(Boolean))]);
+function setGroup(s, v) {
+  const g = { ...(state.settings.sensorGroups || {}) };
+  v = v.trim().slice(0, 24);
+  if (v) g[s] = v;
+  else delete g[s];
+  state.settings.sensorGroups = g;
+  saveSettings();
+}
 function move(s, dir) {
   const o = moveSensor(tempSensors.value, state.settings.sensorOrder || [], s, dir);
   if (!o) return;
@@ -70,10 +82,11 @@ function move(s, dir) {
     >
       <Icon name="pencil" :size="15" :stroke="2.4" />{{ t('Edit') }}
     </button>
-    <Popover v-if="open" :anchor="btn" :width="300" @close="!picking && (open = false)">
+    <Popover v-if="open" :anchor="btn" :width="lines ? 300 : 380" @close="!picking && (open = false)">
       <div class="hd">
         <span class="c1">{{ t('Icon') }}</span
         ><span class="c2">{{ t('Sensor') }}</span
+        ><span v-if="!lines" class="c5">{{ t('Group') }}</span
         ><span class="c3">{{ t('Show') }}</span
         ><span class="c4">{{ t('Order') }}</span>
       </div>
@@ -88,6 +101,16 @@ function move(s, dir) {
             <SensorIcon :name="s" :color="colorOf(s, i)" :size="17" />
           </button>
           <span class="nm">{{ prettyName(s) }}</span>
+          <input
+            v-if="!lines"
+            class="grp"
+            :value="groupOf(s)"
+            list="sensor-groups"
+            :placeholder="t('none')"
+            :aria-label="t('Group of {name}', { name: prettyName(s) })"
+            @change="setGroup(s, $event.target.value)"
+            @keydown.enter="$event.target.blur()"
+          />
           <button
             v-if="custom(s)"
             class="mini"
@@ -114,6 +137,7 @@ function move(s, dir) {
           </button>
         </div>
       </div>
+      <datalist id="sensor-groups"><option v-for="g in groupNames" :key="g" :value="g" /></datalist>
       <template v-if="lines">
         <span class="lbl">{{ t('Line width') }}</span>
         <div class="seg">
@@ -165,6 +189,23 @@ function move(s, dir) {
 .hd .c3 {
   width: 26px;
   text-align: center;
+}
+.hd .c5 {
+  width: 92px;
+}
+.grp {
+  width: 92px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 7px;
+  border: 1px solid var(--bd);
+  background: transparent;
+  color: var(--tx);
+  font: inherit;
+  font-size: 12px;
+}
+.grp::placeholder {
+  color: var(--mu2);
 }
 .hd .c4 {
   width: 48px;

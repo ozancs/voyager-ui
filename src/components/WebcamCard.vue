@@ -5,7 +5,7 @@ import { computed } from 'vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import WebcamView from './WebcamView.vue';
-import { state } from '../store';
+import { state, S, gcode, shortName, prettyName } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
@@ -23,6 +23,22 @@ const cam = computed(() => cams.value.find((w) => w.name === chosen.value) || ca
 const floating = computed(() => state.pip && state.pip.card === props.id);
 function float() {
   state.pip = floating.value || !cam.value ? null : { card: props.id, cam: cam.value.name };
+}
+// a light switch in the header when the printer has one: the first output_pin / led / neopixel / dotstar whose
+// name says light, led, lamp or case (a chamber light is what you want on while looking at the camera)
+const LIGHT = /^(output_pin|led|neopixel|dotstar|pca9632|pca9533) .*(light|led|lamp|case|kasa|isik|chamber)/i;
+const light = computed(() => state.objects.find((o) => LIGHT.test(o) && !/^output_pin _/.test(o)) || null);
+const lightOn = computed(() => {
+  const s = light.value && S(light.value);
+  if (!s) return false;
+  if (light.value.startsWith('output_pin')) return (s.value || 0) > 0;
+  return (s.color_data?.[0] || []).some((x) => x > 0.001);
+});
+function toggleLight() {
+  const id = light.value,
+    on = !lightOn.value;
+  if (id.startsWith('output_pin')) gcode(`SET_PIN PIN=${shortName(id)} VALUE=${on ? 1 : 0}`);
+  else gcode(`SET_LED LED=${shortName(id)} RED=${+on} GREEN=${+on} BLUE=${+on} SYNC=0 TRANSMIT=1`);
 }
 function snapshot() {
   if (cam.value) window.open(api.url(cam.value.snapshot_url), '_blank', 'noopener');
@@ -43,6 +59,17 @@ function snapshot() {
       </select>
       <h2 v-else>{{ cam?.name || t('Camera') }}</h2>
       <div class="acts">
+        <button
+          v-if="light"
+          class="btn ibtn"
+          :class="{ on: lightOn }"
+          :aria-label="lightOn ? t('Light off') : t('Light on')"
+          :aria-pressed="lightOn"
+          :data-tip="prettyName(light)"
+          @click="toggleLight"
+        >
+          <Icon name="bulb" :size="17" :stroke="2.4" />
+        </button>
         <button
           class="btn ibtn"
           :class="{ on: floating }"

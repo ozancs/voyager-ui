@@ -14,6 +14,7 @@ import CmdInput from '../components/CmdInput.vue';
 import DeviceStrip from '../components/DeviceStrip.vue';
 import TempsCard from '../components/TempsCard.vue';
 import TempChartCard from '../components/TempChartCard.vue';
+import SpeedFlowChart from '../components/SpeedFlowChart.vue';
 import WebcamCard from '../components/WebcamCard.vue';
 import ConsoleCard from '../components/ConsoleCard.vue';
 import ToolheadCard from '../components/ToolheadCard.vue';
@@ -74,6 +75,7 @@ const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7], fixed: true }, // fixed: keeps its height in one column
   temps: { c: TempsCard, n: 'Temperatures', min: [2, 3], def: [6, 8], scale: true },
   tempchart: { c: TempChartCard, n: 'Temperature Graph', min: [2, 3], def: [12, 6] },
+  speedchart: { c: SpeedFlowChart, n: 'Speed & flow graph', min: [3, 3], def: [6, 5] },
   webcam: { c: WebcamCard, n: 'Camera', min: [2, 3], def: [6, 8] },
   toolhead: { c: ToolheadCard, n: 'Toolhead', min: [2, 2], def: [12, 5], scale: true },
   favorites: { c: FavoritesCard, n: 'Favorites', min: [2, 2], def: [6, 3] },
