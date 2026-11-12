@@ -313,6 +313,12 @@ Every result is checked against the printer (heater exists, max_temp, homed axes
 **[src/soundStyles.js](../src/soundStyles.js)**  
 Distinct pitches, rhythms and timbres; IDs remain compatible with saved preferences.
 
+**[src/staleChunk.js](../src/staleChunk.js)**  
+A page left open while the UI files are replaced (an update, or a reinstall of the same version that the  
+version check does not reload for) still runs the old code, and the pieces it loads later (pages, the  
+changelog) have file names that no longer exist. Loading the page again picks up the new files. The  
+session timestamp keeps a real outage (printer offline) from turning into a reload loop.
+
 **[src/store.js](../src/store.js)**  
 The app state and the connection to Moonraker.  
  - state: everything the UI shows (printer objects, settings, console, files cache...), reactive  

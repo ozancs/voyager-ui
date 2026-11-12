@@ -18,6 +18,11 @@ import { i18n, loadLang } from './i18n';
 import { away } from './away';
 import { vfit } from './fit';
 import { vzoom } from './thumbZoom';
+import { reloadForStaleChunk } from './staleChunk';
+// a lazily loaded page whose file is gone means the UI was replaced under this open page
+window.addEventListener('vite:preloadError', (e) => {
+  if (reloadForStaleChunk()) e.preventDefault();
+});
 // the chosen language is fetched first so the UI does not flash in English
 async function boot() {
   // the live demo build runs against a fake Moonraker inside the page

@@ -2,9 +2,10 @@
 // The comments are the source of truth; run `npm run code-map` after adding or renaming a file.
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const SKIP = /\/(locales)\/|icons-extra\.js$/;
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const SKIP = /[\\/](locales)[\\/]|icons-extra\.js$/;
 const GROUPS = [
   ['src', 'Core (state, connection, helpers)'],
   ['src/api', 'Moonraker client'],
@@ -15,7 +16,7 @@ const GROUPS = [
 ];
 
 function header(file) {
-  let text = fs.readFileSync(file, 'utf8');
+  let text = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n'); // a Windows checkout has CRLF line ends
   if (file.endsWith('.vue')) text = text.replace(/^<script[^>]*>\n/, '');
   const out = [];
   for (const line of text.split('\n')) {
@@ -39,7 +40,7 @@ for (const [dir, title] of GROUPS) {
   if (!files.length) continue;
   md += `\n## ${title}\n\n`;
   for (const f of files) {
-    const rel = path.relative(ROOT, f);
+    const rel = path.relative(ROOT, f).split(path.sep).join('/'); // forward slashes on Windows too
     const h = header(f) || '(no description yet)';
     const lines = h.split('\n');
     md += `**[${rel}](../${rel})**  \n${lines.map((l) => l.replace(/^ {2}- /, '- ')).join('  \n')}\n\n`;

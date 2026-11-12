@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.47
+
+- A page left open while Voyager UI is updated or reinstalled loads itself again when a page or the changelog fails to load, instead of showing "The changelog could not be loaded."
+
 ## 0.38.46
 
 - Speed & flow graph: zoom the time axis with the wheel (around the pointer, the values keep their scale), drag to move along it, double click or Live to go back. Sampled four times a second so a zoomed-in view has detail

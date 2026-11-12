@@ -6,6 +6,7 @@ import { ref, computed, watch } from 'vue';
 import Modal from './Modal.vue';
 import { state, VERSION, saveSettings } from '../store';
 import { t } from '../i18n';
+import { reloadForStaleChunk } from '../staleChunk';
 const text = ref(null);
 const failed = ref(false);
 watch(
@@ -15,7 +16,7 @@ watch(
     try {
       text.value = (await import('../../CHANGELOG.md?raw')).default;
     } catch {
-      failed.value = true;
+      if (!reloadForStaleChunk()) failed.value = true;
     }
   },
 );
