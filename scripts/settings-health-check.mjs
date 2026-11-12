@@ -45,13 +45,15 @@ try {
     };
   });
   await tab('sounds');
-  assert.equal(await page.locator('.alert-controls select').count(), 4);
-  const soundOptions = await page
-    .locator('.alert-controls select')
-    .evaluateAll((nodes) => nodes.map((n) => [...n.options].map((o) => o.value)));
-  assert(!soundOptions[2].includes('soft'), 'Error sounds must not offer notification bells');
-  assert(!soundOptions[0].includes('urgent'), 'Notifications must not offer error alarms');
-  assert(soundOptions[1].includes('attention'), 'Pauses need attention sounds');
+  assert.equal(await page.locator('.alert-controls select').count(), 5);
+  const optionsFor = (name) => page.getByRole('combobox', { name }).evaluate((n) => [...n.options].map((o) => o.value));
+  assert(
+    !(await optionsFor(/^Error \/ Klipper shutdown/)).includes('soft'),
+    'Error sounds must not offer notification bells',
+  );
+  assert(!(await optionsFor(/^Print finished/)).includes('urgent'), 'Notifications must not offer error alarms');
+  assert((await optionsFor(/^Print paused/)).includes('attention'), 'Pauses need attention sounds');
+  assert((await optionsFor(/^Filament runout/)).includes('knock'), 'Runout needs its own attention sound choice');
 
   await page.locator('.alert-controls select').first().selectOption('bright');
   assert.equal(
