@@ -152,6 +152,24 @@ async function check(p) {
         const a = vr[i],
           b = vr[j];
         if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
+        // A floating dock intentionally overlays the scrolling page. Only allow this
+        // when that control can actually be scrolled entirely above the dock; retain
+        // overlap checks within the dock and for controls trapped behind it.
+        const dockA = a.e.closest('nav.dock'),
+          dockB = b.e.closest('nav.dock');
+        if (!!dockA !== !!dockB) {
+          const under = dockA ? b : a;
+          const dockTop = (dockA || dockB).getBoundingClientRect().top;
+          let availableScroll = 0,
+            fixed = false;
+          for (let el = under.e; el && el !== document.body; el = el.parentElement) {
+            const style = getComputedStyle(el);
+            if (style.position === 'fixed' || style.position === 'sticky') fixed = true;
+            if (/auto|scroll/.test(style.overflowY))
+              availableScroll += Math.max(0, el.scrollHeight - el.clientHeight - el.scrollTop);
+          }
+          if (!fixed && under.e.closest('.main') && availableScroll > under.v.y2 - dockTop + 6) continue;
+        }
         // Projected face rectangles overlap even when the cube faces themselves do not.
         const cube = a.e.closest('.orientation-cube, .ocube');
         if (cube && cube === b.e.closest('.orientation-cube, .ocube')) continue;
