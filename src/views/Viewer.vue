@@ -499,6 +499,9 @@ function showFp(fp) {
   if (Math.abs(pos.value - shownFp) < 40) return;
   shownFp = pos.value;
   viewer.gcodeProcessor.updateFilePosition(pos.value);
+  // the nozzle sits at the end of the last drawn move, so it runs along the toolpath (square corners stay square)
+  // instead of gliding in a straight line between the printer's reports and cutting across the corners
+  viewer.simulateToolPosition?.();
   clip();
 }
 function showNozzleAt(p) {
@@ -517,13 +520,9 @@ function followFrame(now) {
   // the model only grows: a target behind (a new layer of the same file, a restart) is taken at once
   cur.fp = tgt.fp < cur.fp ? tgt.fp : cur.fp + (tgt.fp - cur.fp) * k;
   showFp(cur.fp);
-  if (tgt.xyz) {
-    const far = !cur.xyz || Math.hypot(...tgt.xyz.map((v, i) => v - cur.xyz[i])) > 80; // a travel across the bed
-    cur.xyz = far ? [...tgt.xyz] : cur.xyz.map((v, i) => v + (tgt.xyz[i] - v) * k);
-    showNozzleAt(cur.xyz);
-  }
-  const moving =
-    Math.abs(tgt.fp - cur.fp) > 2 || (tgt.xyz && cur.xyz && tgt.xyz.some((v, i) => Math.abs(v - cur.xyz[i]) > 0.02));
+  // the viewer cannot follow the path: the nozzle goes straight to the printer's place (as before the smoothing)
+  if (!viewer.simulateToolPosition && tgt.xyz) showNozzleAt(tgt.xyz);
+  const moving = Math.abs(tgt.fp - cur.fp) > 2;
   if (moving) followRaf = requestAnimationFrame(followFrame);
   else lastFrame = 0;
 }
@@ -546,7 +545,8 @@ function startTracking() {
   // a redraw of every segment: without it a model loaded whole stays whole while the printer is near the start
   for (const r of viewer.gcodeProcessor.renderInstances || []) r.forceRedraw = true;
   shownFp = pos.value;
-  if (cur.xyz) showNozzleAt(cur.xyz);
+  if (viewer.simulateToolPosition) viewer.simulateToolPosition();
+  else if (cur.xyz) showNozzleAt(cur.xyz);
   clip();
   viewer.forceRender();
 }

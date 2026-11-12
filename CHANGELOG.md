@@ -14,6 +14,7 @@
 - Dialog fields marked to take the typing get the focus when the dialog opens (rename, new folder)
 - Heater target popup: long preset names wrap instead of running out of the box
 - Timelapse player: closing it while a clip loads no longer throws an error; Ctrl+K no longer toggles playback
+- G-code viewer: Follow print moves the nozzle along the toolpath, so it turns square corners instead of cutting across them
 
 ## 0.38.39
 
