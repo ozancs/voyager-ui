@@ -36,7 +36,7 @@ const ctx = inject('cellCollapse', null);
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
-  margin-left: auto;
+  margin-left: 8px; /* right after the title it is pushed to the end by the header rule in style.css */
   margin-right: -6px;
 }
 .clp {

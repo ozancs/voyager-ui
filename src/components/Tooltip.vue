@@ -1,5 +1,6 @@
 <script setup>
-// Global tooltip: any element with aria-label or data-tip shows it after hovering ~0.8s.
+// Global tooltip: any element with aria-label or data-tip shows it after hovering ~0.8s; a button with only an icon
+// right away, since its tooltip is its name.
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 const tip = ref(null);
 let timer = null,
@@ -24,19 +25,22 @@ function over(e) {
   if (!el) return;
   const t = text(el);
   if (!t) return;
-  timer = setTimeout(() => {
-    if (!document.body.contains(el)) return;
-    // rects are in screen pixels, the tooltip is placed inside the zoomed page
-    const z = window.__uiZoom || 1;
-    const r = el.getBoundingClientRect();
-    const below = r.top < 60;
-    tip.value = {
-      t,
-      x: Math.min(window.innerWidth - 10, Math.max(10, r.left + r.width / 2)) / z,
-      y: (below ? r.bottom + 8 : r.top - 8) / z,
-      below,
-    };
-  }, 800);
+  timer = setTimeout(
+    () => {
+      if (!document.body.contains(el)) return;
+      // rects are in screen pixels, the tooltip is placed inside the zoomed page
+      const z = window.__uiZoom || 1;
+      const r = el.getBoundingClientRect();
+      const below = r.top < 60;
+      tip.value = {
+        t,
+        x: Math.min(window.innerWidth - 10, Math.max(10, r.left + r.width / 2)) / z,
+        y: (below ? r.bottom + 8 : r.top - 8) / z,
+        below,
+      };
+    },
+    (el.innerText || '').trim() ? 800 : 120,
+  );
 }
 function hide() {
   clearTimeout(timer);

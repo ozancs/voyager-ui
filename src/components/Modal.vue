@@ -2,6 +2,7 @@
 // Dialog frame: title, close button, content and a footer row for buttons. Escape closes only the dialog on top.
 import Icon from './Icon.vue';
 import { t } from '../i18n';
+import { useDragBox } from '../dragBox';
 // z: stacking for dialogs that must come over everything else (the print guard over a macro prompt)
 // locked: cannot be closed for now (no X, Escape and a click outside do nothing)
 const props = defineProps({
@@ -64,20 +65,23 @@ onBeforeUnmount(() => {
   document.removeEventListener('focusin', keepFocus);
   if (previous?.isConnected) nextTick(() => previous.focus());
 });
+const { down: dragDown, style: dragStyle } = useDragBox(dialog);
 </script>
 <template>
   <Teleport to="body">
     <div class="ov" :style="z ? { zIndex: z } : null" @mousedown.self="!locked && emit('close')">
       <div
         class="md card"
-        :style="{ width }"
+        :style="{ width, ...dragStyle() }"
+        @pointerdown="dragDown"
         ref="dialog"
         role="dialog"
         aria-modal="true"
         tabindex="-1"
         :aria-label="title"
       >
-        <div class="card-h">
+        <!-- the header moves the dialog (drag it aside to see the page under it) -->
+        <div class="card-h mdh">
           <h2>{{ title }}</h2>
           <button v-if="!locked" class="btn clear ibtn sm" :aria-label="t('Close')" @click="emit('close')">
             <Icon name="x" :size="18" />
@@ -116,5 +120,12 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   flex-wrap: wrap;
   row-gap: 8px;
+}
+.mdh {
+  cursor: grab;
+  touch-action: none;
+}
+.mdh:active {
+  cursor: grabbing;
 }
 </style>

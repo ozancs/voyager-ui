@@ -127,6 +127,7 @@ const FT = [
       </div>
       <CmdInput
         v-model="ct.cmd"
+        value-var="{v}"
         input-class="input"
         :placeholder="t('Command with {v}, e.g. SET_FAN_SPEED FAN=aux SPEED={v}')"
         :aria-label="t('Command')"

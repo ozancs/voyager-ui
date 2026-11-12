@@ -17,12 +17,14 @@ const cv = ref(null);
       <CardTitle :text="t('Console')" />
       <div class="acts">
         <button
-          class="btn"
+          class="btn ibtn"
           :class="{ on: state.settings.consoleHideTemps }"
           :aria-pressed="!!state.settings.consoleHideTemps"
+          :aria-label="t('Hide temps')"
+          :data-tip="state.settings.consoleHideTemps ? t('Show temperature lines') : t('Hide temperature lines')"
           @click="state.settings.consoleHideTemps = !state.settings.consoleHideTemps"
         >
-          {{ t('Hide temps') }}</button
+          <Icon name="thermo" :size="16" /></button
         ><button
           class="btn ibtn"
           :aria-label="t('Copy console')"
@@ -31,7 +33,9 @@ const cv = ref(null);
         >
           <Icon :name="cv?.copied === 'all' ? 'check' : 'copy'" :size="15" /></button
         ><button class="btn" @click="clearConsole">{{ t('Clear') }}</button
-        ><button class="btn" @click="go('console')"><Icon name="ext" :size="16" :stroke="2.4" />{{ t('Open') }}</button>
+        ><button class="btn ibtn" :aria-label="t('Open')" :data-tip="t('Open the console page')" @click="go('console')">
+          <Icon name="ext" :size="16" :stroke="2.4" />
+        </button>
       </div>
       <CardCollapse />
     </div>

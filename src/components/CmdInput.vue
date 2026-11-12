@@ -3,7 +3,7 @@
 // the parameters it takes (a macro's from its template, Klipper's own from gcodeParams.js): the ones already typed
 // are dimmed, a click or Tab adds the next one.
 import { ref, computed, watch } from 'vue';
-import { allCommands } from '../store';
+import { allCommands, state, shortName, prettyName } from '../store';
 import { macroParams, macroSection } from '../macros';
 import { builtinParams, usedParams } from '../gcodeParams';
 import { t } from '../i18n';
@@ -15,6 +15,8 @@ const props = defineProps({
   ariaLabel: String,
   inputClass: String,
   multiline: Boolean,
+  // a placeholder the command can carry, e.g. '{v}' for a slider's value: offered as a value for any parameter
+  valueVar: { type: String, default: '' },
 });
 const emit = defineEmits(['update:modelValue', 'enter', 'keydown']);
 const open = ref(false);
@@ -36,7 +38,48 @@ const word = computed(() => {
   if (/\s/.test(line.trimStart())) return '';
   return line.trim();
 });
+// after NAME= the values it can take: FAN= the printer's fans, LED= its LEDs, HEATER= its heaters... and the
+// field's own placeholder ({v}). Typing narrows them, Tab or Enter writes the chosen one.
+const OBJ_VALUES = {
+  FAN: /^fan_generic /, // SET_FAN_SPEED takes only these
+  LED: /^(led|neopixel|dotstar|pca9533|pca9632) /,
+  PIN: /^output_pin /,
+  HEATER: /^(extruder\d*|heater_bed|heater_generic .+)$/,
+  SENSOR: /^(temperature_sensor|temperature_fan) /,
+  TEMPERATURE_FAN: /^temperature_fan /,
+  STEPPER: /^(stepper_|extruder_stepper )/,
+  EXTRUDER: /^extruder\d*$/,
+  SERVO: /^servo /,
+  FILAMENT_SENSOR: /^filament_(switch|motion)_sensor /,
+  SENSOR_NAME: /^filament_(switch|motion)_sensor /,
+};
+const valueCtx = computed(() => {
+  if (!atEnd.value) return null;
+  const line = (props.modelValue || '').split('\n').pop();
+  const m = line.match(/^\s*\S+\s.*?(\b[A-Z_]+)=(\S*)$/i);
+  if (!m) return null;
+  return { param: m[1].toUpperCase(), part: m[2] };
+});
+const valueMatches = computed(() => {
+  const c = valueCtx.value;
+  if (!c) return [];
+  const re = OBJ_VALUES[c.param];
+  const out = [];
+  if (props.valueVar) out.push({ name: props.valueVar, desc: t('the value of this control'), val: true });
+  if (re)
+    for (const o of state.objects)
+      if (re.test(o)) {
+        const v = o.includes(' ') ? shortName(o) : o;
+        if (!out.some((x) => x.name === v)) out.push({ name: v, desc: prettyName(o), val: true });
+      }
+  const p = c.part.toLowerCase();
+  if (!p) return out.slice(0, 12);
+  const starts = out.filter((x) => x.name.toLowerCase().startsWith(p));
+  const inc = out.filter((x) => !x.name.toLowerCase().startsWith(p) && x.name.toLowerCase().includes(p));
+  return [...starts, ...inc].slice(0, 12);
+});
 const matches = computed(() => {
+  if (valueCtx.value) return valueMatches.value;
   const w = word.value.toUpperCase();
   if (!w) return [];
   const all = allCommands.value.filter((c) => !c.hidden || w.startsWith('_'));
@@ -51,7 +94,10 @@ const show = computed(
   () =>
     open.value &&
     matches.value.length > 0 &&
-    !(matches.value.length === 1 && matches.value[0].name === word.value.toUpperCase()),
+    !(
+      matches.value.length === 1 &&
+      matches.value[0].name.toUpperCase() === (valueCtx.value ? valueCtx.value.part : word.value).toUpperCase()
+    ),
 );
 // the command on the line being typed, once a space follows it, and its parameters
 const hint = computed(() => {
@@ -75,6 +121,13 @@ function addParam(p) {
 }
 function accept(c) {
   const v = props.modelValue || '';
+  if (c.val) {
+    // the value replaces what was typed after the =, and a space follows for the next parameter
+    const cut = v.length - (valueCtx.value?.part.length || 0);
+    emit('update:modelValue', v.slice(0, cut) + c.name + ' ');
+    el.value?.focus();
+    return;
+  }
   const lines = v.split('\n');
   lines[lines.length - 1] = c.name + ' ';
   emit('update:modelValue', lines.join('\n'));
@@ -96,7 +149,7 @@ function key(e) {
       return;
     }
     if (e.key === 'Tab' || (e.key === 'Enter' && sel.value >= 0 && matches.value[sel.value])) {
-      if (e.key === 'Enter' && matches.value[sel.value].name === word.value.toUpperCase()) {
+      if (e.key === 'Enter' && !valueCtx.value && matches.value[sel.value].name === word.value.toUpperCase()) {
         /* exact: send */
       } else {
         e.preventDefault();

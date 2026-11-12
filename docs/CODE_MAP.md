@@ -97,6 +97,11 @@ crowsnest refuses to start when one of these is missing from a [cam] section
 A stable logical canvas preserves card positions and proportions on resize.  
 Below 65%, switch to the independent stacked layout rather than tiny controls.
 
+**[src/dragBox.js](../src/dragBox.js)**  
+Dragging a dialog or a pop-up panel out of the way, to see what it changes on the page. The box moves by a  
+translate on top of where it was placed; a drag starts only past a few pixels, so clicks still work, and never  
+on a control (a field, a button, a list being reordered).
+
 **[src/endShot.js](../src/endShot.js)**  
 The last picture of each print: when a print ends (done, cancelled or stopped by an error) the first webcam's  
 picture is saved with the job, so a failed print can be looked at later from History. It is taken by the  
@@ -973,7 +978,8 @@ homing, Z tilt / QGL and motors off. Z offset baby steps are in the Live Z card.
 Shared by the live card and Customize toolbar; changes presentation only.
 
 **[src/components/Tooltip.vue](../src/components/Tooltip.vue)**  
-Global tooltip: any element with aria-label or data-tip shows it after hovering ~0.8s.
+Global tooltip: any element with aria-label or data-tip shows it after hovering ~0.8s; a button with only an icon  
+right away, since its tooltip is its name.
 
 **[src/components/TopBar.vue](../src/components/TopBar.vue)**  
 Top bar: printer name and logo, the printer state with the loaded file (while a print runs the job moves to the  

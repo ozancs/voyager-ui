@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "Verborgen verbergen",
   "Show hidden ({n})": "Verborgen tonen ({n})",
   "Time range": "Tijdsbereik",
+  "Show temperature lines": "Temperatuurregels tonen",
+  "Open the console page": "Consolepagina openen",
+  "Cooldown: all heaters off": "Afkoelen: alle verwarmers uit",
+  "the value of this control": "de waarde van deze regelaar",
 }

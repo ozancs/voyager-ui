@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "Сховати приховані",
   "Show hidden ({n})": "Показати приховані ({n})",
   "Time range": "Інтервал часу",
+  "Show temperature lines": "Показати рядки температур",
+  "Open the console page": "Відкрити сторінку консолі",
+  "Cooldown: all heaters off": "Охолодити: усі нагрівачі вимкнути",
+  "the value of this control": "значення цього елемента",
 }

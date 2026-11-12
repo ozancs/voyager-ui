@@ -75,12 +75,13 @@ function move(s, dir) {
   <div class="sp">
     <button
       ref="btn"
-      class="btn"
+      class="btn ibtn"
       :class="{ on: open }"
+      :aria-label="t('Sensors, colours and order')"
       :data-tip="t('Sensors, colours and order')"
       @click.stop="open = !open"
     >
-      <Icon name="pencil" :size="15" :stroke="2.4" />{{ t('Edit') }}
+      <Icon name="pencil" :size="15" :stroke="2.4" />
     </button>
     <Popover v-if="open" :anchor="btn" :width="lines ? 300 : 380" @close="!picking && (open = false)">
       <div class="hd">

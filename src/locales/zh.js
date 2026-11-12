@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "收起隐藏的",
   "Show hidden ({n})": "显示隐藏的 ({n})",
   "Time range": "时间范围",
+  "Show temperature lines": "显示温度行",
+  "Open the console page": "打开控制台页面",
+  "Cooldown: all heaters off": "冷却：关闭所有加热器",
+  "the value of this control": "此控件的值",
 }

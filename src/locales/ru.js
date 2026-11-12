@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "Скрыть скрытые",
   "Show hidden ({n})": "Показать скрытые ({n})",
   "Time range": "Интервал времени",
+  "Show temperature lines": "Показать строки температур",
+  "Open the console page": "Открыть страницу консоли",
+  "Cooldown: all heaters off": "Остудить: все нагреватели выключить",
+  "the value of this control": "значение этого элемента",
 }

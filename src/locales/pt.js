@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "Esconder as ocultas",
   "Show hidden ({n})": "Mostrar ocultas ({n})",
   "Time range": "Intervalo de tempo",
+  "Show temperature lines": "Mostrar linhas de temperatura",
+  "Open the console page": "Abrir a página do console",
+  "Cooldown: all heaters off": "Resfriar: todos os aquecedores desligados",
+  "the value of this control": "o valor deste controle",
 }

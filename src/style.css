@@ -222,6 +222,11 @@ a.btn {
   font-weight: 600;
   letter-spacing: -0.01em;
 }
+/* the title on the left, everything else (buttons, readings, pickers) on the right, the same in every card */
+.card-h > :is(h2, select, .sel):first-child + *,
+.card-h > :is(h2, select, .sel):first-child + .cce {
+  margin-left: auto;
+}
 .card-h .acts {
   display: flex;
   gap: 8px;

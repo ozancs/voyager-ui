@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "Ocultar las ocultas",
   "Show hidden ({n})": "Mostrar ocultas ({n})",
   "Time range": "Intervalo de tiempo",
+  "Show temperature lines": "Mostrar líneas de temperatura",
+  "Open the console page": "Abrir la página de consola",
+  "Cooldown: all heaters off": "Enfriar: todos los calentadores apagados",
+  "the value of this control": "el valor de este control",
 }

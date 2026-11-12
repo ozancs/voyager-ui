@@ -50,8 +50,15 @@ const grouped = computed(() => {
       <div class="acts">
         <SensorPicker />
         <div>
-          <button ref="presetBtn" class="btn" @click.stop="showPresets = !showPresets">
-            <Icon name="flame" :size="16" :stroke="2.4" />{{ t('Presets') }}
+          <button
+            ref="presetBtn"
+            class="btn ibtn"
+            :class="{ on: showPresets }"
+            :aria-label="t('Presets')"
+            :data-tip="t('Presets')"
+            @click.stop="showPresets = !showPresets"
+          >
+            <Icon name="flame" :size="16" :stroke="2.4" />
           </button>
           <Popover v-if="showPresets" :anchor="presetBtn" :width="260" @close="showPresets = false">
             <button
@@ -84,12 +91,13 @@ const grouped = computed(() => {
           </Popover>
         </div>
         <button
-          class="btn out"
+          class="btn ibtn"
           :disabled="isPrinting"
-          :data-tip="isPrinting ? t('Not while printing') : null"
+          :aria-label="t('Cooldown')"
+          :data-tip="isPrinting ? t('Not while printing') : t('Cooldown: all heaters off')"
           @click="gcode('TURN_OFF_HEATERS')"
         >
-          <Icon name="fan" :size="16" :stroke="2.4" />{{ t('Cooldown') }}
+          <Icon name="snow" :size="16" :stroke="2.4" />
         </button>
       </div>
       <CardCollapse />

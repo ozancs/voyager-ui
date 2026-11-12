@@ -2553,5 +2553,9 @@
   "{n} of {all} macros on the card",
   "Hide the hidden ones",
   "Show hidden ({n})",
-  "Time range"
+  "Time range",
+  "Show temperature lines",
+  "Open the console page",
+  "Cooldown: all heaters off",
+  "the value of this control"
 ]

@@ -74,13 +74,18 @@ const last = computed(() => pts.value[pts.value.length - 1] || [0, 0, 0]);
 .sfc {
   min-height: 0;
 }
+.sfc > .card-h {
+  flex-wrap: nowrap;
+}
 .lg {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
   font-size: 12px;
   color: var(--mu);
-  margin-left: auto;
 }
 .lg i {
   width: 10px;

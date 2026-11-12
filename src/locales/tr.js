@@ -2578,4 +2578,8 @@ export default {
   "Hide the hidden ones": "Gizlileri sakla",
   "Show hidden ({n})": "Gizlileri göster ({n})",
   "Time range": "Zaman aralığı",
+  "Show temperature lines": "Sıcaklık satırlarını göster",
+  "Open the console page": "Konsol sayfasını aç",
+  "Cooldown: all heaters off": "Soğut: tüm ısıtıcılar kapanır",
+  "the value of this control": "bu kontrolün değeri",
 }

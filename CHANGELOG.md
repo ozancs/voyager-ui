@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.38.44
+
+- Card headers: the title on the left, every button, reading and picker on the right, the same in every card
+- Console, Temperatures and Temperature graph headers: icon buttons (hide temperature lines, copy, open; edit, presets, cooldown) with their name showing as soon as you point at them. Clear stays a word
+- Pop-up panels (sensor list, presets...) stay inside the window, also from a card at the right edge, and can be dragged aside by any empty spot
+- Dialogs can be dragged by their title bar, to see the card they change
+- Command fields: after FAN=, LED=, PIN=, HEATER=, SENSOR=... the printer's own names are listed as you type, Tab writes the chosen one. In a slider control the value {v} is offered the same way
+
 ## 0.38.43
 
 - Dashboard: cards with their own settings (Macros, Print controls, your own cards) have an edit button in the header all the time, not only in Customize

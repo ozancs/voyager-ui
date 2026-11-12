@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "숨긴 항목 감추기",
   "Show hidden ({n})": "숨긴 항목 보기 ({n})",
   "Time range": "시간 범위",
+  "Show temperature lines": "온도 줄 보기",
+  "Open the console page": "콘솔 페이지 열기",
+  "Cooldown: all heaters off": "냉각: 모든 히터 끄기",
+  "the value of this control": "이 컨트롤의 값",
 }

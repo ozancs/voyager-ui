@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "Masquer les cachées",
   "Show hidden ({n})": "Afficher les cachées ({n})",
   "Time range": "Plage de temps",
+  "Show temperature lines": "Afficher les lignes de température",
+  "Open the console page": "Ouvrir la page console",
+  "Cooldown: all heaters off": "Refroidir : tous les chauffages éteints",
+  "the value of this control": "la valeur de ce contrôle",
 }

@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "非表示のものを隠す",
   "Show hidden ({n})": "非表示を表示 ({n})",
   "Time range": "時間範囲",
+  "Show temperature lines": "温度の行を表示",
+  "Open the console page": "コンソールページを開く",
+  "Cooldown: all heaters off": "クールダウン: すべてのヒーターをオフ",
+  "the value of this control": "このコントロールの値",
 }

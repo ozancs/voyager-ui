@@ -2560,4 +2560,8 @@ export default {
   "Hide the hidden ones": "Ausgeblendete verbergen",
   "Show hidden ({n})": "Ausgeblendete zeigen ({n})",
   "Time range": "Zeitraum",
+  "Show temperature lines": "Temperaturzeilen zeigen",
+  "Open the console page": "Konsolenseite öffnen",
+  "Cooldown: all heaters off": "Abkühlen: alle Heizungen aus",
+  "the value of this control": "der Wert dieses Reglers",
 }
