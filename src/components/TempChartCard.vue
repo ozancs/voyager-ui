@@ -9,6 +9,7 @@ import SensorPicker from './SensorPicker.vue';
 import SensorIcon from './SensorIcon.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
+import Popover from './Popover.vue';
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { state, graphSensors as sensors, hist } from '../store';
 import { longHist, STEP, MAX_AGE, oldestLong } from '../temphist';
@@ -33,6 +34,8 @@ const range = computed(() => state.settings.tempRange || 600);
 const span = computed(() => zoom.value?.span || range.value);
 const end = computed(() => zoom.value?.end || 0);
 const live = computed(() => !zoom.value || zoom.value.end === 0);
+const rngOpen = ref(false);
+const rngBtn = ref(null);
 function pickRange(r) {
   state.settings.tempRange = r;
   zoom.value = null;
@@ -313,11 +316,35 @@ onBeforeUnmount(() => ptrs.clear());
   <section class="card">
     <div class="card-h">
       <CardTitle :text="t('Temperature Graph')" />
-      <div class="seg rng">
-        <!-- prettier-ignore -->
-        <button v-for="r in RANGES" :key="r" :class="{ on: !zoom && range === r }" @click="pickRange(r)">{{ rangeLabel(r) }}</button>
-      </div>
       <div class="acts">
+        <!-- the time range: a clock button with a short menu, so the header stays one line -->
+        <button
+          ref="rngBtn"
+          class="btn sm rngb"
+          :class="{ on: rngOpen }"
+          :aria-label="t('Time range')"
+          :aria-expanded="rngOpen"
+          :data-tip="t('Time range')"
+          @click.stop="rngOpen = !rngOpen"
+        >
+          <Icon name="clock" :size="15" /><span class="mono">{{
+            zoom ? '~' + rangeLabel(Math.max(60, Math.round(span / 60) * 60)) : rangeLabel(range)
+          }}</span>
+        </button>
+        <Popover v-if="rngOpen" :anchor="rngBtn" :width="150" @close="rngOpen = false">
+          <button
+            v-for="r in RANGES"
+            :key="r"
+            class="btn clear rmi"
+            :class="{ cur: !zoom && range === r }"
+            @click="
+              pickRange(r);
+              rngOpen = false;
+            "
+          >
+            {{ rangeLabel(r) }}
+          </button>
+        </Popover>
         <button
           v-if="!live"
           class="btn ibtn sm acc"
@@ -539,11 +566,19 @@ onBeforeUnmount(() => ptrs.clear());
   color: var(--mu2);
   white-space: nowrap;
 }
-.rng {
-  width: 240px;
-  max-width: 100%;
-  margin-left: auto;
-  flex-shrink: 0;
+.rngb {
+  gap: 6px;
+  font-size: 12px;
+}
+.rmi {
+  justify-content: flex-start;
+  height: 34px;
+  width: 100%;
+  font-weight: 600;
+}
+.rmi.cur {
+  background: var(--s2);
+  color: var(--ac);
 }
 /* the title stays on one line (a zoomed-in graph adds the Live button, which used to wrap it and grow the header) */
 .card-h h2 {
@@ -575,15 +610,6 @@ onBeforeUnmount(() => ptrs.clear());
   .card-h h2 {
     flex: 1;
   }
-  .rng {
-    order: 10;
-    width: 100%;
-    margin-left: 0;
-  }
-}
-.rng button {
-  padding: 0 4px;
-  min-width: 0;
 }
 .lg {
   display: flex;

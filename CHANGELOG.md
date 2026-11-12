@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.38.43
+
+- Dashboard: cards with their own settings (Macros, Print controls, your own cards) have an edit button in the header all the time, not only in Customize
+- Macros card settings: the card shows live next to the list while you edit it, and hidden macros stay out of the list until Show hidden, so the rest are quick to reorder
+- Command button card: the command takes several lines, like a favorite button
+- Bottom dock: Interface settings at the far end, after a divider
+- Settings > Cameras: the picture fills its card, centred, without a black band
+- Temperature graph: the time range is a clock button with a short menu, so the header stays on one line
+- Dashboard: a card sliding up after the one above folds no longer leaves stale stripes behind for a moment
+
 ## 0.38.42
 
 - New menu style Bottom dock: the pages on a floating shelf at the bottom of the window, the one you point at lifts a little and shows its name. The top bar is the print's: file, progress, layer, time left and ETA

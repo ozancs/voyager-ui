@@ -2555,4 +2555,9 @@ export default {
   "Events": "이벤트",
   "Other ways to be told": "다른 알림 방법",
   "Pictures and sound": "사진과 소리",
+  "Options": "옵션",
+  "{n} of {all} macros on the card": "카드의 매크로 {n}/{all}개",
+  "Hide the hidden ones": "숨긴 항목 감추기",
+  "Show hidden ({n})": "숨긴 항목 보기 ({n})",
+  "Time range": "시간 범위",
 }

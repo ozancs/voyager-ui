@@ -688,6 +688,18 @@ const allMacros = computed(() =>
   ),
 );
 // dragging a row sets the order of every macro listed; macros hidden by "show hidden" keep their old place
+// the editor lists the macros on the card; the hidden ones only on request, so dragging the rest is quick
+const listHidden = ref(false);
+const hiddenCount = computed(() => allMacros.value.filter((m) => (mo.value.hidden || []).includes(m)).length);
+const listMacros = computed(() =>
+  listHidden.value ? allMacros.value : allMacros.value.filter((m) => !(mo.value.hidden || []).includes(m)),
+);
+// a card's edit / options button in its header, outside Customize too (CardCollapse shows it)
+const canEdit = (i) => (isCustom(i) ? state.settings.customCards?.[i]?.type !== 'cam' : !!MODULES[i]?.opts);
+function editFromCard(i) {
+  if (isCustom(i)) editCard(i);
+  else optsFor.value = i;
+}
 function setOrder(list) {
   const rest = (mo.value.order || []).filter((m) => !list.includes(m));
   mo.value.order = [...list, ...rest];
@@ -970,7 +982,9 @@ function detachCard(i) {
               :id="it.i"
               :can="canCollapse(it.i)"
               :collapsed="isCollapsed(it.i)"
+              :edit="canEdit(it.i) ? (isCustom(it.i) ? 'pencil' : 'gear') : ''"
               @toggle="toggleCollapse(it.i)"
+              @edit="editFromCard(it.i)"
             >
               <CustomCard v-if="isCustom(it.i)" :id="it.i" class="fill" @edit="editCard" />
               <component v-else :is="MODULES[it.i].c" class="fill" />
@@ -1089,7 +1103,9 @@ function detachCard(i) {
               :id="it.i"
               :can="canCollapse(it.i)"
               :collapsed="isCollapsed(it.i)"
+              :edit="canEdit(it.i) ? (isCustom(it.i) ? 'pencil' : 'gear') : ''"
               @toggle="toggleCollapse(it.i)"
+              @edit="editFromCard(it.i)"
             >
               <CustomCard
                 v-if="isCustom(it.i)"
@@ -1113,61 +1129,80 @@ function detachCard(i) {
     </div>
   </div>
 
-  <Modal v-if="optsFor === 'macros'" :title="t('Macros card')" width="780px" @close="optsFor = null">
-    <div class="row" style="justify-content: space-between">
-      <b>{{ t('View') }}</b>
-      <div class="seg" style="width: 220px">
-        <button :class="{ on: mo.view !== 'list' }" @click="mo.view = 'buttons'">{{ t('Buttons') }}</button>
-        <button :class="{ on: mo.view === 'list' }" @click="mo.view = 'list'">{{ t('List') }}</button>
-      </div>
-    </div>
-    <div v-if="mo.view !== 'list'" class="row" style="justify-content: space-between">
-      <div class="col" style="gap: 2px">
-        <b>{{ t('Scroll instead of shrinking') }}</b
-        ><span class="mu" style="font-size: 12.5px">{{
-          t('Off: buttons shrink so all macros fit the card. On: buttons keep their size and the card scrolls.')
+  <Modal v-if="optsFor === 'macros'" :title="t('Macros card')" width="1180px" @close="optsFor = null">
+    <div class="mod2">
+      <div class="col mset">
+        <div class="row" style="justify-content: space-between">
+          <b>{{ t('View') }}</b>
+          <div class="seg" style="width: 220px">
+            <button :class="{ on: mo.view !== 'list' }" @click="mo.view = 'buttons'">{{ t('Buttons') }}</button>
+            <button :class="{ on: mo.view === 'list' }" @click="mo.view = 'list'">{{ t('List') }}</button>
+          </div>
+        </div>
+        <div v-if="mo.view !== 'list'" class="row" style="justify-content: space-between">
+          <div class="col" style="gap: 2px">
+            <b>{{ t('Scroll instead of shrinking') }}</b
+            ><span class="mu" style="font-size: 12.5px">{{
+              t('Off: buttons shrink so all macros fit the card. On: buttons keep their size and the card scrolls.')
+            }}</span>
+          </div>
+          <Toggle v-model="mo.scroll" :label="t('Scroll')" />
+        </div>
+        <div class="row" style="justify-content: space-between">
+          <b>{{ t('Show hidden macros (starting with _)') }}</b
+          ><Toggle v-model="mo.showHidden" :label="t('Show hidden macros')" />
+        </div>
+        <span class="lbl">{{
+          t(
+            'Drag to change the order. A name typed here is shown instead of the macro name, a description is shown when pointing at the button; leave them empty to keep the macro name and the description from the config.',
+          )
         }}</span>
-      </div>
-      <Toggle v-model="mo.scroll" :label="t('Scroll')" />
-    </div>
-    <div class="row" style="justify-content: space-between">
-      <b>{{ t('Show hidden macros (starting with _)') }}</b
-      ><Toggle v-model="mo.showHidden" :label="t('Show hidden macros')" />
-    </div>
-    <span class="lbl">{{
-      t(
-        'Drag to change the order. A name typed here is shown instead of the macro name, a description is shown when pointing at the button; leave them empty to keep the macro name and the description from the config.',
-      )
-    }}</span>
-    <div style="max-height: 46vh; overflow: auto">
-      <SortList :model-value="allMacros" @update:model-value="setOrder">
-        <template #default="{ item: m }">
-          <span class="code mname" :class="{ off: (mo.hidden || []).includes(m) }">{{ m }}</span>
-          <input
-            class="input mlabel"
-            :value="mo.labels?.[m] || ''"
-            :placeholder="m.replace(/_/g, ' ')"
-            :aria-label="t('Name shown for {name}', { name: m })"
-            @change="setLabel(m, $event.target.value)"
-            @keydown.enter="$event.target.blur()"
-          /><input
-            class="input mdesc"
-            :value="mo.descs?.[m] || ''"
-            :placeholder="macroDesc(m, null, state.commands[m]) || t('Description')"
-            :aria-label="t('Description of {name}', { name: m })"
-            @change="setDesc(m, $event.target.value)"
-            @keydown.enter="$event.target.blur()"
-          />
-          <button
-            class="btn clear ibtn sm"
-            :aria-label="(mo.hidden || []).includes(m) ? t('Show on the card') : t('Hide from the card')"
-            :data-tip="(mo.hidden || []).includes(m) ? t('Show on the card') : t('Hide from the card')"
-            @click="toggleMacro(m)"
-          >
-            <Icon :name="(mo.hidden || []).includes(m) ? 'eyeoff' : 'eye'" :size="16" />
+        <div class="row" style="justify-content: space-between">
+          <span class="mu" style="font-size: 12.5px">{{
+            t('{n} of {all} macros on the card', { n: allMacros.length - hiddenCount, all: allMacros.length })
+          }}</span>
+          <button v-if="hiddenCount" class="btn sm" :class="{ on: listHidden }" @click="listHidden = !listHidden">
+            <Icon :name="listHidden ? 'eye' : 'eyeoff'" :size="15" />{{
+              listHidden ? t('Hide the hidden ones') : t('Show hidden ({n})', { n: hiddenCount })
+            }}
           </button>
-        </template>
-      </SortList>
+        </div>
+        <div style="max-height: 52vh; overflow: auto">
+          <SortList :model-value="listMacros" @update:model-value="setOrder">
+            <template #default="{ item: m }">
+              <span class="code mname" :class="{ off: (mo.hidden || []).includes(m) }">{{ m }}</span>
+              <input
+                class="input mlabel"
+                :value="mo.labels?.[m] || ''"
+                :placeholder="m.replace(/_/g, ' ')"
+                :aria-label="t('Name shown for {name}', { name: m })"
+                @change="setLabel(m, $event.target.value)"
+                @keydown.enter="$event.target.blur()"
+              /><input
+                class="input mdesc"
+                :value="mo.descs?.[m] || ''"
+                :placeholder="macroDesc(m, null, state.commands[m]) || t('Description')"
+                :aria-label="t('Description of {name}', { name: m })"
+                @change="setDesc(m, $event.target.value)"
+                @keydown.enter="$event.target.blur()"
+              />
+              <button
+                class="btn clear ibtn sm"
+                :aria-label="(mo.hidden || []).includes(m) ? t('Show on the card') : t('Hide from the card')"
+                :data-tip="(mo.hidden || []).includes(m) ? t('Show on the card') : t('Hide from the card')"
+                @click="toggleMacro(m)"
+              >
+                <Icon :name="(mo.hidden || []).includes(m) ? 'eyeoff' : 'eye'" :size="16" />
+              </button>
+            </template>
+          </SortList>
+        </div>
+      </div>
+      <!-- the card itself, so every change shows as it is made -->
+      <div class="mprev">
+        <span class="lbl">{{ t('Preview') }}</span>
+        <MacrosCard class="fill" />
+      </div>
     </div>
     <template #foot
       ><button class="btn lg acc" @click="optsFor = null">{{ t('Done') }}</button></template
@@ -1260,14 +1295,19 @@ function detachCard(i) {
         <button class="btn ibtn" :aria-label="t('Change icon')" @click="iconFor = editing.data">
           <Icon :name="editing.data.icon" :size="22" :style="{ color: editing.data.color || 'var(--ac)' }" />
         </button>
-        <CmdInput
-          v-model="editing.data.gcode"
-          input-class="input"
-          :placeholder="t('G-code or macro, e.g. CHAMBER TEMP=50')"
-          :aria-label="t('Command')"
-        />
+        <span class="grow"></span>
+        <span class="mu" style="font-size: 13px">{{ t('Highlight') }}</span>
         <Toggle v-model="editing.data.highlight" :label="t('Highlight')" />
       </div>
+      <span class="lbl">{{ t('Command') }}</span>
+      <!-- several lines run one after another, like a favorite button -->
+      <CmdInput
+        v-model="editing.data.gcode"
+        multiline
+        input-class="input"
+        :placeholder="t('G-code or macro, e.g. CHAMBER TEMP=50')"
+        :aria-label="t('Command')"
+      />
       <ButtonParams :b="editing.data" />
     </template>
     <template v-else-if="editing.data.type === 'ctl'">
@@ -1620,8 +1660,13 @@ function detachCard(i) {
 .cell.collapsed :deep(.card-h [data-opt]) {
   display: none;
 }
-.cell :deep(.card-h > .clp) {
+.cell :deep(.card-h > .cce) {
   flex-shrink: 0;
+}
+/* each card on a layer of its own: a card sliding up after the one above folds left stale stripes of itself
+   behind in Chrome until the next repaint */
+.grid :deep(.vgl-item) {
+  will-change: transform;
 }
 .mcell {
   height: auto;
@@ -1827,5 +1872,35 @@ function detachCard(i) {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 6px;
+}
+.mod2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
+  align-items: start;
+}
+.mset {
+  gap: 12px;
+  min-width: 0;
+}
+.mprev {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: min(520px, 62vh);
+}
+.mprev > .fill {
+  flex: 1;
+  min-height: 0;
+}
+@media (max-width: 1000px) {
+  .mod2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mprev {
+    display: none;
+  }
 }
 </style>

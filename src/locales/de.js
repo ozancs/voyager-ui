@@ -2555,4 +2555,9 @@ export default {
   "Events": "Ereignisse",
   "Other ways to be told": "Andere Benachrichtigungen",
   "Pictures and sound": "Bild und Ton",
+  "Options": "Optionen",
+  "{n} of {all} macros on the card": "{n} von {all} Makros auf der Karte",
+  "Hide the hidden ones": "Ausgeblendete verbergen",
+  "Show hidden ({n})": "Ausgeblendete zeigen ({n})",
+  "Time range": "Zeitraum",
 }

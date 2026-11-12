@@ -477,7 +477,8 @@ in a strip along the bottom. Shown while a print runs or is paused; also in full
 Explicit, receive-only microphone preview. Closes on leaving settings; reconnects after a filter change.
 
 **[src/components/CardCollapse.vue](../src/components/CardCollapse.vue)**  
-The fold chevron at the end of a card header. Shown only for a card on the dashboard (CellScope provides the  
+The end of a card header on the dashboard: the card's edit / options button when it has one (also outside  
+Customize, so a card's own settings are one click away), then the fold chevron. Shown only for a card on the dashboard (CellScope provides the  
 context); the same card elsewhere (Machine page, inside a Tabs card) gets nothing.
 
 **[src/components/CardTitle.vue](../src/components/CardTitle.vue)**  
@@ -544,7 +545,8 @@ Fans, output pins, LEDs and filament sensors as a list (Mainsail's "Miscellaneou
 **[src/components/DockNav.vue](../src/components/DockNav.vue)**  
 Bottom dock menu style: the pages on a floating shelf at the bottom of the window, like the macOS dock. The top  
 bar is left to the printer and its print. Pointing at a page lifts it a little and shows its name above it;  
-the open page has a dot under it. Printer settings and config files sit after a divider.
+the open page has a dot under it. Printer settings and config files sit after a divider, the interface  
+settings at the far end after another.
 
 **[src/components/Donut.vue](../src/components/Donut.vue)**  
 Small ring gauge (a value out of max) used for CPU, memory and MCU load.

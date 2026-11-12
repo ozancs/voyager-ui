@@ -2555,4 +2555,9 @@ export default {
   "Events": "Gebeurtenissen",
   "Other ways to be told": "Andere manieren om te melden",
   "Pictures and sound": "Beeld en geluid",
+  "Options": "Opties",
+  "{n} of {all} macros on the card": "{n} van {all} macro's op de kaart",
+  "Hide the hidden ones": "Verborgen verbergen",
+  "Show hidden ({n})": "Verborgen tonen ({n})",
+  "Time range": "Tijdsbereik",
 }

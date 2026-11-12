@@ -2555,4 +2555,9 @@ export default {
   "Events": "События",
   "Other ways to be told": "Другие способы оповещения",
   "Pictures and sound": "Изображение и звук",
+  "Options": "Параметры",
+  "{n} of {all} macros on the card": "{n} из {all} макросов на карточке",
+  "Hide the hidden ones": "Скрыть скрытые",
+  "Show hidden ({n})": "Показать скрытые ({n})",
+  "Time range": "Интервал времени",
 }

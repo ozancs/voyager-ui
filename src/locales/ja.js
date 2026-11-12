@@ -2555,4 +2555,9 @@ export default {
   "Events": "イベント",
   "Other ways to be told": "その他の通知方法",
   "Pictures and sound": "画像と音声",
+  "Options": "オプション",
+  "{n} of {all} macros on the card": "カードのマクロ {n} / {all}",
+  "Hide the hidden ones": "非表示のものを隠す",
+  "Show hidden ({n})": "非表示を表示 ({n})",
+  "Time range": "時間範囲",
 }

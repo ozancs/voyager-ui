@@ -2555,4 +2555,9 @@ export default {
   "Events": "Eventi",
   "Other ways to be told": "Altri modi per essere avvisati",
   "Pictures and sound": "Immagine e suono",
+  "Options": "Opzioni",
+  "{n} of {all} macros on the card": "{n} di {all} macro nella scheda",
+  "Hide the hidden ones": "Nascondi le nascoste",
+  "Show hidden ({n})": "Mostra nascoste ({n})",
+  "Time range": "Intervallo di tempo",
 }

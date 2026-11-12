@@ -1,7 +1,8 @@
 <script setup>
 // Bottom dock menu style: the pages on a floating shelf at the bottom of the window, like the macOS dock. The top
 // bar is left to the printer and its print. Pointing at a page lifts it a little and shows its name above it;
-// the open page has a dot under it. Printer settings and config files sit after a divider.
+// the open page has a dot under it. Printer settings and config files sit after a divider, the interface
+// settings at the far end after another.
 import Icon from './Icon.vue';
 import { state } from '../store';
 import { route, go } from '../router';
@@ -35,6 +36,15 @@ function open(k) {
         >
       </button>
     </template>
+    <span class="sep" aria-hidden="true"></span>
+    <button
+      class="di"
+      :class="{ on: !!state.settingsOpen }"
+      :aria-label="t('Interface settings')"
+      @click="state.settingsOpen = state.settingsOpen ? null : 'general'"
+    >
+      <Icon name="gear" :size="22" /><span class="tip" aria-hidden="true">{{ t('Interface settings') }}</span>
+    </button>
   </nav>
 </template>
 <style scoped>

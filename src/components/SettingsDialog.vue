@@ -1984,6 +1984,15 @@ const consoleSample = (() => {
   flex: 1;
   min-width: 0;
 }
+/* the picture fills the small frame, centred, with no band above or below it */
+.cpv > :deep(.wc) {
+  min-height: 0;
+  border-radius: 0;
+}
+.cpv :deep(.wc img),
+.cpv :deep(.wc video) {
+  object-fit: cover;
+}
 .cmeta {
   display: flex;
   align-items: center;

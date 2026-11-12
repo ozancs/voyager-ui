@@ -2548,5 +2548,10 @@
   "Sound",
   "Events",
   "Other ways to be told",
-  "Pictures and sound"
+  "Pictures and sound",
+  "Options",
+  "{n} of {all} macros on the card",
+  "Hide the hidden ones",
+  "Show hidden ({n})",
+  "Time range"
 ]

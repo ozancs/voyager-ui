@@ -2555,4 +2555,9 @@ export default {
   "Events": "事件",
   "Other ways to be told": "其他提醒方式",
   "Pictures and sound": "画面和声音",
+  "Options": "选项",
+  "{n} of {all} macros on the card": "卡片上 {all} 个宏中的 {n} 个",
+  "Hide the hidden ones": "收起隐藏的",
+  "Show hidden ({n})": "显示隐藏的 ({n})",
+  "Time range": "时间范围",
 }

@@ -2573,4 +2573,9 @@ export default {
   "Events": "Olaylar",
   "Other ways to be told": "Haber vermenin diğer yolları",
   "Pictures and sound": "Resim ve ses",
+  "Options": "Seçenekler",
+  "{n} of {all} macros on the card": "Kartta {all} makrodan {n} tanesi",
+  "Hide the hidden ones": "Gizlileri sakla",
+  "Show hidden ({n})": "Gizlileri göster ({n})",
+  "Time range": "Zaman aralığı",
 }
