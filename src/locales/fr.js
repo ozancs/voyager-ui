@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "Changer le tube PTFE",
   "Bottom dock": "Dock en bas",
   "Theme colour": "Couleur du thème",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Teinte toute l’interface : page, cartes, panneaux, bordures et texte gris. Clair et sombre gardent leur luminosité, seule la couleur change. Les couleurs de carte choisies restent.",
   "Custom theme colour": "Couleur de thème personnalisée",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Classique : le menu sous la barre du haut. Flottant, Accolé et Cadre occupent toute la hauteur avec l'imprimante en haut et se replient en icônes. Onglets en haut : les pages en onglets dans la barre du haut. Dock en bas : les pages sur une étagère en bas, la barre du haut montre l’impression.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Jusqu’où va l’accent. Discret : boutons et option choisie, légèrement. Normal et fort : options choisies plus marquées, la page, les cartes et les panneaux tirent un peu vers l’accent, et les petites tuiles du tableau de bord prennent la couleur de leur type (ventilateurs, chauffages, lumières).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "Ouvrir la page console",
   "Cooldown: all heaters off": "Refroidir : tous les chauffages éteints",
   "the value of this control": "la valeur de ce contrôle",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Teinte toute l’interface : page, cartes, panneaux, bordures et texte gris. En thème sombre, la luminosité de la couleur règle l’obscurité de la page ; le thème clair reste clair. Les couleurs de carte choisies restent.",
+  "Back to the last five minutes": "Revenir aux cinq dernières minutes",
 }

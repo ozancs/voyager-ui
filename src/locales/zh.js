@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "更换 PTFE 管",
   "Bottom dock": "底部程序坞",
   "Theme colour": "主题颜色",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "为整个界面着色：页面、卡片、面板、边框和灰色文字。浅色和深色保持亮度，只改变颜色。你选的卡片颜色保持不变。",
   "Custom theme colour": "自定义主题颜色",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "经典：菜单位于顶栏下方。悬浮、贴边和框架占满整个高度，打印机在顶部，可折叠为图标。顶部标签：页面以标签形式显示在顶栏中。底部程序坞：页面位于底部的托架上，顶栏显示打印。",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "强调色的覆盖范围。柔和：按钮和选中的选项，轻微着色。普通和强烈：选中的选项更明显，页面、卡片和面板略微偏向强调色，仪表盘上的小方块显示其类别的颜色（风扇、加热器、灯光）。",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "打开控制台页面",
   "Cooldown: all heaters off": "冷却：关闭所有加热器",
   "the value of this control": "此控件的值",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "为整个界面着色：页面、卡片、面板、边框和灰色文字。深色主题中颜色的亮度决定页面有多暗；浅色主题保持明亮。你选的卡片颜色保持不变。",
+  "Back to the last five minutes": "回到最近五分钟",
 }

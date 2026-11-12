@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.46
+
+- Speed & flow graph: zoom the time axis with the wheel (around the pointer, the values keep their scale), drag to move along it, double click or Live to go back. Sampled four times a second so a zoomed-in view has detail
+- Theme colour follows the picked colour's brightness and more of its saturation: in the dark theme the pick is the page itself and every surface steps up from it, so a darker or lighter shade of the same colour gives a darker or lighter interface. The light theme stays light
+
 ## 0.38.45
 
 - Footer: a Discord link next to GitHub

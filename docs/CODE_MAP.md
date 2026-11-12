@@ -35,8 +35,8 @@ runs during a print: a backup asked for then waits until the print is over.
 **[src/baseColor.js](../src/baseColor.js)**  
 Appearance > Theme colour: one colour that tints the whole interface, not only the page behind the cards. The  
 built-in themes are a set of greys a little towards blue, each surface a step lighter or darker than the next  
-(page, cards, inner panels, borders, hover). This keeps those steps and only swaps the hue and saturation for  
-the picked colour's, so light and dark stay as bright as they are and every surface moves together. Custom  
+(page, cards, inner panels, borders, hover). This keeps those steps and takes the picked colour's hue, its  
+saturation and, in the dark theme, its brightness (the pick is the page, the rest step up from it). Custom  
 card colours stay as they are.
 
 **[src/calc.js](../src/calc.js)**  
@@ -907,8 +907,9 @@ and the Extruder card (flow).
 
 **[src/components/SpeedFlowChart.vue](../src/components/SpeedFlowChart.vue)**  
 Speed and flow over the last minutes: the toolhead's live speed (mm/s) and the volumetric flow (mm³/s) from  
-Klipper's motion_report, sampled every second while this card is on the page. Two lines on one time axis, each  
-with its own scale; the newest values in the header.
+Klipper's motion_report, sampled four times a second. Two lines on one time axis, each with its own scale; the  
+newest values in the header. The wheel zooms the time axis around the pointer (never the values), dragging  
+moves along it, a double click or Live goes back to the whole five minutes.
 
 **[src/components/SpoolCard.vue](../src/components/SpoolCard.vue)**  
 Active Spoolman spool: filament name, colour, remaining weight. Only shown when Moonraker has  

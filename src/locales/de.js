@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "PTFE-Schlauch wechseln",
   "Bottom dock": "Dock unten",
   "Theme colour": "Themenfarbe",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Färbt die ganze Oberfläche: Seite, Karten, Panels, Ränder und grauen Text. Hell und Dunkel behalten ihre Helligkeit, nur die Farbe ändert sich. Eigene Kartenfarben bleiben.",
   "Custom theme colour": "Eigene Themenfarbe",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Klassisch: das Menü unter der oberen Leiste. Schwebend, Angelegt und Rahmen laufen über die volle Höhe mit dem Drucker oben und klappen zu Symbolen ein. Tabs oben: die Seiten als Tabs in der oberen Leiste. Dock unten: die Seiten in einer Leiste am unteren Rand, die obere Leiste zeigt den Druck.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Wie weit die Akzentfarbe reicht. Dezent: Schaltflächen und die gewählte Option, leicht. Normal und kräftig: gewählte Optionen stärker, Seite, Karten und Panels neigen sich etwas zum Akzent, und die kleinen Dashboard-Kacheln nehmen die Farbe ihrer Art an (Lüfter, Heizungen, Licht).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "Konsolenseite öffnen",
   "Cooldown: all heaters off": "Abkühlen: alle Heizungen aus",
   "the value of this control": "der Wert dieses Reglers",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Färbt die ganze Oberfläche: Seite, Karten, Panels, Ränder und grauen Text. Im dunklen Thema bestimmt die Helligkeit der Farbe, wie dunkel die Seite ist; das helle Thema bleibt hell. Eigene Kartenfarben bleiben.",
+  "Back to the last five minutes": "Zurück zu den letzten fünf Minuten",
 }

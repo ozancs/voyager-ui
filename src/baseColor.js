@@ -1,7 +1,7 @@
 // Appearance > Theme colour: one colour that tints the whole interface, not only the page behind the cards. The
 // built-in themes are a set of greys a little towards blue, each surface a step lighter or darker than the next
-// (page, cards, inner panels, borders, hover). This keeps those steps and only swaps the hue and saturation for
-// the picked colour's, so light and dark stay as bright as they are and every surface moves together. Custom
+// (page, cards, inner panels, borders, hover). This keeps those steps and takes the picked colour's hue, its
+// saturation and, in the dark theme, its brightness (the pick is the page, the rest step up from it). Custom
 // card colours stay as they are.
 
 // the steps of the built-in themes, as lightness in %
@@ -58,16 +58,24 @@ export function basePalette(hex, mode, darker = false) {
   if (!c) return null;
   // a very saturated pick would make the page loud: its saturation is capped, more so for the light theme's
   // near-white surfaces where a little goes a long way
-  const s = Math.min(c.s, mode === 'light' ? 40 : 45);
+  // the saturation is followed up to a point (a fully saturated page would be loud)
+  const s = Math.min(c.s, mode === 'light' ? 55 : 80);
+  // and the brightness: in the dark theme the picked colour is the page itself, every surface keeps its step
+  // above it; the light theme stays light and only follows a darker pick a little
+  const lift =
+    mode === 'light'
+      ? Math.max(-10, Math.min(0, (c.l - 50) * 0.12))
+      : Math.max(-7, Math.min(22, c.l - (darker ? DARKER['--bg'] : DARK['--bg'])));
   const steps = mode === 'light' ? LIGHT : { ...DARK, ...(darker ? DARKER : {}) };
   const out = {};
   for (const [k, l] of Object.entries(steps)) {
     // lighter surfaces carry a little less colour, like the built-in greys
     const sk = mode === 'light' ? s * (l > 97 ? 0.6 : 1) : s * (l > 15 ? 0.85 : 1);
-    out[k] = hsl(c.h, sk, l);
+    out[k] = hsl(c.h, sk, Math.max(1, Math.min(99, l + lift)));
   }
-  out['--mu'] = hsl(c.h, Math.min(s, 12) * 0.6, mode === 'light' ? 35 : 68);
-  out['--mu2'] = hsl(c.h, Math.min(s, 12) * 0.6, mode === 'light' ? 46 : 58);
+  // grey text keeps its contrast on a lighter page
+  out['--mu'] = hsl(c.h, Math.min(s, 12) * 0.6, mode === 'light' ? 35 : Math.min(80, 68 + Math.max(0, lift) * 0.5));
+  out['--mu2'] = hsl(c.h, Math.min(s, 12) * 0.6, mode === 'light' ? 46 : Math.min(72, 58 + Math.max(0, lift) * 0.5));
   return out;
 }
 

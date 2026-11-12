@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "PTFE チューブを交換",
   "Bottom dock": "下部ドック",
   "Theme colour": "テーマカラー",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "インターフェース全体に色を付けます: ページ、カード、パネル、枠線、グレーの文字。ライトとダークは明るさを保ち、色だけが変わります。選んだカードの色はそのままです。",
   "Custom theme colour": "カスタムテーマカラー",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "クラシック: 上部バーの下にメニュー。フローティング、アタッチ、フレームは全高に表示され、プリンターが上にあり、アイコンに折りたためます。上部タブ: ページを上部バーのタブとして表示。下部ドック: ページは下部の棚に並び、上部バーは印刷を表示します。",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "アクセントカラーの広がり方。控えめ: ボタンと選択中の項目に少しだけ。標準と強め: 選択中の項目がよりはっきりし、ページ、カード、パネルが少しアクセント寄りになり、ダッシュボードの小さなタイルが種類ごとの色になります (ファン、ヒーター、ライト)。",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "コンソールページを開く",
   "Cooldown: all heaters off": "クールダウン: すべてのヒーターをオフ",
   "the value of this control": "このコントロールの値",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "インターフェース全体に色を付けます: ページ、カード、パネル、枠線、グレーの文字。ダークテーマでは色の明るさでページの暗さが決まり、ライトテーマは明るいままです。選んだカードの色はそのままです。",
+  "Back to the last five minutes": "直近5分に戻る",
 }

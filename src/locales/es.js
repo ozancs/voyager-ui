@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "Cambiar tubo PTFE",
   "Bottom dock": "Dock inferior",
   "Theme colour": "Color del tema",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Tiñe toda la interfaz: página, tarjetas, paneles, bordes y texto gris. Claro y oscuro mantienen su brillo, solo cambia el color. Los colores de tarjeta que elegiste se mantienen.",
   "Custom theme colour": "Color de tema personalizado",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Clásico: el menú bajo la barra superior. Flotante, Pegado y Marco ocupan toda la altura con la impresora arriba y se pliegan a iconos. Pestañas arriba: las páginas como pestañas en la barra superior. Dock inferior: las páginas en una barra abajo, la barra superior muestra la impresión.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Hasta dónde llega el acento. Sutil: botones y la opción elegida, levemente. Normal y fuerte: opciones elegidas más marcadas, la página, tarjetas y paneles se inclinan un poco al acento, y los mosaicos del panel toman el color de su tipo (ventiladores, calentadores, luces).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "Abrir la página de consola",
   "Cooldown: all heaters off": "Enfriar: todos los calentadores apagados",
   "the value of this control": "el valor de este control",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Tiñe toda la interfaz: página, tarjetas, paneles, bordes y texto gris. En el tema oscuro el brillo del color decide lo oscura que es la página; el tema claro sigue claro. Los colores de tarjeta que elegiste se mantienen.",
+  "Back to the last five minutes": "Volver a los últimos cinco minutos",
 }

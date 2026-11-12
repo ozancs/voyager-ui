@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "PTFE-buis vervangen",
   "Bottom dock": "Dock onderaan",
   "Theme colour": "Themakleur",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Kleurt de hele interface: pagina, kaarten, panelen, randen en grijze tekst. Licht en donker houden hun helderheid, alleen de kleur verandert. Gekozen kaartkleuren blijven.",
   "Custom theme colour": "Eigen themakleur",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Klassiek: het menu onder de bovenbalk. Zwevend, Vast en Kader lopen over de volle hoogte met de printer bovenaan en klappen in tot iconen. Tabbladen boven: de pagina's als tabbladen in de bovenbalk. Dock onderaan: de pagina's op een plank onderaan, de bovenbalk toont de print.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Hoe ver het accent reikt. Subtiel: knoppen en de gekozen optie, licht. Normaal en sterk: gekozen opties sterker, pagina, kaarten en panelen neigen wat naar het accent, en de kleine dashboardtegels krijgen de kleur van hun soort (ventilatoren, verwarmers, licht).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "Consolepagina openen",
   "Cooldown: all heaters off": "Afkoelen: alle verwarmers uit",
   "the value of this control": "de waarde van deze regelaar",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Kleurt de hele interface: pagina, kaarten, panelen, randen en grijze tekst. In het donkere thema bepaalt de helderheid van de kleur hoe donker de pagina is; het lichte thema blijft licht. Gekozen kaartkleuren blijven.",
+  "Back to the last five minutes": "Terug naar de laatste vijf minuten",
 }

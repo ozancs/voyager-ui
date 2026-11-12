@@ -1,8 +1,10 @@
 <script setup>
 // Speed and flow over the last minutes: the toolhead's live speed (mm/s) and the volumetric flow (mm³/s) from
-// Klipper's motion_report, sampled every second while this card is on the page. Two lines on one time axis, each
-// with its own scale; the newest values in the header.
+// Klipper's motion_report, sampled four times a second. Two lines on one time axis, each with its own scale; the
+// newest values in the header. The wheel zooms the time axis around the pointer (never the values), dragging
+// moves along it, a double click or Live goes back to the whole five minutes.
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import Icon from './Icon.vue';
 import CardTitle from './CardTitle.vue';
 import CardCollapse from './CardCollapse.vue';
 import { S } from '../store';
@@ -24,41 +26,114 @@ function sample() {
 let timer;
 onMounted(() => {
   sample();
-  timer = setInterval(sample, 1000);
+  timer = setInterval(sample, 250);
 });
 onBeforeUnmount(() => clearInterval(timer));
 const W = 600,
   H = 160;
+// the window shown: `span` seconds ending `ago` seconds before the newest sample
+const view = ref({ span: SPAN, ago: 0 });
+const zoomed = computed(() => view.value.span < SPAN || view.value.ago > 0);
+const t1 = computed(() => (pts.value.length ? pts.value[pts.value.length - 1][0] : Date.now() / 1000));
+const shown = computed(() => {
+  const b = t1.value - view.value.ago,
+    a = b - view.value.span;
+  // one sample either side, so the lines run to the edges
+  const l = pts.value;
+  let i = l.findIndex((p) => p[0] >= a);
+  if (i < 0) return [];
+  let j = l.length - 1;
+  while (j > 0 && l[j - 1][0] > b) j--;
+  return l.slice(Math.max(0, i - 1), j + 1);
+});
 const scale = (i) => {
-  const max = Math.max(1, ...pts.value.map((p) => p[i]));
+  const max = Math.max(1, ...shown.value.map((p) => p[i]));
   // a round top for the axis: 10, 20, 50, 100...
   const steps = [5, 10, 20, 25, 50, 100, 150, 200, 300, 400, 500, 750, 1000];
   return steps.find((s) => s >= max) || Math.ceil(max / 500) * 500;
 };
 const top = computed(() => [scale(1), scale(2)]);
 function line(i) {
-  const l = pts.value;
+  const l = shown.value;
   if (l.length < 2) return '';
-  const t1 = l[l.length - 1][0];
+  const b = t1.value - view.value.ago,
+    a = b - view.value.span;
   const k = top.value[i - 1];
   return l
     .map(
-      (p, j) => `${j ? 'L' : 'M'}${(((p[0] - (t1 - SPAN)) / SPAN) * W).toFixed(1)},${(H - (p[i] / k) * H).toFixed(1)}`,
+      (p, j) => `${j ? 'L' : 'M'}${(((p[0] - a) / view.value.span) * W).toFixed(1)},${(H - (p[i] / k) * H).toFixed(1)}`,
     )
     .join('');
 }
+const fmtAgo = (s) =>
+  s < 1 ? t('now') : s < 90 ? '-' + Math.round(s) + ' s' : '-' + (s / 60).toFixed(s < 600 ? 1 : 0) + ' min';
+const leftLabel = computed(() => fmtAgo(view.value.ago + view.value.span));
+const rightLabel = computed(() => fmtAgo(view.value.ago));
+const box = ref(null);
+const frac = (x) => {
+  const r = box.value.getBoundingClientRect();
+  return Math.min(1, Math.max(0, (x - r.left) / r.width));
+};
+const clampView = (span, ago) => {
+  span = Math.min(SPAN, Math.max(10, span));
+  // never further back than the samples go
+  const have = pts.value.length ? t1.value - pts.value[0][0] : 0;
+  ago = Math.min(Math.max(0, Math.min(SPAN, have) - span), Math.max(0, ago));
+  view.value = { span, ago };
+};
+function onWheel(e) {
+  e.preventDefault();
+  const f = frac(e.clientX);
+  const { span, ago } = view.value;
+  const ns = span * (e.deltaY > 0 ? 1.25 : 0.8);
+  // the moment under the pointer stays under the pointer
+  const at = ago + span * (1 - f);
+  clampView(ns, at - ns * (1 - f));
+}
+let drag = null;
+function onDown(e) {
+  if (e.button !== 0 || !zoomed.value) return;
+  drag = { x: e.clientX, ago: view.value.ago };
+  e.currentTarget.setPointerCapture?.(e.pointerId);
+}
+function onMove(e) {
+  if (!drag) return;
+  const w = box.value.getBoundingClientRect().width || 1;
+  clampView(view.value.span, drag.ago + ((e.clientX - drag.x) / w) * view.value.span);
+}
+const onUp = () => (drag = null);
+const live = () => (view.value = { span: SPAN, ago: 0 });
 const last = computed(() => pts.value[pts.value.length - 1] || [0, 0, 0]);
 </script>
 <template>
   <section class="card sfc">
     <div class="card-h">
       <CardTitle :text="t('Speed & flow graph')" />
+      <button
+        v-if="zoomed"
+        class="btn ibtn sm acc"
+        :aria-label="t('Live')"
+        :data-tip="t('Back to the last five minutes')"
+        @click="live"
+      >
+        <Icon name="play" :size="13" />
+      </button>
       <span class="lg mono"
         ><i class="k1"></i>{{ Math.round(last[1]) }} mm/s <i class="k2"></i>{{ last[2].toFixed(1) }} mm³/s</span
       >
       <CardCollapse />
     </div>
-    <div class="ch">
+    <div
+      ref="box"
+      class="ch"
+      :class="{ pan: zoomed }"
+      @wheel="onWheel"
+      @pointerdown="onDown"
+      @pointermove="onMove"
+      @pointerup="onUp"
+      @pointercancel="onUp"
+      @dblclick="live"
+    >
       <span class="ax l mono">{{ top[0] }}</span
       ><span class="ax r mono">{{ top[1] }}</span>
       <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none">
@@ -66,7 +141,8 @@ const last = computed(() => pts.value[pts.value.length - 1] || [0, 0, 0]);
         <path :d="line(1)" class="s1" vector-effect="non-scaling-stroke" />
         <path :d="line(2)" class="s2" vector-effect="non-scaling-stroke" />
       </svg>
-      <span class="tl mono">-5 min</span><span class="tr mono">{{ t('now') }}</span>
+      <span class="tl mono">{{ leftLabel }}</span
+      ><span class="tr mono">{{ rightLabel }}</span>
     </div>
   </section>
 </template>
@@ -151,5 +227,15 @@ path {
 .tr {
   bottom: 0;
   right: 28px;
+}
+.ch {
+  touch-action: pan-y;
+  user-select: none;
+}
+.ch.pan {
+  cursor: grab;
+}
+.ch.pan:active {
+  cursor: grabbing;
 }
 </style>

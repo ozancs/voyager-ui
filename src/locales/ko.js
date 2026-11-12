@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "PTFE 튜브 교체",
   "Bottom dock": "하단 독",
   "Theme colour": "테마 색상",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "인터페이스 전체에 색을 입힙니다: 페이지, 카드, 패널, 테두리, 회색 글자. 라이트와 다크는 밝기를 유지하고 색만 바뀝니다. 직접 고른 카드 색상은 그대로입니다.",
   "Custom theme colour": "사용자 테마 색상",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "클래식: 상단 바 아래의 메뉴. 플로팅, 붙임, 프레임은 전체 높이로 표시되고 프린터가 맨 위에 있으며 아이콘으로 접힙니다. 상단 탭: 페이지를 상단 바의 탭으로 표시. 하단 독: 페이지가 아래쪽 선반에 있고, 상단 바는 출력을 보여줍니다.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "강조 색상이 미치는 범위. 은은하게: 버튼과 선택한 항목에 살짝. 보통과 강하게: 선택한 항목이 더 뚜렷해지고, 페이지·카드·패널이 강조색 쪽으로 조금 기울며, 대시보드의 작은 타일이 종류별 색을 띱니다 (팬, 히터, 조명).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "콘솔 페이지 열기",
   "Cooldown: all heaters off": "냉각: 모든 히터 끄기",
   "the value of this control": "이 컨트롤의 값",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "인터페이스 전체에 색을 입힙니다: 페이지, 카드, 패널, 테두리, 회색 글자. 다크 테마에서는 색의 밝기가 페이지의 어둡기를 정하고, 라이트 테마는 밝게 유지됩니다. 직접 고른 카드 색상은 그대로입니다.",
+  "Back to the last five minutes": "최근 5분으로 돌아가기",
 }

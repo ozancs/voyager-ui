@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "Trocar tubo PTFE",
   "Bottom dock": "Dock inferior",
   "Theme colour": "Cor do tema",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Tinge toda a interface: página, cartões, painéis, bordas e texto cinza. Claro e escuro mantêm o brilho, só a cor muda. As cores de cartão escolhidas ficam.",
   "Custom theme colour": "Cor de tema personalizada",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Clássico: o menu sob a barra superior. Flutuante, Encostado e Moldura ocupam toda a altura com a impressora no topo e recolhem para ícones. Abas no topo: as páginas como abas na barra superior. Dock inferior: as páginas numa prateleira embaixo, a barra superior mostra a impressão.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Até onde vai o destaque. Sutil: botões e a opção escolhida, de leve. Normal e forte: opções escolhidas mais marcadas, a página, cartões e painéis puxam um pouco para o destaque, e os blocos do painel tomam a cor do seu tipo (ventoinhas, aquecedores, luzes).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "Abrir a página do console",
   "Cooldown: all heaters off": "Resfriar: todos os aquecedores desligados",
   "the value of this control": "o valor deste controle",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Tinge toda a interface: página, cartões, painéis, bordas e texto cinza. No tema escuro o brilho da cor define o quão escura é a página; o tema claro continua claro. As cores de cartão escolhidas ficam.",
+  "Back to the last five minutes": "Voltar aos últimos cinco minutos",
 }

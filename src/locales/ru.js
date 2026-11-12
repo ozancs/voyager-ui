@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "Заменить трубку PTFE",
   "Bottom dock": "Док снизу",
   "Theme colour": "Цвет темы",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Окрашивает весь интерфейс: страницу, карточки, панели, рамки и серый текст. Светлая и тёмная темы сохраняют яркость, меняется только цвет. Выбранные цвета карточек остаются.",
   "Custom theme colour": "Свой цвет темы",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Классический: меню под верхней панелью. Плавающий, Прикреплённый и Рамка занимают всю высоту, принтер вверху, сворачиваются до значков. Вкладки сверху: страницы как вкладки в верхней панели. Док снизу: страницы на полке внизу, верхняя панель показывает печать.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Насколько широко используется акцент. Мягко: кнопки и выбранный вариант, слегка. Обычно и сильно: выбранные варианты заметнее, страница, карточки и панели немного уходят в акцент, а маленькие плитки панели получают цвет своего вида (вентиляторы, нагреватели, свет).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "Открыть страницу консоли",
   "Cooldown: all heaters off": "Остудить: все нагреватели выключить",
   "the value of this control": "значение этого элемента",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Окрашивает весь интерфейс: страницу, карточки, панели, рамки и серый текст. В тёмной теме яркость цвета задаёт, насколько тёмной будет страница; светлая тема остаётся светлой. Выбранные цвета карточек остаются.",
+  "Back to the last five minutes": "Вернуться к последним пяти минутам",
 }

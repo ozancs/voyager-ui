@@ -2533,7 +2533,6 @@
   "{n} file(s) in the folder are not G-code and were left out.",
   "{n} moved to /{dir}",
   "Theme colour",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.",
   "Custom theme colour",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.",
   "Bottom dock",
@@ -2557,5 +2556,7 @@
   "Show temperature lines",
   "Open the console page",
   "Cooldown: all heaters off",
-  "the value of this control"
+  "the value of this control",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.",
+  "Back to the last five minutes"
 ]

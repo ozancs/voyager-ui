@@ -2558,7 +2558,6 @@ export default {
   "Replace PTFE tube": "PTFE borusunu değiştir",
   "Bottom dock": "Alt dock",
   "Theme colour": "Tema rengi",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Tüm arayüzü renklendirir: sayfa, kartlar, paneller, kenarlar ve gri yazılar. Açık ve koyu tema parlaklığını korur, sadece renk değişir. Seçtiğin kart renkleri olduğu gibi kalır.",
   "Custom theme colour": "Özel tema rengi",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Klasik: menü üst çubuğun altında. Yüzen, Yapışık ve Çerçeve tam yükseklikte uzanır, yazıcı en üstte durur ve simgelere katlanır. Üst sekmeler: sayfalar üst çubukta sekme olarak. Alt dock: sayfalar altta bir rafta, üst çubuk baskıyı gösterir.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Aksan renginin ne kadar yayılacağı. Hafif: butonlar ve seçili seçenek, az miktarda. Normal ve güçlü: seçili seçenekler daha belirgin, sayfa, kartlar ve paneller hafifçe aksana döner, dashboard'daki küçük kutucuklar türlerinin rengini alır (fanlar, ısıtıcılar, ışıklar).",
@@ -2582,4 +2581,6 @@ export default {
   "Open the console page": "Konsol sayfasını aç",
   "Cooldown: all heaters off": "Soğut: tüm ısıtıcılar kapanır",
   "the value of this control": "bu kontrolün değeri",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Tüm arayüzü renklendirir: sayfa, kartlar, paneller, kenarlar ve gri yazılar. Koyu temada rengin parlaklığı sayfanın ne kadar koyu olacağını belirler; açık tema açık kalır. Seçtiğin kart renkleri olduğu gibi kalır.",
+  "Back to the last five minutes": "Son beş dakikaya dön",
 }

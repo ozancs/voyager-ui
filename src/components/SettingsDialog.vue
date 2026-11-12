@@ -990,7 +990,7 @@ const consoleSample = (() => {
                   <b>{{ t('Theme colour') }}</b
                   ><span>{{
                     t(
-                      'Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.',
+                      'Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.',
                     )
                   }}</span>
                 </div>

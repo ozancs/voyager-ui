@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "Sostituisci tubo PTFE",
   "Bottom dock": "Dock in basso",
   "Theme colour": "Colore del tema",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Colora tutta l’interfaccia: pagina, schede, pannelli, bordi e testo grigio. Chiaro e scuro mantengono la luminosità, cambia solo il colore. I colori delle schede scelti restano.",
   "Custom theme colour": "Colore del tema personalizzato",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Classico: il menu sotto la barra in alto. Fluttuante, Agganciato e Cornice occupano tutta l'altezza con la stampante in cima e si riducono a icone. Schede in alto: le pagine come schede nella barra in alto. Dock in basso: le pagine su una barra in basso, la barra in alto mostra la stampa.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Quanto si estende l’accento. Leggero: pulsanti e opzione scelta, poco. Normale e forte: opzioni scelte più marcate, pagina, schede e pannelli tendono un po’ all’accento, e le piccole tessere della dashboard prendono il colore del loro tipo (ventole, riscaldatori, luci).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "Apri la pagina console",
   "Cooldown: all heaters off": "Raffredda: tutti i riscaldatori spenti",
   "the value of this control": "il valore di questo controllo",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Colora tutta l’interfaccia: pagina, schede, pannelli, bordi e testo grigio. Nel tema scuro la luminosità del colore decide quanto è scura la pagina; il tema chiaro resta chiaro. I colori delle schede scelti restano.",
+  "Back to the last five minutes": "Torna agli ultimi cinque minuti",
 }

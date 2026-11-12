@@ -2540,7 +2540,6 @@ export default {
   "Replace PTFE tube": "Wymień rurkę PTFE",
   "Bottom dock": "Dok na dole",
   "Theme colour": "Kolor motywu",
-  "Tints the whole interface: the page, cards, panels, borders and grey text. Light and dark keep their brightness, only the colour changes. Card colours you picked stay.": "Barwi cały interfejs: stronę, karty, panele, ramki i szary tekst. Jasny i ciemny zachowują jasność, zmienia się tylko kolor. Wybrane kolory kart zostają.",
   "Custom theme colour": "Własny kolor motywu",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Bottom dock: the pages on a shelf at the bottom, the top bar shows the print.": "Klasyczne: menu pod górnym paskiem. Pływający, Przyległy i Ramka zajmują całą wysokość z drukarką na górze i zwijają się do ikon. Karty u góry: strony jako karty na górnym pasku. Dok na dole: strony na półce u dołu, górny pasek pokazuje wydruk.",
   "How far the accent reaches. Subtle: buttons and the selected option, lightly. Normal and strong: selected options more, the page, cards and panels lean a little to the accent, and the small dashboard tiles take their kind’s colour (fans, heaters, lights).": "Jak daleko sięga akcent. Delikatny: przyciski i wybrana opcja, lekko. Normalny i mocny: wybrane opcje wyraźniej, strona, karty i panele lekko skłaniają się ku akcentowi, a małe kafelki pulpitu biorą kolor swojego rodzaju (wentylatory, grzałki, światła).",
@@ -2564,4 +2563,6 @@ export default {
   "Open the console page": "Otwórz stronę konsoli",
   "Cooldown: all heaters off": "Schładzanie: wszystkie grzałki wyłączone",
   "the value of this control": "wartość tego elementu",
+  "Tints the whole interface: the page, cards, panels, borders and grey text. In the dark theme the colour’s brightness sets how dark the page is; the light theme stays light. Card colours you picked stay.": "Barwi cały interfejs: stronę, karty, panele, ramki i szary tekst. W ciemnym motywie jasność koloru ustala, jak ciemna jest strona; jasny motyw pozostaje jasny. Wybrane kolory kart zostają.",
+  "Back to the last five minutes": "Wróć do ostatnich pięciu minut",
 }
