@@ -1205,15 +1205,29 @@ watch(
     () => state.themeTick,
     () => state.settings.accentReach,
   ],
-  () =>
+  () => {
     applyBase(
       state.settings.baseColor,
       document.documentElement.dataset.theme,
       !!state.settings.bgDark,
       state.settings.accentReach,
-    ),
+    );
+    syncThemeColor();
+  },
   { immediate: true },
 );
+// Phone and tablet browsers paint their address bar in <meta name="theme-color">; without it the bar stays
+// white or grey above the page. It follows the page background, which the theme and Theme colour decide.
+function syncThemeColor() {
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    document.head.appendChild(meta);
+  }
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  if (bg) meta.content = bg;
+}
 // how far the accent colour reaches beyond buttons (style.css reads the attribute)
 watch(
   () => state.settings.accentReach,
@@ -1273,9 +1287,27 @@ mqDark?.addEventListener?.('change', () => {
 });
 watch(
   () => state.settings.accent,
-  (a) => document.documentElement.style.setProperty('--ac-raw', a || '#ff6b1a'),
+  (a) => {
+    const root = document.documentElement.style;
+    root.setProperty('--ac-raw', a || '#ff6b1a');
+    root.setProperty('--ac-light-mix', lightAccentMix(a || '#ff6b1a') + '%');
+  },
   { immediate: true },
 );
+// The light theme darkens the accent towards black. A bright pick (amber, cyan, green) needs more of that than
+// the usual 80% mix, or white button labels and accent text on white cards fall under the 4.5:1 that text needs.
+// White on the accent and the accent on white are the same pair, so one mix covers both.
+function lightAccentMix(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return 80;
+  const ch = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255);
+  const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  for (let p = 80; p > 30; p -= 2) {
+    const [r, g, b] = ch.map((c) => lin((c * p) / 100));
+    if (1.05 / (0.2126 * r + 0.7152 * g + 0.0722 * b + 0.05) >= 4.6) return p;
+  }
+  return 30;
+}
 
 // ---------- init ----------
 function mergeStatus(diff) {

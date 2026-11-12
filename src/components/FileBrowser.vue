@@ -697,8 +697,15 @@ th.s {
   justify-content: flex-end;
   opacity: 0;
 }
-.fr:hover .acts {
+/* shown on hover, but also when a row button has keyboard focus and always on touch screens (no hover there) */
+.fr:hover .acts,
+.fr:focus-within .acts {
   opacity: 1;
+}
+@media (hover: none) {
+  .acts {
+    opacity: 1;
+  }
 }
 .crumbs {
   min-width: 0;

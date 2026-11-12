@@ -74,8 +74,9 @@ onBeforeUnmount(() => {
   position: fixed;
   z-index: 500;
   transform: translate(-50%, -100%);
+  /* the tip is dark in both themes, so its text is a fixed light grey (--tx is dark in the light theme) */
   background: #2a2e34;
-  color: var(--tx);
+  color: #eceef1;
   border: 1px solid var(--bd);
   padding: 6px 10px;
   border-radius: 8px;

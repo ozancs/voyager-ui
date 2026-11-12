@@ -320,8 +320,15 @@ video {
   opacity: 0;
   transition: opacity 0.15s;
 }
-.vw:hover .nav {
+.vw:hover .nav,
+.nav:focus-visible {
   opacity: 1;
+}
+/* no hover on touch screens: the older / newer buttons stay visible */
+@media (hover: none) {
+  .nav {
+    opacity: 1;
+  }
 }
 .nav.l {
   left: 10px;

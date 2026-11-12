@@ -58,7 +58,12 @@ watch(
   () => nextTick(fitNav),
 );
 const tick = ref(Date.now());
-setInterval(() => (tick.value = Date.now()), 250);
+// the clock only moves while a task runs, so an idle menu is not drawn again four times a second; the timer
+// stops with the component (switching the menu style mounts a new one)
+const tickTimer = setInterval(() => {
+  if (activeTasks.value.length) tick.value = Date.now();
+}, 250);
+onBeforeUnmount(() => clearInterval(tickTimer));
 const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) => tick.value - t.t > 400) : []));
 </script>
 <template>

@@ -67,9 +67,9 @@
   --mu: #4f5664;
   --mu2: #6b7280;
   --dg: #d23f3f;
-  --ok: #1f9a60;
-  --wn: #b27a12;
-  --bl: #2f7cc4;
+  --ok: #16804d;
+  --wn: #8f6110;
+  --bl: #2a6fb0;
   --heat-bg: #fdefe6;
   --heat-ln: #f6d6c3;
   --heat: #c2551a;
@@ -96,7 +96,7 @@
   --plate: #f4f5f7;
   --shade: rgba(0, 0, 0, 0.05);
   --tn-mix: 15%;
-  --ac: color-mix(in srgb, var(--ac-raw) 80%, #000);
+  --ac: color-mix(in srgb, var(--ac-raw) var(--ac-light-mix, 80%), #000);
   --oa: #ffffff;
   color-scheme: light;
 }
@@ -166,13 +166,32 @@ a.btn {
   width: 10px;
   height: 10px;
 }
+/* The thumb needs about 3:1 against the page to be found at all; --s3 was barely different from it. */
+:root {
+  --sb-thumb: color-mix(in srgb, var(--mu2) 75%, var(--bg));
+}
+:root[data-theme='light'] {
+  --sb-thumb: color-mix(in srgb, var(--mu2) 85%, var(--bg));
+}
+@media (prefers-contrast: more) {
+  :root {
+    --sb-thumb: var(--tx);
+  }
+}
 ::-webkit-scrollbar-thumb {
-  background: var(--s3);
+  background: var(--sb-thumb);
   border-radius: 5px;
   border: 2px solid var(--bg);
 }
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+/* Firefox has no ::-webkit-scrollbar. Chrome gets scrollbar-color only where it has no webkit scrollbars,
+   because setting it there would replace the slimmer webkit look above. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-color: var(--sb-thumb) transparent;
+  }
 }
 .mono {
   font-variant-numeric: tabular-nums;

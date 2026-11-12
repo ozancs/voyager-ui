@@ -2,6 +2,13 @@
 
 ## 0.38.47
 
+- Tooltips are readable in the light theme (the text was dark on the dark tip)
+- Light theme: a bright accent (amber, cyan, green or a custom pick) is darkened as far as needed for white button labels and accent text to stay readable
+- Light theme: green, amber and blue status text is a little darker so it reads on white and grey cards
+- Scrollbars are easier to see, follow the theme in Firefox too, and turn high contrast when the system asks for more contrast
+- Phone and tablet browsers colour their address bar like the page background
+- Touch screens and the keyboard reach the buttons that only appeared on mouse hover: the file actions in config files, the copy button in the console, the older / newer buttons in the timelapse player
+- The side menu no longer redraws itself four times a second while nothing runs
 - A page left open while Voyager UI is updated or reinstalled loads itself again when a page or the changelog fails to load, instead of showing "The changelog could not be loaded."
 
 ## 0.38.46

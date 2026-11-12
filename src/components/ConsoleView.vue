@@ -522,7 +522,7 @@ mark {
   right: 4px;
   width: 24px;
   height: 24px;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid color-mix(in srgb, var(--k-text) 25%, transparent);
@@ -530,10 +530,17 @@ mark {
   background: var(--k-bg);
   color: var(--k-text);
   cursor: pointer;
+  /* hidden by opacity, not display: none, so Tab can still reach it; always shown on touch screens */
+  opacity: 0;
 }
 .grp:hover .gcp,
 .gcp:focus-visible {
-  display: flex;
+  opacity: 1;
+}
+@media (hover: none) {
+  .gcp {
+    opacity: 1;
+  }
 }
 .gcp:hover {
   color: var(--k-cmd);
