@@ -421,8 +421,10 @@ function run(r, alt = false) {
   Promise.resolve(fn()).catch((e) => toast(e.message, 'error'));
 }
 function key(e) {
-  if (e.key === 'Escape') close();
-  else if (e.key === 'ArrowDown') {
+  if (e.key === 'Escape') {
+    e.stopPropagation(); // the search closes, a dialog open under it stays
+    close();
+  } else if (e.key === 'ArrowDown') {
     e.preventDefault();
     idx.value = Math.min(results.value.length - 1, idx.value + 1);
     scroll();

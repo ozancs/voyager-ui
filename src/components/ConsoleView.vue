@@ -77,7 +77,13 @@ const filtering = computed(() => props.errors || !!props.search.trim());
 // blocks to draw: with grouping on, a sent command and the lines that follow it, as long as they keep coming
 // (each within GAP seconds of the one before: what comes after a pause is something else, a periodic message or
 // another macro). A command nothing answered and lines outside a group stay single lines.
-const blocks = computed(() => consoleGroups(lines.value, state.settings.consoleGroup));
+// newest first (Settings > Console): the blocks turn around, a command and its replies keep their own order, and
+// the input moves above the log so the newest line is right under it
+const rev = computed(() => !!state.settings.consoleNewestFirst);
+const blocks = computed(() => {
+  const b = consoleGroups(lines.value, state.settings.consoleGroup);
+  return rev.value ? [...b].reverse() : b;
+});
 // plain text of some lines, as shown (time, "> " before a sent command)
 const plain = (ls) =>
   ls
@@ -99,8 +105,13 @@ const THEMES = ['default', 'soft', 'terminal', 'contrast', 'paper'];
 const theme = computed(() => (THEMES.includes(state.settings.consoleTheme) ? state.settings.consoleTheme : 'default'));
 const fmt = (t) => new Date(t * 1000).toLocaleTimeString(undefined, { hour12: false });
 function scroll() {
-  if (auto.value && box.value) box.value.scrollTop = box.value.scrollHeight;
+  if (auto.value && box.value) box.value.scrollTop = rev.value ? 0 : box.value.scrollHeight;
 }
+watch(rev, () => {
+  auto.value = true;
+  unseen.value = 0;
+  nextTick(scroll);
+});
 // lines that arrived while scrolled up, shown on the jump button
 const unseen = ref(0);
 // watch the last id, not the length: the list is capped, so the length stops changing once it is full
@@ -117,7 +128,7 @@ function toBottom() {
   auto.value = true;
   unseen.value = 0;
   b.scrollTo({
-    top: b.scrollHeight,
+    top: rev.value ? 0 : b.scrollHeight,
     behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
   });
 }
@@ -137,7 +148,7 @@ watch(() => state.consoleDraft, takeDraft);
 function onScroll() {
   const b = box.value;
   if (!b) return;
-  auto.value = b.scrollHeight - b.scrollTop - b.clientHeight < 40;
+  auto.value = rev.value ? b.scrollTop < 40 : b.scrollHeight - b.scrollTop - b.clientHeight < 40;
   if (auto.value) unseen.value = 0;
 }
 // ---- several lines pasted at once ----
@@ -226,7 +237,7 @@ const xOpen = ref(null); // { anchor, e }
 const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain(msg) });
 </script>
 <template>
-  <div class="cv">
+  <div class="cv" :class="{ rev }">
     <div class="wrap">
       <div
         ref="box"
@@ -275,7 +286,7 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
       <Transition name="jb">
         <button v-if="!auto" class="jump" :aria-label="t('Scroll to bottom')" @click="toBottom">
           <span v-if="unseen" class="nw">{{ unseen > 99 ? '99+' : unseen }}</span
-          ><Icon name="down" :size="18" :stroke="2.6" />
+          ><Icon :name="rev ? 'up' : 'down'" :size="18" :stroke="2.6" />
         </button>
       </Transition>
     </div>
@@ -349,6 +360,16 @@ mark {
   gap: 10px;
   flex: 1;
   min-height: 0;
+}
+.cv.rev > .row {
+  order: -2;
+}
+.cv.rev > .bt {
+  order: -1;
+}
+.cv.rev .jump {
+  bottom: auto;
+  top: 14px;
 }
 .wrap {
   position: relative;

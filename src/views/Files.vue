@@ -1,7 +1,7 @@
 <script setup>
 // G-code files page: folders, thumbnails, metadata, search, print, add to queue, upload, rename,
 // delete and the edit button (opens small files in the config editor).
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { isGcodeFile, UPLOAD_ACCEPT } from '../gcode3mf';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
@@ -24,6 +24,7 @@ import { go } from '../router';
 import { t } from '../i18n';
 import { startPrint, uploadName } from '../preprint';
 import { undoable, isHidden, stillSame } from '../undo';
+import { nameTaken } from '../fileNames';
 const path = ref('gcodes');
 const grid = ref(state.settings.filesView === 'grid');
 watch(grid, (value) => {
@@ -190,6 +191,25 @@ async function showCtx(e, f, dir = false) {
   el?.querySelector('button:not(:disabled)')?.focus();
 }
 watch(path, () => (ctx.value = null));
+// the menu belongs to the row it was opened on: scrolling the list, resizing the window or a right-click
+// somewhere else (the browser's own menu opens there) closes it
+const ctxOff = (e) => {
+  if (e?.type === 'contextmenu' && e.target?.closest?.('.fctx')) return;
+  if (e?.type === 'scroll' && ctxEl.value?.contains(e.target)) return;
+  ctx.value = null;
+};
+watch(
+  () => !!ctx.value,
+  (on) => {
+    for (const ev of ['scroll', 'resize', 'contextmenu']) {
+      window.removeEventListener(ev, ctxOff, true);
+      if (on) window.addEventListener(ev, ctxOff, true);
+    }
+  },
+);
+onBeforeUnmount(() =>
+  ['scroll', 'resize', 'contextmenu'].forEach((ev) => window.removeEventListener(ev, ctxOff, true)),
+);
 function ctxDo(action) {
   const { f, dir } = ctx.value;
   ctx.value = null;
@@ -216,21 +236,53 @@ function ctxDo(action) {
 }
 // rename a file or folder in the folder shown
 const ren = ref(null); // { f, dir, value }
+const renEl = ref(null);
+let renBusy = false;
+// the name is ready to type over: the part before the extension is selected
+watch(ren, async (r) => {
+  if (!r) return;
+  await nextTick();
+  const el = renEl.value;
+  if (!el || !window.matchMedia?.('(pointer: fine)').matches) return;
+  el.focus({ preventScroll: true });
+  const dot = r.dir ? -1 : r.value.search(/(\.gcode)?\.[^.]+$/i);
+  el.setSelectionRange(0, dot > 0 ? dot : r.value.length);
+});
 async function doRename() {
   const r = ren.value;
-  const name = (r?.value || '').trim();
+  if (!r || renBusy) return;
+  let name = (r.value || '').trim();
   const old = r.dir ? r.f.dirname : r.f.filename.split('/').pop();
   if (!name || name === old || /[/\\]/.test(name)) {
     ren.value = null;
     return;
   }
+  // a file keeps its extension when the new name has none: without it the printer no longer lists it
+  const ext = r.dir ? '' : (/(\.gcode\.3mf|\.[^.]+)$/i.exec(old) || [''])[0];
+  if (ext && !isGcodeFile(name)) name += ext;
   const base = path.value;
-  ren.value = null;
+  renBusy = true;
   try {
+    // Moonraker would put it over a file of that name without asking (or into a folder of that name)
+    if (name !== old && (await nameTaken(base, name)))
+      return toast(t('{name} already exists in this folder.', { name }), 'error');
+    ren.value = null;
     await api.call('server.files.move', { source: `${base}/${old}`, dest: `${base}/${name}` });
     toast(t('Renamed to {name}', { name }));
+    // the selection follows the file to its new name
+    if (!r.dir) {
+      if (sel.value === old) sel.value = name;
+      if (picked.value.has(old)) {
+        const p = new Set(picked.value);
+        p.delete(old);
+        p.add(name);
+        picked.value = p;
+      }
+    }
   } catch (e) {
     toast(e.message, 'error');
+  } finally {
+    renBusy = false;
   }
   load();
 }
@@ -262,6 +314,11 @@ async function upload(e) {
   const fs = [...e.target.files];
   e.target.value = '';
   for (const f of fs) {
+    // only files the printer can print: anything else would sit in the folder unseen (this list does not show it)
+    if (!isGcodeFile(f.name)) {
+      toast(t('{name} is not a G-code file, so it was not uploaded.', { name: f.name }), 'warn');
+      continue;
+    }
     const dir = path.value === 'gcodes' ? '' : path.value.slice(7);
     const name = await uploadName(f.name, dir);
     if (!name) continue;
@@ -487,6 +544,7 @@ function onDrop(e) {
               class="click"
               tabindex="0"
               @click="open(d)"
+              @keydown.enter.self="open(d)"
               @contextmenu.prevent="showCtx($event, d, true)"
               @keydown.shift.f10.prevent="showCtx($event, d, true)"
             >
@@ -662,7 +720,14 @@ function onDrop(e) {
     </div>
   </Teleport>
   <Modal v-if="ren" :title="t('Rename')" @close="ren = null">
-    <input v-model="ren.value" class="input mono" :aria-label="t('New name')" autofocus @keydown.enter="doRename" />
+    <input
+      ref="renEl"
+      v-model="ren.value"
+      class="input mono"
+      :aria-label="t('New name')"
+      autofocus
+      @keydown.enter="doRename"
+    />
     <template #foot
       ><button class="btn lg" @click="ren = null">{{ t('Cancel') }}</button
       ><button class="btn lg acc" @click="doRename">{{ t('Rename') }}</button></template
@@ -687,6 +752,7 @@ function onDrop(e) {
       class="input"
       :placeholder="t('folder name')"
       :aria-label="t('Folder name')"
+      autofocus
       @keydown.enter="mkdir"
     />
     <template #foot
@@ -716,7 +782,6 @@ function onDrop(e) {
 .fctx.card button.btn {
   justify-content: flex-start;
   height: 32px;
-  min-height: 32px;
   min-height: 0;
   padding: 0 10px;
   gap: 10px;

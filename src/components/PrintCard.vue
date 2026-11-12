@@ -24,6 +24,8 @@ import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
 import { startPrint } from '../preprint';
+// two roots (the card and its cancel dialog): the dashboard's class and height go to the card
+defineOptions({ inheritAttrs: false });
 const emit = () => {
   state.showExclude = true;
 };
@@ -109,7 +111,7 @@ async function reprint() {
 }
 </script>
 <template>
-  <section class="card pc">
+  <section v-bind="$attrs" class="card pc">
     <button v-if="thumb" class="th zm" :aria-label="t('Show larger')" @click="zoom = true">
       <img :src="thumb" alt="" />
     </button>

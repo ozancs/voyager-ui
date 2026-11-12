@@ -217,7 +217,7 @@ const viewLog = ref(null);
 </script>
 <template>
   <div class="mg">
-    <div class="left"><FileBrowser class="fb" /></div>
+    <div class="left"><FileBrowser /></div>
     <div class="col" style="gap: 16px">
       <SystemLoads detailed />
       <section class="card">
@@ -434,10 +434,6 @@ const viewLog = ref(null);
 .left {
   position: relative;
   min-height: 520px;
-}
-.left .fb {
-  position: absolute;
-  inset: 0;
 }
 .sb {
   justify-content: space-between;

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.38.40
+
+- Menu style Top tabs: the pages as folder tabs along the top bar; the open page's tab opens into the page panel below. The tabs get smaller as the window narrows, down to one tab that lists every page. Printer settings and config files sit under More
+- Console: newest line on top (Settings > Console). The input moves above the log and the newest line comes right under it (#15)
+- Runout and other filament sensor tiles no longer show Kalico's settings (smart, always_fire_events) as readings (#16)
+- Dashboard: the cards line up with the tiles and the favorites bar in every menu style
+- Dashboard customizing: the print card and your own cards no longer react to clicks while arranging (Pause on the print card worked before)
+- Files, config editor and Machine file list: a new file, folder, duplicate or rename can no longer overwrite a file that already has that name; the dialog says so and stays open
+- G-code Files: renaming keeps the file's extension when you leave it out, the name field is ready to type over, and the right-click menu closes when the list scrolls
+- Upload & Print and the Files page only upload printable files; anything else used to land in the folder unseen
+- Escape closes only the topmost thing: a pop-up or suggestion list inside a dialog, or the search, no longer closes the settings or the dialog under it
+- Dialog fields marked to take the typing get the focus when the dialog opens (rename, new folder)
+- Heater target popup: long preset names wrap instead of running out of the box
+- Timelapse player: closing it while a clip loads no longer throws an error; Ctrl+K no longer toggles playback
+
 ## 0.38.39
 
 - Update manager: the System row lists the packages that can be updated (click to open) and the update dialog shows them too

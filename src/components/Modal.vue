@@ -46,7 +46,14 @@ onMounted(() => {
   stack.push(me);
   document.addEventListener('focusin', keepFocus);
   nextTick(() => {
-    if (top() === me && !dialog.value.contains(document.activeElement)) dialog.value.focus();
+    if (top() !== me || !dialog.value) return;
+    // the browser only honours `autofocus` when the page loads, so it is done here: the field or button marked
+    // with it takes the keys when the dialog opens (the name to type, Cancel in a risky confirm). A text field
+    // only with a mouse: on a touch screen it would bring the keyboard up over the dialog.
+    const auto = dialog.value.querySelector('[autofocus]');
+    const typing = auto?.matches('input, textarea') && !window.matchMedia?.('(pointer: fine)').matches;
+    if (auto && !typing && auto.getClientRects().length) auto.focus({ preventScroll: true });
+    else if (!dialog.value.contains(document.activeElement)) dialog.value.focus();
   });
   window.addEventListener('keydown', esc);
 });

@@ -29,6 +29,7 @@ import { perPrinterKey } from '../printers';
 import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
+import { nameTaken } from '../fileNames';
 import { history as cfgVersions, summarize } from '../cfgHistory';
 import { klipper } from '../editor/klipperLang';
 import { lintKlipper } from '../editor/lint';
@@ -248,11 +249,20 @@ function act(kind) {
   fm.value = { kind, row: r, value: kind === 'copy' ? copyName : r.name };
 }
 const openTabOf = (p) => tabs.value.find((x) => x.root === troot.value && (x.path === p || x.path.startsWith(p + '/')));
+let fmBusy = false;
 async function fileAction() {
   const m = fm.value;
-  fm.value = null;
+  if (!m || fmBusy) return;
   const name = (m.value || '').trim();
+  fmBusy = true;
   try {
+    // Moonraker replaces a file of that name without asking: a new empty file, a duplicate or a rename would wipe
+    // the one that is there. The dialog stays open for another name.
+    if (m.kind !== 'delete' && name && !name.includes('/') && name !== m.row?.name) {
+      const dir = m.row ? full(dirOf(m.row.path)).replace(/\/$/, '') : troot.value;
+      if (await nameTaken(dir, name)) return toast(t('{name} already exists in this folder.', { name }), 'error');
+    }
+    fm.value = null;
     if (m.kind === 'newfile' || m.kind === 'newdir') {
       if (!name || name.includes('/')) return;
       if (m.kind === 'newdir') await api.call('server.files.post_directory', { path: full(name) });
@@ -283,6 +293,8 @@ async function fileAction() {
     }
   } catch (e) {
     toast(e.message, 'error');
+  } finally {
+    fmBusy = false;
   }
   loadFiles();
 }

@@ -107,6 +107,7 @@ function key(e) {
     if (e.key === 'Escape') {
       open.value = false;
       e.preventDefault();
+      e.stopPropagation(); // closes the suggestions, not the dialog around the field
       return;
     }
   } else if (e.key === 'Tab' && matches.value.length) {
@@ -116,6 +117,7 @@ function key(e) {
   } else if (e.key === 'Escape' && showHint.value) {
     open.value = false;
     e.preventDefault();
+    e.stopPropagation(); // the hint goes, the dialog around the field stays
     return;
   } else if (e.key === 'Tab' && !e.shiftKey && hint.value) {
     const next = hint.value.params.find((p) => !p.used);

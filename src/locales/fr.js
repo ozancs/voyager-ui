@@ -2497,4 +2497,8 @@ export default {
   "Files": "Fichiers",
   "Viewer": "Visionneuse",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Classique : le menu sous la barre du haut. Flottant, Accolé et Cadre occupent toute la hauteur avec l'imprimante en haut et se replient en icônes. Onglets en haut : les pages en onglets dans la barre du haut. Utilisé quand le menu est toujours visible sur un écran large.",
+  "{name} already exists in this folder.": "{name} existe déjà dans ce dossier.",
+  "{name} is not a G-code file, so it was not uploaded.": "{name} n'est pas un fichier G-code, il n'a donc pas été envoyé.",
+  "Newest line on top": "Ligne la plus récente en haut",
+  "The input moves above the log and the newest line comes right under it. A command and its replies keep their order.": "La saisie passe au-dessus du journal et la ligne la plus récente juste en dessous. Une commande et ses réponses gardent leur ordre.",
 }

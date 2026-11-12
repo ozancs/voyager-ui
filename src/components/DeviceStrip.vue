@@ -292,9 +292,14 @@ function level(d) {
 }
 function sensorExtra(id) {
   const s = S(id);
-  return Object.entries(s)
-    .filter(([k, v]) => typeof v !== 'object' && !['enabled', 'filament_detected'].includes(k))
-    .slice(0, 2);
+  return (
+    Object.entries(s)
+      // readings only: Kalico adds settings to the sensor's status (smart, always_fire_events) that are true/false
+      .filter(
+        ([k, v]) => typeof v !== 'object' && typeof v !== 'boolean' && !['enabled', 'filament_detected'].includes(k),
+      )
+      .slice(0, 2)
+  );
 }
 </script>
 <template>

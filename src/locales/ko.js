@@ -2497,4 +2497,8 @@ export default {
   "Files": "파일",
   "Viewer": "뷰어",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "클래식: 상단 바 아래의 메뉴. 플로팅, 붙임, 프레임은 전체 높이로 표시되고 프린터가 맨 위에 있으며 아이콘으로 접힙니다. 상단 탭: 페이지를 상단 바의 탭으로 표시. 넓은 화면에서 메뉴를 항상 표시할 때 사용됩니다.",
+  "{name} already exists in this folder.": "{name}은(는) 이 폴더에 이미 있습니다.",
+  "{name} is not a G-code file, so it was not uploaded.": "{name}은(는) G-code 파일이 아니어서 업로드하지 않았습니다.",
+  "Newest line on top": "최신 줄을 위에",
+  "The input moves above the log and the newest line comes right under it. A command and its replies keep their order.": "입력란이 로그 위로 가고 최신 줄이 바로 아래에 표시됩니다. 명령과 그 응답은 순서를 유지합니다.",
 }

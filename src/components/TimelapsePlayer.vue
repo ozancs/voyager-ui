@@ -80,8 +80,9 @@ function still() {
   a.download = props.clip.name.replace(/\.mp4$/i, '') + '_' + cur.value.toFixed(2).replace('.', '_') + 's.png';
   a.click();
 }
-function onMeta() {
-  const el = v.value;
+function onMeta(e) {
+  const el = e?.target || v.value; // the event can come after the player has closed: the ref is gone by then
+  if (!el) return;
   dur.value = el.duration || 0;
   el.playbackRate = speed.value;
   // frame rate: count presented frames over a short stretch when the browser offers it
@@ -106,6 +107,7 @@ const fmt = (s) => {
 };
 function key(e) {
   if (e.target.tagName === 'INPUT') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return; // Ctrl+K is the search, Ctrl+F the browser's own
   if (e.key === 'f') return full();
   if (e.key === ' ' || e.key === 'k') {
     e.preventDefault();

@@ -15,7 +15,8 @@ import { state, S, layerInfo, printState, toast, askConfirm, fmtBytes, fmtTime, 
 import { api } from '../api/moonraker';
 import { route } from '../router';
 import { t } from '../i18n';
-const emit = defineEmits(['exclude']);
+// the exclude dialog is hosted by App.vue
+const askExclude = () => (state.showExclude = true);
 const eo = computed(() => S('exclude_object'));
 const wrap = ref(null);
 let viewer = null; // the GCodeViewer, kept out of Vue's reactivity (it is large and changes on its own)
@@ -284,7 +285,7 @@ async function ensureViewer() {
     if (!picking.value || !o?.name || o.cancelled) return;
     picking.value = false;
     state.excludePick = o.name;
-    emit('exclude');
+    askExclude();
   };
   gp.loadingProgressCallback = (p) => (pct.value = Math.min(100, Math.ceil(p * 100)));
   // the engine marks a load as failed when the page is left or a load is stopped half way, and would then drop
@@ -726,7 +727,7 @@ onBeforeUnmount(() => {
           </button>
         </div>
       </div>
-      <ObjectMap v-if="tab === 'map'" style="flex: 1; min-height: 400px" @pick="emit('exclude')" />
+      <ObjectMap v-if="tab === 'map'" style="flex: 1; min-height: 400px" @pick="askExclude()" />
       <template v-if="size && tab === '3d'">
         <div class="pb">
           <button
@@ -825,7 +826,7 @@ onBeforeUnmount(() => {
       <section class="card">
         <div class="card-h">
           <h2>{{ t('Objects') }}</h2>
-          <button class="btn out" :disabled="!eo.objects?.length || !active" @click="emit('exclude')">
+          <button class="btn out" :disabled="!eo.objects?.length || !active" @click="askExclude()">
             <Icon name="excl" :size="16" />{{ t('Exclude…') }}
           </button>
         </div>

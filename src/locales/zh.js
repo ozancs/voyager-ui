@@ -2497,4 +2497,8 @@ export default {
   "Files": "文件",
   "Viewer": "查看器",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "经典：菜单位于顶栏下方。悬浮、贴边和框架占满整个高度，打印机在顶部，可折叠为图标。顶部标签：页面以标签形式显示在顶栏中。在宽屏上菜单始终可见时使用。",
+  "{name} already exists in this folder.": "此文件夹中已有 {name}。",
+  "{name} is not a G-code file, so it was not uploaded.": "{name} 不是 G-code 文件，因此未上传。",
+  "Newest line on top": "最新行在上",
+  "The input moves above the log and the newest line comes right under it. A command and its replies keep their order.": "输入框移到日志上方，最新的行紧随其下。命令及其回复保持原有顺序。",
 }

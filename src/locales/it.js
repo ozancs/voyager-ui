@@ -2497,4 +2497,8 @@ export default {
   "Files": "File",
   "Viewer": "Visualizzatore",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Classico: il menu sotto la barra in alto. Fluttuante, Agganciato e Cornice occupano tutta l'altezza con la stampante in cima e si riducono a icone. Schede in alto: le pagine come schede nella barra in alto. Vale quando il menu è sempre visibile su uno schermo largo.",
+  "{name} already exists in this folder.": "{name} esiste già in questa cartella.",
+  "{name} is not a G-code file, so it was not uploaded.": "{name} non è un file G-code, quindi non è stato caricato.",
+  "Newest line on top": "Riga più recente in alto",
+  "The input moves above the log and the newest line comes right under it. A command and its replies keep their order.": "L'input va sopra il registro e la riga più recente subito sotto. Un comando e le sue risposte mantengono il loro ordine.",
 }

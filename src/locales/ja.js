@@ -2497,4 +2497,8 @@ export default {
   "Files": "ファイル",
   "Viewer": "ビューア",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "クラシック: 上部バーの下にメニュー。フローティング、アタッチ、フレームは全高に表示され、プリンターが上にあり、アイコンに折りたためます。上部タブ: ページを上部バーのタブとして表示。ワイド画面でメニューを常に表示するときに使われます。",
+  "{name} already exists in this folder.": "{name} はこのフォルダーに既にあります。",
+  "{name} is not a G-code file, so it was not uploaded.": "{name} は G-code ファイルではないため、アップロードしませんでした。",
+  "Newest line on top": "最新の行を上に",
+  "The input moves above the log and the newest line comes right under it. A command and its replies keep their order.": "入力欄がログの上に移り、最新の行がそのすぐ下に表示されます。コマンドとその応答の順序は保たれます。",
 }

@@ -12,6 +12,7 @@ import { go } from '../router';
 import { downloadMany } from '../features';
 import { t } from '../i18n';
 import { undoable, isHidden, stillSame } from '../undo';
+import { nameTaken } from '../fileNames';
 const roots = ref(['config']);
 const root = ref('config');
 const path = ref('');
@@ -172,19 +173,30 @@ function dDrop(e, dir = '') {
   overDir.value = null;
   if (e.dataTransfer?.files?.length) upload({ target: { files: e.dataTransfer.files, value: '' } }, dir);
 }
+let modalBusy = false;
 async function confirmModal() {
   const m = modal.value;
-  modal.value = null;
+  if (!m || modalBusy) return;
   const base = full.value;
+  const name = (m.value || '').trim();
+  modalBusy = true;
   try {
-    if (m.kind === 'newdir') await api.call('server.files.post_directory', { path: `${base}/${m.value}` });
+    if (m.kind !== 'delete') {
+      if (!name || (m.kind === 'rename' && name === m.item.name)) return (modal.value = null);
+      // Moonraker replaces a file of that name without asking: a new empty file would wipe it. The dialog stays.
+      if (await nameTaken(base, name)) return toast(t('{name} already exists in this folder.', { name }), 'error');
+    }
+    modal.value = null;
+    if (m.kind === 'newdir') await api.call('server.files.post_directory', { path: `${base}/${name}` });
     else if (m.kind === 'newfile')
-      await api.upload(new Blob([''], { type: 'text/plain' }), { root: root.value, path: path.value, name: m.value });
+      await api.upload(new Blob([''], { type: 'text/plain' }), { root: root.value, path: path.value, name });
     else if (m.kind === 'rename')
-      await api.call('server.files.move', { source: `${base}/${m.item.name}`, dest: `${base}/${m.value}` });
+      await api.call('server.files.move', { source: `${base}/${m.item.name}`, dest: `${base}/${name}` });
     else if (m.kind === 'delete') deleteLater([m.item], base);
   } catch (e) {
     toast(e.message, 'error');
+  } finally {
+    modalBusy = false;
   }
 }
 // multi select for download / delete
@@ -485,6 +497,7 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
       v-else
       v-model="modal.value"
       class="input mono"
+      autofocus
       :aria-label="t(TITLES[modal.kind])"
       @keydown.enter="confirmModal"
     />

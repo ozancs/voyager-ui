@@ -305,11 +305,7 @@ startIssues();
               </button>
               <button class="btn lg acc" @click="restartKlipper(true)">{{ t('Firmware Restart') }}</button>
             </div>
-            <component
-              :is="view"
-              :key="route.name === 'config' ? 'config' : route.name"
-              @exclude="state.showExclude = true"
-            />
+            <component :is="view" :key="route.name === 'config' ? 'config' : route.name" />
             <footer class="ft mono">
               <button class="ver" :data-tip="t('What’s new')" @click="state.whatsNew = true">
                 <b>{{ APP_NAME }}</b> v{{ VERSION }}
@@ -453,8 +449,11 @@ startIssues();
 .shell.side :deep(.tb) {
   padding-left: 0;
 }
+/* the page keeps a strip of its own on the left (pulled back by the same margin, so nothing moves): the dashboard
+   grid reaches into it, which lines its cards up with the tiles above them (Dashboard.vue, grid-host) */
 .shell.side .main {
-  padding-left: 0;
+  padding-left: 14px;
+  margin-left: -14px;
 }
 /* attached: the menu on the left edge, rounded only on its right */
 .shell.nav-attached > :deep(.sn.side) {
@@ -504,6 +503,7 @@ startIssues();
 }
 .shell.side.nav-frame .main {
   padding-left: 14px;
+  margin-left: 0;
 }
 .shell.side.nav-frame :deep(.fb) {
   margin: 10px 20px 0 14px; /* in line with the status box (the general rule below is otherwise later) */
@@ -835,6 +835,11 @@ startIssues();
 @media (max-width: 1100px) {
   .main {
     padding: 10px;
+  }
+  /* the bars of the top tabs panel keep the page's side padding */
+  .shell.nav-tabs :deep(.fb),
+  .shell.nav-tabs :deep(.pbar) {
+    padding: 0 10px;
   }
 }
 </style>

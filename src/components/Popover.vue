@@ -30,6 +30,12 @@ function outside(e) {
   emit('close');
 }
 const key = (e) => e.key === 'Escape' && emit('close');
+// part of the dialog stack while open (Modal.vue), above what was open when it came up: Escape closes this pop-up
+// and not the dialog it was opened from, and that dialog does not pull the focus back out of it. A dialog opened
+// from the pop-up comes later in the stack, so it is the one Escape closes.
+const stack = (window.__modalStack ||= []);
+let z = 100;
+const me = { z: () => z };
 // only a scroll that moves the button closes it: a console scrolling down to a new line elsewhere does not
 const scrolled = (e) => {
   const t = e.target;
@@ -37,6 +43,8 @@ const scrolled = (e) => {
   if (t === document || t === document.documentElement || t?.contains?.(props.anchor)) emit('close');
 };
 onMounted(async () => {
+  z = Math.max(100, ...stack.map((x) => x.z()));
+  stack.push(me);
   await nextTick();
   place();
   document.addEventListener('pointerdown', outside, true);
@@ -45,6 +53,8 @@ onMounted(async () => {
   window.addEventListener('resize', place);
 });
 onBeforeUnmount(() => {
+  const i = stack.indexOf(me);
+  if (i >= 0) stack.splice(i, 1);
   document.removeEventListener('pointerdown', outside, true);
   window.removeEventListener('keydown', key);
   window.removeEventListener('scroll', scrolled, true);

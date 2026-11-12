@@ -104,6 +104,10 @@ general advice for the error as Klipper words it; they do not know the printer, 
 **[src/features.js](../src/features.js)**  
 (no description yet)
 
+**[src/fileNames.js](../src/fileNames.js)**  
+Moonraker's move, copy and upload put a file over one that is already there without asking: a new file, a  
+duplicate or a rename under a name in use would wipe the other file. So the folder is looked at first.
+
 **[src/firmware.js](../src/firmware.js)**  
 MCU firmware compared with Klipper on the host. After a Klipper update the boards still run the code they were  
 flashed with; when the protocol changed in between, Klipper refuses to start ("MCU Protocol error"). Spotting a  

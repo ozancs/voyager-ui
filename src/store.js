@@ -63,6 +63,7 @@ export const DEFAULT_SETTINGS = () => ({
   consoleTime: true, // the time in front of each line
   consoleMultiline: true, // several lines pasted into the console all go with one Enter, in their order
   consoleWrap: true, // long lines wrap; off: one line each, the log scrolls sideways
+  consoleNewestFirst: false, // the newest line at the top, under the input (like Mainsail's Table direction)
   tempRange: 600,
   strip: { order: [], hidden: [] },
   layout: null,

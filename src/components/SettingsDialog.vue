@@ -83,8 +83,10 @@ async function pickNoise(level) {
   }
   noiseBusy.value = false;
 }
+// Escape closes the settings only when nothing is open on top of them: a dialog or a pop-up of one of the tabs
+// (a notification being edited, the icon picker) takes the key first
 const esc = (e) => {
-  if (e.key === 'Escape' && !sub.value) close();
+  if (e.key === 'Escape' && !sub.value && !window.__modalStack?.length) close();
 };
 onMounted(() => window.addEventListener('keydown', esc));
 import { onBeforeUnmount } from 'vue';
@@ -885,6 +887,17 @@ const consoleSample = (() => {
                   ><span>{{ t('Off: each line stays on one row and the console scrolls sideways.') }}</span>
                 </div>
                 <Toggle v-model="state.settings.consoleWrap" :label="t('Wrap long lines')" />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Newest line on top') }}</b
+                  ><span>{{
+                    t(
+                      'The input moves above the log and the newest line comes right under it. A command and its replies keep their order.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle v-model="state.settings.consoleNewestFirst" :label="t('Newest line on top')" />
               </div>
               <div class="rw">
                 <div class="k">

@@ -2515,4 +2515,8 @@ export default {
   "Files": "Dosyalar",
   "Viewer": "Görüntüleyici",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Klasik: menü üst çubuğun altında. Yüzen, Yapışık ve Çerçeve tam yükseklikte uzanır, yazıcı en üstte durur ve simgelere katlanır. Üst sekmeler: sayfalar üst çubukta sekme olarak. Geniş ekranda menü hep görünürken kullanılır.",
+  "{name} already exists in this folder.": "{name} bu klasörde zaten var.",
+  "{name} is not a G-code file, so it was not uploaded.": "{name} bir G-code dosyası değil, bu yüzden yüklenmedi.",
+  "Newest line on top": "En yeni satır üstte",
+  "The input moves above the log and the newest line comes right under it. A command and its replies keep their order.": "Komut alanı kaydın üstüne geçer, en yeni satır hemen altında görünür. Bir komut ve cevapları kendi sırasını korur.",
 }

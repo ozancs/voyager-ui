@@ -3,7 +3,7 @@
 // PrintBar band underneath), search, Save Config, upload & print, notifications, customize, settings, power menu
 // and E-STOP.
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { UPLOAD_ACCEPT } from '../gcode3mf';
+import { UPLOAD_ACCEPT, isGcodeFile } from '../gcode3mf';
 import Icon from './Icon.vue';
 import Logo from './Logo.vue';
 import Modal from './Modal.vue';
@@ -88,6 +88,9 @@ async function onFile(e) {
   const f = e.target.files[0];
   e.target.value = '';
   if (!f) return;
+  // only files the printer can print: anything else would be uploaded and then sit in the folder unseen
+  if (!isGcodeFile(f.name))
+    return toast(t('{name} is not a G-code file, so it was not uploaded.', { name: f.name }), 'warn');
   const name = await uploadName(f.name);
   if (!name) return;
   uploading.value = 0;
@@ -409,7 +412,7 @@ onBeforeUnmount(() => ovObs?.disconnect());
     </button>
     <button
       class="btn lg hide-s upb"
-      :class="{ dropon: dropOn }"
+      :class="{ dropon: dropOn, busy: uploading !== null }"
       :aria-label="t('Upload & Print')"
       :data-tip="tabs ? t('Upload & Print') : t('Click, or drop a G-code file here')"
       :disabled="uploading !== null"
@@ -1216,6 +1219,22 @@ onBeforeUnmount(() => ovObs?.disconnect());
 /* the pages are in the bar itself: no menu button */
 .tb.tabs .menu {
   display: none;
+}
+/* an upload in progress: the percentage takes the place of the icon in the round button */
+.tb.tabs > .btn.upb.busy > :deep(svg) {
+  display: none;
+}
+.tb.tabs > .btn.upb.busy {
+  font-size: 12.5px;
+}
+/* locked: the button stays told apart from the others */
+.tb.tabs > :deep(.btn.lock.on) {
+  background: var(--s3);
+}
+@media (max-width: 1100px) {
+  .tb.tabs {
+    padding: 0 10px 0 12px;
+  }
 }
 /* a narrower window: the idle status box goes first (the page shows the printer's state), then E-STOP's label */
 :root.ew-lt-1500 .tb.tabs .pill:not(.job) {

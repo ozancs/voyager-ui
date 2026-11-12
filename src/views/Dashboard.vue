@@ -286,13 +286,16 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 const gridHost = ref(null);
 const gridView = ref(null);
 const availableWidth = ref(0);
-const padX = ref(0); // the page's side padding: how far past its edge the grid may reach (see grid-host)
+const pad = ref([0, 0]); // the page's left and right padding: how far past its edges the grid may reach (grid-host)
 let hostObserver;
 onMounted(() => {
   hostObserver = new ResizeObserver(([entry]) => {
     availableWidth.value = entry.contentRect.width;
     const main = gridHost.value?.closest('main');
-    if (main) padX.value = parseFloat(getComputedStyle(main).paddingLeft) || 0;
+    if (main) {
+      const cs = getComputedStyle(main);
+      pad.value = [parseFloat(cs.paddingLeft) || 0, parseFloat(cs.paddingRight) || 0];
+    }
   });
   hostObserver.observe(gridHost.value);
 });
@@ -919,7 +922,11 @@ function detachCard(i) {
     </div>
     <!-- the grid keeps a gap around every card, also on its outer side: the host reaches that far past the page
          edges, so the cards line up with the tiles above and the bars -->
-    <div ref="gridHost" class="grid-host" :style="wide ? { margin: `0 ${-Math.min(gap[0], padX)}px` } : null">
+    <div
+      ref="gridHost"
+      class="grid-host"
+      :style="wide ? { margin: `0 ${-Math.min(gap[0], pad[1])}px 0 ${-Math.min(gap[0], pad[0])}px` } : null"
+    >
       <GridLayout
         v-if="wide"
         v-model:layout="layout"
@@ -1713,10 +1720,17 @@ function detachCard(i) {
 .editing :deep(.vgl-item) {
   cursor: move;
 }
-/* while customizing the whole card is a drag handle: its own buttons, sliders and fields stay inert */
+/* while customizing the whole card is a drag handle: its own buttons, sliders and fields stay inert. `.card` too:
+   the print card and the cards the user made have more than one root, so `fill` never reaches them, and Pause on
+   the print card was live while arranging */
+.editing .cell > :deep(.card),
 .editing .cell > :deep(.fill) {
   pointer-events: none;
   user-select: none;
+}
+/* the tabs of a tabs card still switch, so each of its cards can be looked at while arranging */
+.editing .cell > :deep(.card.tc > .card-h .tabs) {
+  pointer-events: auto;
 }
 .editing .tools {
   pointer-events: auto;

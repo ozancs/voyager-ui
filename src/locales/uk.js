@@ -2497,4 +2497,8 @@ export default {
   "Files": "Файли",
   "Viewer": "Перегляд",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Класичний: меню під верхньою панеллю. Плаваючий, Прикріплений і Рамка займають усю висоту, принтер угорі, згортаються до значків. Вкладки зверху: сторінки як вкладки у верхній панелі. Діє, коли меню завжди видно на широкому екрані.",
+  "{name} already exists in this folder.": "{name} уже є в цій папці.",
+  "{name} is not a G-code file, so it was not uploaded.": "{name} не є файлом G-code, тому його не завантажено.",
+  "Newest line on top": "Новий рядок зверху",
+  "The input moves above the log and the newest line comes right under it. A command and its replies keep their order.": "Поле введення переходить над журналом, новий рядок з'являється одразу під ним. Команда та її відповіді зберігають порядок.",
 }

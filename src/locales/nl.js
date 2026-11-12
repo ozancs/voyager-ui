@@ -2497,4 +2497,8 @@ export default {
   "Files": "Bestanden",
   "Viewer": "Viewer",
   "Classic: the menu under the top bar. Floating, Attached and Frame run the full height with the printer at the top and fold to icons. Top tabs: the pages as tabs in the top bar. Used when the menu is always visible on a wide screen.": "Klassiek: het menu onder de bovenbalk. Zwevend, Vast en Kader lopen over de volle hoogte met de printer bovenaan en klappen in tot iconen. Tabbladen boven: de pagina's als tabbladen in de bovenbalk. Geldt als het menu op een breed scherm altijd zichtbaar is.",
+  "{name} already exists in this folder.": "{name} bestaat al in deze map.",
+  "{name} is not a G-code file, so it was not uploaded.": "{name} is geen G-code-bestand en is daarom niet geüpload.",
+  "Newest line on top": "Nieuwste regel bovenaan",
+  "The input moves above the log and the newest line comes right under it. A command and its replies keep their order.": "De invoer staat boven het logboek en de nieuwste regel direct eronder. Een commando en zijn antwoorden houden hun volgorde.",
 }

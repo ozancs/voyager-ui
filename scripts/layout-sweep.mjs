@@ -4,6 +4,7 @@
 // window edge, and errors in the browser console. Exits with 1 when anything is found, so CI fails.
 //   node scripts/layout-sweep.mjs            all pages, widths 390 768 1024 1400
 //   R=dashboard,console W=390 node scripts/layout-sweep.mjs
+//   S='{"navStyle":"tabs"}' node scripts/layout-sweep.mjs      with other settings (menu style, print bar place...)
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,6 +17,7 @@ const ROUTES = (
 ).split(',');
 const WIDTHS = (process.env.W || '390,768,1024,1150,1400').split(',').map(Number);
 const PROFILES = (process.env.P || 'print,idle').split(',');
+const SETTINGS = process.env.S ? JSON.parse(process.env.S) : null;
 const TYPES = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -177,6 +179,7 @@ const report = {};
 for (const prof of PROFILES)
   for (const w of WIDTHS) {
     const ctx = await b.newContext({ viewport: { width: w, height: w < 500 ? 844 : 900 } });
+    if (SETTINGS) await ctx.addInitScript((s) => (globalThis.__demoSettings = s), SETTINGS);
     const p = await ctx.newPage();
     const errs = [];
     p.on('pageerror', (e) => errs.push('pageerror: ' + e.message));
