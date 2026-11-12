@@ -22,7 +22,7 @@ function place() {
   const w = Math.max(props.width, el.value.offsetWidth),
     h = el.value.offsetHeight;
   let left = r.right / k - w;
-  left = Math.max(8, Math.min(left, vw - w - 8));
+  left = Math.max(16, Math.min(left, vw - w - 16));
   let top = r.bottom / k + 6;
   if (top + h > vh - 8 && r.top / k - h - 6 > 8) top = r.top / k - h - 6; // no room below: open upwards
   pos.value = { left: left + 'px', top: top + 'px' };
@@ -32,10 +32,12 @@ function place() {
     if (!b) return;
     let dx = 0,
       dy = 0;
-    if (b.right > window.innerWidth - 8) dx = window.innerWidth - 8 - b.right;
-    if (b.left + dx < 8) dx = 8 - b.left;
-    if (b.bottom > window.innerHeight - 8) dy = window.innerHeight - 8 - b.bottom;
-    if (b.top + dy < 8) dy = 8 - b.top;
+    // a little air from the window's edges
+    const M = 16;
+    if (b.right > window.innerWidth - M) dx = window.innerWidth - M - b.right;
+    if (b.left + dx < M) dx = M - b.left;
+    if (b.bottom > window.innerHeight - M) dy = window.innerHeight - M - b.bottom;
+    if (b.top + dy < M) dy = M - b.top;
     if (dx || dy) pos.value = { ...pos.value, left: left + dx / k + 'px', top: top + dy / k + 'px' };
   });
 }

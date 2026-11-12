@@ -135,7 +135,8 @@ function key(i, e) {
   min-width: 0;
 }
 .sr.drag {
-  outline: 1px solid var(--ac);
+  /* drawn inside the row: an outline outside it was cut off by the scrolling list around it */
+  box-shadow: inset 0 0 0 1px var(--ac);
   background: var(--s3);
 }
 .hd {

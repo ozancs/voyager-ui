@@ -6,6 +6,8 @@ export const ICONS = {
   nozzle: 'M7 3h10v4H7zM9 7h6l-1.5 6h-3zM12 13v4M10 20h4',
   printer3d: 'M4 3h16v18H4zM4 7h16M9 7v5h6V7M12 12v3M7 18h10',
   snow: 'M12 2v20M4.9 7l14.2 10M4.9 17L19.1 7M9 4l3 2 3-2M9 20l3-2 3 2',
+  // a snowflake with branched arms (cooldown)
+  flake: 'M12 2v20M2 12h20M5 5l14 14M19 5L5 19M9 3.5l3 3 3-3M9 20.5l3-3 3 3M3.5 9l3 3-3 3M20.5 9l-3 3 3 3',
   wind: 'M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8',
   zap: 'M13 2L4 14h7l-1 8 9-12h-7z',
   plug: 'M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5',

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.38.45
+
+- Footer: a Discord link next to GitHub
+- Temperatures: the cooldown button is a snowflake
+- Pop-up panels keep more room from the window's edge, also from a card on the right
+- Reordering a list (macros, presets...): the row being dragged keeps its whole outline instead of being cut off at the list's edge
+
 ## 0.38.44
 
 - Card headers: the title on the left, every button, reading and picker on the right, the same in every card

@@ -97,7 +97,7 @@ const grouped = computed(() => {
           :data-tip="isPrinting ? t('Not while printing') : t('Cooldown: all heaters off')"
           @click="gcode('TURN_OFF_HEATERS')"
         >
-          <Icon name="snow" :size="16" :stroke="2.4" />
+          <Icon name="flake" :size="16" :stroke="2" />
         </button>
       </div>
       <CardCollapse />
