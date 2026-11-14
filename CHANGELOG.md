@@ -2,6 +2,7 @@
 
 ## 0.38.47
 
+- Console: double click a sent command to put it back in the input, ready to edit and send again (idea from Raidy)
 - Tooltips are readable in the light theme (the text was dark on the dark tip)
 - Light theme: a bright accent (amber, cyan, green or a custom pick) is darkened as far as needed for white button labels and accent text to stay readable
 - Light theme: green, amber and blue status text is a little darker so it reads on white and grey cards

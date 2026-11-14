@@ -5,6 +5,7 @@
 // Options (Settings > Console): a sent command and the replies after it drawn as one block with its own copy
 // button, text colour themes, the command help on hover, timestamps and line wrap. Several lines pasted at once
 // wait above the input and all go with Enter, in their order (Settings > Console can turn it off).
+// A double click on a sent command puts it back in the input.
 import { copyText } from '../clipboard';
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Icon from './Icon.vue';
@@ -231,6 +232,15 @@ const cls = (l) =>
         : l.type === 'hint'
           ? 'h'
           : '';
+// a double click on a sent command puts it back in the input to edit and send again; copying it by hand also
+// took the "> " in front, which Klipper then rejected
+function reuse(l) {
+  if (props.sample || l.type !== 'command') return;
+  window.getSelection?.()?.removeAllRanges(); // the double click also selected a word
+  cmd.value = l.message;
+  hi = hist.length;
+  nextTick(() => ci.value?.focus());
+}
 defineExpose({ setCmd: (c) => (cmd.value = c), copyAll, copied });
 // ? next to an error line: what the error means (explain.js)
 const xOpen = ref(null); // { anchor, e }
@@ -255,7 +265,7 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
           >
             <Icon :name="copied === b.key ? 'check' : 'copy'" :size="13" />
           </button>
-          <div v-for="l in b.lines" :key="l.id" class="ln" :class="cls(l)">
+          <div v-for="l in b.lines" :key="l.id" class="ln" :class="cls(l)" @dblclick="reuse(l)">
             <span v-if="state.settings.consoleTime" class="t">{{ fmt(l.time) }}</span
             ><span v-if="l.type !== 'command' && hasMarkup(l.message)" class="m" v-html="richHtml(l.message)"></span
             ><span
