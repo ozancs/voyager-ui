@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.48
+
+- The live demo moved to oznlab.com/voyager-ui
+
 ## 0.38.47
 
 - Console: double click a sent command to put it back in the input, ready to edit and send again (idea from Raidy)

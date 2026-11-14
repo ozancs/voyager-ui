@@ -4,7 +4,7 @@
 <p align="center">Your printer. Your workspace.</p>
 <p align="center">A customizable Klipper interface that brings everyday printing, calibration and troubleshooting together.</p>
 
-<h2 align="center"><a href="https://ozancs.github.io/voyager-ui/">▶ Open the live demo</a></h2>
+<h2 align="center"><a href="https://oznlab.com/voyager-ui/">▶ Open the live demo</a></h2>
 <p align="center">No install. No account. A simulated printer you can explore and control freely.<br><a href="#install">Install Voyager</a> · <a href="https://github.com/ozancs/voyager-ui/issues">Share feedback</a></p>
 
 <p align="center">
@@ -33,85 +33,85 @@ Arrange your workspace, follow a print, tune your machine and find the setting y
 
 Put the controls you use where you want them. Move, resize, fold and colour cards, group them into tabs, and keep separate layouts for idle and printing.
 
-[![Dashboard in Voyager UI](docs/screenshots/dashboard.png)](https://ozancs.github.io/voyager-ui/#/dashboard)
+[![Dashboard in Voyager UI](docs/screenshots/dashboard.png)](https://oznlab.com/voyager-ui/#/dashboard)
 
 ### Camera
 
 Keep an eye on the print, switch between cameras and browse timelapses. A floating camera can follow you across pages; timelapse controls appear with moonraker-timelapse.
 
-[![Camera in Voyager UI](docs/screenshots/webcam.png)](https://ozancs.github.io/voyager-ui/#/webcam)
+[![Camera in Voyager UI](docs/screenshots/webcam.png)](https://oznlab.com/voyager-ui/#/webcam)
 
 ### Console
 
 Send commands, find earlier ones and read printer responses. Common Klipper errors include explanations to help you decide what to check next.
 
-[![Console in Voyager UI](docs/screenshots/console.png)](https://ozancs.github.io/voyager-ui/#/console)
+[![Console in Voyager UI](docs/screenshots/console.png)](https://oznlab.com/voyager-ui/#/console)
 
 ### Heightmap
 
 See the shape of your bed in 3D and compare saved meshes. Turn a table of measurements into something you can understand at a glance.
 
-[![Heightmap in Voyager UI](docs/screenshots/heightmap.png)](https://ozancs.github.io/voyager-ui/#/heightmap)
+[![Heightmap in Voyager UI](docs/screenshots/heightmap.png)](https://oznlab.com/voyager-ui/#/heightmap)
 
 ### Calibrations
 
 Guided routines walk you through tuning. Calibration tools, results and the expandable Problem Solver live together, with Shake&Tune integration when installed.
 
-[![Calibrations in Voyager UI](docs/screenshots/calibrations.png)](https://ozancs.github.io/voyager-ui/#/calibrations)
+[![Calibrations in Voyager UI](docs/screenshots/calibrations.png)](https://oznlab.com/voyager-ui/#/calibrations)
 
 ### G-code Files
 
 Find the next print with thumbnails, folders and file details. Before starting, Voyager checks available material, nozzle and temperature information against your printer and active Spoolman spool.
 
-[![G-code Files in Voyager UI](docs/screenshots/files.png)](https://ozancs.github.io/voyager-ui/#/files)
+[![G-code Files in Voyager UI](docs/screenshots/files.png)](https://oznlab.com/voyager-ui/#/files)
 
 ### G-code Viewer
 
 Inspect real toolpaths as solid extrusions, colour them by feature or speed, and step through layers. The demo opens a sliced PETG Benchy so you can explore an actual print.
 
-[![G-code Viewer in Voyager UI](docs/screenshots/viewer.png)](https://ozancs.github.io/voyager-ui/#/viewer)
+[![G-code Viewer in Voyager UI](docs/screenshots/viewer.png)](https://oznlab.com/voyager-ui/#/viewer)
 
 ### History
 
 Look back through completed and interrupted jobs, review print times and find a file worth printing again.
 
-[![History in Voyager UI](docs/screenshots/history.png)](https://ozancs.github.io/voyager-ui/#/history)
+[![History in Voyager UI](docs/screenshots/history.png)](https://oznlab.com/voyager-ui/#/history)
 
 ### Machine
 
 Manage updates, services and host information in one place. Voyager also appears in Moonraker’s update manager alongside your existing components.
 
-[![Machine in Voyager UI](docs/screenshots/machine.png)](https://ozancs.github.io/voyager-ui/#/machine)
+[![Machine in Voyager UI](docs/screenshots/machine.png)](https://oznlab.com/voyager-ui/#/machine)
 
 ### Health
 
 Spot connection errors, driver warnings and changes in heater behaviour. Maintenance reminders help keep routine care from becoming an afterthought.
 
-[![Health in Voyager UI](docs/screenshots/health.png)](https://ozancs.github.io/voyager-ui/#/health)
+[![Health in Voyager UI](docs/screenshots/health.png)](https://oznlab.com/voyager-ui/#/health)
 
 ### Printer settings
 
 Reach common printer settings through readable fields instead of hunting through configuration files.
 
-[![Printer settings in Voyager UI](docs/screenshots/quick.png)](https://ozancs.github.io/voyager-ui/#/quick)
+[![Printer settings in Voyager UI](docs/screenshots/quick.png)](https://oznlab.com/voyager-ui/#/quick)
 
 ### Config files
 
 Edit with Klipper-aware suggestions and checks, compare changes and return to an earlier version with saved-file history.
 
-[![Config files in Voyager UI](docs/screenshots/config.png)](https://ozancs.github.io/voyager-ui/#/config)
+[![Config files in Voyager UI](docs/screenshots/config.png)](https://oznlab.com/voyager-ui/#/config)
 
 ### All printers
 
 See progress and camera snapshots across your saved printers, then jump into the one that needs your attention.
 
-[![All printers in Voyager UI](docs/screenshots/fleet.png)](https://ozancs.github.io/voyager-ui/#/fleet)
+[![All printers in Voyager UI](docs/screenshots/fleet.png)](https://oznlab.com/voyager-ui/#/fleet)
 
 ### Interface settings
 
 Choose the appearance, sounds, notifications and control preferences that suit your setup. Keep everyday interactions comfortable on the screens you actually use.
 
-[![Interface settings in Voyager UI](docs/screenshots/theme.png)](https://ozancs.github.io/voyager-ui/#/theme)
+[![Interface settings in Voyager UI](docs/screenshots/theme.png)](https://oznlab.com/voyager-ui/#/theme)
 
 ## Install
 
