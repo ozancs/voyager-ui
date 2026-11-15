@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.52
+
+- Filament sensor tiles: a long reading stays on one line, cut with … (the whole text on hover), instead of spilling out of the tile
+
 ## 0.38.51
 
 - Filament sensor tiles on Kalico: the sensor's settings (runout_distance, detection_length) no longer show as readings, the tile says enabled as on Klipper; while Kalico counts down to the pause after a runout, the tile and the Devices card show how far it got (runout: 12 / 50 mm) (thanks DubMonstaa, #16)

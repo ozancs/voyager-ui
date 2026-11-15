@@ -295,6 +295,14 @@ function level(d) {
     v = (spool.value.remaining_weight || 0) / (spool.value.initial_weight || spool.value.filament?.weight || 1000);
   return Math.max(0, Math.min(1, v || 0));
 }
+function sensorLine(id) {
+  if (S(id).enabled === false) return t('disabled');
+  return (
+    sensorExtra(id)
+      .map(([k, v]) => `${k}: ${typeof v === 'number' ? +v.toFixed(2) : v}`)
+      .join(' · ') || t('enabled')
+  );
+}
 function sensorExtra(id) {
   // Klipper's runout and motion sensors report nothing beyond detected and enabled; what Kalico adds there are its
   // settings (smart, always_fire_events, runout_distance, detection_length) and the runout countdown, shown on its own
@@ -553,13 +561,8 @@ function sensorExtra(id) {
             of: Math.round(sensorRunout(d.obj).of),
           })
         }}</span>
-        <span v-else class="mono sm mu">{{
-          S(d.obj).enabled === false
-            ? t('disabled')
-            : sensorExtra(d.obj)
-                .map(([k, v]) => `${k}: ${typeof v === 'number' ? +v.toFixed(2) : v}`)
-                .join(' · ') || t('enabled')
-        }}</span>
+        <!-- one line: a long reading is cut with … and shown whole on hover, instead of spilling out of the tile -->
+        <span v-else class="mono sm mu ell" :title="sensorLine(d.obj)">{{ sensorLine(d.obj) }}</span>
       </template>
       <!-- PHOENIX -->
       <template v-else-if="d.kind === 'phoenix'">
