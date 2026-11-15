@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "Верхние плитки на телефоне",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Панель телефона: порядок карточек и карточки и плитки, которые телефон не показывает",
   "Width": "Ширина",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Нажмите на плитку, чтобы убрать её на телефоне. Плитки, скрытые на компьютере, скрыты и на телефоне.",
-  "Lights and outputs": "Свет и выходы",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Перетащите плитку на другую, чтобы изменить порядок на телефоне; глаз её скрывает. Плитки, скрытые на компьютере, скрыты и на телефоне.",
 }

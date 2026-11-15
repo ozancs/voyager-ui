@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "手机上的顶部磁贴",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "手机仪表盘：卡片顺序，以及手机上省略的卡片和磁贴",
   "Width": "宽度",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "点击磁贴可在手机上隐藏它。电脑上隐藏的磁贴在手机上也保持隐藏。",
-  "Lights and outputs": "灯光和输出",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "将一个磁贴拖到另一个上可更改手机上的顺序，点眼睛图标可隐藏。电脑上隐藏的磁贴在手机上也保持隐藏。",
 }

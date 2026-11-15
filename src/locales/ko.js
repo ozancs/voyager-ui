@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "휴대폰 상단 타일",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "휴대폰 대시보드: 카드 순서, 그리고 휴대폰에서 뺄 카드와 타일",
   "Width": "너비",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "타일을 클릭하면 휴대폰에서 숨겨집니다. 컴퓨터에서 숨긴 타일은 휴대폰에서도 숨겨집니다.",
-  "Lights and outputs": "조명 및 출력",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "타일을 다른 타일 위로 끌어 휴대폰에서의 순서를 바꾸고, 눈 아이콘으로 숨깁니다. 컴퓨터에서 숨긴 타일은 휴대폰에서도 숨겨집니다.",
 }

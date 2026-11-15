@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "Tuiles du haut sur le téléphone",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Le tableau de bord du téléphone : l’ordre des cartes, et les cartes et tuiles qu’il laisse de côté",
   "Width": "Largeur",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Cliquez sur une tuile pour la retirer sur le téléphone. Les tuiles masquées sur l’ordinateur le sont aussi sur le téléphone.",
-  "Lights and outputs": "Lumières et sorties",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Glissez une tuile sur une autre pour changer l’ordre sur le téléphone, l’œil la retire. Les tuiles masquées sur l’ordinateur le sont aussi sur le téléphone.",
 }

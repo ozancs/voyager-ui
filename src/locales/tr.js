@@ -2594,6 +2594,5 @@ export default {
   "Top tiles on the phone": "Telefondaki üst kutucuklar",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Telefon paneli: kart sırası ve telefonda gösterilmeyen kartlar ile kutucuklar",
   "Width": "Genişlik",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Bir kutucuğu telefonda göstermemek için tıkla. Bilgisayarda gizli olan kutucuklar telefonda da gizli kalır.",
-  "Lights and outputs": "Işıklar ve çıkışlar",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Telefondaki sırayı değiştirmek için bir kutucuğu diğerinin üstüne sürükle, göz ile telefonda gizle. Bilgisayarda gizli olan kutucuklar telefonda da gizli kalır.",
 }

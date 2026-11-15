@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "Riquadri in alto sul telefono",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "La dashboard del telefono: l’ordine delle schede e le schede e i riquadri che il telefono tralascia",
   "Width": "Larghezza",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Fai clic su un riquadro per toglierlo dal telefono. I riquadri nascosti sul computer restano nascosti anche sul telefono.",
-  "Lights and outputs": "Luci e uscite",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Trascina un riquadro su un altro per cambiare l’ordine sul telefono, l’occhio lo toglie. I riquadri nascosti sul computer restano nascosti anche sul telefono.",
 }

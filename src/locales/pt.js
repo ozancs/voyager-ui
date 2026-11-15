@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "Mosaicos de topo no telemóvel",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "O painel do telemóvel: a ordem dos cartões e os cartões e mosaicos que o telemóvel deixa de fora",
   "Width": "Largura",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Clique num mosaico para o deixar de fora no telemóvel. Os mosaicos ocultos no computador ficam ocultos também no telemóvel.",
-  "Lights and outputs": "Luzes e saídas",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Arraste um mosaico para cima de outro para mudar a ordem no telemóvel; o olho deixa-o de fora. Os mosaicos ocultos no computador ficam ocultos também no telemóvel.",
 }

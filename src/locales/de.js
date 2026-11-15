@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "Obere Kacheln auf dem Handy",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Das Handy-Dashboard: Reihenfolge der Karten und welche Karten und Kacheln ein Handy weglässt",
   "Width": "Breite",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Klicke eine Kachel an, um sie auf dem Handy wegzulassen. Kacheln, die der Computer ausblendet, bleiben auch auf dem Handy aus.",
-  "Lights and outputs": "Lichter und Ausgänge",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Ziehe eine Kachel auf eine andere, um die Reihenfolge auf dem Handy zu ändern, das Auge lässt sie weg. Kacheln, die der Computer ausblendet, bleiben auch auf dem Handy aus.",
 }

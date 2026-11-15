@@ -792,7 +792,8 @@ status; nothing is sent by opening, closing, a step change or an animation, noth
 Customize > Phone on a computer: the phone dashboard edited beside a live preview. The preview is this same  
 interface in a frame the size of the chosen phone (?phonepreview, see store.js): it gets the settings from here  
 on every change and saves nothing itself. The lists set the phone's card order and which cards and top tiles a  
-phone leaves out (mobileOrder, mobileHidden, stripPhoneHidden); the desktop grid keeps all of them.
+phone leaves out (mobileOrder, mobileHidden, stripPhoneHidden), and the order of the top tiles on the phone  
+(stripPhoneOrder, shown here as small tiles in the phone's own columns); the desktop keeps its own.
 
 **[src/components/Popover.vue](../src/components/Popover.vue)**  
 Pop-up panel for buttons inside dashboard cards (sensor picker, presets). It is moved to <body> so the card's  

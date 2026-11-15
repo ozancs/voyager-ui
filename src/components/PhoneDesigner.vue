@@ -2,11 +2,12 @@
 // Customize > Phone on a computer: the phone dashboard edited beside a live preview. The preview is this same
 // interface in a frame the size of the chosen phone (?phonepreview, see store.js): it gets the settings from here
 // on every change and saves nothing itself. The lists set the phone's card order and which cards and top tiles a
-// phone leaves out (mobileOrder, mobileHidden, stripPhoneHidden); the desktop grid keeps all of them.
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+// phone leaves out (mobileOrder, mobileHidden, stripPhoneHidden), and the order of the top tiles on the phone
+// (stripPhoneOrder, shown here as small tiles in the phone's own columns); the desktop keeps its own.
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Icon from './Icon.vue';
 import SortList from './SortList.vue';
-import { state, stripAll, prettyName } from '../store';
+import { state, S, stripAll, prettyName, orderStrip } from '../store';
 import { t } from '../i18n';
 import { mergeOrder } from '../calc';
 const props = defineProps({ cards: Array }); // [{ i, name }] in phone order, hidden ones included
@@ -49,18 +50,36 @@ const model = computed(() =>
 );
 // the phone is shrunk to fit the window height (it keeps its own size inside, so the layout is the phone's)
 const BEZEL = 12;
-// (the room is what the window has left under the phone's top edge, less the note under it)
+// The room is what the page area has left under the phone's top edge, less the note under it. Measured in the
+// page's own CSS pixels (the interface scale zooms the page), again whenever the page area or the phone changes.
 const room = ref(600);
 const fwrap = ref(null);
+const NOTE = 52; // the note under the phone, up to two lines
 function measure() {
-  const top = fwrap.value?.getBoundingClientRect().top ?? 300;
-  room.value = window.innerHeight - Math.max(0, top) - 44;
+  const el = fwrap.value;
+  if (!el) return;
+  const main = el.closest('main');
+  const r = el.getBoundingClientRect();
+  const zoom = r.width / (el.offsetWidth || r.width) || 1;
+  const bottom = main ? main.getBoundingClientRect().bottom : window.innerHeight;
+  room.value = (Math.min(bottom, window.innerHeight) - Math.max(0, r.top)) / zoom - NOTE;
 }
+let ro;
 onMounted(() => {
-  measure();
+  nextTick(measure);
+  setTimeout(measure, 300); // after the Customize bar and the page have settled
   window.addEventListener('resize', measure);
+  const main = fwrap.value?.closest('main');
+  if (main) {
+    ro = new ResizeObserver(() => measure());
+    ro.observe(main);
+  }
 });
-onBeforeUnmount(() => window.removeEventListener('resize', measure));
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', measure);
+  ro?.disconnect();
+});
+watch(model, () => nextTick(measure));
 const k = computed(() => Math.min(1, Math.max(0.45, room.value / (model.value.h + BEZEL * 2))));
 const src = location.pathname + '?phonepreview=1#/dashboard';
 const frame = ref(null);
@@ -124,25 +143,84 @@ function toggleTile(id) {
 function allTiles(on) {
   state.settings.stripPhoneHidden = on ? [] : tiles.value.map((x) => x.id);
 }
-// the tiles in groups: heat, air, lights and outputs, the rest
-const GROUPS = [
-  { id: 'temp', n: 'Temperatures', kinds: ['temp'] },
-  { id: 'fan', n: 'Fans', kinds: ['fan'] },
-  { id: 'out', n: 'Lights and outputs', kinds: ['led', 'pin'] },
-  { id: 'rest', n: 'Other', kinds: null },
-];
-const known = GROUPS.flatMap((g) => g.kinds || []);
-const groups = computed(() =>
-  GROUPS.map((g) => ({
-    ...g,
-    tiles: tiles.value.filter((d) => (g.kinds ? g.kinds.includes(d.kind) : !known.includes(d.kind))),
-  })).filter((g) => g.tiles.length),
+// The top tiles in the phone's order and in its columns, as small tiles: drag one onto another to move it there,
+// the eye leaves it out on the phone. The tiles left out stay off the grid until Show hidden, like the cards.
+const ordered = computed(() => orderStrip(tiles.value, true));
+const showHiddenTiles = ref(false);
+const hiddenTileN = computed(() => tiles.value.filter((d) => hiddenTiles.value.includes(d.id)).length);
+const shownN = computed(() => tiles.value.length - hiddenTileN.value);
+const listedTiles = computed(() =>
+  showHiddenTiles.value ? ordered.value : ordered.value.filter((d) => !hiddenTiles.value.includes(d.id)),
 );
-const shownN = computed(() => tiles.value.filter((d) => !hiddenTiles.value.includes(d.id)).length);
-function groupAll(g, on) {
-  const ids = g.tiles.map((d) => d.id);
-  const rest = hiddenTiles.value.filter((x) => !ids.includes(x));
-  state.settings.stripPhoneHidden = on ? rest : [...rest, ...ids];
+// as many columns as the phone shows (DeviceStrip: about 104 px per tile in the page's width)
+const tCols = computed(() => Math.max(2, Math.floor((model.value.w - 24 + 4) / 104)));
+function saveTiles(ids) {
+  const full = ordered.value.map((d) => d.id);
+  state.settings.stripPhoneOrder = showHiddenTiles.value
+    ? [...ids, ...full.filter((x) => !ids.includes(x))]
+    : mergeOrder(full, ids, (x) => hiddenTiles.value.includes(x));
+}
+function moveTile(id, to) {
+  const ids = listedTiles.value.map((d) => d.id);
+  const from = ids.indexOf(id);
+  to = Math.max(0, Math.min(ids.length - 1, to));
+  if (from < 0 || from === to) return;
+  ids.splice(from, 1);
+  ids.splice(to, 0, id);
+  saveTiles(ids);
+}
+const tGrid = ref(null);
+const tDrag = ref(null); // { id, dx, dy, over } while a tile is dragged
+let tStart = null;
+let tRects = [];
+function tDown(d, e) {
+  if (e.button !== 0 || e.target.closest('button')) return;
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  tStart = { id: d.id, x: e.clientX, y: e.clientY, zoom: r.width / (el.offsetWidth || r.width) || 1, moved: false };
+  tRects = [...tGrid.value.children].map((c) => ({ id: c.dataset.id, r: c.getBoundingClientRect() }));
+  el.setPointerCapture?.(e.pointerId);
+}
+function tMove(e) {
+  if (!tStart) return;
+  const dx = e.clientX - tStart.x,
+    dy = e.clientY - tStart.y;
+  if (!tStart.moved && Math.hypot(dx, dy) < 5) return;
+  tStart.moved = true;
+  // the tile whose middle is nearest to the pointer is where the dragged one goes
+  let over = null,
+    best = Infinity;
+  for (const { id, r } of tRects) {
+    const dd = (r.left + r.width / 2 - e.clientX) ** 2 + (r.top + r.height / 2 - e.clientY) ** 2;
+    if (dd < best) [best, over] = [dd, id];
+  }
+  tDrag.value = { id: tStart.id, dx: dx / tStart.zoom, dy: dy / tStart.zoom, over };
+}
+function tUp() {
+  const d = tDrag.value;
+  if (tStart?.moved && d?.over && d.over !== d.id)
+    moveTile(
+      d.id,
+      listedTiles.value.findIndex((x) => x.id === d.over),
+    );
+  tStart = null;
+  tDrag.value = null;
+}
+// the arrow keys move the focused tile, up and down by a whole row
+function tKey(d, e) {
+  const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -tCols.value, ArrowDown: tCols.value }[e.key];
+  if (!step) return;
+  e.preventDefault();
+  moveTile(d.id, listedTiles.value.findIndex((x) => x.id === d.id) + step);
+  nextTick(() => tGrid.value?.querySelector(`[data-id="${CSS.escape(d.id)}"]`)?.focus());
+}
+// what the tile shows on the phone, in short
+function tileValue(d) {
+  const o = d.obj ? S(d.obj) : {};
+  if (d.kind === 'temp') return o.temperature != null ? o.temperature.toFixed(1) + '°' : '';
+  if (d.kind === 'fan') return o.speed != null ? Math.round(o.speed * 100) + '%' : '';
+  if (d.kind === 'pin') return o.value != null ? (o.value > 0 ? t('ON') : t('OFF')) : '';
+  return '';
 }
 const KINDS = {
   temp: 'thermo',
@@ -157,7 +235,7 @@ const KINDS = {
 <template>
   <div class="pd">
     <div class="dev">
-      <div class="row dbar2">
+      <div class="row dbar2" :style="{ maxWidth: Math.max(330, (model.w + BEZEL * 2) * k) + 'px' }">
         <select v-model="modelId" class="input" :aria-label="t('Phone')">
           <optgroup v-for="b in BRANDS" :key="b" :label="b">
             <option v-for="m in MODELS.filter((x) => x.brand === b)" :key="m.id" :value="m.id">{{ m.name }}</option>
@@ -252,28 +330,58 @@ const KINDS = {
           </div>
         </div>
         <span class="mu note">{{
-          t('Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.')
+          t(
+            'Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.',
+          )
         }}</span>
+        <button
+          v-if="hiddenTileN"
+          class="btn sm shb"
+          :class="{ on: showHiddenTiles }"
+          @click="showHiddenTiles = !showHiddenTiles"
+        >
+          <Icon :name="showHiddenTiles ? 'eye' : 'eyeoff'" :size="15" />{{
+            showHiddenTiles ? t('Hide the hidden ones') : t('Show hidden ({n})', { n: hiddenTileN })
+          }}
+        </button>
         <div class="scroll">
-          <div v-for="g in groups" :key="g.id" class="grp">
-            <div class="gh">
-              <span class="sec-lbl">{{ t(g.n) }}</span>
-              <button class="btn clear sm" @click="groupAll(g, true)">{{ t('All') }}</button>
-              <button class="btn clear sm" @click="groupAll(g, false)">{{ t('None') }}</button>
-            </div>
-            <div class="tgrid">
-              <button
-                v-for="d in g.tiles"
-                :key="d.id"
-                class="tile"
-                :class="{ off: hiddenTiles.includes(d.id) }"
-                :aria-pressed="!hiddenTiles.includes(d.id)"
-                @click="toggleTile(d.id)"
-              >
-                <Icon :name="KINDS[d.kind] || 'dash'" :size="14" />
+          <div ref="tGrid" class="tg2" :style="{ gridTemplateColumns: `repeat(${tCols}, minmax(0, 1fr))` }">
+            <div
+              v-for="d in listedTiles"
+              :key="d.id"
+              :data-id="d.id"
+              class="mt"
+              :class="{
+                off: hiddenTiles.includes(d.id),
+                drag: tDrag?.id === d.id,
+                over: tDrag && tDrag.over === d.id && tDrag.id !== d.id,
+              }"
+              :style="tDrag?.id === d.id ? { translate: `${tDrag.dx}px ${tDrag.dy}px` } : null"
+              tabindex="0"
+              role="listitem"
+              :aria-label="tileName(d)"
+              @pointerdown="tDown(d, $event)"
+              @pointermove="tMove"
+              @pointerup="tUp"
+              @pointercancel="tUp"
+              @keydown="tKey(d, $event)"
+            >
+              <div class="mh">
                 <span class="nm">{{ tileName(d) }}</span>
-                <Icon :name="hiddenTiles.includes(d.id) ? 'eyeoff' : 'eye'" :size="14" class="ey" />
-              </button>
+                <button
+                  class="ey"
+                  :aria-pressed="!hiddenTiles.includes(d.id)"
+                  :aria-label="hiddenTiles.includes(d.id) ? t('Show on the phone') : t('Hide on the phone')"
+                  :data-tip="hiddenTiles.includes(d.id) ? t('Show on the phone') : t('Hide on the phone')"
+                  @click="toggleTile(d.id)"
+                >
+                  <Icon :name="hiddenTiles.includes(d.id) ? 'eyeoff' : 'eye'" :size="13" />
+                </button>
+              </div>
+              <div class="mb">
+                <Icon :name="KINDS[d.kind] || 'dash'" :size="14" class="ki" />
+                <span class="mono mv">{{ tileValue(d) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -293,15 +401,6 @@ const KINDS = {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-}
-.dbar2 {
-  gap: 8px;
-  align-self: stretch;
-  justify-content: center;
-}
-.dbar2 select {
-  width: auto;
-  height: 34px;
 }
 .sz {
   font-size: 12px;
@@ -367,23 +466,6 @@ iframe {
   margin-left: 0 !important;
   margin-right: auto;
 }
-.grp + .grp {
-  margin-top: 14px;
-}
-.gh {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 6px;
-}
-.gh .sec-lbl {
-  margin-right: auto;
-}
-.gh .btn {
-  height: 24px;
-  padding: 0 8px;
-  font-size: 11.5px;
-}
 .px {
   width: 74px;
   height: 34px;
@@ -417,40 +499,109 @@ iframe {
   opacity: 0.45;
   text-decoration: line-through;
 }
-.tgrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 6px;
+/* the model picker as wide as its text; with Other the size fields wrap under it instead of pushing the row */
+.dbar2 {
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
-.tile {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.dbar2 select {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
   height: 34px;
-  padding: 0 10px;
+  field-sizing: content;
+}
+/* the top tiles as on the phone: small, in its columns, in its order */
+.tg2 {
+  display: grid;
+  gap: 6px;
+  max-width: 460px;
+}
+.mt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  height: 52px;
+  padding: 6px 6px 6px 8px;
   border-radius: 8px;
-  border: 1px solid var(--bd);
+  border: 1px solid transparent;
   background: var(--s2);
-  color: var(--tx);
-  font-size: 12.5px;
-  font-weight: 500;
-  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   min-width: 0;
 }
-.tile .nm {
-  flex: 1;
+.mt:focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 1px;
 }
-.tile .ey {
-  color: var(--mu);
-  flex-shrink: 0;
+.mt.drag {
+  z-index: 5;
+  cursor: grabbing;
+  border-color: var(--ac);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+  opacity: 0.9;
 }
-.tile.off {
-  text-decoration: none;
-  opacity: 0.5;
+.mt.over {
+  outline: 2px solid var(--ac);
+  outline-offset: -2px;
+}
+.mt.off {
+  opacity: 0.45;
+  border-color: var(--bd);
   border-style: dashed;
   background: transparent;
 }
-.tile.off .nm {
+.mt.off .nm {
   text-decoration: line-through;
+}
+.mh {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.mh .nm {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--mu);
+}
+.ey {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--mu);
+  cursor: pointer;
+}
+.ey:hover {
+  background: var(--s3);
+  color: var(--tx);
+}
+.mb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.mb .ki {
+  color: var(--mu);
+  flex-shrink: 0;
+}
+.mv {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

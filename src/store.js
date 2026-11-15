@@ -95,6 +95,7 @@ export const DEFAULT_SETTINGS = () => ({
   mobileOrder: null, // card order of the one-column phone dashboard, set in Customize (Phone)
   mobileHidden: [], // dashboard cards left out on a phone only; the desktop grid keeps them
   stripPhoneHidden: [], // top tiles left out on a phone only
+  stripPhoneOrder: [], // order of the top tiles on a phone (Customize > Phone); empty = the computer's order
   hiddenCardsPrint: [],
   collapsed: {}, // card id -> true while folded to its header
   // alerts for print events: sounds, a system notification while the tab is in the background, spoken text
@@ -245,6 +246,7 @@ export const LAYOUT_KEYS = [
   'mobileOrder',
   'mobileHidden',
   'stripPhoneHidden',
+  'stripPhoneOrder',
   'collapsed',
 ];
 // Moonraker lists cameras from moonraker.conf first, then the saved ones in database (uid) order, and moves a
@@ -649,6 +651,38 @@ export const stripAll = computed(() => {
   };
   return items.sort((a, b) => idx(a.id) - idx(b.id));
 });
+// a heater or a temperature fan: its tile takes a target
+export const stripTargetable = (d) =>
+  d.kind === 'temp' && ((S('heaters').available_heaters || []).includes(d.obj) || d.obj.startsWith('temperature_fan '));
+const stripRank = (d) =>
+  d.kind === 'temp'
+    ? d.obj.startsWith('temperature_fan ')
+      ? 2
+      : stripTargetable(d)
+        ? 0
+        : 1
+    : ({ fan: 2, pin: 3, led: 3, filament: 4, spoolman: 5, phoenix: 5 }[d.kind] ?? 6);
+// The order the tiles are shown in. Computer: the order dragged in Customize (strip.order), or until then heaters
+// first, then sensors, fans, outputs and the rest. Phone: its own order (stripPhoneOrder) when one was set; tiles
+// not in it yet follow in the computer's order. The phone editor and the phone use this same function.
+export function orderStrip(list, phone = isPhone.value) {
+  const desk = (state.settings.strip?.order || []).length
+    ? list
+    : list
+        .map((d, i) => [d, i])
+        .sort((a, b) => stripRank(a[0]) - stripRank(b[0]) || a[1] - b[1])
+        .map((x) => x[0]);
+  const po = state.settings.stripPhoneOrder || [];
+  if (!phone || !po.length) return desk;
+  const pos = (d, i) => {
+    const k = po.indexOf(d.id);
+    return k < 0 ? 1e4 + i : k;
+  };
+  return desk
+    .map((d, i) => [d, pos(d, i)])
+    .sort((a, b) => a[1] - b[1])
+    .map((x) => x[0]);
+}
 export const stripVisible = computed(() =>
   stripAll.value.filter(
     (x) =>

@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "Górne kafelki na telefonie",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Pulpit telefonu: kolejność kart oraz karty i kafelki pomijane na telefonie",
   "Width": "Szerokość",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Kliknij kafelek, aby pominąć go na telefonie. Kafelki ukryte na komputerze są ukryte także na telefonie.",
-  "Lights and outputs": "Światła i wyjścia",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Przeciągnij kafelek na inny, aby zmienić kolejność na telefonie; oko go ukrywa. Kafelki ukryte na komputerze są ukryte także na telefonie.",
 }

@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "スマホの上部タイル",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "スマホのダッシュボード：カードの順番と、スマホで省くカードとタイル",
   "Width": "幅",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "タイルをクリックするとスマホで非表示になります。パソコンで非表示のタイルはスマホでも非表示です。",
-  "Lights and outputs": "ライトと出力",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "タイルを別のタイルの上にドラッグするとスマホでの順番が変わり、目のアイコンで非表示にできます。パソコンで非表示のタイルはスマホでも非表示です。",
 }

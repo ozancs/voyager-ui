@@ -22,6 +22,8 @@ import {
   saveSettings,
   allPresets,
   isPhone,
+  orderStrip,
+  stripTargetable,
 } from '../store';
 import { t } from '../i18n';
 import { usePhoenixView, openSetup } from '../phoenix';
@@ -32,22 +34,7 @@ const open = ref(null);
 const close = () => (open.value = null);
 // tiles come in the user's order (drag them in Customize). Until an order is set they are grouped by kind:
 // heaters, sensors, fans, lights, filament, spool. Rows are balanced so the last row is not left half empty
-const RANK = (d) =>
-  d.kind === 'temp'
-    ? d.obj.startsWith('temperature_fan ')
-      ? 2
-      : canTarget(d)
-        ? 0
-        : 1
-    : ({ fan: 2, pin: 3, led: 3, filament: 4, spoolman: 5, phoenix: 5 }[d.kind] ?? 6);
-const items = computed(() => {
-  const list = state.editDash ? stripAll.value : stripVisible.value;
-  if ((state.settings.strip?.order || []).length) return list;
-  return list
-    .map((d, i) => [d, i])
-    .sort((a, b) => RANK(a[0]) - RANK(b[0]) || a[1] - b[1])
-    .map((x) => x[0]);
-});
+const items = computed(() => orderStrip(state.editDash ? stripAll.value : stripVisible.value));
 const box = ref(null),
   boxW = ref(0);
 let ro;
@@ -124,7 +111,9 @@ function moveTo(id, targetId) {
     to = ids.indexOf(targetId);
   if (from < 0 || to < 0 || from === to) return;
   [ids[from], ids[to]] = [ids[to], ids[from]];
-  state.settings.strip.order = ids;
+  // on a phone the drag sets the phone's own order; the computer keeps its own
+  if (isPhone.value) state.settings.stripPhoneOrder = ids;
+  else state.settings.strip.order = ids;
 }
 // pointer position in the strip's own CSS pixels. With the interface scale (CSS zoom) the pointer comes in screen
 // pixels while offsetLeft/Top are CSS pixels; the ratio of the two sizes converts between them in every browser.
@@ -215,7 +204,7 @@ function kind(d) {
     ] || ''
   );
 }
-const canTarget = (d) => (S('heaters').available_heaters || []).includes(d.obj) || d.obj.startsWith('temperature_fan ');
+const canTarget = stripTargetable;
 onMounted(() => document.addEventListener('click', close));
 onBeforeUnmount(() => document.removeEventListener('click', close));
 const popRight = ref(false); // pop-up opens to the left on tiles in the right half so it stays inside the page

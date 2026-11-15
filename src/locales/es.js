@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "Mosaicos superiores en el móvil",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "El panel del móvil: el orden de las tarjetas y las tarjetas y mosaicos que el móvil omite",
   "Width": "Ancho",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Haz clic en un mosaico para quitarlo en el móvil. Los mosaicos ocultos en el ordenador también se ocultan en el móvil.",
-  "Lights and outputs": "Luces y salidas",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Arrastra un mosaico sobre otro para cambiar el orden en el móvil; el ojo lo quita. Los mosaicos ocultos en el ordenador también se ocultan en el móvil.",
 }

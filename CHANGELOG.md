@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.49
+
+- Customize > Phone: the top tiles are small tiles in the phone's own columns and order, with their reading; drag one onto another (or use the arrow keys) to change the order on the phone only, the eye leaves one out, Show hidden lists the ones left out
+- Customize on a phone: dragging a top tile sets the phone's order, the computer keeps its own
+- Customize > Phone: the phone preview uses the whole height of the page, the phone list is as wide as the model's name, and the Other size fields no longer push the reload button aside
+
 ## 0.38.48
 
 - Phone layout: Customize on a computer has a Phone tab with a live preview in a phone of your choice (iPhone, Galaxy, Pixel, Xiaomi, OnePlus, or Other with your own size); the mouse scrolls the preview by dragging, as a finger does. Beside it, the phone's cards and its top tiles (in groups) each have their own column: order the cards and leave cards and tiles out on the phone only; the computer keeps all of them. Cards left out stay off the drag list until Show hidden is pressed (idea from Raidy)

@@ -2576,6 +2576,5 @@ export default {
   "Top tiles on the phone": "Bovenste tegels op de telefoon",
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Het telefoondashboard: de volgorde van de kaarten, en welke kaarten en tegels een telefoon weglaat",
   "Width": "Breedte",
-  "Click a tile to leave it out on the phone. Tiles the computer hides stay hidden on the phone too.": "Klik op een tegel om hem op de telefoon weg te laten. Tegels die de computer verbergt, blijven ook op de telefoon verborgen.",
-  "Lights and outputs": "Lampen en uitgangen",
+  "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Sleep een tegel op een andere om de volgorde op de telefoon te wijzigen, het oog laat hem weg. Tegels die de computer verbergt, blijven ook op de telefoon verborgen.",
 }
