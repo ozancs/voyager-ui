@@ -5,6 +5,7 @@
 //  - helpers used everywhere: S(obj) for a printer object, gcode(), toast(), formatting functions
 //  - temperature history (hist), print time estimates, update checks and throttling notices
 import { reactive, ref, computed, markRaw, watch, onBeforeUnmount } from 'vue';
+import { mouseDragScroll } from './dragScroll';
 import { api } from './api/moonraker';
 import { setLang, t } from './i18n';
 import { currentHost, currentPrinter, perPrinterKey } from './printers';
@@ -1118,6 +1119,7 @@ if (phonePreview) {
     state.settingsLoaded = true;
   });
   window.parent?.postMessage({ type: 'voyager-phone-ready' }, location.origin);
+  mouseDragScroll(); // the mouse scrolls by dragging, as a finger does on the phone
 }
 
 // ---------- settings persistence ----------

@@ -2,7 +2,7 @@
 
 ## 0.38.48
 
-- Phone layout: Customize on a computer has a Phone tab with a live preview in a phone of your choice (iPhone, Pixel, Galaxy sizes). Order the phone's cards and leave cards and top tiles out on the phone only; the computer keeps all of them. Cards left out stay off the drag list until Show hidden is pressed (idea from Raidy)
+- Phone layout: Customize on a computer has a Phone tab with a live preview in a phone of your choice (iPhone, Galaxy, Pixel, Xiaomi, OnePlus, or Other with your own size); the mouse scrolls the preview by dragging, as a finger does. Beside it, the phone's cards and its top tiles (in groups) each have their own column: order the cards and leave cards and tiles out on the phone only; the computer keeps all of them. Cards left out stay off the drag list until Show hidden is pressed (idea from Raidy)
 - Customize on a phone: the eye hides a card or a top tile on phones only, instead of removing it from the computer's dashboard too; hidden cards stay off the list there too until Show hidden
 - Phone: the top tiles are smaller and lower, three in a row, so they no longer fill the first screen
 - Phone: the console page's Errors, Hide temps, Copy and Clear buttons fit one row next to the search

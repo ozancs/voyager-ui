@@ -102,6 +102,12 @@ Dragging a dialog or a pop-up panel out of the way, to see what it changes on th
 translate on top of where it was placed; a drag starts only past a few pixels, so clicks still work, and never  
 on a control (a field, a button, a list being reordered).
 
+**[src/dragScroll.js](../src/dragScroll.js)**  
+Phone preview (Customize > Phone): a mouse cannot swipe, so in the preview a press and drag scrolls the area  
+under the pointer the way a finger does on the phone. A short press stays a click; after a drag the click that  
+follows is swallowed, so letting go over a button does not press it. Fields, sliders and drag handles keep  
+their own mouse behaviour.
+
 **[src/endShot.js](../src/endShot.js)**  
 The last picture of each print: when a print ends (done, cancelled or stopped by an error) the first webcam's  
 picture is saved with the job, so a failed print can be looked at later from History. It is taken by the  
