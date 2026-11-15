@@ -863,7 +863,13 @@ function detachCard(i) {
             t('While printing')
           }}</span></label
         >
-        <div v-if="state.settings.autoLayout || wide" class="seg" role="tablist" :aria-label="t('Layout to edit')">
+        <div
+          v-if="state.settings.autoLayout"
+          class="seg"
+          :class="{ dim: phoneEdit && wide }"
+          role="tablist"
+          :aria-label="t('Layout to edit')"
+        >
           <button
             :class="{ on: editMode === 'idle' && !phoneEdit }"
             @click="
@@ -875,7 +881,6 @@ function detachCard(i) {
             {{ t('Idle') }}
           </button>
           <button
-            v-if="state.settings.autoLayout"
             :class="{ on: editMode === 'print' && !phoneEdit }"
             @click="
               persist();
@@ -885,19 +890,25 @@ function detachCard(i) {
           >
             {{ t('Printing') }}
           </button>
-          <button
-            v-if="wide"
+        </div>
+        <!-- the phone layout is a thing of its own, apart from the computer's idle / printing layouts: pressed again
+             (or Idle / Printing) it goes back to the computer's grid -->
+        <template v-if="wide"
+          ><span class="vsep" aria-hidden="true"></span
+          ><button
+            class="btn phb"
             :class="{ on: phoneEdit }"
+            :aria-pressed="phoneEdit"
             :data-tip="t('The phone dashboard: its card order, and the cards and tiles a phone leaves out')"
             @click="
               persist();
               editMode = 'idle';
-              phoneEdit = true;
+              phoneEdit = !phoneEdit;
             "
           >
-            <Icon name="phone" :size="14" />{{ t('Phone') }}
-          </button>
-        </div>
+            <Icon name="phone" :size="15" />{{ t('Phone layout') }}
+          </button></template
+        >
         <span v-if="wide && !phoneEdit" class="mu hint">{{
           t('Drag by title, resize from the corner. Top cards: drag to reorder, eye to hide.')
         }}</span>
@@ -1537,6 +1548,14 @@ function detachCard(i) {
   border-radius: 12px;
   font-weight: 600;
   font-size: 14px;
+}
+.dbar .vsep {
+  width: 1px;
+  height: 24px;
+  background: var(--bd);
+}
+.dbar .seg.dim {
+  opacity: 0.55;
 }
 .mlist .moff {
   opacity: 0.45;

@@ -171,6 +171,11 @@ tell a client which parameters a command takes (its help is one line of text), s
 own parameters are read from its template instead (macros.js). Classic G-codes take letters (X10), the extended  
 commands take NAME=value.
 
+**[src/gridDrag.js](../src/gridDrag.js)**  
+Reordering a grid by dragging, for the small tiles of Customize > Phone: the item follows the pointer and, on  
+release, goes where the item whose middle is nearest to the pointer was. A press that does not move (or one on a  
+button inside the item) stays a click. Items are the grid's children with a data-id; others are left alone.
+
 **[src/heatEta.js](../src/heatEta.js)**  
 How long until a heater reaches its target, or whether it will at all.  
   
@@ -468,7 +473,8 @@ itself after config changes. Without Klipper-Backup it says where to get it.
 
 **[src/components/BottomNav.vue](../src/components/BottomNav.vue)**  
 Phone: a bar at the bottom with the pages used most and a "More" button that opens the full menu. Replaces  
-reaching for the hamburger in the top left with one thumb.
+reaching for the hamburger in the top left with one thumb. Which four pages, and their order: Customize > Phone  
+(phonePages in nav.js); the others are under More.
 
 **[src/components/ButtonParams.vue](../src/components/ButtonParams.vue)**  
 Parameter fields for a button whose command is a macro with parameters (MY_MACRO VALUE=50): each field edits that  
@@ -793,7 +799,8 @@ Customize > Phone on a computer: the phone dashboard edited beside a live previe
 interface in a frame the size of the chosen phone (?phonepreview, see store.js): it gets the settings from here  
 on every change and saves nothing itself. The lists set the phone's card order and which cards and top tiles a  
 phone leaves out (mobileOrder, mobileHidden, stripPhoneHidden), and the order of the top tiles on the phone  
-(stripPhoneOrder, shown here as small tiles in the phone's own columns); the desktop keeps its own.
+(stripPhoneOrder, shown here as small tiles in the phone's own columns), and the pages of the phone's bottom  
+bar and its More menu (bottomNavOrder); the desktop keeps its own.
 
 **[src/components/Popover.vue](../src/components/Popover.vue)**  
 Pop-up panel for buttons inside dashboard cards (sensor picker, presets). It is moved to <body> so the card's  

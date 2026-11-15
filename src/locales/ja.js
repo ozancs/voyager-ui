@@ -2568,7 +2568,7 @@ export default {
   "Phone": "スマホ",
   "Reload preview": "プレビューを再読み込み",
   "Phone preview": "スマホのプレビュー",
-  "The preview is the real interface: drag to scroll as with a finger, its buttons act on the printer.": "プレビューは実際の画面です。指のようにドラッグしてスクロールでき、ボタンはプリンターに作用します。",
+  "Live preview: drag to scroll, buttons act on the printer.": "ライブプレビュー：ドラッグでスクロール、ボタンはプリンターに作用します。",
   "Cards on the phone": "スマホのカード",
   "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "ドラッグで順番を変更、目のアイコンでスマホだけカードを非表示。パソコンではすべてのカードが残ります。",
   "Show on the phone": "スマホで表示",
@@ -2577,4 +2577,7 @@ export default {
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "スマホのダッシュボード：カードの順番と、スマホで省くカードとタイル",
   "Width": "幅",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "タイルを別のタイルの上にドラッグするとスマホでの順番が変わり、目のアイコンで非表示にできます。パソコンで非表示のタイルはスマホでも非表示です。",
+  "Bottom bar on the phone": "スマホの下部バー",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "最初の4ページがバーに、残りはこの順番で「その他」に入ります。ページを別のページの上にドラッグして移動します。",
+  "Phone layout": "スマホのレイアウト",
 }

@@ -2568,7 +2568,7 @@ export default {
   "Phone": "Telemóvel",
   "Reload preview": "Recarregar pré-visualização",
   "Phone preview": "Pré-visualização do telemóvel",
-  "The preview is the real interface: drag to scroll as with a finger, its buttons act on the printer.": "A pré-visualização é a interface real: arraste para deslocar como com o dedo; os seus botões atuam na impressora.",
+  "Live preview: drag to scroll, buttons act on the printer.": "Pré-visualização ao vivo: arraste para deslocar, os botões atuam na impressora.",
   "Cards on the phone": "Cartões no telemóvel",
   "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Arraste para mudar a ordem; o olho esconde um cartão só no telemóvel. O computador mantém todos os cartões.",
   "Show on the phone": "Mostrar no telemóvel",
@@ -2577,4 +2577,7 @@ export default {
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "O painel do telemóvel: a ordem dos cartões e os cartões e mosaicos que o telemóvel deixa de fora",
   "Width": "Largura",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Arraste um mosaico para cima de outro para mudar a ordem no telemóvel; o olho deixa-o de fora. Os mosaicos ocultos no computador ficam ocultos também no telemóvel.",
+  "Bottom bar on the phone": "Barra inferior no telemóvel",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "As quatro primeiras páginas ficam na barra, as restantes em Mais por esta ordem. Arraste uma página para cima de outra para a mover.",
+  "Phone layout": "Disposição do telemóvel",
 }

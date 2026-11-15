@@ -2568,7 +2568,7 @@ export default {
   "Phone": "Telefoon",
   "Reload preview": "Voorbeeld herladen",
   "Phone preview": "Telefoonvoorbeeld",
-  "The preview is the real interface: drag to scroll as with a finger, its buttons act on the printer.": "Het voorbeeld is de echte interface: sleep om te scrollen zoals met een vinger, de knoppen werken op de printer.",
+  "Live preview: drag to scroll, buttons act on the printer.": "Live voorbeeld: sleep om te scrollen, knoppen werken op de printer.",
   "Cards on the phone": "Kaarten op de telefoon",
   "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Sleep om de volgorde te wijzigen, het oog verbergt een kaart alleen op de telefoon. De computer houdt alle kaarten.",
   "Show on the phone": "Tonen op de telefoon",
@@ -2577,4 +2577,7 @@ export default {
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Het telefoondashboard: de volgorde van de kaarten, en welke kaarten en tegels een telefoon weglaat",
   "Width": "Breedte",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Sleep een tegel op een andere om de volgorde op de telefoon te wijzigen, het oog laat hem weg. Tegels die de computer verbergt, blijven ook op de telefoon verborgen.",
+  "Bottom bar on the phone": "Onderbalk op de telefoon",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "De eerste vier pagina’s staan in de balk, de rest in deze volgorde onder Meer. Sleep een pagina op een andere om hem te verplaatsen.",
+  "Phone layout": "Telefoonindeling",
 }

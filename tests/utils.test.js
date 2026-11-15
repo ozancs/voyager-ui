@@ -49,7 +49,7 @@ describe('mcu counters', () => {
   });
 });
 
-import { pushDown, mergeOrder } from '../src/calc.js';
+import { pushDown, mergeOrder, orderKeys } from '../src/calc.js';
 describe('grid resize from the left or top', () => {
   it('pushes overlapped cards below the resized one', () => {
     const l = [
@@ -210,5 +210,32 @@ describe('mergeOrder', () => {
   it('reorders the shown items and keeps the hidden ones in place', () => {
     const hid = (x) => x === 'b' || x === 'd';
     expect(mergeOrder(['a', 'b', 'c', 'd', 'e'], ['e', 'a', 'c'], hid)).toEqual(['e', 'b', 'a', 'd', 'c']);
+  });
+});
+
+describe('orderKeys', () => {
+  const keys = ['dashboard', 'webcam', 'console', 'heightmap', 'files', 'machine', 'config'];
+  const def = ['dashboard', 'webcam', 'console', 'files'];
+  it('defaults first, then the rest in list order', () => {
+    expect(orderKeys(keys, [], def)).toEqual([
+      'dashboard',
+      'webcam',
+      'console',
+      'files',
+      'heightmap',
+      'machine',
+      'config',
+    ]);
+  });
+  it('a saved order wins, gone keys are dropped, new ones follow', () => {
+    expect(orderKeys(keys, ['machine', 'gone', 'dashboard'], def)).toEqual([
+      'machine',
+      'dashboard',
+      'webcam',
+      'console',
+      'files',
+      'heightmap',
+      'config',
+    ]);
   });
 });

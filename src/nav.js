@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import { state } from './store';
 import { route } from './router';
 import { healthIssues } from './features';
+import { orderKeys } from './calc';
 
 export const NAV = [
   ['dashboard', 'dash', 'Dashboard'],
@@ -37,3 +38,17 @@ export const healthBadge = computed(() => {
     c: l.some((i) => i.level === 'error') ? 'var(--dg)' : l.some((i) => i.level === 'warn') ? 'var(--wn)' : 'var(--s3)',
   };
 });
+
+// Phone: the bottom bar shows the first four pages of this list, More holds the rest in the same order. The order
+// is set in Customize > Phone (settings.bottomNavOrder); until then the bar is Dashboard, Camera, Console, Files.
+export const PHONE_BAR = ['dashboard', 'webcam', 'console', 'files'];
+const phonePageList = computed(() => [...NAV, ...NAV2].filter(([k]) => k !== 'oznlab' || hasOznlab.value));
+export const phonePages = computed(() => {
+  const all = phonePageList.value;
+  return orderKeys(
+    all.map((x) => x[0]),
+    state.settings.bottomNavOrder,
+    PHONE_BAR,
+  ).map((k) => all.find((x) => x[0] === k));
+});
+export const isSetupPage = (k) => NAV2.some((x) => x[0] === k);

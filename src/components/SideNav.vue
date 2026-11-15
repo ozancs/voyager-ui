@@ -7,7 +7,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import Icon from './Icon.vue';
 import PrinterBrand from './PrinterBrand.vue';
 import { state, useApiEvent, activeTasks } from '../store';
-import { NAV2, navItems, healthBadge } from '../nav';
+import { NAV2, navItems, healthBadge, phonePages, isSetupPage } from '../nav';
 import { route, go } from '../router';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
@@ -24,6 +24,15 @@ function nav(n, a) {
   emit('close');
 }
 const hBadge = healthBadge;
+// phone (the width the bottom bar shows at): the four pages in the bar are left out here, the rest come in the
+// order set in Customize > Phone, the setup pages still in their own group
+const narrowW = ref(window.innerWidth <= 720);
+const onW = () => (narrowW.value = window.innerWidth <= 720);
+onMounted(() => window.addEventListener('resize', onW));
+onBeforeUnmount(() => window.removeEventListener('resize', onW));
+const rest = computed(() => phonePages.value.slice(4));
+const pageList = computed(() => (narrowW.value ? rest.value.filter(([k]) => !isSetupPage(k)) : navItems.value));
+const setupList = computed(() => (narrowW.value ? rest.value.filter(([k]) => isSetupPage(k)) : NAV2));
 // a short window: everything in the menu gets smaller together until it fits, instead of a scrollbar (down to
 // 60 %; below that it scrolls after all). Not for the menu that slides over the page.
 const navEl = ref(null);
@@ -86,7 +95,7 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
         <Icon :name="mode === 'pinned' ? 'chevl2' : 'sidebar'" :size="16" :stroke="2.4" />
       </button>
     </div>
-    <button v-for="[k, i, l] in navItems" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)">
+    <button v-for="[k, i, l] in pageList" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)">
       <Icon :name="i" /><span>{{ t(l) }}</span
       ><span
         v-if="k === 'health' && hBadge"
@@ -99,7 +108,7 @@ const slowTasks = computed(() => (state.booted ? activeTasks.value.filter((t) =>
     <div v-if="!side" class="sep push"></div>
     <div v-else-if="!rail" class="sl push">{{ t('Setup') }}</div>
     <div v-else class="sep push"></div>
-    <button v-for="[k, i, l] in NAV2" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)">
+    <button v-for="[k, i, l] in setupList" :key="k" class="it" :class="{ on: route.name === k }" @click="nav(k)">
       <Icon :name="i" /><span>{{ t(l) }}</span>
     </button>
     <button

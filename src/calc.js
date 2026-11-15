@@ -35,3 +35,12 @@ export function mergeOrder(full, shown, isHidden) {
   let k = 0;
   return full.map((x) => (isHidden(x) ? x : shown[k++]));
 }
+
+// keys in a saved order: the saved ones that still exist first, then the rest in the default order (the
+// defaults first, then the list's own order). Used for the phone's bottom bar (first four) and its More menu.
+export function orderKeys(keys, saved, defaults = []) {
+  const has = (k) => keys.includes(k);
+  const head = (saved && saved.length ? saved : defaults).filter(has);
+  const rest = [...defaults.filter(has), ...keys].filter((k) => !head.includes(k));
+  return [...new Set([...head, ...rest])];
+}

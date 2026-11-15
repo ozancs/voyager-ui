@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.50
+
+- Phone: the bottom bar's four pages and the order of the pages under More are set in Customize > Phone layout, by dragging, the same as on the phone
+- Customize > Phone layout: bug fixes and improvements
+
 ## 0.38.49
 
 - Customize > Phone: the top tiles are small tiles in the phone's own columns and order, with their reading; drag one onto another to change the order on the phone only, the eye leaves one out, Show hidden lists the ones left out

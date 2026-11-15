@@ -2586,7 +2586,7 @@ export default {
   "Phone": "Telefon",
   "Reload preview": "Önizlemeyi yenile",
   "Phone preview": "Telefon önizlemesi",
-  "The preview is the real interface: drag to scroll as with a finger, its buttons act on the printer.": "Önizleme gerçek arayüz: parmakla kaydırır gibi sürükle, içindeki butonlar yazıcıda çalışır.",
+  "Live preview: drag to scroll, buttons act on the printer.": "Canlı önizleme: kaydırmak için sürükle, butonlar yazıcıda çalışır.",
   "Cards on the phone": "Telefondaki kartlar",
   "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Sırayı değiştirmek için sürükle, bir kartı telefonda göstermemek için göze bas. Bilgisayar tüm kartlarını korur.",
   "Show on the phone": "Telefonda göster",
@@ -2595,4 +2595,7 @@ export default {
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Telefon paneli: kart sırası ve telefonda gösterilmeyen kartlar ile kutucuklar",
   "Width": "Genişlik",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Telefondaki sırayı değiştirmek için bir kutucuğu diğerinin üstüne sürükle, göz ile telefonda gizle. Bilgisayarda gizli olan kutucuklar telefonda da gizli kalır.",
+  "Bottom bar on the phone": "Telefondaki alt menü",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "İlk dört sayfa alt menüde, kalanlar bu sırayla «Daha fazla» menüsünde. Taşımak için bir sayfayı diğerinin üstüne sürükle.",
+  "Phone layout": "Telefon düzeni",
 }

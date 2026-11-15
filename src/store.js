@@ -96,6 +96,7 @@ export const DEFAULT_SETTINGS = () => ({
   mobileHidden: [], // dashboard cards left out on a phone only; the desktop grid keeps them
   stripPhoneHidden: [], // top tiles left out on a phone only
   stripPhoneOrder: [], // order of the top tiles on a phone (Customize > Phone); empty = the computer's order
+  bottomNavOrder: [], // pages of the phone's bottom bar (first four) and its More menu, in order; empty = default
   hiddenCardsPrint: [],
   collapsed: {}, // card id -> true while folded to its header
   // alerts for print events: sounds, a system notification while the tab is in the background, spoken text
@@ -247,6 +248,7 @@ export const LAYOUT_KEYS = [
   'mobileHidden',
   'stripPhoneHidden',
   'stripPhoneOrder',
+  'bottomNavOrder',
   'collapsed',
 ];
 // Moonraker lists cameras from moonraker.conf first, then the saved ones in database (uid) order, and moves a

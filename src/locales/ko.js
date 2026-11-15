@@ -2568,7 +2568,7 @@ export default {
   "Phone": "휴대폰",
   "Reload preview": "미리보기 새로고침",
   "Phone preview": "휴대폰 미리보기",
-  "The preview is the real interface: drag to scroll as with a finger, its buttons act on the printer.": "미리보기는 실제 화면입니다. 손가락처럼 드래그해서 스크롤하고, 버튼을 누르면 프린터가 동작합니다.",
+  "Live preview: drag to scroll, buttons act on the printer.": "실시간 미리보기: 드래그로 스크롤, 버튼은 프린터를 동작시킵니다.",
   "Cards on the phone": "휴대폰 카드",
   "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "드래그해서 순서를 바꾸고, 눈 아이콘으로 휴대폰에서만 카드를 숨깁니다. 컴퓨터에는 모든 카드가 남습니다.",
   "Show on the phone": "휴대폰에 표시",
@@ -2577,4 +2577,7 @@ export default {
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "휴대폰 대시보드: 카드 순서, 그리고 휴대폰에서 뺄 카드와 타일",
   "Width": "너비",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "타일을 다른 타일 위로 끌어 휴대폰에서의 순서를 바꾸고, 눈 아이콘으로 숨깁니다. 컴퓨터에서 숨긴 타일은 휴대폰에서도 숨겨집니다.",
+  "Bottom bar on the phone": "휴대폰 하단 바",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "처음 네 페이지는 바에, 나머지는 이 순서대로 더보기 아래에 들어갑니다. 페이지를 다른 페이지 위로 끌어 옮기세요.",
+  "Phone layout": "휴대폰 레이아웃",
 }

@@ -2568,7 +2568,7 @@ export default {
   "Phone": "手机",
   "Reload preview": "刷新预览",
   "Phone preview": "手机预览",
-  "The preview is the real interface: drag to scroll as with a finger, its buttons act on the printer.": "预览就是真实界面：像用手指一样拖动来滚动，其中的按钮会操作打印机。",
+  "Live preview: drag to scroll, buttons act on the printer.": "实时预览：拖动即可滚动，按钮会操作打印机。",
   "Cards on the phone": "手机上的卡片",
   "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "拖动以更改顺序，点眼睛图标仅在手机上隐藏卡片。电脑上保留所有卡片。",
   "Show on the phone": "在手机上显示",
@@ -2577,4 +2577,7 @@ export default {
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "手机仪表盘：卡片顺序，以及手机上省略的卡片和磁贴",
   "Width": "宽度",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "将一个磁贴拖到另一个上可更改手机上的顺序，点眼睛图标可隐藏。电脑上隐藏的磁贴在手机上也保持隐藏。",
+  "Bottom bar on the phone": "手机底部栏",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "前四个页面在底部栏，其余按此顺序放在“更多”中。将一个页面拖到另一个上即可移动。",
+  "Phone layout": "手机布局",
 }

@@ -1,20 +1,23 @@
 <script setup>
 // Phone: a bar at the bottom with the pages used most and a "More" button that opens the full menu. Replaces
-// reaching for the hamburger in the top left with one thumb.
+// reaching for the hamburger in the top left with one thumb. Which four pages, and their order: Customize > Phone
+// (phonePages in nav.js); the others are under More.
 import { computed } from 'vue';
 import Icon from './Icon.vue';
 import { route, go } from '../router';
 import { healthIssues } from '../features';
+import { phonePages } from '../nav';
+import { state } from '../store';
 import { t } from '../i18n';
 const emit = defineEmits(['menu']);
-const ITEMS = [
-  ['dashboard', 'dash', 'Dashboard'],
-  ['webcam', 'cam', 'Camera'],
-  ['console', 'term', 'Console'],
-  ['files', 'file', 'Files'],
-];
+// [route, icon, short label]
+const ITEMS = computed(() => phonePages.value.slice(0, 4).map(([k, i, l, short]) => [k, i, short || l]));
 const badge = computed(() => healthIssues.value.length);
-const more = computed(() => !ITEMS.some(([k]) => k === route.name));
+const healthIn = computed(() => ITEMS.value.some(([k]) => k === 'health'));
+const more = computed(() => !ITEMS.value.some(([k]) => k === route.name));
+function open(k) {
+  go(k, k === 'config' ? state.lastCfg || 'printer.cfg' : undefined);
+}
 </script>
 <template>
   <nav class="bnav" :aria-label="t('Pages')">
@@ -23,12 +26,14 @@ const more = computed(() => !ITEMS.some(([k]) => k === route.name));
       :key="k"
       :class="{ on: route.name === k }"
       :aria-current="route.name === k ? 'page' : null"
-      @click="go(k)"
+      @click="open(k)"
     >
-      <Icon :name="ic" :size="20" :stroke="2.2" /><span>{{ t(l) }}</span>
+      <span class="ic"
+        ><Icon :name="ic" :size="20" :stroke="2.2" /><i v-if="k === 'health' && badge" class="bd"></i></span
+      ><span>{{ t(l) }}</span>
     </button>
     <button :class="{ on: more }" :aria-label="t('Menu')" @click="emit('menu')">
-      <span class="ic"><Icon name="menu" :size="20" :stroke="2.2" /><i v-if="badge" class="bd"></i></span
+      <span class="ic"><Icon name="menu" :size="20" :stroke="2.2" /><i v-if="badge && !healthIn" class="bd"></i></span
       ><span>{{ t('More') }}</span>
     </button>
   </nav>

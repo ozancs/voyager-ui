@@ -2568,7 +2568,7 @@ export default {
   "Phone": "Телефон",
   "Reload preview": "Обновить предпросмотр",
   "Phone preview": "Предпросмотр на телефоне",
-  "The preview is the real interface: drag to scroll as with a finger, its buttons act on the printer.": "Предпросмотр — это настоящий интерфейс: перетаскивайте, чтобы прокручивать, как пальцем; его кнопки управляют принтером.",
+  "Live preview: drag to scroll, buttons act on the printer.": "Живой предпросмотр: перетаскивайте для прокрутки, кнопки управляют принтером.",
   "Cards on the phone": "Карточки на телефоне",
   "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Перетаскивайте, чтобы изменить порядок; глаз скрывает карточку только на телефоне. На компьютере остаются все карточки.",
   "Show on the phone": "Показать на телефоне",
@@ -2577,4 +2577,7 @@ export default {
   "The phone dashboard: its card order, and the cards and tiles a phone leaves out": "Панель телефона: порядок карточек и карточки и плитки, которые телефон не показывает",
   "Width": "Ширина",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Перетащите плитку на другую, чтобы изменить порядок на телефоне; глаз её скрывает. Плитки, скрытые на компьютере, скрыты и на телефоне.",
+  "Bottom bar on the phone": "Нижняя панель на телефоне",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "Первые четыре страницы на панели, остальные в этом порядке в разделе «Ещё». Перетащите страницу на другую, чтобы переместить её.",
+  "Phone layout": "Макет телефона",
 }
