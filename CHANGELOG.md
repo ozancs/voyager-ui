@@ -4,7 +4,7 @@
 
 - Customize > Phone: the top tiles are small tiles in the phone's own columns and order, with their reading; drag one onto another to change the order on the phone only, the eye leaves one out, Show hidden lists the ones left out
 - Customize on a phone: dragging a top tile sets the phone's order, the computer keeps its own
-- Customize > Phone: the phone preview uses the whole height of the page, the phone list is as wide as the model's name, and the Other size fields no longer push the reload button aside
+- Customize > Phone: the phone preview uses the whole height of the page, the phone list is as wide as the model's name, and the Other size fields no longer push the reload button aside; the note under the phone stays on one line; the preview hides its scrollbars, so it lays out as wide as the phone
 
 ## 0.38.48
 

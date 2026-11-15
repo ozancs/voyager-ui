@@ -1154,6 +1154,7 @@ if (phonePreview) {
   });
   window.parent?.postMessage({ type: 'voyager-phone-ready' }, location.origin);
   mouseDragScroll(); // the mouse scrolls by dragging, as a finger does on the phone
+  document.documentElement.classList.add('phone-preview'); // phone scrollbars take no width (style.css)
 }
 
 // ---------- settings persistence ----------

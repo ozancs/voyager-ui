@@ -54,7 +54,7 @@ const BEZEL = 12;
 // page's own CSS pixels (the interface scale zooms the page), again whenever the page area or the phone changes.
 const room = ref(600);
 const fwrap = ref(null);
-const NOTE = 52; // the note under the phone, up to two lines
+const NOTE = 30; // the one-line note under the phone
 function measure() {
   const el = fwrap.value;
   if (!el) return;
@@ -460,6 +460,12 @@ iframe {
   height: 34px;
 }
 
+/* the note under the phone stays on one line, a little smaller; the phone's column is as wide as it needs */
+.dev > .note {
+  white-space: nowrap;
+  font-size: 11.5px;
+  max-width: none;
+}
 .side .note {
   text-align: left;
   max-width: none;

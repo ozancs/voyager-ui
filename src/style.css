@@ -919,3 +919,12 @@ html.tablet .toggle {
 html.tablet kbd {
   display: none;
 }
+/* the phone preview in Customize > Phone: a phone's scrollbars float over the page and take no width, a desktop
+   frame's take a few pixels; hidden here so the preview lays out exactly as wide as the phone (scrolling still works) */
+.phone-preview,
+.phone-preview * {
+  scrollbar-width: none;
+}
+.phone-preview ::-webkit-scrollbar {
+  display: none;
+}
