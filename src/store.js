@@ -75,6 +75,7 @@ export const DEFAULT_SETTINGS = () => ({
   invertZ: true,
   toolheadStyle: 'circle', // Toolhead card jog: circle (round pad, as Mainsail's) | buttons (rows per axis and a D-pad)
   hiddenCfgs: [],
+  pinnedMachine: [], // Machine page files and folders pinned to the top, by full path (config/printer.cfg)
   printerName: '',
   customCards: {},
   layoutBackups: [],

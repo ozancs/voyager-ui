@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.51
+
+- Machine: files and folders can be pinned to the top of their folder (bookmark button on the row, or right-click > Pin to top), printer.cfg for example; a pinned item keeps its pin when renamed
+
 ## 0.38.50
 
 - Phone: the bottom bar's four pages and the order of the pages under More are set in Customize > Phone layout, by dragging, the same as on the phone

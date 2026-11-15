@@ -6,7 +6,7 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import ImageViewer from './ImageViewer.vue';
-import { fmtBytes, fmtDate, toast, useApiEvent } from '../store';
+import { state, fmtBytes, fmtDate, toast, useApiEvent } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { downloadMany } from '../features';
@@ -30,7 +30,7 @@ async function showContext(event, item) {
   context.value = {
     item,
     x: Math.max(8, Math.min(event.clientX, innerWidth - 232)),
-    y: Math.max(8, Math.min(event.clientY, innerHeight - 250)),
+    y: Math.max(8, Math.min(event.clientY, innerHeight - 290)),
   };
   await nextTick();
   contextEl.value?.querySelector('button')?.focus();
@@ -41,6 +41,7 @@ function contextAction(action) {
   if (action === 'open') open(it);
   else if (action === 'move')
     moveOf.value = picked.value.has(key(it)) ? pickedRows.value.map((x) => x.name) : [it.name];
+  else if (action === 'pin') togglePin(it);
   else if (action === 'download') {
     picked.value = new Set([key(it)]);
     dlPicked();
@@ -89,8 +90,27 @@ const rows = computed(() => {
     .filter((x) => !gone(x.filename))
     .map((x) => ({ ...x, name: x.filename }))
     .sort(cmp);
-  return [...ds, ...fs];
+  // pinned folders and files go first, each group keeping the chosen sort
+  const all = [...ds, ...fs];
+  return [...all.filter(pinned), ...all.filter((it) => !pinned(it))];
 });
+// Files and folders pinned to the top of their folder (row button or right-click > Pin to top), kept by their full
+// path with the root (config/printer.cfg) so the same name in another folder or root is not pinned too.
+const pinPath = (it, base = full.value) => base + '/' + it.name + (it.dir ? '/' : '');
+const pinned = (it) => (state.settings.pinnedMachine || []).includes(pinPath(it));
+function togglePin(it) {
+  const l = [...(state.settings.pinnedMachine || [])];
+  const i = l.indexOf(pinPath(it));
+  i >= 0 ? l.splice(i, 1) : l.push(pinPath(it));
+  state.settings.pinnedMachine = l;
+}
+// a renamed item keeps its pin, and so do the pinned items inside a renamed folder
+function repin(from, to) {
+  // a folder's path ends in '/', so it matches only what is inside it; a file's must match whole
+  const hit = (x) => (from.endsWith('/') ? x.startsWith(from) : x === from);
+  const l = state.settings.pinnedMachine || [];
+  if (l.some(hit)) state.settings.pinnedMachine = l.map((x) => (hit(x) ? to + x.slice(from.length) : x));
+}
 function sortBy(k) {
   sort.value = { k, d: sort.value.k === k ? -sort.value.d : k === 'filename' ? 1 : -1 };
 }
@@ -243,9 +263,10 @@ async function confirmModal() {
     if (m.kind === 'newdir') await api.call('server.files.post_directory', { path: `${base}/${name}` });
     else if (m.kind === 'newfile')
       await api.upload(new Blob([''], { type: 'text/plain' }), { root: root.value, path: path.value, name });
-    else if (m.kind === 'rename')
+    else if (m.kind === 'rename') {
       await api.call('server.files.move', { source: `${base}/${m.item.name}`, dest: `${base}/${name}` });
-    else if (m.kind === 'delete') deleteLater([m.item], base);
+      repin(pinPath(m.item, base), pinPath({ ...m.item, name }, base));
+    } else if (m.kind === 'delete') deleteLater([m.item], base);
   } catch (e) {
     toast(e.message, 'error');
   } finally {
@@ -496,12 +517,23 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
               />
             </td>
             <td class="nm" :class="{ main: main(it) }">
-              {{ it.name }}<span v-if="main(it)" class="tag">{{ t(main(it)) }}</span>
+              <Icon v-if="pinned(it)" name="bookmark" :size="13" class="pinm" />{{ it.name
+              }}<span v-if="main(it)" class="tag">{{ t(main(it)) }}</span>
             </td>
             <td class="mono mu r">{{ it.dir ? '--' : fmtBytes(it.size) }}</td>
             <td class="mono mu r">{{ fmtDate(it.modified) }}</td>
             <td>
               <div class="acts">
+                <button
+                  class="btn clear ibtn sm"
+                  :class="{ on: pinned(it) }"
+                  :aria-label="pinned(it) ? t('Unpin') : t('Pin to top')"
+                  :data-tip="pinned(it) ? t('Unpin') : t('Pin to top')"
+                  :aria-pressed="pinned(it)"
+                  @click.stop="togglePin(it)"
+                >
+                  <Icon name="bookmark" :size="16" />
+                </button>
                 <a
                   v-if="!it.dir"
                   class="btn clear ibtn sm"
@@ -546,6 +578,9 @@ const TITLES = { newdir: 'New folder', newfile: 'New file', rename: 'Rename', de
         <Icon name="file" :size="16" />{{
           context.item.dir ? t('Open folder') : EDITABLE.test(context.item.name) ? t('Edit') : t('Open')
         }}
+      </button>
+      <button class="btn clear" role="menuitem" @click="contextAction('pin')">
+        <Icon name="bookmark" :size="16" />{{ pinned(context.item) ? t('Unpin') : t('Pin to top') }}
       </button>
       <button class="btn clear" role="menuitem" @click="contextAction('download')">
         <Icon name="download" :size="16" />{{ t('Download') }}
@@ -642,6 +677,14 @@ tr.sel td {
   place-items: center;
   background: var(--ac);
   color: var(--oa);
+}
+.pinm {
+  color: var(--ac);
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.acts .on {
+  color: var(--ac);
 }
 /* rows: a little tighter than the general table */
 tr.fr td {
