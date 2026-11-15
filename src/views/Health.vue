@@ -647,16 +647,22 @@ function measureAgain(h) {
 </template>
 
 <style scoped>
+/* the button goes under the text when the card is narrow (phone) instead of squeezing it into a thin column */
 .fw {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 12.5px;
   color: var(--mu);
 }
 .fw > .grow {
-  flex: 1 1 0;
+  flex: 1 1 180px;
   min-width: 0;
+}
+.fw > .btn {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 .fw > .btn {
   flex-shrink: 0;

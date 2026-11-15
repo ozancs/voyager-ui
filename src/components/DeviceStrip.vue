@@ -21,6 +21,7 @@ import {
   gcode,
   saveSettings,
   allPresets,
+  isPhone,
 } from '../store';
 import { t } from '../i18n';
 import { usePhoenixView, openSetup } from '../phoenix';
@@ -55,18 +56,32 @@ onMounted(() => {
   if (box.value) ro.observe(box.value.$el || box.value);
 });
 onBeforeUnmount(() => ro?.disconnect());
+// phone: smaller, lower tiles (three in a row), so the tiles do not fill the first screen by themselves
+const phone = computed(() => boxW.value > 0 && boxW.value < 560);
 const cols = computed(() => {
   const n = items.value.length;
   if (!n || !boxW.value) return null;
   // fill the width first: as many tiles per row as fit, the rest wrap. (Evening out the rows left a wide
   // empty space on the right, e.g. 16 tiles on a screen with room for 13 became two rows of 8.)
-  const max = Math.max(1, Math.floor((boxW.value + 4) / 128));
+  const max = Math.max(1, Math.floor((boxW.value + 4) / (phone.value ? 104 : 128)));
   // (on a phone the columns then stretch to the full width, see the template)
   return Math.min(n, max);
 });
+// on a phone the eye hides a tile on phones only (stripPhoneHidden); the computer keeps showing it
 const isHidden = (d) =>
-  (state.settings.strip.hidden || []).includes(d.id) || state.settings.devices.hidden.includes(d.obj);
+  (state.settings.strip.hidden || []).includes(d.id) ||
+  state.settings.devices.hidden.includes(d.obj) ||
+  (isPhone.value && (state.settings.stripPhoneHidden || []).includes(d.id));
 function toggleHide(d) {
+  if (
+    isPhone.value &&
+    !(state.settings.strip.hidden || []).includes(d.id) &&
+    !state.settings.devices.hidden.includes(d.obj)
+  ) {
+    const p = state.settings.stripPhoneHidden || [];
+    state.settings.stripPhoneHidden = p.includes(d.id) ? p.filter((x) => x !== d.id) : [...p, d.id];
+    return;
+  }
   const h = state.settings.strip.hidden;
   if (isHidden(d)) {
     // hidden through either list: show again
@@ -307,7 +322,7 @@ function sensorExtra(id) {
     tag="div"
     ref="box"
     class="ds"
-    :class="{ editing: state.editDash, settle }"
+    :class="{ editing: state.editDash, settle, ph: phone }"
     :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, ${boxW < 560 ? '1fr' : '144px'}))` } : null"
     move-class="mv"
   >
@@ -914,6 +929,47 @@ function sensorExtra(id) {
   flex-shrink: 0;
   border-radius: 14px;
   border: 5px solid #3a3a3a;
+}
+.ds.ph {
+  gap: 6px;
+}
+.ds.ph .dc {
+  height: 58px;
+  padding: 6px 8px;
+}
+.ds.ph .lbl {
+  font-size: 11px;
+}
+.ds.ph .tbig {
+  font-size: 18px;
+}
+.ds.ph .tbig + small {
+  font-size: 11px !important;
+}
+.ds.ph .big,
+.ds.ph .row > b {
+  font-size: 15px !important;
+}
+.ds.ph .big small {
+  font-size: 11px;
+}
+.ds.ph .row {
+  gap: 6px !important;
+}
+.ds.ph .dc > .row :deep(svg) {
+  width: 18px;
+  height: 18px;
+}
+.ds.ph .bar {
+  height: 4px;
+}
+/* the second line under a value (pin state, sensor note, fan rpm, Phoenix detail) has no room on a phone tile */
+.ds.ph .spl > .row:last-child,
+.ds.ph .dc > span.mono.sm,
+.ds.ph .rpm,
+.ds.ph .spl > .mu.ell,
+.ds.ph .tt:not(.on) {
+  display: none;
 }
 .ell {
   overflow: hidden;

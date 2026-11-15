@@ -2,6 +2,12 @@
 
 ## 0.38.48
 
+- Phone layout: Customize on a computer has a Phone tab with a live preview in a phone of your choice (iPhone, Pixel, Galaxy sizes). Order the phone's cards and leave cards and top tiles out on the phone only; the computer keeps all of them (idea from Raidy)
+- Customize on a phone: the eye hides a card or a top tile on phones only, instead of removing it from the computer's dashboard too
+- Phone: the top tiles are smaller and lower, three in a row, so they no longer fill the first screen
+- Phone: the console page's Errors, Hide temps, Copy and Clear buttons fit one row next to the search
+- Health on a phone: the firmware note keeps its width, its button goes under it
+- Macros card: buttons keep a readable size and the card scrolls by default; shrinking to fit is an option (idea from Raidy)
 - The live demo moved to oznlab.com/voyager-ui
 
 ## 0.38.47

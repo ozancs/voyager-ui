@@ -30,21 +30,38 @@ const desc = (c) => macroDesc(c, state.settings.cardOpts?.macros?.descs, state.c
               :aria-label="t('Search the console')"
               @keydown.esc="find = ''"
           /></label>
-          <button class="btn" :class="{ on: errOnly }" :aria-pressed="errOnly" @click="errOnly = !errOnly">
-            <Icon name="warn" :size="15" />{{ t('Errors') }}
+          <!-- on a phone the labels go and the buttons keep their icon, so search and buttons fit one row -->
+          <button
+            class="btn"
+            :class="{ on: errOnly }"
+            :aria-pressed="errOnly"
+            :aria-label="t('Errors')"
+            :data-tip="t('Errors')"
+            @click="errOnly = !errOnly"
+          >
+            <Icon name="warn" :size="15" /><span class="bl">{{ t('Errors') }}</span>
           </button>
           <button
             class="btn"
             :class="{ on: state.settings.consoleHideTemps }"
             :aria-pressed="!!state.settings.consoleHideTemps"
+            :aria-label="t('Hide temps')"
+            :data-tip="t('Hide temps')"
             @click="state.settings.consoleHideTemps = !state.settings.consoleHideTemps"
           >
-            {{ t('Hide temps') }}</button
-          ><button class="btn" @click="cv?.copyAll()">
-            <Icon :name="cv?.copied === 'all' ? 'check' : 'copy'" :size="15" />{{
+            <Icon name="thermo" :size="15" /><span class="bl">{{ t('Hide temps') }}</span></button
+          ><button
+            class="btn"
+            :aria-label="t('Copy console')"
+            :data-tip="cv?.copied === 'all' ? t('Copied') : t('Copy console')"
+            @click="cv?.copyAll()"
+          >
+            <Icon :name="cv?.copied === 'all' ? 'check' : 'copy'" :size="15" /><span class="bl">{{
               cv?.copied === 'all' ? t('Copied') : t('Copy console')
-            }}</button
-          ><button class="btn" @click="clearConsole"><Icon name="trash" :size="16" />{{ t('Clear') }}</button>
+            }}</span></button
+          ><button class="btn" :aria-label="t('Clear')" :data-tip="t('Clear')" @click="clearConsole">
+            <Icon name="trash" :size="16" /><span class="bl">{{ t('Clear') }}</span>
+          </button>
         </div>
       </div>
       <ConsoleView ref="cv" :limit="600" :search="find" :errors="errOnly" />
@@ -120,6 +137,28 @@ const desc = (c) => macroDesc(c, state.settings.cardOpts?.macros?.descs, state.c
 }
 .mu {
   color: var(--mu);
+}
+@media (max-width: 720px) {
+  .cp > .card > .card-h > .acts {
+    flex: 1 1 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .cp .acts .btn {
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .cp .acts .bl {
+    display: none;
+  }
+  .fnd {
+    flex: 1;
+    width: auto;
+    min-width: 60px;
+  }
 }
 /* stacked (narrow window / phone): the console keeps most of the window, the command list scrolls in its own
    card below it instead of pushing the console out of its card */

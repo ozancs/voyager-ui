@@ -55,7 +55,8 @@ const GAP = 8;
 const grid = computed(() => {
   const n = Math.max(1, shown.value.length),
     { w, h } = size.value;
-  if (opts.value.scroll) {
+  if (opts.value.scroll !== false) {
+    // buttons keep a readable size and the card scrolls, unless shrinking was picked in the options
     const cols = Math.max(1, Math.floor((w + GAP) / (130 + GAP)));
     return { cols, bh: 40, fs: 12.5, scroll: true };
   }

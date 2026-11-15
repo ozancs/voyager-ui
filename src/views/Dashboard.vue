@@ -4,7 +4,8 @@ import { hasLedEffects } from '../ledEffects';
 // MODULES lists every card type with its size limits. `scale`: made smaller than its content, the card shrinks all of
 // it to fit (fit.js) instead of scrolling, so it can go down to a small minimum size. Customize mode: drag, resize (also from the bottom-left
 // corner), hide, colour and add cards, a separate layout while printing, undo and saved backups. On narrow
-// screens the cards stack in one column with their own order (mobileOrder).
+// screens the cards stack in one column with their own order and their own hidden cards (mobileOrder,
+// mobileHidden); on a computer that phone layout is edited beside a phone preview (Customize > Phone).
 import { ref, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import { GridLayout, GridItem } from 'grid-layout-plus';
 import Icon from '../components/Icon.vue';
@@ -70,6 +71,7 @@ import { orderMacros, macroDesc } from '../macros';
 import SortList from '../components/SortList.vue';
 import ButtonParams from '../components/ButtonParams.vue';
 import ControlEditor from '../components/ControlEditor.vue';
+import PhoneDesigner from '../components/PhoneDesigner.vue';
 
 const MODULES = {
   console: { c: ConsoleCard, n: 'Console', min: [4, 4], def: [12, 7], fixed: true }, // fixed: keeps its height in one column
@@ -267,8 +269,9 @@ const nameOf = (i) =>
     ? state.settings.customCards?.[i]?.name || 'Custom'
     : state.settings.cardTitles?.[i]?.name || MODULES[i]?.n;
 
-// two layouts: normal and while printing (optional). In Customize both can be edited.
+// two layouts: normal and while printing (optional). In Customize both can be edited, and the phone layout too.
 const editMode = ref('idle');
+const phoneEdit = ref(false);
 const mode = computed(() =>
   state.editDash
     ? state.settings.autoLayout
@@ -402,12 +405,23 @@ watch(
 const sorted = computed(() => [...layout.value].sort((a, b) => a.y - b.y || a.x - b.x));
 // phone / narrow window: one column. Its order is kept on its own (mobileOrder), so moving a card here does not
 // shuffle the desktop grid. Cards not in the list yet follow in desktop order.
-const column = computed(() => {
+const columnAll = computed(() => {
   const ord = state.settings.mobileOrder || DEFAULT_MOBILE_ORDER;
   const has = (i) => layout.value.some((x) => x.i === i);
   const ids = [...ord.filter(has), ...sorted.value.map((x) => x.i).filter((i) => !ord.includes(i))];
   return ids.map((i) => layout.value.find((x) => x.i === i));
 });
+// the cards left out on a phone (Customize > Phone) are listed while editing, so they can be shown again
+const column = computed(() =>
+  state.editDash ? columnAll.value : columnAll.value.filter((x) => !(state.settings.mobileHidden || []).includes(x.i)),
+);
+const phoneCards = computed(() =>
+  columnAll.value.map((x) => ({ i: x.i, name: isCustom(x.i) ? nameOf(x.i) : t(nameOf(x.i)) })),
+);
+function togglePhoneCard(i) {
+  const h = state.settings.mobileHidden || [];
+  state.settings.mobileHidden = h.includes(i) ? h.filter((x) => x !== i) : [...h, i];
+}
 // grid-layout-plus also emits layout-updated on mount and on resize; only a Customize session writes settings
 function persist(force = false) {
   if (!state.editDash && !force) return;
@@ -602,6 +616,7 @@ const askReset = ref(false);
 function startEdit() {
   entry = layoutSnapshot();
   editMode.value = mode.value;
+  phoneEdit.value = false;
   state.editDash = true;
   reload(); // folded cards open up for editing
 }
@@ -672,7 +687,7 @@ onBeforeUnmount(() => {
 const optsFor = ref(null);
 const mo = computed(() => {
   const o = state.settings.cardOpts || (state.settings.cardOpts = {});
-  return o.macros || (o.macros = { scroll: false, showHidden: false, hidden: [] });
+  return o.macros || (o.macros = { scroll: true, showHidden: false, hidden: [] });
 });
 const pco = computed(() => {
   const o = state.settings.cardOpts || (state.settings.cardOpts = {});
@@ -825,34 +840,51 @@ function detachCard(i) {
         <Icon name="move" :size="18" style="color: var(--ac)" />
         <b>{{ t('Customize') }}</b>
         <span class="chip">{{
-          t('Editing layout: {layout}', { layout: mode === 'print' ? t('Printing') : t('Idle') })
+          t('Editing layout: {layout}', {
+            layout: phoneEdit && wide ? t('Phone') : mode === 'print' ? t('Printing') : t('Idle'),
+          })
         }}</span>
         <label class="row al" :title="t('Use a separate layout while a print is running')"
           ><Toggle v-model="state.settings.autoLayout" :label="t('Separate layout while printing')" /><span>{{
             t('While printing')
           }}</span></label
         >
-        <div v-if="state.settings.autoLayout" class="seg" role="tablist" :aria-label="t('Layout to edit')">
+        <div v-if="state.settings.autoLayout || wide" class="seg" role="tablist" :aria-label="t('Layout to edit')">
           <button
-            :class="{ on: editMode === 'idle' }"
+            :class="{ on: editMode === 'idle' && !phoneEdit }"
             @click="
               persist();
               editMode = 'idle';
+              phoneEdit = false;
             "
           >
             {{ t('Idle') }}
           </button>
           <button
-            :class="{ on: editMode === 'print' }"
+            v-if="state.settings.autoLayout"
+            :class="{ on: editMode === 'print' && !phoneEdit }"
             @click="
               persist();
               editMode = 'print';
+              phoneEdit = false;
             "
           >
             {{ t('Printing') }}
           </button>
+          <button
+            v-if="wide"
+            :class="{ on: phoneEdit }"
+            :data-tip="t('The phone dashboard: its card order, and the cards and tiles a phone leaves out')"
+            @click="
+              persist();
+              editMode = 'idle';
+              phoneEdit = true;
+            "
+          >
+            <Icon name="phone" :size="14" />{{ t('Phone') }}
+          </button>
         </div>
-        <span v-if="wide" class="mu hint">{{
+        <span v-if="wide && !phoneEdit" class="mu hint">{{
           t('Drag by title, resize from the corner. Top cards: drag to reorder, eye to hide.')
         }}</span>
         <div class="grow"></div>
@@ -930,7 +962,8 @@ function detachCard(i) {
         <button class="btn acc" @click="done"><Icon name="check" :size="16" :stroke="2.6" />{{ t('Done') }}</button>
       </template>
     </div>
-    <div class="top">
+    <!-- Customize > Phone has its own list of the tiles (the eyes here would hide them on the computer) -->
+    <div v-show="!(state.editDash && phoneEdit && wide)" class="top">
       <DeviceStrip v-if="state.klippy === 'ready'" />
       <div v-else class="grow"></div>
     </div>
@@ -941,8 +974,9 @@ function detachCard(i) {
       class="grid-host"
       :style="wide ? { margin: `0 ${-Math.min(gap[0], pad[1])}px 0 ${-Math.min(gap[0], pad[0])}px` } : null"
     >
+      <PhoneDesigner v-if="wide && state.editDash && phoneEdit" :cards="phoneCards" />
       <GridLayout
-        v-if="wide"
+        v-else-if="wide"
         v-model:layout="layout"
         ref="gridView"
         class="grid"
@@ -1088,12 +1122,21 @@ function detachCard(i) {
           @update:model-value="(a) => (state.settings.mobileOrder = a.map((x) => x.i))"
         >
           <template #default="{ item: it }">
-            <span class="grow">{{ isCustom(it.i) ? nameOf(it.i) : t(nameOf(it.i)) }}</span>
+            <span class="grow" :class="{ moff: (state.settings.mobileHidden || []).includes(it.i) }">{{
+              isCustom(it.i) ? nameOf(it.i) : t(nameOf(it.i))
+            }}</span>
             <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit')" @click="editCard(it.i)">
               <Icon name="pencil" :size="16" />
             </button>
-            <button class="btn ibtn sm" :aria-label="t('Remove card')" @click="removeCard(it.i)">
-              <Icon name="x" :size="18" :stroke="2.4" />
+            <!-- leaves the card out on the phone only; the computer's grid keeps it -->
+            <button
+              class="btn ibtn sm"
+              :aria-label="
+                (state.settings.mobileHidden || []).includes(it.i) ? t('Show on the phone') : t('Hide on the phone')
+              "
+              @click="togglePhoneCard(it.i)"
+            >
+              <Icon :name="(state.settings.mobileHidden || []).includes(it.i) ? 'eyeoff' : 'eye'" :size="18" />
             </button>
           </template>
         </SortList>
@@ -1146,7 +1189,11 @@ function detachCard(i) {
               t('Off: buttons shrink so all macros fit the card. On: buttons keep their size and the card scrolls.')
             }}</span>
           </div>
-          <Toggle v-model="mo.scroll" :label="t('Scroll')" />
+          <Toggle
+            :model-value="mo.scroll !== false"
+            :label="t('Scroll')"
+            @update:model-value="(v) => (mo.scroll = v)"
+          />
         </div>
         <div class="row" style="justify-content: space-between">
           <b>{{ t('Show hidden macros (starting with _)') }}</b
@@ -1465,6 +1512,10 @@ function detachCard(i) {
   border-radius: 12px;
   font-weight: 600;
   font-size: 14px;
+}
+.mlist .moff {
+  opacity: 0.45;
+  text-decoration: line-through;
 }
 .mlist :deep(.sr.drag) {
   background: var(--s2);

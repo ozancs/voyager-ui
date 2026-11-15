@@ -782,6 +782,12 @@ where we are (detected: steps 1-4, the operator walks them; prepared: 5-6; heati
 reload or a reconnect lands on the same step. Every button sends exactly one Phoenix command and waits for the  
 status; nothing is sent by opening, closing, a step change or an animation, nothing is retried after an error.
 
+**[src/components/PhoneDesigner.vue](../src/components/PhoneDesigner.vue)**  
+Customize > Phone on a computer: the phone dashboard edited beside a live preview. The preview is this same  
+interface in a frame the size of the chosen phone (?phonepreview, see store.js): it gets the settings from here  
+on every change and saves nothing itself. The lists set the phone's card order and which cards and top tiles a  
+phone leaves out (mobileOrder, mobileHidden, stripPhoneHidden); the desktop grid keeps all of them.
+
 **[src/components/Popover.vue](../src/components/Popover.vue)**  
 Pop-up panel for buttons inside dashboard cards (sensor picker, presets). It is moved to <body> so the card's  
 scroll area, the page's scroll area and the side menu cannot cut it off or cover it, and it is placed under  

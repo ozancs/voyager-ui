@@ -4,7 +4,7 @@
 //  - settings: kept in Moonraker's database (and in localStorage as a fast first paint), see saveSettings
 //  - helpers used everywhere: S(obj) for a printer object, gcode(), toast(), formatting functions
 //  - temperature history (hist), print time estimates, update checks and throttling notices
-import { reactive, computed, markRaw, watch, onBeforeUnmount } from 'vue';
+import { reactive, ref, computed, markRaw, watch, onBeforeUnmount } from 'vue';
 import { api } from './api/moonraker';
 import { setLang, t } from './i18n';
 import { currentHost, currentPrinter, perPrinterKey } from './printers';
@@ -91,7 +91,9 @@ export const DEFAULT_SETTINGS = () => ({
   autoLayout: false,
   layoutPrint: null,
   layoutWidths: null,
-  mobileOrder: null, // card order of the one-column phone dashboard, set in Customize on a phone
+  mobileOrder: null, // card order of the one-column phone dashboard, set in Customize (Phone)
+  mobileHidden: [], // dashboard cards left out on a phone only; the desktop grid keeps them
+  stripPhoneHidden: [], // top tiles left out on a phone only
   hiddenCardsPrint: [],
   collapsed: {}, // card id -> true while folded to its header
   // alerts for print events: sounds, a system notification while the tab is in the background, spoken text
@@ -240,6 +242,8 @@ export const LAYOUT_KEYS = [
   'cardColors',
   'cardTitles',
   'mobileOrder',
+  'mobileHidden',
+  'stripPhoneHidden',
   'collapsed',
 ];
 // Moonraker lists cameras from moonraker.conf first, then the saved ones in database (uid) order, and moves a
@@ -631,6 +635,9 @@ export const devices = computed(() => {
 });
 
 // items for the top card strip: temperatures first, then devices. Order + hidden persisted.
+// a phone, or a window as narrow as one: the dashboard is one column with its own cards and tiles (Customize > Phone)
+export const isPhone = ref(window.innerWidth <= 700);
+window.addEventListener('resize', () => (isPhone.value = window.innerWidth <= 700));
 export const stripAll = computed(() => {
   const temps = tempSensors.value.map((n) => ({ id: 'temp:' + n, kind: 'temp', obj: n }));
   const items = [...temps, ...devices.value.map((d) => ({ ...d, obj: d.id, id: 'dev:' + d.id }))];
@@ -643,7 +650,10 @@ export const stripAll = computed(() => {
 });
 export const stripVisible = computed(() =>
   stripAll.value.filter(
-    (x) => !(state.settings.strip?.hidden || []).includes(x.id) && !state.settings.devices.hidden.includes(x.obj),
+    (x) =>
+      !(state.settings.strip?.hidden || []).includes(x.id) &&
+      !state.settings.devices.hidden.includes(x.obj) &&
+      !(isPhone.value && (state.settings.stripPhoneHidden || []).includes(x.id)),
   ),
 );
 
@@ -1095,10 +1105,26 @@ export function setFan(id, pct) {
   return gcode(`SET_FAN_SPEED FAN=${shortName(id)} SPEED=${v}`);
 }
 
+// ---------- phone ----------
+// The phone preview in Customize is this same page in a frame (?phonepreview). It shows the settings the editor
+// sends it and never saves any: the editing page is the one that saves.
+export const phonePreview = new URLSearchParams(location.search).has('phonepreview');
+let previewSettings = null;
+if (phonePreview) {
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || e.data?.type !== 'voyager-phone-settings') return;
+    previewSettings = e.data.settings;
+    state.settings = mergeSettings(previewSettings);
+    state.settingsLoaded = true;
+  });
+  window.parent?.postMessage({ type: 'voyager-phone-ready' }, location.origin);
+}
+
 // ---------- settings persistence ----------
 let saveTimer = null;
 let settingsDirty = false; // changed here but not yet confirmed by Moonraker: a reload from the DB must not undo it
 export function saveSettings() {
+  if (phonePreview) return;
   clearTimeout(saveTimer);
   settingsDirty = true;
   const value = JSON.parse(JSON.stringify(state.settings));
@@ -1148,6 +1174,12 @@ async function loadSettings() {
         await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: cur });
       } catch {}
     }
+  }
+  if (phonePreview && previewSettings) {
+    // the editor's settings (possibly not saved yet) win over the database here
+    state.settings = mergeSettings(previewSettings);
+    state.settingsLoaded = true;
+    return;
   }
   if (settingsDirty) {
     // changed while offline or within the save debounce: this browser's copy is newer than the DB, push it instead
