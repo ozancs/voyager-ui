@@ -206,14 +206,6 @@ function tUp() {
   tStart = null;
   tDrag.value = null;
 }
-// the arrow keys move the focused tile, up and down by a whole row
-function tKey(d, e) {
-  const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -tCols.value, ArrowDown: tCols.value }[e.key];
-  if (!step) return;
-  e.preventDefault();
-  moveTile(d.id, listedTiles.value.findIndex((x) => x.id === d.id) + step);
-  nextTick(() => tGrid.value?.querySelector(`[data-id="${CSS.escape(d.id)}"]`)?.focus());
-}
 // what the tile shows on the phone, in short
 function tileValue(d) {
   const o = d.obj ? S(d.obj) : {};
@@ -357,14 +349,11 @@ const KINDS = {
                 over: tDrag && tDrag.over === d.id && tDrag.id !== d.id,
               }"
               :style="tDrag?.id === d.id ? { translate: `${tDrag.dx}px ${tDrag.dy}px` } : null"
-              tabindex="0"
-              role="listitem"
               :aria-label="tileName(d)"
               @pointerdown="tDown(d, $event)"
               @pointermove="tMove"
               @pointerup="tUp"
               @pointercancel="tUp"
-              @keydown="tKey(d, $event)"
             >
               <div class="mh">
                 <span class="nm">{{ tileName(d) }}</span>
@@ -514,9 +503,11 @@ iframe {
   field-sizing: content;
 }
 /* the top tiles as on the phone: small, in its columns, in its order */
+/* a little room round the grid, so the outline of the tile under a drag is not cut by the scrolling area */
 .tg2 {
   display: grid;
   gap: 6px;
+  padding: 3px;
   max-width: 460px;
 }
 .mt {
@@ -534,10 +525,6 @@ iframe {
   touch-action: none;
   user-select: none;
   min-width: 0;
-}
-.mt:focus-visible {
-  outline: 2px solid var(--ac);
-  outline-offset: 1px;
 }
 .mt.drag {
   z-index: 5;
