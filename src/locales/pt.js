@@ -2580,4 +2580,5 @@ export default {
   "Bottom bar on the phone": "Barra inferior no telemóvel",
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "As quatro primeiras páginas ficam na barra, as restantes em Mais por esta ordem. Arraste uma página para cima de outra para as trocar.",
   "Phone layout": "Disposição do telemóvel",
+  "runout: {done} / {of} mm": "fim: {done} / {of} mm",
 }

@@ -2573,5 +2573,6 @@
   "Bottom bar on the phone",
   "Phone layout",
   "Live preview: drag to scroll, buttons act on the printer.",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them."
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.",
+  "runout: {done} / {of} mm"
 ]

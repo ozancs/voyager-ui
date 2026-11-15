@@ -8,7 +8,7 @@ import CardCollapse from './CardCollapse.vue';
 import Toggle from './Toggle.vue';
 import Popover from './Popover.vue';
 import LedPicker from './LedPicker.vue';
-import { state, S, devices, prettyName, shortName, setFan, gcode } from '../store';
+import { state, S, devices, prettyName, shortName, setFan, gcode, sensorRunout } from '../store';
 import { t } from '../i18n';
 
 const list = computed(() =>
@@ -107,10 +107,23 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
           ><Toggle :model-value="ledOn(d.id)" :label="prettyName(d.id)" @update:model-value="(v) => led(d.id, v)"
         /></template>
         <template v-else-if="d.kind === 'filament'">
-          <span class="grow sm" :style="{ color: S(d.id).filament_detected ? null : 'var(--wn)' }">{{
-            S(d.id).filament_detected ? t('Detected') : t('Empty')
+          <span v-if="sensorRunout(d.id)" class="grow sm mono" style="color: var(--wn)">{{
+            t('runout: {done} / {of} mm', {
+              done: Math.round(sensorRunout(d.id).done),
+              of: Math.round(sensorRunout(d.id).of),
+            })
           }}</span>
+          <span
+            v-else-if="S(d.id).filament_detected !== undefined"
+            class="grow sm"
+            :style="{ color: S(d.id).filament_detected ? null : 'var(--wn)' }"
+            >{{ S(d.id).filament_detected ? t('Detected') : t('Empty') }}</span
+          >
+          <!-- a sensor that does not report filament (some plugin sensors): only whether it is on -->
+          <span v-else class="grow sm">{{ S(d.id).enabled === false ? t('Disabled') : t('Active') }}</span>
+          <!-- SET_FILAMENT_SENSOR only knows Klipper's own sensors -->
           <Toggle
+            v-if="!d.custom && S(d.id).enabled !== undefined"
             :model-value="!!S(d.id).enabled"
             :label="prettyName(d.id)"
             @update:model-value="(v) => sensor(d.id, v)"

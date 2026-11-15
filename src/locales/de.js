@@ -2580,4 +2580,5 @@ export default {
   "Bottom bar on the phone": "Untere Leiste auf dem Handy",
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Die ersten vier Seiten stehen in der Leiste, die übrigen in dieser Reihenfolge unter Mehr. Ziehe eine Seite auf eine andere, um beide zu tauschen.",
   "Phone layout": "Handy-Layout",
+  "runout: {done} / {of} mm": "Runout: {done} / {of} mm",
 }

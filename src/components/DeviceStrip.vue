@@ -12,6 +12,7 @@ import LedPicker from './LedPicker.vue';
 import {
   state,
   S,
+  sensorRunout,
   stripAll,
   stripVisible,
   prettyName,
@@ -295,10 +296,13 @@ function level(d) {
   return Math.max(0, Math.min(1, v || 0));
 }
 function sensorExtra(id) {
+  // Klipper's runout and motion sensors report nothing beyond detected and enabled; what Kalico adds there are its
+  // settings (smart, always_fire_events, runout_distance, detection_length) and the runout countdown, shown on its own
+  if (/^filament_(switch|motion)_sensor /.test(id)) return [];
   const s = S(id);
   return (
     Object.entries(s)
-      // readings only: Kalico adds settings to the sensor's status (smart, always_fire_events) that are true/false
+      // readings only: true/false values are settings
       .filter(
         ([k, v]) => typeof v !== 'object' && typeof v !== 'boolean' && !['enabled', 'filament_detected'].includes(k),
       )
@@ -543,7 +547,13 @@ function sensorExtra(id) {
             S(d.obj).enabled === false ? t('Disabled') : t('Active')
           }}</b>
         </div>
-        <span class="mono sm mu">{{
+        <span v-if="sensorRunout(d.obj)" class="mono sm" style="color: var(--dg)">{{
+          t('runout: {done} / {of} mm', {
+            done: Math.round(sensorRunout(d.obj).done),
+            of: Math.round(sensorRunout(d.obj).of),
+          })
+        }}</span>
+        <span v-else class="mono sm mu">{{
           S(d.obj).enabled === false
             ? t('disabled')
             : sensorExtra(d.obj)

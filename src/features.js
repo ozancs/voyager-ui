@@ -259,7 +259,12 @@ watch(
   },
 );
 // filament runout: a filament sensor that stops seeing filament during a print. Klipper pauses right after, so
-// that pause does not play its own sound on top of this one.
+// that pause does not play its own sound on top of this one. With Kalico's runout_distance the pause comes only
+// after that much more filament, which can take minutes: a sensor still reporting the runout keeps it quiet too.
+const runoutNow = () =>
+  state.objects.some(
+    (o) => /^filament_(switch|motion)_sensor /.test(o) && S(o).enabled !== false && S(o).filament_detected === false,
+  );
 let runoutAt = 0;
 watch(
   () =>
@@ -281,7 +286,7 @@ watch(printState, (now, before) => {
     alertEvent('complete', t('Print finished: {file}', { file: shortFile() }));
   else if (now === 'error' && (before === 'printing' || before === 'paused'))
     alertEvent('error', t('Print stopped with an error: {msg}', { msg: S('print_stats').message || '' }));
-  else if (now === 'paused' && before === 'printing' && Date.now() - runoutAt > 20000)
+  else if (now === 'paused' && before === 'printing' && Date.now() - runoutAt > 20000 && !runoutNow())
     alertEvent('paused', t('Print paused: {file}', { file: shortFile() }));
 });
 watch(

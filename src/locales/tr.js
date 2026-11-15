@@ -2598,4 +2598,5 @@ export default {
   "Bottom bar on the phone": "Telefondaki alt menü",
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "İlk dört sayfa alt menüde, kalanlar bu sırayla «Daha fazla» menüsünde. Yerlerini değiştirmek için bir sayfayı diğerinin üstüne sürükle.",
   "Phone layout": "Telefon düzeni",
+  "runout: {done} / {of} mm": "bitti: {done} / {of} mm",
 }

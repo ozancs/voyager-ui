@@ -418,6 +418,14 @@ export const hist = markRaw({});
 const HIST_MAX = 1200;
 
 // ---------- helpers ----------
+// A filament sensor counting down to its pause: Kalico's runout_distance lets the printer extrude that much after
+// a runout before it pauses, runout_elapsed is how far it got (0 when no runout is under way). Null otherwise.
+export function sensorRunout(obj) {
+  const o = S(obj);
+  return o.runout_distance > 0 && o.runout_elapsed > 0
+    ? { done: Math.min(o.runout_elapsed, o.runout_distance), of: o.runout_distance }
+    : null;
+}
 export function shortName(obj) {
   const i = obj.indexOf(' ');
   return i > 0 ? obj.slice(i + 1) : obj;

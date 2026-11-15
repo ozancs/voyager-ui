@@ -2580,4 +2580,5 @@ export default {
   "Bottom bar on the phone": "スマホの下部バー",
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "最初の4ページがバーに、残りはこの順番で「その他」に入ります。ページを別のページの上にドラッグすると入れ替わります。",
   "Phone layout": "スマホのレイアウト",
+  "runout: {done} / {of} mm": "切れ: {done} / {of} mm",
 }

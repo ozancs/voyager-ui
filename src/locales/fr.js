@@ -2580,4 +2580,5 @@ export default {
   "Bottom bar on the phone": "Barre du bas sur le téléphone",
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Les quatre premières pages sont dans la barre, les autres sous Plus dans cet ordre. Glissez une page sur une autre pour les échanger.",
   "Phone layout": "Disposition téléphone",
+  "runout: {done} / {of} mm": "fin de filament : {done} / {of} mm",
 }

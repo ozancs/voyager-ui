@@ -2580,4 +2580,5 @@ export default {
   "Bottom bar on the phone": "手机底部栏",
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "前四个页面在底部栏，其余按此顺序放在“更多”中。将一个页面拖到另一个上即可互换位置。",
   "Phone layout": "手机布局",
+  "runout: {done} / {of} mm": "断料: {done} / {of} mm",
 }

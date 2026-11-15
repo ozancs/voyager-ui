@@ -2580,4 +2580,5 @@ export default {
   "Bottom bar on the phone": "Dolny pasek na telefonie",
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Pierwsze cztery strony są na pasku, reszta w tej kolejności w Więcej. Przeciągnij stronę na inną, aby je zamienić.",
   "Phone layout": "Układ telefonu",
+  "runout: {done} / {of} mm": "koniec: {done} / {of} mm",
 }

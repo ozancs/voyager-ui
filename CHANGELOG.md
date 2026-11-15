@@ -2,6 +2,9 @@
 
 ## 0.38.51
 
+- Filament sensor tiles on Kalico: the sensor's settings (runout_distance, detection_length) no longer show as readings, the tile says enabled as on Klipper; while Kalico counts down to the pause after a runout, the tile and the Devices card show how far it got (runout: 12 / 50 mm) (thanks DubMonstaa, #16)
+- Devices card: a filament sensor from a plugin (smart_filament_sensor) has no switch that does nothing anymore, and one that does not report filament shows Active instead of Empty
+- Sounds: with Kalico's runout_distance the pause after a runout no longer plays the pause sound on top of the runout sound
 - Machine: files and folders can be pinned to the top of their folder (bookmark button on the row, or right-click > Pin to top), printer.cfg for example; a pinned item keeps its pin when renamed
 
 ## 0.38.50
