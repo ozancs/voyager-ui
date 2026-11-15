@@ -65,7 +65,7 @@ import {
 import IconPicker from '../components/IconPicker.vue';
 import LiveZCard from '../components/LiveZCard.vue';
 import FavoritesCard from '../components/FavoritesCard.vue';
-import { pushDown } from '../calc';
+import { pushDown, mergeOrder } from '../calc';
 import { dashboardSize } from '../dashboardSize';
 import { orderMacros, macroDesc } from '../macros';
 import SortList from '../components/SortList.vue';
@@ -412,9 +412,23 @@ const columnAll = computed(() => {
   return ids.map((i) => layout.value.find((x) => x.i === i));
 });
 // the cards left out on a phone (Customize > Phone) are listed while editing, so they can be shown again
+// Customize on a phone lists the hidden cards only on request, so the rest is quick to drag
+const mShowHidden = ref(false);
+const phoneHid = (i) => (state.settings.mobileHidden || []).includes(i);
+const phoneHidN = computed(() => columnAll.value.filter((x) => phoneHid(x.i)).length);
 const column = computed(() =>
-  state.editDash ? columnAll.value : columnAll.value.filter((x) => !(state.settings.mobileHidden || []).includes(x.i)),
+  state.editDash && mShowHidden.value ? columnAll.value : columnAll.value.filter((x) => !phoneHid(x.i)),
 );
+function setPhoneOrder(list) {
+  const ids = list.map((x) => x.i);
+  state.settings.mobileOrder = mShowHidden.value
+    ? ids
+    : mergeOrder(
+        columnAll.value.map((x) => x.i),
+        ids,
+        phoneHid,
+      );
+}
 const phoneCards = computed(() =>
   columnAll.value.map((x) => ({ i: x.i, name: isCustom(x.i) ? nameOf(x.i) : t(nameOf(x.i)) })),
 );
@@ -1114,12 +1128,23 @@ function detachCard(i) {
         </GridItem>
       </GridLayout>
       <div v-else class="col" style="gap: 20px">
+        <button
+          v-if="state.editDash && phoneHidN"
+          class="btn sm"
+          :class="{ on: mShowHidden }"
+          style="align-self: flex-start"
+          @click="mShowHidden = !mShowHidden"
+        >
+          <Icon :name="mShowHidden ? 'eye' : 'eyeoff'" :size="15" />{{
+            mShowHidden ? t('Hide the hidden ones') : t('Show hidden ({n})', { n: phoneHidN })
+          }}
+        </button>
         <SortList
           v-if="state.editDash"
           class="mlist"
           :model-value="column"
           :item-key="(it) => it.i"
-          @update:model-value="(a) => (state.settings.mobileOrder = a.map((x) => x.i))"
+          @update:model-value="setPhoneOrder"
         >
           <template #default="{ item: it }">
             <span class="grow" :class="{ moff: (state.settings.mobileHidden || []).includes(it.i) }">{{

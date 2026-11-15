@@ -28,3 +28,10 @@ export function pushDown(layout, id) {
   }
   return layout;
 }
+
+// a list reordered while some of its items were not shown (hidden ones left out of the drag list): the shown items
+// take the new order, every hidden item keeps its place in the full list
+export function mergeOrder(full, shown, isHidden) {
+  let k = 0;
+  return full.map((x) => (isHidden(x) ? x : shown[k++]));
+}

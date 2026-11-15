@@ -8,6 +8,7 @@ import Icon from './Icon.vue';
 import SortList from './SortList.vue';
 import { state, stripAll, prettyName } from '../store';
 import { t } from '../i18n';
+import { mergeOrder } from '../calc';
 const props = defineProps({ cards: Array }); // [{ i, name }] in phone order, hidden ones included
 // screen sizes in CSS pixels, as the phone's browser reports them
 const MODELS = [
@@ -77,8 +78,21 @@ function toggleCard(i) {
   const h = hiddenCards.value;
   state.settings.mobileHidden = h.includes(i) ? h.filter((x) => x !== i) : [...h, i];
 }
+// the cards left out on the phone stay out of the list unless asked for, so the rest is quick to drag
+const showHidden = ref(false);
+const hiddenN = computed(() => props.cards.filter((c) => hiddenCards.value.includes(c.i)).length);
+const listed = computed(() =>
+  showHidden.value ? props.cards : props.cards.filter((c) => !hiddenCards.value.includes(c.i)),
+);
 function setOrder(list) {
-  state.settings.mobileOrder = list.map((x) => x.i);
+  const ids = list.map((x) => x.i);
+  state.settings.mobileOrder = showHidden.value
+    ? ids
+    : mergeOrder(
+        props.cards.map((c) => c.i),
+        ids,
+        (i) => hiddenCards.value.includes(i),
+      );
 }
 // the tiles the desktop hides stay hidden on the phone too; only the ones shown there are listed
 const tiles = computed(() =>
@@ -149,7 +163,12 @@ const KINDS = {
         <span class="mu note">{{
           t('Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.')
         }}</span>
-        <SortList class="plist" :model-value="cards" :item-key="(c) => c.i" @update:model-value="setOrder">
+        <button v-if="hiddenN" class="btn sm shb" :class="{ on: showHidden }" @click="showHidden = !showHidden">
+          <Icon :name="showHidden ? 'eye' : 'eyeoff'" :size="15" />{{
+            showHidden ? t('Hide the hidden ones') : t('Show hidden ({n})', { n: hiddenN })
+          }}
+        </button>
+        <SortList class="plist" :model-value="listed" :item-key="(c) => c.i" @update:model-value="setOrder">
           <template #default="{ item: c }">
             <span class="grow nm" :class="{ off: hiddenCards.includes(c.i) }">{{ c.name }}</span>
             <button
@@ -256,6 +275,9 @@ iframe {
 .side .note {
   text-align: left;
   max-width: none;
+}
+.shb {
+  align-self: flex-start;
 }
 .plist {
   gap: 6px;

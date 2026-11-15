@@ -49,7 +49,7 @@ describe('mcu counters', () => {
   });
 });
 
-import { pushDown } from '../src/calc.js';
+import { pushDown, mergeOrder } from '../src/calc.js';
 describe('grid resize from the left or top', () => {
   it('pushes overlapped cards below the resized one', () => {
     const l = [
@@ -203,5 +203,12 @@ describe('where an option is defined', () => {
       '#*# <---------------------- SAVE_CONFIG ---------------------->\n#*# [extruder]\n#*# rotation_distance = 23\n';
     expect(lastDefinition(texts, children, 'extruder', 'rotation_distance').key).toBe('printer.cfg');
     expect(lastDefinition(texts, children, 'extruder', 'pid_kp')).toEqual({ key: null, section: 'tuning.cfg' });
+  });
+});
+
+describe('mergeOrder', () => {
+  it('reorders the shown items and keeps the hidden ones in place', () => {
+    const hid = (x) => x === 'b' || x === 'd';
+    expect(mergeOrder(['a', 'b', 'c', 'd', 'e'], ['e', 'a', 'c'], hid)).toEqual(['e', 'b', 'a', 'd', 'c']);
   });
 });
