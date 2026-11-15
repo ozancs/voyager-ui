@@ -52,3 +52,13 @@ export function moveId(ids, id, over) {
   out.splice(to, 0, id);
   return out;
 }
+
+// a list of ids with `id` and `over` trading places (everything else stays where it was)
+export function swapId(ids, id, over) {
+  const out = [...ids];
+  const a = out.indexOf(id),
+    b = out.indexOf(over);
+  if (a < 0 || b < 0 || a === b) return out;
+  [out[a], out[b]] = [out[b], out[a]];
+  return out;
+}

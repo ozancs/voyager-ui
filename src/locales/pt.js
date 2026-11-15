@@ -2578,6 +2578,6 @@ export default {
   "Width": "Largura",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Arraste um mosaico para cima de outro para mudar a ordem no telemóvel; o olho deixa-o de fora. Os mosaicos ocultos no computador ficam ocultos também no telemóvel.",
   "Bottom bar on the phone": "Barra inferior no telemóvel",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "As quatro primeiras páginas ficam na barra, as restantes em Mais por esta ordem. Arraste uma página para cima de outra para a mover.",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "As quatro primeiras páginas ficam na barra, as restantes em Mais por esta ordem. Arraste uma página para cima de outra para as trocar.",
   "Phone layout": "Disposição do telemóvel",
 }

@@ -2578,6 +2578,6 @@ export default {
   "Width": "宽度",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "将一个磁贴拖到另一个上可更改手机上的顺序，点眼睛图标可隐藏。电脑上隐藏的磁贴在手机上也保持隐藏。",
   "Bottom bar on the phone": "手机底部栏",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "前四个页面在底部栏，其余按此顺序放在“更多”中。将一个页面拖到另一个上即可移动。",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "前四个页面在底部栏，其余按此顺序放在“更多”中。将一个页面拖到另一个上即可互换位置。",
   "Phone layout": "手机布局",
 }

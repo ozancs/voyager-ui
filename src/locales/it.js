@@ -2578,6 +2578,6 @@ export default {
   "Width": "Larghezza",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Trascina un riquadro su un altro per cambiare l’ordine sul telefono, l’occhio lo toglie. I riquadri nascosti sul computer restano nascosti anche sul telefono.",
   "Bottom bar on the phone": "Barra in basso sul telefono",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "Le prime quattro pagine sono nella barra, le altre sotto Altro in quest’ordine. Trascina una pagina su un’altra per spostarla.",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Le prime quattro pagine sono nella barra, le altre sotto Altro in quest’ordine. Trascina una pagina su un’altra per scambiarle.",
   "Phone layout": "Layout telefono",
 }

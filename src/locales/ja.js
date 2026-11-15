@@ -2578,6 +2578,6 @@ export default {
   "Width": "幅",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "タイルを別のタイルの上にドラッグするとスマホでの順番が変わり、目のアイコンで非表示にできます。パソコンで非表示のタイルはスマホでも非表示です。",
   "Bottom bar on the phone": "スマホの下部バー",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "最初の4ページがバーに、残りはこの順番で「その他」に入ります。ページを別のページの上にドラッグして移動します。",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "最初の4ページがバーに、残りはこの順番で「その他」に入ります。ページを別のページの上にドラッグすると入れ替わります。",
   "Phone layout": "スマホのレイアウト",
 }

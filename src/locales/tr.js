@@ -2596,6 +2596,6 @@ export default {
   "Width": "Genişlik",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Telefondaki sırayı değiştirmek için bir kutucuğu diğerinin üstüne sürükle, göz ile telefonda gizle. Bilgisayarda gizli olan kutucuklar telefonda da gizli kalır.",
   "Bottom bar on the phone": "Telefondaki alt menü",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "İlk dört sayfa alt menüde, kalanlar bu sırayla «Daha fazla» menüsünde. Taşımak için bir sayfayı diğerinin üstüne sürükle.",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "İlk dört sayfa alt menüde, kalanlar bu sırayla «Daha fazla» menüsünde. Yerlerini değiştirmek için bir sayfayı diğerinin üstüne sürükle.",
   "Phone layout": "Telefon düzeni",
 }

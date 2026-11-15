@@ -2578,6 +2578,6 @@ export default {
   "Width": "Breite",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Ziehe eine Kachel auf eine andere, um die Reihenfolge auf dem Handy zu ändern, das Auge lässt sie weg. Kacheln, die der Computer ausblendet, bleiben auch auf dem Handy aus.",
   "Bottom bar on the phone": "Untere Leiste auf dem Handy",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "Die ersten vier Seiten stehen in der Leiste, die übrigen in dieser Reihenfolge unter Mehr. Ziehe eine Seite auf eine andere, um sie zu verschieben.",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Die ersten vier Seiten stehen in der Leiste, die übrigen in dieser Reihenfolge unter Mehr. Ziehe eine Seite auf eine andere, um beide zu tauschen.",
   "Phone layout": "Handy-Layout",
 }

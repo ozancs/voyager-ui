@@ -2578,6 +2578,6 @@ export default {
   "Width": "너비",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "타일을 다른 타일 위로 끌어 휴대폰에서의 순서를 바꾸고, 눈 아이콘으로 숨깁니다. 컴퓨터에서 숨긴 타일은 휴대폰에서도 숨겨집니다.",
   "Bottom bar on the phone": "휴대폰 하단 바",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "처음 네 페이지는 바에, 나머지는 이 순서대로 더보기 아래에 들어갑니다. 페이지를 다른 페이지 위로 끌어 옮기세요.",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "처음 네 페이지는 바에, 나머지는 이 순서대로 더보기 아래에 들어갑니다. 페이지를 다른 페이지 위로 끌면 서로 자리가 바뀝니다.",
   "Phone layout": "휴대폰 레이아웃",
 }

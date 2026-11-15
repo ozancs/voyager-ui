@@ -2578,6 +2578,6 @@ export default {
   "Width": "Breedte",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Sleep een tegel op een andere om de volgorde op de telefoon te wijzigen, het oog laat hem weg. Tegels die de computer verbergt, blijven ook op de telefoon verborgen.",
   "Bottom bar on the phone": "Onderbalk op de telefoon",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "De eerste vier pagina’s staan in de balk, de rest in deze volgorde onder Meer. Sleep een pagina op een andere om hem te verplaatsen.",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "De eerste vier pagina’s staan in de balk, de rest in deze volgorde onder Meer. Sleep een pagina op een andere om ze te wisselen.",
   "Phone layout": "Telefoonindeling",
 }

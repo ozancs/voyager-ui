@@ -2578,6 +2578,6 @@ export default {
   "Width": "Szerokość",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Przeciągnij kafelek na inny, aby zmienić kolejność na telefonie; oko go ukrywa. Kafelki ukryte na komputerze są ukryte także na telefonie.",
   "Bottom bar on the phone": "Dolny pasek na telefonie",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "Pierwsze cztery strony są na pasku, reszta w tej kolejności w Więcej. Przeciągnij stronę na inną, aby ją przenieść.",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Pierwsze cztery strony są na pasku, reszta w tej kolejności w Więcej. Przeciągnij stronę na inną, aby je zamienić.",
   "Phone layout": "Układ telefonu",
 }

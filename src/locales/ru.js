@@ -2578,6 +2578,6 @@ export default {
   "Width": "Ширина",
   "Drag a tile onto another to change the order on the phone, eye to leave it out. Tiles the computer hides stay hidden on the phone too.": "Перетащите плитку на другую, чтобы изменить порядок на телефоне; глаз её скрывает. Плитки, скрытые на компьютере, скрыты и на телефоне.",
   "Bottom bar on the phone": "Нижняя панель на телефоне",
-  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.": "Первые четыре страницы на панели, остальные в этом порядке в разделе «Ещё». Перетащите страницу на другую, чтобы переместить её.",
+  "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Первые четыре страницы на панели, остальные в этом порядке в разделе «Ещё». Перетащите страницу на другую, чтобы поменять их местами.",
   "Phone layout": "Макет телефона",
 }

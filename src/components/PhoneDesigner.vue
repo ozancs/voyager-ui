@@ -11,7 +11,7 @@ import SortList from './SortList.vue';
 import { state, S, stripAll, prettyName, orderStrip } from '../store';
 import { t } from '../i18n';
 import { mergeOrder } from '../calc';
-import { useGridDrag, moveId } from '../gridDrag';
+import { useGridDrag, moveId, swapId } from '../gridDrag';
 import { phonePages } from '../nav';
 const props = defineProps({ cards: Array }); // [{ i, name }] in phone order, hidden ones included
 // Screen sizes in CSS pixels (the whole screen; the browser's own bars take part of it). Flagships and a few
@@ -192,8 +192,9 @@ const tCol = 124; // px per tile column here
 // The phone's bottom bar: the first four pages, then More; the pages after the fourth are under More, in this
 // order. Shown as the bar itself (five slots, More fixed in the fifth) with the rest in rows under it.
 const pages = computed(() => phonePages.value);
+// a page dropped on another trades places with it, so the rest of the bar stays as it was
 const pagesDrag = useGridDrag((id, over) => {
-  state.settings.bottomNavOrder = moveId(
+  state.settings.bottomNavOrder = swapId(
     pages.value.map((p) => p[0]),
     id,
     over,
@@ -391,7 +392,7 @@ const KINDS = {
           </div>
           <span class="mu note">{{
             t(
-              'The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to move it.',
+              'The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.',
             )
           }}</span>
           <div :ref="(el) => (pagesDrag.grid.value = el)" class="bg">
@@ -607,6 +608,10 @@ iframe {
   text-overflow: ellipsis;
 }
 /* the note under the phone: one line, as wide as the phone (fitNote makes the font smaller when needed) */
+/* the phone keeps a little room from the page's edge */
+.dev {
+  padding: 0 8px 0 36px;
+}
 .pnote {
   display: block;
   white-space: nowrap;
@@ -633,8 +638,8 @@ iframe {
   min-height: 0;
 }
 .col1 {
-  flex: 1 1 360px;
-  min-width: 340px;
+  flex: 1 1 320px;
+  min-width: 300px;
 }
 .col2 {
   flex: none;
