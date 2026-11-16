@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { richHtml, hasMarkup } from '../src/richText.js';
+import { richHtml, hasMarkup, plainText } from '../src/richText.js';
 
 describe('console markup', () => {
   it('keeps coloured spans and simple tags', () => {
@@ -19,6 +19,30 @@ describe('console markup', () => {
     expect(richHtml('G28 X Y')).toBe('G28 X Y');
     expect(hasMarkup('ok')).toBe(false);
     expect(hasMarkup('<span style="color:#fff">x</span>')).toBe(true);
+  });
+  const RATOS =
+    '<div><p style="font-weight: bold; margin:0; opacity:1.0; color:#38bdf8">Set zero reference position</p><p style="margin:0; opacity:1.0; color:#38bdf8">Zero reference position saved for profile ratos</p></div>';
+  it('renders RatOS messages (div and p with colour, weight, margin, opacity)', () => {
+    expect(richHtml(RATOS)).toBe(
+      '<div><p style="font-weight: bold; margin:0; opacity:1.0; color:#38bdf8">Set zero reference position</p><p style="margin:0; opacity:1.0; color:#38bdf8">Zero reference position saved for profile ratos</p></div>',
+    );
+    expect(hasMarkup(RATOS)).toBe(true);
+  });
+  it('turns only plain http(s) links into links, opened apart from the page', () => {
+    expect(richHtml('<a href="https://os.ratrig.com/docs?a=1&b=2">docs</a>')).toBe(
+      '<a href="https://os.ratrig.com/docs?a=1&amp;b=2" target="_blank" rel="noopener noreferrer" title="https://os.ratrig.com/docs?a=1&amp;b=2">docs</a>',
+    );
+    expect(richHtml('<a href="javascript:alert(1)">x</a>')).not.toContain('<a ');
+    expect(richHtml('<a href="data:text/html,x">x</a>')).not.toContain('<a ');
+    expect(richHtml('<a href="https://x.com" onclick="y()">x</a>')).not.toContain('<a ');
+    expect(richHtml('<a href="https://x.com"onmouseover="y()">x</a>')).not.toContain('<a ');
+    expect(richHtml('<p style="color:red" onclick="x()">x</p>')).not.toContain('<p style');
+    expect(richHtml('<div style="margin:0;background:url(x)">x</div>')).not.toContain('<div style');
+  });
+  it('gives the text a line shows, for copying and searching', () => {
+    expect(plainText(RATOS)).toBe('Set zero reference position\nZero reference position saved for profile ratos');
+    expect(plainText('<span style="color:#fff">a &amp; b</span> &#9632;')).toBe('a & b ■');
+    expect(plainText('G28 <X>')).toBe('G28 <X>');
   });
 });
 

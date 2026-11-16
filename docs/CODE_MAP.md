@@ -297,9 +297,13 @@ Switching printers reloads the page, so nothing from the previous printer stays 
 
 **[src/richText.js](../src/richText.js)**  
 Console lines may carry a little HTML (Happy Hare colours its gate map and logo with <span style="color:..">,  
-<b> etc., like Mainsail renders them). Everything is escaped first; then only these come back to life:  
-  <span style="..."> with colour, background, weight, style or decoration only, </span>  
+RatOS sends its messages as a <div> with a coloured title <p> and message <p>, like Mainsail renders them).  
+Everything is escaped first; then only these come back to life:  
+  <span>, <div>, <p>, bare or with style="..." made of colour, background, weight, style, decoration, opacity  
+  and margin only, and their end tags  
   <b> <i> <u> <strong> <em> and their end tags, <br>, and character entities (&nbsp; &#9632; ...)  
+  <a href="http(s)://..."> (nothing else on it): opens in a new tab without access to this page, and its real  
+  address shows on hover, so a link's text cannot pass off another site as something else unseen  
 Anything else, attributes included, stays visible as text. The result goes into v-html.
 
 **[src/router.js](../src/router.js)**  

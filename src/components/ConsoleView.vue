@@ -12,7 +12,7 @@ import Icon from './Icon.vue';
 import CmdInput from './CmdInput.vue';
 import { state, gcode, restartKlipper, toast, isPrinting, dangerIn, askGuard } from '../store';
 import { t } from '../i18n';
-import { richHtml, hasMarkup } from '../richText';
+import { richHtml, hasMarkup, plainText } from '../richText';
 import Popover from './Popover.vue';
 import ExplainBox from './ExplainBox.vue';
 import { explain } from '../explain';
@@ -54,10 +54,11 @@ const lines = computed(() => {
     l = l.filter((x) => keep.has(x));
   }
   const q = props.search.trim().toLowerCase();
-  if (q) l = l.filter((x) => x.message.toLowerCase().includes(q));
+  if (q) l = l.filter((x) => plainText(x.message).toLowerCase().includes(q)); // the text shown, not its markup
   return l.slice(-props.limit);
 });
-const isErr = (x) => x.type !== 'command' && (/^!!/.test(x.message) || /\b(error|failed|shutdown)\b/i.test(x.message));
+const isErr = (x) =>
+  x.type !== 'command' && (/^!!/.test(x.message) || /\b(error|failed|shutdown)\b/i.test(plainText(x.message)));
 // the line cut where the search text is, so the hits can be marked
 function parts(msg) {
   const q = props.search.trim().toLowerCase();
@@ -88,7 +89,12 @@ const blocks = computed(() => {
 // plain text of some lines, as shown (time, "> " before a sent command)
 const plain = (ls) =>
   ls
-    .map((l) => (state.settings.consoleTime ? fmt(l.time) + '  ' : '') + (l.type === 'command' ? '> ' : '') + l.message)
+    .map(
+      (l) =>
+        (state.settings.consoleTime ? fmt(l.time) + '  ' : '') +
+        (l.type === 'command' ? '> ' : '') +
+        plainText(l.message),
+    )
     .join('\n');
 const copied = ref(null); // the block (or 'all') just copied, for the tick
 async function copy(ls, which) {

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.53
+
+- Console: RatOS messages show coloured, with their bold title, as in Mainsail, instead of raw HTML; http(s) links in console messages open in a new tab, their address shown on hover (thanks DubMonstaa, #17)
+- Console: Copy and the search use the text a line shows, not its markup
+
 ## 0.38.52
 
 - The footer links to oznlab.com, before Discord
