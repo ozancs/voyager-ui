@@ -9,6 +9,7 @@ import Toggle from './Toggle.vue';
 import Modal from './Modal.vue';
 import RangeSlider from './RangeSlider.vue';
 import LedPicker from './LedPicker.vue';
+import HeaterTarget from './HeaterTarget.vue';
 import {
   state,
   S,
@@ -18,10 +19,8 @@ import {
   prettyName,
   shortName,
   setFan,
-  setHeater,
   gcode,
   saveSettings,
-  allPresets,
   isPhone,
   orderStrip,
   stripTargetable,
@@ -179,17 +178,6 @@ watch(
   },
 );
 const isHeater = (o) => (S('heaters').available_heaters || []).includes(o); // time to target: heaters only
-const tgt = ref('');
-// the target field takes the typing as soon as the pop-up opens (with a mouse; on a touch screen the keyboard
-// would pop up on every tap of a tile)
-const vFocus = {
-  mounted: (el) => window.matchMedia?.('(pointer: fine)').matches && el.focus({ preventScroll: true }),
-};
-function setT(d, v) {
-  if (v === '' || v == null || isNaN(+v)) return;
-  setHeater(d.obj, +v)?.catch?.(() => {});
-  open.value = null;
-}
 function tint(d) {
   // colour only when it tells something: a heater that is on. LEDs show their own colour through --lc.
   return d.kind === 'temp' && (S('heaters').available_heaters || []).includes(d.obj) && S(d.obj).target > 0
@@ -210,7 +198,6 @@ onMounted(() => document.addEventListener('click', close));
 onBeforeUnmount(() => document.removeEventListener('click', close));
 const popRight = ref(false); // pop-up opens to the left on tiles in the right half so it stays inside the page
 function toggleOpen(id, e) {
-  tgt.value = '';
   if (e?.currentTarget) {
     const r = e.currentTarget.getBoundingClientRect();
     popRight.value = r.left + r.width / 2 > window.innerWidth / 2;
@@ -413,24 +400,7 @@ function sensorExtra(id) {
           ></div>
         </div>
         <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
-          <span class="lbl">{{ t('{name} target', { name: prettyName(d.obj) }) }}</span>
-          <div class="row">
-            <input
-              v-focus
-              class="input mono grow"
-              type="number"
-              v-model="tgt"
-              :placeholder="String(S(d.obj).target ?? 0)"
-              @keydown.enter="setT(d, tgt)"
-              :aria-label="t('Target temperature')"
-            /><button class="btn acc" style="height: 40px" @click="setT(d, tgt)">{{ t('Set') }}</button>
-          </div>
-          <div class="seg">
-            <button @click="setT(d, 0)">{{ t('Off') }}</button
-            ><button v-for="p in allPresets.filter((p) => p.temps[d.obj])" :key="p.id" @click="setT(d, p.temps[d.obj])">
-              {{ p.name }} {{ p.temps[d.obj] }}
-            </button>
-          </div>
+          <HeaterTarget :obj="d.obj" @done="open = null" />
         </div>
       </template>
       <!-- FAN -->
@@ -775,14 +745,6 @@ function sensorExtra(id) {
 }
 .dc.open {
   z-index: 60;
-}
-/* presets with long names wrap to more rows instead of running out of the box */
-.pop .seg {
-  flex-wrap: wrap;
-}
-.pop .seg button {
-  flex: 1 1 auto;
-  padding: 0 8px;
 }
 .hd {
   display: flex;

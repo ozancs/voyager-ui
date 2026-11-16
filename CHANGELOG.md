@@ -2,6 +2,10 @@
 
 ## 0.38.52
 
+- The footer links to oznlab.com, before Discord
+- Top bar: clicking the hotend or bed temperature opens its target pop-up on any page (idea from Raidy)
+- Target pop-up: Off and the material presets sit in even rows (2 + 2 rather than 3 + 1) on narrow windows
+- Customize > Phone layout: with Separate layout while printing, the card list has the cards of both layouts (tagged "only while printing" / "only when idle"), so a card only on the print layout can be ordered and left out too
 - Filament sensor tiles: a long reading stays on one line, cut with … (the whole text on hover), instead of spilling out of the tile
 
 ## 0.38.51

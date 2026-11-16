@@ -637,6 +637,10 @@ boards answer, boards Klipper already uses do not show up there.
 Small dashboard card with the health issues found by features.js (MCU errors, throttling, driver  
 flags, due maintenance). Details are on the Health page.
 
+**[src/components/HeaterTarget.vue](../src/components/HeaterTarget.vue)**  
+A heater's target: a field with Set, then Off and the material presets. Used in the pop-up of a temperature tile  
+and of the hotend and bed temperatures in the top bar. Emits done once a target is sent.
+
 **[src/components/HistoryStats.vue](../src/components/HistoryStats.vue)**  
 Print statistics: totals, jobs by status (pie) and the last 14 days (bars). On the History page it gets the  
 jobs the page already loaded; on the G-code Files page it loads them itself (from the cache first).

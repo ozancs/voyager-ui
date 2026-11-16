@@ -429,9 +429,26 @@ function setPhoneOrder(list) {
         phoneHid,
       );
 }
-const phoneCards = computed(() =>
-  columnAll.value.map((x) => ({ i: x.i, name: isCustom(x.i) ? nameOf(x.i) : t(nameOf(x.i)) })),
-);
+// Customize > Phone lists the cards of both layouts: the phone shows the idle one, or the print one while printing,
+// so a card that is only on one of them is listed too (tagged) and can be ordered and left out like the rest. The
+// phone's order and hidden cards are one list for both.
+const validCard = (i) => MODULES[i] || (isCustom(i) && state.settings.customCards?.[i]);
+const layoutIds = (k) =>
+  (state.settings[k] || (k === 'layout' ? DEFAULT_LAYOUT() : [])).map((x) => x.i).filter(validCard);
+const phoneCards = computed(() => {
+  const name = (i) => (isCustom(i) ? nameOf(i) : t(nameOf(i)));
+  const cur = columnAll.value.map((x) => x.i);
+  if (!state.settings.autoLayout || !state.settings.layoutPrint) return cur.map((i) => ({ i, name: name(i) }));
+  const idle = new Set([...layoutIds('layout'), ...(mode.value === 'print' ? [] : cur)]);
+  const print = new Set([...layoutIds('layoutPrint'), ...(mode.value === 'print' ? cur : [])]);
+  const all = [...new Set([...cur, ...idle, ...print])];
+  const ord = state.settings.mobileOrder || DEFAULT_MOBILE_ORDER;
+  return [...ord.filter((i) => all.includes(i)), ...all.filter((i) => !ord.includes(i))].map((i) => ({
+    i,
+    name: name(i),
+    only: !idle.has(i) ? 'print' : !print.has(i) ? 'idle' : null,
+  }));
+});
 function togglePhoneCard(i) {
   const h = state.settings.mobileHidden || [];
   state.settings.mobileHidden = h.includes(i) ? h.filter((x) => x !== i) : [...h, i];

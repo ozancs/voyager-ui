@@ -16,6 +16,7 @@ import { powerAsk, flipPower } from '../power';
 import LockButton from './LockButton.vue';
 import JobMenu from './JobMenu.vue';
 import TopTabs from './TopTabs.vue';
+import HeaterTarget from './HeaterTarget.vue';
 const pAsk = computed(() => powerAsk.value);
 const closeAsk = () => (powerAsk.value = null);
 import {
@@ -88,6 +89,8 @@ const hostName = currentPrinter()?.host || here;
 // printer switcher next to the name
 const printers = printerList;
 const curId = currentPrinter()?.id || '';
+// the hotend or bed temperature clicked in the bar: its target pop-up, on every page
+const heatOpen = ref(null); // { h, el }
 const pmOpen = ref(false);
 const pmBtn = ref(null);
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
@@ -384,18 +387,25 @@ onBeforeUnmount(() => ovObs?.disconnect());
     </div>
     <!-- hotend and bed on every page; the dashboard's tiles show more -->
     <div v-if="!tabs && state.klippy === 'ready' && topHeaters.length" class="tmp hide-s">
-      <span
+      <button
         v-for="h in topHeaters"
         :key="h"
         class="th mono"
-        :class="{ hot: S(h).target > 0 }"
+        :class="{ hot: S(h).target > 0, on: heatOpen?.h === h }"
+        :aria-label="t('{name} target', { name: prettyName(h) })"
+        :aria-expanded="heatOpen?.h === h"
         :data-tip="prettyName(h) + (S(h).target > 0 ? ' → ' + S(h).target.toFixed(0) + '°' : ' · ' + t('off'))"
-        ><Icon :name="h.startsWith('extruder') ? 'nozzle' : 'bed'" :size="15" /><b>{{
+        @click="heatOpen = heatOpen?.h === h ? null : { h, el: $event.currentTarget }"
+      >
+        <Icon :name="h.startsWith('extruder') ? 'nozzle' : 'bed'" :size="15" /><b>{{
           S(h).temperature != null ? S(h).temperature.toFixed(0) + '°' : '--'
         }}</b
         ><small v-if="S(h).target > 0">/{{ S(h).target.toFixed(0) }}</small
-        ><small v-if="S(h).target > 0 && heatEta(h)?.secs" class="eta">{{ fmtEta(heatEta(h).secs) }}</small></span
-      >
+        ><small v-if="S(h).target > 0 && heatEta(h)?.secs" class="eta">{{ fmtEta(heatEta(h).secs) }}</small>
+      </button>
+      <Popover v-if="heatOpen" :anchor="heatOpen.el" :width="300" @close="heatOpen = null">
+        <HeaterTarget :obj="heatOpen.h" @done="heatOpen = null" />
+      </Popover>
     </div>
     <button
       class="btn lg srch hide-s"
@@ -739,6 +749,10 @@ onBeforeUnmount(() => ovObs?.disconnect());
   display: none;
 }
 .th {
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
@@ -749,6 +763,10 @@ onBeforeUnmount(() => ovObs?.disconnect());
   color: var(--mu);
   align-items: center;
   white-space: nowrap;
+}
+.th:hover,
+.th.on {
+  background: var(--s2);
 }
 .th b {
   color: var(--tx);

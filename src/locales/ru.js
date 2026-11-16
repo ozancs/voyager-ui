@@ -2581,4 +2581,6 @@ export default {
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Первые четыре страницы на панели, остальные в этом порядке в разделе «Ещё». Перетащите страницу на другую, чтобы поменять их местами.",
   "Phone layout": "Макет телефона",
   "runout: {done} / {of} mm": "обрыв: {done} / {of} мм",
+  "only while printing": "только при печати",
+  "only when idle": "только в простое",
 }

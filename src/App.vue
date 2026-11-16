@@ -60,6 +60,7 @@ import {
   isPrinting,
   REPO_URL,
   DISCORD_URL,
+  SITE_URL,
 } from './store';
 import { route, go } from './router';
 import { api } from './api/moonraker';
@@ -327,6 +328,7 @@ startIssues();
               <span class="grow"></span>
               <button class="ver" @click="state.reportOpen = true">{{ t('Report a problem') }}</button>
               <a class="ver" :href="REPO_URL" target="_blank" rel="noopener">GitHub</a>
+              <a class="ver" :href="SITE_URL" target="_blank" rel="noopener">oznlab.com</a>
               <a class="ver" :href="DISCORD_URL" target="_blank" rel="noopener">Discord</a>
               <Handoff />
               <a :href="'http://' + location.hostname + '/'" target="_blank" rel="noopener">{{

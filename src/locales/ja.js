@@ -2581,4 +2581,6 @@ export default {
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "最初の4ページがバーに、残りはこの順番で「その他」に入ります。ページを別のページの上にドラッグすると入れ替わります。",
   "Phone layout": "スマホのレイアウト",
   "runout: {done} / {of} mm": "切れ: {done} / {of} mm",
+  "only while printing": "印刷中のみ",
+  "only when idle": "待機中のみ",
 }

@@ -2581,4 +2581,6 @@ export default {
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "처음 네 페이지는 바에, 나머지는 이 순서대로 더보기 아래에 들어갑니다. 페이지를 다른 페이지 위로 끌면 서로 자리가 바뀝니다.",
   "Phone layout": "휴대폰 레이아웃",
   "runout: {done} / {of} mm": "소진: {done} / {of} mm",
+  "only while printing": "출력 중에만",
+  "only when idle": "대기 중에만",
 }

@@ -13,7 +13,8 @@ import { t } from '../i18n';
 import { mergeOrder } from '../calc';
 import { useGridDrag, moveId, swapId } from '../gridDrag';
 import { phonePages } from '../nav';
-const props = defineProps({ cards: Array }); // [{ i, name }] in phone order, hidden ones included
+const props = defineProps({ cards: Array }); // [{ i, name, only }] in phone order, hidden ones included; only: a card
+// on one of the two layouts ('idle' or 'print'), shown by the phone only then
 // Screen sizes in CSS pixels (the whole screen; the browser's own bars take part of it). Flagships and a few
 // popular models; Android phones are at their default display size, a larger or smaller display size setting
 // changes them. Anything else: Other, with its own width and height.
@@ -299,7 +300,12 @@ const KINDS = {
           <div class="scroll">
             <SortList class="plist" :model-value="listed" :item-key="(c) => c.i" @update:model-value="setOrder">
               <template #default="{ item: c }">
-                <span class="grow nm" :class="{ off: hiddenCards.includes(c.i) }">{{ c.name }}</span>
+                <span class="grow nm" :class="{ off: hiddenCards.includes(c.i) }"
+                  >{{ c.name
+                  }}<span v-if="c.only" class="when">{{
+                    c.only === 'print' ? t('only while printing') : t('only when idle')
+                  }}</span></span
+                >
                 <button
                   class="btn ibtn sm"
                   :aria-pressed="!hiddenCards.includes(c.i)"
@@ -518,6 +524,17 @@ iframe {
 .off {
   opacity: 0.45;
   text-decoration: line-through;
+}
+/* a card on only one of the two layouts (Separate layout while printing) */
+.when {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--mu);
+  background: var(--s2);
+  white-space: nowrap;
 }
 /* the top tiles as on the phone: small, in its columns, in its order */
 /* a little room round the grid, so the outline of the tile under a drag is not cut by the scrolling area */

@@ -2581,4 +2581,6 @@ export default {
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Die ersten vier Seiten stehen in der Leiste, die übrigen in dieser Reihenfolge unter Mehr. Ziehe eine Seite auf eine andere, um beide zu tauschen.",
   "Phone layout": "Handy-Layout",
   "runout: {done} / {of} mm": "Runout: {done} / {of} mm",
+  "only while printing": "nur beim Drucken",
+  "only when idle": "nur im Leerlauf",
 }

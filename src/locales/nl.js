@@ -2581,4 +2581,6 @@ export default {
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "De eerste vier pagina’s staan in de balk, de rest in deze volgorde onder Meer. Sleep een pagina op een andere om ze te wisselen.",
   "Phone layout": "Telefoonindeling",
   "runout: {done} / {of} mm": "op: {done} / {of} mm",
+  "only while printing": "alleen tijdens printen",
+  "only when idle": "alleen in rust",
 }

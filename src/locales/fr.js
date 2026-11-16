@@ -2581,4 +2581,6 @@ export default {
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.": "Les quatre premières pages sont dans la barre, les autres sous Plus dans cet ordre. Glissez une page sur une autre pour les échanger.",
   "Phone layout": "Disposition téléphone",
   "runout: {done} / {of} mm": "fin de filament : {done} / {of} mm",
+  "only while printing": "seulement en impression",
+  "only when idle": "seulement au repos",
 }

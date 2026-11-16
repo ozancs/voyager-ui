@@ -20,6 +20,7 @@ export const APP = 'voyager-ui';
 export const APP_NAME = 'Voyager UI';
 export const REPO_URL = 'https://github.com/ozancs/voyager-ui';
 export const DISCORD_URL = 'https://discord.gg/KZWva6dq38';
+export const SITE_URL = 'https://oznlab.com';
 export const OLD_APPS = ['oznlab_klipperui', 'carbon-ui']; // earlier names, their data is carried over once
 const NS = APP;
 

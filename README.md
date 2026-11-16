@@ -8,6 +8,7 @@
 <p align="center">No install. No account. A simulated printer you can explore and control freely.<br><a href="#install">Install Voyager</a> · <a href="https://github.com/ozancs/voyager-ui/issues">Share feedback</a></p>
 
 <p align="center">
+  <a href="https://oznlab.com"><img src="https://img.shields.io/badge/Website-oznlab.com-0E8F6F?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white" alt="oznlab.com"></a>
   <a href="https://discord.gg/KZWva6dq38"><img src="https://img.shields.io/badge/Discord-Join_the_community-5865F2?style=for-the-badge&amp;logo=discord&amp;logoColor=white" alt="Join the Voyager community on Discord"></a>
   <a href="https://www.youtube.com/@oznlab"><img src="https://img.shields.io/badge/YouTube-oznlab-FF0000?style=for-the-badge&amp;logo=youtube&amp;logoColor=white" alt="oznlab on YouTube"></a>
   <a href="https://www.tiktok.com/@oznlab"><img src="https://img.shields.io/badge/TikTok-oznlab-111111?style=for-the-badge&amp;logo=tiktok&amp;logoColor=white" alt="oznlab on TikTok"></a>
@@ -160,6 +161,7 @@ This removes the installer-managed Voyager installations on that host, their ngi
 ## Join in
 
 <p align="center">
+  <a href="https://oznlab.com"><img src="https://img.shields.io/badge/Website-oznlab.com-0E8F6F?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white" alt="oznlab.com"></a>
   <a href="https://discord.gg/KZWva6dq38"><img src="https://img.shields.io/badge/Discord-Join_the_community-5865F2?style=for-the-badge&amp;logo=discord&amp;logoColor=white" alt="Join the Voyager community on Discord"></a>
   <a href="https://www.youtube.com/@oznlab"><img src="https://img.shields.io/badge/YouTube-oznlab-FF0000?style=for-the-badge&amp;logo=youtube&amp;logoColor=white" alt="oznlab on YouTube"></a>
   <a href="https://www.tiktok.com/@oznlab"><img src="https://img.shields.io/badge/TikTok-oznlab-111111?style=for-the-badge&amp;logo=tiktok&amp;logoColor=white" alt="oznlab on TikTok"></a>
