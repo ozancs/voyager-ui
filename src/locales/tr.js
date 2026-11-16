@@ -2644,4 +2644,6 @@ export default {
   "Clock size": "Saat boyutu",
   "Clock opacity": "Saat opaklığı",
   "Print info size (under the clock)": "Baskı bilgisi boyutu (saatin altında)",
+  "Own dashboard layout": "Cihaza özel pano düzeni",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "Bu cihaz pano kartlarını kendine göre düzenler, örneğin yazıcının yanındaki bir tablet. Diğer tarayıcılar ortak düzeni korur. Yalnızca bu tarayıcı.",
 }

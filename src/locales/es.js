@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "Tamaño del reloj",
   "Clock opacity": "Opacidad del reloj",
   "Print info size (under the clock)": "Tamaño de la info de impresión (bajo el reloj)",
+  "Own dashboard layout": "Diseño propio del panel",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "Este dispositivo organiza las tarjetas del panel a su manera, por ejemplo una tableta junto a la impresora. Los demás navegadores mantienen el diseño compartido. Solo este navegador.",
 }

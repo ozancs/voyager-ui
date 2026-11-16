@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "Розмір годинника",
   "Clock opacity": "Непрозорість годинника",
   "Print info size (under the clock)": "Розмір відомостей про друк (під годинником)",
+  "Own dashboard layout": "Власне розташування панелі",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "Цей пристрій розташовує картки панелі по-своєму, наприклад планшет біля принтера. Інші браузери зберігають спільне розташування. Лише цей браузер.",
 }

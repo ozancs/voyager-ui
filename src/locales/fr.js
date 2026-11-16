@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "Taille de l’horloge",
   "Clock opacity": "Opacité de l’horloge",
   "Print info size (under the clock)": "Taille des infos d’impression (sous l’horloge)",
+  "Own dashboard layout": "Disposition propre du tableau de bord",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "Cet appareil organise les cartes du tableau de bord à sa façon, par exemple une tablette à côté de l'imprimante. Les autres navigateurs gardent la disposition partagée. Ce navigateur uniquement.",
 }
