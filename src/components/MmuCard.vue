@@ -9,6 +9,7 @@ import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import GateFilament from './GateFilament.vue';
 import MmuPath from './MmuPath.vue';
+import MmuFeedback from './MmuFeedback.vue';
 import MmuToolMap from './MmuToolMap.vue';
 import { state, S, gcode, toast, isPrinting } from '../store';
 import { t } from '../i18n';
@@ -191,35 +192,39 @@ const hasPath = computed(() => kind.value === 'hh' && m.value.filament_pos != nu
       >
         <div :style="{ width: m.bowden_progress + '%' }"></div>
       </div>
+      <MmuFeedback v-if="kind === 'hh'" :mmu="m" part="buffer" />
       <div v-if="kind === 'hh' && m.reason_for_pause && ['paused', 'pause_locked'].includes(m.print_state)" class="why">
         <Icon name="warn" :size="15" />{{ m.reason_for_pause }}
       </div>
 
-      <div class="gates">
-        <div
-          v-for="g in list"
-          :key="g.id"
-          class="gate"
-          :class="{ cur: g.current, gempty: g.status === 0, open: open === g.id }"
-        >
-          <button
-            class="gb"
-            :aria-label="(kind === 'hh' ? t('Gate') : t('Lane')) + ' ' + g.label"
-            @click.stop="open = open === g.id ? null : g.id"
+      <div class="grow-gates">
+        <div class="gates">
+          <div
+            v-for="g in list"
+            :key="g.id"
+            class="gate"
+            :class="{ cur: g.current, gempty: g.status === 0, open: open === g.id }"
           >
-            <span class="spool" :style="{ background: g.color || 'transparent' }" :class="{ none: !g.color }"></span>
-            <b class="gn">{{ g.label }}</b>
-            <span class="mat">{{ g.material || '—' }}</span>
-            <span class="tt">{{ g.tools.length ? g.tools.map((x) => 'T' + x).join(' ') : '' }}</span>
-            <i
-              class="st"
-              :style="{ background: (STATUS[g.status] || STATUS[-1])[1] }"
-              :aria-label="t((STATUS[g.status] || STATUS[-1])[0])"
-            ></i>
-          </button>
+            <button
+              class="gb"
+              :aria-label="(kind === 'hh' ? t('Gate') : t('Lane')) + ' ' + g.label"
+              @click.stop="open = open === g.id ? null : g.id"
+            >
+              <span class="spool" :style="{ background: g.color || 'transparent' }" :class="{ none: !g.color }"></span>
+              <b class="gn">{{ g.label }}</b>
+              <span class="mat">{{ g.material || '—' }}</span>
+              <span class="tt">{{ g.tools.length ? g.tools.map((x) => 'T' + x).join(' ') : '' }}</span>
+              <i
+                class="st"
+                :style="{ background: (STATUS[g.status] || STATUS[-1])[1] }"
+                :aria-label="t((STATUS[g.status] || STATUS[-1])[0])"
+              ></i>
+            </button>
+          </div>
         </div>
-      </div>
 
+        <MmuFeedback v-if="kind === 'hh'" :mmu="m" part="gauges" />
+      </div>
       <div v-if="openGate" class="gm" @click.stop>
         <div class="row" style="justify-content: space-between">
           <b>{{
@@ -310,6 +315,19 @@ const hasPath = computed(() => kind.value === 'hh' && m.value.filament_pos != nu
 }
 .why :deep(svg) {
   color: var(--wn);
+}
+.grow-gates {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.grow-gates > .gates {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.grow-gates > :last-child:not(.gates) {
+  margin-left: auto;
 }
 .gates {
   display: grid;
