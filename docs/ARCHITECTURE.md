@@ -1,6 +1,6 @@
 # How Voyager UI works
 
-A guide for reading and reviewing the code. For a one-line description of every file see [CODE_MAP.md](CODE_MAP.md).
+A guide for reading and reviewing the code. For a one-line description of every file, run `npm run code-map`: it writes docs/CODE_MAP.md locally (not kept in the repo) from the comment at the top of each file.
 
 ## The short version
 
@@ -75,7 +75,7 @@ The English text is the key: `t('Save')`. `scripts/i18n_keys.py` collects every 
 npm test               # unit tests
 npm run format:check   # code style (Prettier)
 npm run same-code      # proves a change is formatting only (compares syntax trees and compiled templates)
-npm run code-map       # rebuilds docs/CODE_MAP.md from the comments at the top of each file
+npm run code-map       # writes docs/CODE_MAP.md (local only) from the comments at the top of each file
 npm run build:demo     # the demo, a fake printer in the browser, for trying changes without a printer
 ```
 

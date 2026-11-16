@@ -19,7 +19,7 @@ Pushing a `v*` tag makes a GitHub release.
 
 ## Reading the code
 
-[ARCHITECTURE.md](ARCHITECTURE.md) explains how the pieces fit together and what writes to the printer. [CODE_MAP.md](CODE_MAP.md) lists every source file with what it does. Every file starts with a comment saying the same, and the code is formatted with Prettier so it reads the same everywhere.
+[ARCHITECTURE.md](ARCHITECTURE.md) explains how the pieces fit together and what writes to the printer. `npm run code-map` writes docs/CODE_MAP.md, a list of every source file with what it does (local only, not kept in the repo). Every file starts with a comment saying the same, and the code is formatted with Prettier so it reads the same everywhere.
 
 ## README screenshots
 

@@ -14,7 +14,7 @@ jobs:
           REPO: ${{ github.repository }}
           NAME: Voyager UI
         run: |
-          if [ -z "$WEBHOOK" ]; then echo "DISCORD_WEBHOOK secret yok"; exit 0; fi
+          if [ -z "$WEBHOOK" ]; then echo "no DISCORD_WEBHOOK secret, skipping"; exit 0; fi
           VER="${TAG#v}"
           NOTES=$(awk -v v="$VER" '{ sub(/\r$/,"") } /^## / { h=$2; sub(/^v/,"",h); if (f) exit; f=(h==v); next } f' CHANGELOG.md)
           if [ -z "$NOTES" ]; then NOTES="https://github.com/$REPO/blob/$TAG/CHANGELOG.md"; fi

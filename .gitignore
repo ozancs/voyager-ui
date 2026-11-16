@@ -3,3 +3,6 @@ dist/
 *.zip
 dist-demo/
 *.zip.sha256
+docs/CODE_MAP.md
+CLAUDE.md
+*.log
