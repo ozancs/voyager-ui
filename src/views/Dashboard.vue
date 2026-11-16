@@ -63,6 +63,7 @@ import {
   restoreLayout,
   fmtDay,
   fmtClock,
+  deviceLayout,
 } from '../store';
 import IconPicker from '../components/IconPicker.vue';
 import LiveZCard from '../components/LiveZCard.vue';
@@ -320,7 +321,8 @@ onMounted(() => {
 onBeforeUnmount(() => hostObserver?.disconnect());
 const referenceWidth = computed(() => {
   const key = mode.value === 'print' && state.settings.layoutPrint ? 'print' : 'idle';
-  return state.settings.layoutWidths?.[key];
+  // a device with its own layout and no width saved yet is drawn at its own width (see fitToDevice)
+  return state.settings.layoutWidths?.[key] ?? (deviceLayout.value ? availableWidth.value : undefined);
 });
 const sizing = computed(() => dashboardSize(availableWidth.value, referenceWidth.value));
 const wide = computed(() => width.value > 700 && sizing.value.grid);

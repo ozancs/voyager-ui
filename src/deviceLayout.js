@@ -19,6 +19,16 @@ export function withOwnLayout(merged, stored, id, keys, defaults) {
   return merged;
 }
 
+// The dashboard is drawn at the width its layout was arranged at (layoutWidths) and zoomed down to fit. A layout
+// copied from another browser still carries that browser's width, so a smaller screen (a tablet) shows it shrunk.
+// While the device's layout is still that copy, forget the width: the dashboard then fits this screen, and the
+// first Customize here records this device's own width.
+export function fitToDevice(shown, shared) {
+  if (JSON.stringify(shown?.layoutWidths ?? null) === JSON.stringify(shared?.layoutWidths ?? null))
+    shown.layoutWidths = null;
+  return shown;
+}
+
 // shown on this device -> to store: the device's layout goes to deviceLayouts[id], the shared layout is put back
 export function toStored(shown, shared, device, keys, now = Date.now()) {
   const v = clone(shown);
