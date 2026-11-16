@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.54
+
+- Phoenix recovery uses the selected print record's nozzle temperature (Phoenix 0.4.10+), with an optional Heat nozzle button instead of repeated temperature entry.
+- Clean and prime keeps existing heat and enables priming when the nozzle is ready; opening or changing steps does not start heating or extrusion.
+
 ## 0.38.53
 
 - Console: RatOS messages show coloured, with their bold title, as in Mainsail, instead of raw HTML; http(s) links in console messages open in a new tab, their address shown on hover (thanks DubMonstaa, #17)

@@ -2576,5 +2576,16 @@
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.",
   "runout: {done} / {of} mm",
   "only while printing",
-  "only when idle"
+  "only when idle",
+  "Saved print temperature: {n}°C",
+  "No usable saved temperature. Update Phoenix or use the normal hotend controls.",
+  "Heat nozzle",
+  "Ready to prime",
+  "Nozzle is hot",
+  "Heating to {n}°C…",
+  "Heating is optional here. Use it if the nozzle needs to come free before lifting.",
+  "Prime {n} mm",
+  "Heat the nozzle to the saved print temperature before priming.",
+  "Finish Phoenix setup and review the park point before preparing recovery.",
+  "The toolhead is parked. Prime a little filament at the saved print temperature, then clean the nozzle. Do not move the axes."
 ]
