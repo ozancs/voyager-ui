@@ -54,6 +54,15 @@ const cols = computed(() => {
   // (on a phone the columns then stretch to the full width, see the template)
   return Math.min(n, max);
 });
+// own size of the tiles (Settings > Status tiles size): a CSS zoom on the strip only. The strip's width is measured
+// in its own (zoomed) pixels, so smaller tiles fit more per row.
+const sz = computed(() => (state.stripScale && state.stripScale !== 100 ? state.stripScale / 100 : 1));
+const stripStyle = computed(() => ({
+  ...(cols.value
+    ? { gridTemplateColumns: `repeat(${cols.value}, minmax(0, ${boxW.value < 560 ? '1fr' : '144px'}))` }
+    : {}),
+  ...(sz.value !== 1 ? { zoom: sz.value } : {}),
+}));
 // on a phone the eye hides a tile on phones only (stripPhoneHidden); the computer keeps showing it
 const isHidden = (d) =>
   (state.settings.strip.hidden || []).includes(d.id) ||
@@ -311,7 +320,7 @@ function sensorExtra(id) {
     ref="box"
     class="ds"
     :class="{ editing: state.editDash, settle, ph: phone }"
-    :style="cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, ${boxW < 560 ? '1fr' : '144px'}))` } : null"
+    :style="stripStyle"
     move-class="mv"
   >
     <div

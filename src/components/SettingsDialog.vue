@@ -171,6 +171,23 @@ async function pickIcon(e) {
   }
 }
 const zoomNow = computed(() => uiZoomFor(state.uiScale ?? 100));
+// Interface size in 5 % steps (− / +); from Auto the steps start at the size Auto shows now
+const ZOOM_MIN = 50,
+  ZOOM_MAX = 150;
+const zoomPct = computed(() =>
+  state.uiScale === 'auto' ? Math.round(zoomNow.value * 100) : Math.round(+state.uiScale || 100),
+);
+// the status tiles' own size, 5 % steps (DeviceStrip)
+const STRIP_MIN = 60,
+  STRIP_MAX = 130;
+function stepStrip(d) {
+  const base = Math.round((state.stripScale || 100) / 5) * 5;
+  state.stripScale = Math.min(STRIP_MAX, Math.max(STRIP_MIN, base + d));
+}
+function stepZoom(d) {
+  const base = Math.round(zoomPct.value / 5) * 5;
+  state.uiScale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, base + d));
+}
 const deskPerm = ref(desktopPermission());
 async function setDesktop(on) {
   if (on && deskPerm.value !== 'granted') deskPerm.value = await askDesktop();
@@ -1224,23 +1241,75 @@ const consoleSample = (() => {
               <div class="rw" data-pk="size">
                 <div class="k">
                   <b>{{ t('Interface size') }}</b
-                  ><span
-                    >{{
-                      t(
-                        'Only this browser. Auto keeps the layout the same on every screen: a laptop shows the same cards side by side as a 1920 px monitor, only smaller.',
-                      )
-                    }}
-                    <span class="mono">{{ Math.round(zoomNow * 100) }}%</span></span
-                  >
+                  ><span>{{
+                    t(
+                      'Only this browser. Auto keeps the layout the same on every screen: a laptop shows the same cards side by side as a 1920 px monitor, only smaller.',
+                    )
+                  }}</span>
                 </div>
-                <div class="seg v">
+                <div class="seg v zstep">
                   <button
-                    v-for="k in [80, 90, 100, 110, 125, 'auto']"
-                    :key="k"
-                    :class="{ on: String(state.uiScale ?? 100) === String(k) }"
-                    @click="state.uiScale = k"
+                    :title="t('Smaller')"
+                    :aria-label="t('Smaller')"
+                    :disabled="zoomPct <= ZOOM_MIN"
+                    @click="stepZoom(-5)"
                   >
-                    {{ k === 'auto' ? t('Auto') : k + '%' }}
+                    <Icon name="minus" :size="14" :stroke="2.4" />
+                  </button>
+                  <button
+                    class="mono zval"
+                    :class="{ on: state.uiScale !== 'auto' }"
+                    :title="t('Reset')"
+                    @click="state.uiScale = 100"
+                  >
+                    {{ zoomPct }}%
+                  </button>
+                  <button
+                    :title="t('Larger')"
+                    :aria-label="t('Larger')"
+                    :disabled="zoomPct >= ZOOM_MAX"
+                    @click="stepZoom(5)"
+                  >
+                    <Icon name="plus" :size="14" :stroke="2.4" />
+                  </button>
+                  <button :class="{ on: state.uiScale === 'auto' }" @click="state.uiScale = 'auto'">
+                    {{ t('Auto') }}
+                  </button>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Status tiles size') }}</b
+                  ><span>{{
+                    t(
+                      'Only this browser. The tiles above the dashboard, on top of the interface size: smaller tiles fit more in a row.',
+                    )
+                  }}</span>
+                </div>
+                <div class="seg v zstep">
+                  <button
+                    :title="t('Smaller')"
+                    :aria-label="t('Smaller')"
+                    :disabled="(state.stripScale || 100) <= STRIP_MIN"
+                    @click="stepStrip(-5)"
+                  >
+                    <Icon name="minus" :size="14" :stroke="2.4" />
+                  </button>
+                  <button
+                    class="mono zval"
+                    :class="{ on: (state.stripScale || 100) !== 100 }"
+                    :title="t('Reset')"
+                    @click="state.stripScale = 100"
+                  >
+                    {{ state.stripScale || 100 }}%
+                  </button>
+                  <button
+                    :title="t('Larger')"
+                    :aria-label="t('Larger')"
+                    :disabled="(state.stripScale || 100) >= STRIP_MAX"
+                    @click="stepStrip(5)"
+                  >
+                    <Icon name="plus" :size="14" :stroke="2.4" />
                   </button>
                 </div>
               </div>
@@ -1731,6 +1800,12 @@ const consoleSample = (() => {
 </template>
 
 <style scoped>
+.zstep button {
+  flex: 0 0 auto;
+}
+.zstep .zval {
+  min-width: 58px;
+}
 .pvw {
   position: relative;
   width: 100%;
