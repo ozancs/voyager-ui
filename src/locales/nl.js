@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "Klokgrootte",
   "Clock opacity": "Dekking van de klok",
   "Print info size (under the clock)": "Grootte printinfo (onder de klok)",
+  "Own dashboard layout": "Eigen dashboard-indeling",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "Dit apparaat ordent de dashboardkaarten op zijn eigen manier, bijvoorbeeld een tablet naast de printer. Andere browsers houden de gedeelde indeling. Alleen deze browser.",
 }

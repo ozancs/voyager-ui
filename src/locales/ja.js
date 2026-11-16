@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "時計のサイズ",
   "Clock opacity": "時計の不透明度",
   "Print info size (under the clock)": "印刷情報のサイズ（時計の下）",
+  "Own dashboard layout": "この端末専用のダッシュボード配置",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "この端末はダッシュボードのカードを独自に配置します（例：プリンター横のタブレット）。他のブラウザは共有の配置を使います。このブラウザのみ。",
 }

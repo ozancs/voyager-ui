@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "Dimensione orologio",
   "Clock opacity": "Opacità orologio",
   "Print info size (under the clock)": "Dimensione info di stampa (sotto l’orologio)",
+  "Own dashboard layout": "Layout della dashboard proprio",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "Questo dispositivo dispone le schede della dashboard a modo suo, ad esempio un tablet accanto alla stampante. Gli altri browser mantengono il layout condiviso. Solo questo browser.",
 }
