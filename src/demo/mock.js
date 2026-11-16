@@ -138,6 +138,12 @@ const status = {
     filament_direction: 1,
     sensors: { mmu_gate: true, extruder: true, toolhead: true },
     reason_for_pause: '',
+    sync_feedback_state: 'tension',
+    sync_feedback_enabled: true,
+    sync_feedback_bias_raw: -0.9,
+    sync_feedback_bias_modelled: -0.94,
+    sync_feedback_flow_rate: 92,
+    flowguard: { trigger: '', reason: '', level: 0.18, max_clog: 0.32, max_tangle: -0.12, active: true, enabled: true },
   },
   AFC: { current_load: 'lane2', current_state: 'Idle' },
   'AFC_stepper lane1': {
