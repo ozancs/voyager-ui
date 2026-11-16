@@ -1,10 +1,10 @@
 <p align="center"><img src="public/logo.svg" width="96" alt="Voyager UI"></p>
 
 <h1 align="center">Voyager UI</h1>
-<p align="center">Your printer. Your workspace.</p>
-<p align="center">A customizable Klipper interface that brings everyday printing, calibration and troubleshooting together.</p>
+<p align="center"><b>The Klipper interface that works the way you do.</b></p>
+<p align="center">Your dashboard, your layout, your machine: printing, tuning and fixing in one place.</p>
 
-<h2 align="center"><a href="https://oznlab.com/voyager-ui/">▶ Open the live demo</a></h2>
+<h3 align="center"><a href="https://oznlab.com/voyager-ui/">▶ Open the live demo</a></h3>
 <p align="center">No install. No account. A simulated printer you can explore and control freely.<br><a href="#install">Install Voyager</a> · <a href="https://github.com/ozancs/voyager-ui/issues">Share feedback</a></p>
 
 <p align="center">
@@ -150,9 +150,9 @@ This removes the installer-managed Voyager installations on that host, their ngi
 
 ## For the curious
 
-**A lightweight addition to your printer.** Voyager is a static web app served by nginx. It does not need its own Python or Node server, background daemon or AI service on the printer. The interface and 3D rendering run in your browser. That keeps the extra work on the printer to serving files and handling Moonraker requests; cameras and frequent status requests still have a cost, and large 3D files use memory on the device viewing them.
+**A lightweight addition to your printer.** Voyager is a static web app served by nginx. It does not need its own Python or Node server, or background daemon on the printer. The interface and 3D rendering run in your browser. That keeps the extra work on the printer to serving files and handling Moonraker requests; cameras and frequent status requests still have a cost, and large 3D files use memory on the device viewing them.
 
-**It fits into the setup you already have.** Voyager talks to Moonraker and leaves Klipper’s motion control to Klipper. Mainsail and Fluidd can stay installed and open alongside it. Integrations such as Spoolman, Moonraker Timelapse, Shake&Tune, Happy Hare, AFC and PA Sensei expose their controls when available; Voyager does not require you to replace those tools. AI helped build the code, but using Voyager does not require an AI account or send your printer to an AI service.
+**It fits into the setup you already have.** Voyager talks to Moonraker and leaves Klipper’s motion control to Klipper. Mainsail and Fluidd can stay installed and open alongside it. Integrations such as Spoolman, Moonraker Timelapse, Shake&Tune, Happy Hare, AFC and PA Sensei expose their controls when available; Voyager does not require you to replace those tools.
 
 **Make it yours, without starting from scratch.** Voyager can import familiar presets from Mainsail or Fluidd. Custom cards, macro forms, favourites and separate print layouts let you keep your own workflow. Ctrl+K gets you to pages, files, macros and settings quickly. There are 14 interface languages; translation corrections are welcome.
 
