@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pickLayout, withOwnLayout, toStored } from '../src/deviceLayout';
+import { pickLayout, withOwnLayout, toStored, fitToDevice } from '../src/deviceLayout';
 
 const KEYS = ['layout', 'layoutWidths', 'hiddenCards'];
 const DEF = { layout: null, layoutWidths: null, hiddenCards: [] };
@@ -47,5 +47,18 @@ describe('own dashboard layout on a device', () => {
     const shown = withOwnLayout(JSON.parse(JSON.stringify(stored)), stored, 'tab1', KEYS, DEF);
     const back = toStored(shown, pickLayout(stored, KEYS), dev, KEYS, 1);
     expect(back).toEqual(stored);
+  });
+});
+
+describe('fitting a copied layout to the device', () => {
+  it("forgets the other browser's width while the layout is still the shared copy", () => {
+    const shown = JSON.parse(JSON.stringify(shared));
+    expect(fitToDevice(shown, shared).layoutWidths).toBeNull();
+    expect(shown.layout).toEqual(shared.layout);
+  });
+
+  it("keeps the width once the device's layout was arranged on the device", () => {
+    const shown = JSON.parse(JSON.stringify(tablet));
+    expect(fitToDevice(shown, shared).layoutWidths).toEqual({ idle: 1000 });
   });
 });

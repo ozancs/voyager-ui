@@ -14,7 +14,7 @@ import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 import { notificationDismissKey } from './firmware';
 import { applyBase } from './baseColor';
-import { pickLayout as pickDeviceLayout, withOwnLayout, toStored } from './deviceLayout';
+import { pickLayout as pickDeviceLayout, withOwnLayout, toStored, fitToDevice } from './deviceLayout';
 
 export const VERSION = __APP_VERSION__;
 export const APP = 'voyager-ui';
@@ -335,7 +335,8 @@ const pickLayout = (s) => pickDeviceLayout(s, LAYOUT_KEYS);
 function forDevice(stored) {
   const shown = mergeSettings(stored);
   sharedLayout = pickLayout(shown);
-  return withOwnLayout(shown, stored, deviceLayout.value?.id, LAYOUT_KEYS, DEFAULT_SETTINGS());
+  withOwnLayout(shown, stored, deviceLayout.value?.id, LAYOUT_KEYS, DEFAULT_SETTINGS());
+  return deviceLayout.value ? fitToDevice(shown, sharedLayout) : shown;
 }
 // the settings this device shows -> settings to store (see deviceLayout.js)
 const forStorage = (shown) => toStored(shown, sharedLayout, deviceLayout.value, LAYOUT_KEYS);
@@ -352,6 +353,7 @@ export function setDeviceLayout(on) {
     };
     sharedLayout = pickLayout(state.settings);
     withOwnLayout(state.settings, state.settings, d.id, LAYOUT_KEYS, DEFAULT_SETTINGS());
+    fitToDevice(state.settings, sharedLayout);
     deviceLayout.value = { id: d.id, name: d.name };
     try {
       localStorage.setItem(DEVICE_KEY, JSON.stringify(d));
