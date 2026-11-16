@@ -70,7 +70,7 @@ export const DEFAULT_SETTINGS = () => ({
   consoleWrap: true, // long lines wrap; off: one line each, the log scrolls sideways
   consoleNewestFirst: false, // the newest line at the top, under the input (like Mainsail's Table direction)
   tempRange: 600,
-  strip: { order: [], hidden: [] },
+  strip: { order: [], hidden: [], humidity: true, pressure: true }, // humidity/pressure: shown on sensor tiles that have them
   layout: null,
   hiddenCards: [],
   invertZ: true,

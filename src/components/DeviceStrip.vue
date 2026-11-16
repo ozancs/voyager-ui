@@ -59,6 +59,26 @@ const isHidden = (d) =>
   (state.settings.strip.hidden || []).includes(d.id) ||
   state.settings.devices.hidden.includes(d.obj) ||
   (isPhone.value && (state.settings.stripPhoneHidden || []).includes(d.id));
+// humidity and pressure of sensors that report them, each switched in Settings > Dashboard. Klipper keeps them on
+// the chip's own object, not on [temperature_sensor <name>]: "bme280 <name>" (BME280/BMP280/BME680), "sht3x <name>",
+// "aht10 <name>", "htu21d <name>". The sensor object itself is checked first (other firmwares).
+const ENV_CHIPS = ['bme280', 'sht3x', 'aht10', 'htu21d'];
+function envObj(obj) {
+  const own = S(obj);
+  if (typeof own.humidity === 'number' || typeof own.pressure === 'number') return own;
+  const name = String(obj).split(' ').slice(1).join(' ');
+  if (!name) return own;
+  for (const c of ENV_CHIPS) if (state.objects.includes(c + ' ' + name)) return S(c + ' ' + name);
+  return own;
+}
+function envLine(obj) {
+  const o = envObj(obj),
+    st = state.settings.strip || {},
+    parts = [];
+  if (st.humidity !== false && typeof o.humidity === 'number') parts.push(o.humidity.toFixed(0) + ' %');
+  if (st.pressure !== false && typeof o.pressure === 'number') parts.push(o.pressure.toFixed(0) + ' hPa');
+  return parts.join(' · ');
+}
 function toggleHide(d) {
   if (
     isPhone.value &&
@@ -385,6 +405,7 @@ function sensorExtra(id) {
             S(d.obj).target > 0 ? '→ ' + S(d.obj).target.toFixed(0) + '°' : t('off')
           }}</span>
         </div>
+        <div v-if="envLine(d.obj)" class="env mono mu">{{ envLine(d.obj) }}</div>
         <div class="row" style="gap: 4px; align-items: baseline">
           <span class="tbig">{{ S(d.obj).temperature != null ? S(d.obj).temperature.toFixed(1) : '--' }}</span
           ><small class="mu" style="font-size: 15px">°C</small>
@@ -622,6 +643,13 @@ function sensorExtra(id) {
   </Modal>
 </template>
 <style scoped>
+.env {
+  font-size: 11px;
+  margin: 1px 0 -3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .ds {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(124px, 144px));
