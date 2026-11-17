@@ -8,6 +8,15 @@ import { ref } from 'vue';
 const LIST = 'voyager-ui-printers';
 const CUR = 'voyager-ui-printer';
 
+// whether a saved address is the machine this page came from: same host name, whatever the port (Voyager on 1977,
+// Moonraker on 7125 or behind nginx on 80 are one printer)
+export const isPageHost = (host) => {
+  const h = String(host || '')
+    .split(':')[0]
+    .toLowerCase();
+  return !!h && h === String(location.hostname || '').toLowerCase();
+};
+
 export const HOST_RE = /^[A-Za-z0-9.-]+(:\d{1,5})?$/; // host[:port] only, never a path or credentials
 
 function read(k, d) {
@@ -44,6 +53,8 @@ export function currentPrinter() {
   return (id && loadPrinters().find((p) => p.id === id)) || null;
 }
 export const currentHost = () => currentPrinter()?.host || '';
+// the saved entry that is this page's own machine, if any: it stands in for "This address" in the lists
+export const ownEntryId = () => printerList.value.find((p) => isPageHost(p.host))?.id ?? null;
 
 export function selectPrinter(id) {
   try {
