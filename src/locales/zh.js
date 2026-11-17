@@ -2588,4 +2588,5 @@ export default {
   "Take off the phone": "从手机移除",
   "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "你正在编辑打印布局，仅在打印时显示。空闲布局保持不变。",
   "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "你正在编辑空闲布局，在未打印时显示。打印布局保持不变。",
+  "only on the phone": "仅手机",
 }

@@ -5,6 +5,7 @@
 - Interface settings: picking a colour (mode, background, theme colour, accent, accent strength) or the interface size folds the settings down to those rows at the bottom of the screen, without the dark backdrop, so the page behind shows the change; Done brings back all the settings
 - Customize with Separate layout while printing: a line under the bar says which layout is being edited, the printing one in the heat colour (bar included), and Customize opens on the layout on screen (the printing one while a print runs)
 - Phone layout: a card is taken off the phone with × and comes back through Add card (in Customize > Phone layout and on the phone), instead of the eye and Show hidden; the computer keeps all its cards
+- Phone layout: Add card adds a card to the phone only (tagged "only on the phone"); it used to put it on the computer's dashboard too, out of sight under the phone editor
 - System Loads: Details sits under the tiles, so the four tiles keep equal widths
 - Background: Darker with a theme colour (or Accent strength normal / strong) darkens only the page again; the cards, panels and grey text had turned lighter instead
 - Gentler motion: buttons ease in and rise a little under the pointer and spring back after a press, switches land with a small bounce, a checkbox pops and its tick draws itself, the highlight of option groups slides to the picked option, dashboard tiles lift on hover; all of it off when the system asks for less motion

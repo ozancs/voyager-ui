@@ -2588,4 +2588,5 @@ export default {
   "Take off the phone": "Прибрати з телефона",
   "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Ви редагуєте макет друку, він видимий лише під час друку. Макет простою лишається як є.",
   "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Ви редагуєте макет простою, він видимий, коли друк не йде. Макет друку лишається як є.",
+  "only on the phone": "лише на телефоні",
 }

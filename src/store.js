@@ -96,6 +96,7 @@ export const DEFAULT_SETTINGS = () => ({
   layoutWidths: null,
   mobileOrder: null, // card order of the one-column phone dashboard, set in Customize (Phone)
   mobileHidden: [], // dashboard cards left out on a phone only; the desktop grid keeps them
+  mobileExtra: [], // cards added on the phone only (Add card in phone Customize); the desktop grid does not get them
   stripPhoneHidden: [], // top tiles left out on a phone only
   stripPhoneOrder: [], // order of the top tiles on a phone (Customize > Phone); empty = the computer's order
   bottomNavOrder: [], // pages of the phone's bottom bar (first four) and its More menu, in order; empty = default
@@ -248,6 +249,7 @@ export const LAYOUT_KEYS = [
   'cardTitles',
   'mobileOrder',
   'mobileHidden',
+  'mobileExtra',
   'stripPhoneHidden',
   'stripPhoneOrder',
   'bottomNavOrder',

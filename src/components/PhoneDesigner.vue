@@ -129,6 +129,11 @@ function reloadFrame() {
 
 const hiddenCards = computed(() => state.settings.mobileHidden || []);
 function toggleCard(i) {
+  // a card added on the phone only goes away entirely; one of the computer's is left out on the phone
+  if (props.cards.find((c) => c.i === i)?.only === 'phone') {
+    state.settings.mobileExtra = (state.settings.mobileExtra || []).filter((x) => x !== i);
+    return;
+  }
   const h = hiddenCards.value;
   state.settings.mobileHidden = h.includes(i) ? h.filter((x) => x !== i) : [...h, i];
 }
@@ -306,7 +311,11 @@ const KINDS = {
                 <span class="grow nm"
                   >{{ c.name
                   }}<span v-if="c.only" class="when">{{
-                    c.only === 'print' ? t('only while printing') : t('only when idle')
+                    c.only === 'phone'
+                      ? t('only on the phone')
+                      : c.only === 'print'
+                        ? t('only while printing')
+                        : t('only when idle')
                   }}</span></span
                 >
                 <button

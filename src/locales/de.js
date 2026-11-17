@@ -2588,4 +2588,5 @@ export default {
   "Take off the phone": "Vom Handy nehmen",
   "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Du bearbeitest das Drucklayout, das nur während eines Drucks erscheint. Das Leerlauf-Layout bleibt, wie es ist.",
   "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Du bearbeitest das Leerlauf-Layout, das ohne laufenden Druck erscheint. Das Drucklayout bleibt, wie es ist.",
+  "only on the phone": "nur auf dem Handy",
 }

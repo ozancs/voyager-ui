@@ -2588,4 +2588,5 @@ export default {
   "Take off the phone": "Van de telefoon halen",
   "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Je bewerkt de printindeling, alleen te zien tijdens een print. De rustindeling blijft zoals hij is.",
   "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Je bewerkt de rustindeling, te zien als er niet geprint wordt. De printindeling blijft zoals hij is.",
+  "only on the phone": "alleen op de telefoon",
 }

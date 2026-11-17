@@ -2588,4 +2588,5 @@ export default {
   "Take off the phone": "휴대폰에서 빼기",
   "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "출력 레이아웃을 편집 중입니다. 출력 중에만 보입니다. 대기 레이아웃은 그대로입니다.",
   "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "대기 레이아웃을 편집 중입니다. 출력하지 않을 때 보입니다. 출력 레이아웃은 그대로입니다.",
+  "only on the phone": "휴대폰에서만",
 }

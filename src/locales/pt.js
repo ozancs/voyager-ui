@@ -2588,4 +2588,5 @@ export default {
   "Take off the phone": "Tirar do telemóvel",
   "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Está a editar a disposição de impressão, mostrada só durante uma impressão. A disposição em repouso fica como está.",
   "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Está a editar a disposição em repouso, mostrada quando não há impressão. A disposição de impressão fica como está.",
+  "only on the phone": "só no telemóvel",
 }

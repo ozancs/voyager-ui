@@ -416,12 +416,21 @@ watch(
 const sorted = computed(() => [...layout.value].sort((a, b) => a.y - b.y || a.x - b.x));
 // phone / narrow window: one column. Its order is kept on its own (mobileOrder), so moving a card here does not
 // shuffle the desktop grid. Cards not in the list yet follow in desktop order.
+// Cards added on the phone only (mobileExtra) come after the computer's.
+const isExtra = (i) => (state.settings.mobileExtra || []).includes(i) && !layout.value.some((x) => x.i === i);
 const columnAll = computed(() => {
   const ord = state.settings.mobileOrder || DEFAULT_MOBILE_ORDER;
-  const has = (i) => layout.value.some((x) => x.i === i);
-  const ids = [...ord.filter(has), ...sorted.value.map((x) => x.i).filter((i) => !ord.includes(i))];
-  return ids.map((i) => layout.value.find((x) => x.i === i));
+  const extra = (state.settings.mobileExtra || [])
+    .filter((i) => isExtra(i) && (MODULES[i] || (isCustom(i) && state.settings.customCards?.[i])))
+    .map((i) => ({ i, x: 0, y: 9999, w: 12, h: (MODULES[i]?.def || [6, 6])[1] }));
+  const items = [...sorted.value, ...extra];
+  const has = (i) => items.some((x) => x.i === i);
+  const ids = [...ord.filter(has), ...items.map((x) => x.i).filter((i) => !ord.includes(i))];
+  return ids.map((i) => items.find((x) => x.i === i));
 });
+// Customize on a phone, or with the phone layout open: Add card and × change the phone only, never the computer's
+// grid (which the phone layout does not even show)
+const phoneCtx = computed(() => !wide.value || phoneEdit.value);
 // A card taken off the phone (Customize on a phone, or Customize > Phone layout) leaves the phone's list; the
 // computer keeps it. Add card lists those first, to put one back.
 const phoneHid = (i) => (state.settings.mobileHidden || []).includes(i);
@@ -442,18 +451,25 @@ const layoutIds = (k) =>
 const phoneCards = computed(() => {
   const name = (i) => (isCustom(i) ? nameOf(i) : t(nameOf(i)));
   const cur = columnAll.value.map((x) => x.i);
-  if (!state.settings.autoLayout || !state.settings.layoutPrint) return cur.map((i) => ({ i, name: name(i) }));
-  const idle = new Set([...layoutIds('layout'), ...(mode.value === 'print' ? [] : cur)]);
-  const print = new Set([...layoutIds('layoutPrint'), ...(mode.value === 'print' ? cur : [])]);
+  if (!state.settings.autoLayout || !state.settings.layoutPrint)
+    return cur.map((i) => ({ i, name: name(i), only: isExtra(i) ? 'phone' : null }));
+  const own = cur.filter(isExtra);
+  const idle = new Set([...layoutIds('layout'), ...(mode.value === 'print' ? [] : cur), ...own]);
+  const print = new Set([...layoutIds('layoutPrint'), ...(mode.value === 'print' ? cur : []), ...own]);
   const all = [...new Set([...cur, ...idle, ...print])];
   const ord = state.settings.mobileOrder || DEFAULT_MOBILE_ORDER;
   return [...ord.filter((i) => all.includes(i)), ...all.filter((i) => !ord.includes(i))].map((i) => ({
     i,
     name: name(i),
-    only: !idle.has(i) ? 'print' : !print.has(i) ? 'idle' : null,
+    only: isExtra(i) ? 'phone' : !idle.has(i) ? 'print' : !print.has(i) ? 'idle' : null,
   }));
 });
 function togglePhoneCard(i) {
+  // a card the phone got on its own goes away entirely; one of the computer's is only left out on the phone
+  if (isExtra(i)) {
+    state.settings.mobileExtra = state.settings.mobileExtra.filter((x) => x !== i);
+    return;
+  }
   const h = state.settings.mobileHidden || [];
   state.settings.mobileHidden = h.includes(i) ? h.filter((x) => x !== i) : [...h, i];
 }
@@ -542,9 +558,23 @@ function saveTitle(clear) {
   titleFor.value = null;
 }
 const available = computed(() =>
-  Object.keys(MODULES).filter((k) => !layout.value.some((x) => x.i === k) && (!MODULES[k].need || MODULES[k].need())),
+  Object.keys(MODULES).filter(
+    (k) =>
+      !(phoneCtx.value ? columnAll.value : layout.value).some((x) => x.i === k) &&
+      !(phoneCtx.value && phoneHid(k)) &&
+      (!MODULES[k].need || MODULES[k].need()),
+  ),
 );
+// on the phone a module is added to the phone only
+function addPhoneCard(k) {
+  state.settings.mobileHidden = (state.settings.mobileHidden || []).filter((x) => x !== k);
+  if (!columnAll.value.some((x) => x.i === k))
+    state.settings.mobileExtra = [...new Set([...(state.settings.mobileExtra || []), k])];
+  addOpen.value = false;
+}
 function addModule(k) {
+  if (phoneCtx.value) return addPhoneCard(k);
+  state.settings.mobileExtra = (state.settings.mobileExtra || []).filter((x) => x !== k); // now on both
   state.settings[HK()] = (state.settings[HK()] || []).filter((x) => x !== k);
   const [w, h] = MODULES[k].def;
   layout.value = [...layout.value, { i: k, x: 0, y: bottom(), w, h }];
@@ -570,8 +600,11 @@ function addCustom(type, cam) {
     o.cams = { ...(o.cams || {}), [id]: cam };
   }
   const [w, h] = { btn: [2, 3], cam: [6, 8], tabs: [6, 7], ctl: [4, 6] }[type] || [4, 4];
-  layout.value = [...layout.value, { i: id, x: 0, y: bottom(), w, h }];
-  persist();
+  if (phoneCtx.value) addPhoneCard(id);
+  else {
+    layout.value = [...layout.value, { i: id, x: 0, y: bottom(), w, h }];
+    persist();
+  }
   addOpen.value = false;
   if (type !== 'cam') editCard(id); // a webcam card picks its camera in its own header
 }

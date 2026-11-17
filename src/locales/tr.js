@@ -2606,4 +2606,5 @@ export default {
   "Take off the phone": "Telefondan kaldır",
   "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Baskı düzenini düzenliyorsun, sadece baskı sürerken görünür. Boştaki düzen olduğu gibi kalır.",
   "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Boştaki düzeni düzenliyorsun, baskı yokken görünür. Baskı düzeni olduğu gibi kalır.",
+  "only on the phone": "sadece telefonda",
 }

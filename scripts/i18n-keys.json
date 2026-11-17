@@ -2581,5 +2581,6 @@
   "Taken off the phone",
   "Take off the phone",
   "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.",
-  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is."
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.",
+  "only on the phone"
 ]
