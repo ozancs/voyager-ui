@@ -794,6 +794,34 @@ const consoleSample = (() => {
                 </div>
                 <Toggle v-model="state.settings.idleHeatOff" :label="t('Turn them off')" />
               </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Temperatures card') }}</b
+                  ><span>{{
+                    t(
+                      'Classic: a table with typed targets and power. Compact: one row per heater with a target you tap, power as a line, sensors as small chips. Fits a narrow card.',
+                    )
+                  }}</span>
+                </div>
+                <div class="seg v" role="radiogroup" :aria-label="t('Temperatures card')">
+                  <button
+                    role="radio"
+                    :aria-checked="state.settings.tempsStyle !== 'compact'"
+                    :class="{ on: state.settings.tempsStyle !== 'compact' }"
+                    @click="state.settings.tempsStyle = 'classic'"
+                  >
+                    {{ t('Classic') }}
+                  </button>
+                  <button
+                    role="radio"
+                    :aria-checked="state.settings.tempsStyle === 'compact'"
+                    :class="{ on: state.settings.tempsStyle === 'compact' }"
+                    @click="state.settings.tempsStyle = 'compact'"
+                  >
+                    {{ t('Compact') }}
+                  </button>
+                </div>
+              </div>
               <h3 class="sec"><Icon name="move" :size="16" />{{ t('Toolhead') }}</h3>
               <div class="rw">
                 <div class="k">
