@@ -7,6 +7,8 @@ import { ref, computed, watch } from 'vue';
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
 import PhoenixGuide from './PhoenixGuide.vue';
+import PhoenixNozzle from './PhoenixNozzle.vue';
+import { recoveryNozzle } from '../phoenixNozzle';
 import { state, S, gcode, setHeater, fmtDate } from '../store';
 import {
   ph,
@@ -114,13 +116,33 @@ watch(phase, (ph) => {
   if (ph !== 'prepared') cleaned.value = pathClear.value = false;
 });
 const ext = computed(() => S('extruder'));
-const tgt = ref('');
-function heat(v) {
-  if (online.value) setHeater('extruder', v);
+const savedTarget = computed(() => sel.value?.extruder_target ?? null);
+const maxTemp = computed(() => Number(S('configfile').settings?.extruder?.max_temp));
+const nozzle = computed(() => recoveryNozzle(savedTarget.value, ext.value, maxTemp.value));
+async function heat() {
+  if (!canAct.value || !['detected', 'prepared'].includes(phase.value) || nozzle.value.target === null) return;
+  sending.value = true;
+  try {
+    await setHeater('extruder', nozzle.value.target);
+  } catch {
+    // shown by the normal heater controls
+  } finally {
+    sending.value = false;
+  }
 }
-function extrude(mmE) {
-  if (!online.value || p.value.phase !== 'prepared') return;
-  gcode(`SAVE_GCODE_STATE NAME=_ui_ext\nM83\nG1 E${mmE} F240\nRESTORE_GCODE_STATE NAME=_ui_ext`, { force: true });
+async function extrude(mmE) {
+  if (!canAct.value || phase.value !== 'prepared' || !nozzle.value.ready || ![10, -2].includes(mmE)) return;
+  sending.value = true;
+  try {
+    await gcode(
+      `SAVE_GCODE_STATE NAME=_phoenix_ui_prime\nM83\nG1 E${mmE} F240\nRESTORE_GCODE_STATE NAME=_phoenix_ui_prime`,
+      { force: true },
+    );
+  } catch {
+    // shown by gcode()
+  } finally {
+    sending.value = false;
+  }
 }
 
 // ---- discard ----
@@ -287,23 +309,7 @@ const PHASE_TEXT = {
                   </span>
                 </label>
               </div>
-              <div class="heat">
-                <span class="sm"
-                  >{{ t('Hotend') }}
-                  <b class="mono">{{ Math.round(ext.temperature ?? 0) }}° / {{ Math.round(ext.target ?? 0) }}°</b></span
-                >
-                <input
-                  v-model="tgt"
-                  class="input mono"
-                  type="number"
-                  inputmode="numeric"
-                  :placeholder="t('Target °C')"
-                  :aria-label="t('Hotend target')"
-                  @keydown.enter="heat(tgt)"
-                />
-                <button class="btn" :disabled="!online || tgt === ''" @click="heat(tgt)">{{ t('Set') }}</button>
-                <button class="btn" :disabled="!online" @click="heat(0)">{{ t('Off') }}</button>
-              </div>
+              <PhoenixNozzle :target="savedTarget" :heater="ext" :max-temp="maxTemp" :enabled="canAct" @heat="heat" />
             </template>
 
             <!-- 4: lift and park -->
@@ -316,13 +322,10 @@ const PHASE_TEXT = {
                   )
                 }}
               </p>
+              <PhoenixNozzle :target="savedTarget" :heater="ext" :max-temp="maxTemp" :enabled="canAct" @heat="heat" />
               <div v-if="!p.profile_ready" class="note warn">
                 <b>{{ t('The recovery profile is not set up yet') }}</b>
-                <span>{{
-                  t(
-                    'Review park_x, park_y and clearance in phoenix.cfg for this printer, set profile_ready: True and restart Klipper.',
-                  )
-                }}</span>
+                <span>{{ t('Finish Phoenix setup and review the park point before preparing recovery.') }}</span>
               </div>
               <div v-if="phase === 'preparing'" class="note">
                 <Icon name="refresh" :size="16" class="spin" /><span>{{ t('Lifting and parking…') }}</span>
@@ -353,38 +356,19 @@ const PHASE_TEXT = {
               <p class="mu">
                 {{
                   t(
-                    'The toolhead is parked. Heat the hotend, push out a little filament and clean the nozzle. Do not touch the part and do not move the axes.',
+                    'The toolhead is parked. Prime a little filament at the saved print temperature, then clean the nozzle. Do not move the axes.',
                   )
                 }}
               </p>
-              <div class="heat">
-                <span class="sm"
-                  >{{ t('Hotend') }}
-                  <b class="mono">{{ Math.round(ext.temperature ?? 0) }}° / {{ Math.round(ext.target ?? 0) }}°</b></span
-                >
-                <input
-                  v-model="tgt"
-                  class="input mono"
-                  type="number"
-                  inputmode="numeric"
-                  :placeholder="t('Target °C')"
-                  :aria-label="t('Hotend target')"
-                  @keydown.enter="heat(tgt)"
-                />
-                <button class="btn" :disabled="!online || tgt === ''" @click="heat(tgt)">{{ t('Set') }}</button>
-                <button class="btn" :disabled="!online" @click="heat(0)">{{ t('Off') }}</button>
-              </div>
-              <div class="row" style="gap: 8px; flex-wrap: wrap">
-                <button class="btn" :disabled="!online" @click="extrude(10)">
-                  <Icon name="down" :size="15" />{{ t('Extrude {n} mm', { n: 10 }) }}
-                </button>
-                <button class="btn" :disabled="!online" @click="extrude(-2)">
-                  <Icon name="up" :size="15" />{{ t('Retract {n} mm', { n: 2 }) }}
-                </button>
-              </div>
-              <p class="mu sm">
-                {{ t('Resuming heats to the saved temperatures by itself; priming here is up to you.') }}
-              </p>
+              <PhoenixNozzle
+                :target="savedTarget"
+                :heater="ext"
+                :max-temp="maxTemp"
+                :enabled="canAct"
+                prime
+                @heat="heat"
+                @extrude="extrude"
+              />
               <button class="btn lg acc" style="align-self: flex-start" @click="go(6)">
                 {{ t('Next') }}<Icon name="right" :size="16" />
               </button>
@@ -619,15 +603,6 @@ h3 {
 .ck .cb {
   margin-top: 2px;
   flex: none;
-}
-.heat {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.heat .input {
-  width: 110px;
 }
 .note {
   display: flex;

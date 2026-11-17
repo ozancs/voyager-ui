@@ -10,6 +10,8 @@ const cp = (index, ago, x, y, z, layer) => ({
   gcode_position: [x, y, z],
   layer_z: layer,
   z_above_layer: +(z - layer).toFixed(2),
+  extruder_target: 240,
+  bed_target: 80,
 });
 const base = {
   api_version: 1,

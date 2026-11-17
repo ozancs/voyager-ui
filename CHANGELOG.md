@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.38.54
+## 0.38.55
 
 - Interface settings: picking a colour (mode, background, theme colour, accent, accent strength) or the interface size folds the settings down to those rows at the bottom of the screen, without the dark backdrop, so the page behind shows the change; Done brings back all the settings
 - Customize with Separate layout while printing: a line under the bar says which layout is being edited, the printing one in the heat colour (bar included), and Customize opens on the layout on screen (the printing one while a print runs)
@@ -10,6 +10,11 @@
 - System Loads: Details sits under the tiles, so the four tiles keep equal widths
 - Background: Darker with a theme colour (or Accent strength normal / strong) darkens only the page again; the cards, panels and grey text had turned lighter instead
 - Gentler motion: buttons ease in and rise a little under the pointer and spring back after a press, switches land with a small bounce, a checkbox pops and its tick draws itself, the highlight of option groups slides to the picked option, dashboard tiles lift on hover; all of it off when the system asks for less motion
+
+## 0.38.54
+
+- Phoenix recovery uses the selected print record's nozzle temperature (Phoenix 0.4.10+), with an optional Heat nozzle button instead of repeated temperature entry.
+- Clean and prime keeps existing heat and enables priming when the nozzle is ready; opening or changing steps does not start heating or extrusion.
 
 ## 0.38.53
 
