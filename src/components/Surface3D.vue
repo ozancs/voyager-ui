@@ -110,7 +110,15 @@ async function draw() {
         camera: { eye: { x: props.view[1] === 'r' ? 1.2 : -1.2, y: props.view[0] === 'b' ? 1.5 : -1.5, z: 0.9 } },
       },
     },
-    { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toImage', 'resetCameraLastSave3d'] },
+    // nothing leaves the browser: Plotly's own share button would upload the mesh to Plotly Cloud
+    {
+      displaylogo: false,
+      responsive: true,
+      showSendToCloud: false,
+      showEditInChartStudio: false,
+      showLink: false,
+      modeBarButtonsToRemove: ['toImage', 'resetCameraLastSave3d', 'sendDataToCloud', 'editInChartStudio'],
+    },
   );
 }
 onMounted(draw);

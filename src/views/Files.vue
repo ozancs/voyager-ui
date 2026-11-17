@@ -179,6 +179,18 @@ const filColors = (f) =>
   (Array.isArray(f.filament_colors) ? f.filament_colors : String(f.filament_colors || '').split(/[;,]/))
     .map((c) => String(c).trim())
     .filter((c) => /^#[0-9a-f]{3,8}$/i.test(c));
+// dark or light text on a filament colour, whichever reads (relative luminance, as WCAG counts it)
+function inkOn(hex) {
+  let h = hex.slice(1);
+  if (h.length < 6) h = [...h.slice(0, 3)].map((c) => c + c).join('');
+  const lin = (i) => {
+    const v = parseInt(h.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  const L = 0.2126 * lin(0) + 0.7152 * lin(2) + 0.0722 * lin(4);
+  // the one with more contrast: white gives 1.05 / (L + 0.05), the dark text (L 0.0095) (L + 0.05) / 0.0595
+  return 1.05 / (L + 0.05) >= (L + 0.05) / 0.0595 ? '#fff' : '#16181c';
+}
 // sortable by the columns that are not plain metadata too
 const sortVal = (x, k) => (k === 'last' ? (job(x)?.dur ?? 0) : (x[k] ?? 0));
 const list = computed(() => {
@@ -812,7 +824,7 @@ async function moveTo(dest) {
                 <span
                   v-if="grams(f) || filType(f)"
                   class="fch"
-                  :style="filColors(f).length ? { '--fc': filColors(f)[0] } : null"
+                  :style="filColors(f).length ? { '--fc': filColors(f)[0], color: inkOn(filColors(f)[0]) } : null"
                   :class="{ tinted: filColors(f).length }"
                   :data-tip="f.filament_name || null"
                   ><b v-if="grams(f)" class="mono">{{ grams(f) }}</b
@@ -1217,8 +1229,6 @@ table.tbl td.nm {
 }
 .fch.tinted {
   background: var(--fc);
-  color: #fff;
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 .fch b {
