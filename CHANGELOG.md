@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.57
+
+- Dashboard: the text on the cards is sharp at every interface size and window width; the cards sat on layers of their own, which Chrome drew blurry at some zoom levels (reported by Bassam)
+
 ## 0.38.56
 
 - G-code Files: the table shows more of what the slicer wrote: filament weight and type in a chip of the filament colour, its text dark or light for contrast (and its length), object height, layer height, nozzle, slicer, extruder, bed and chamber temperatures, and the last print's duration; next to each file how often it printed to the end and how its last print ended (hover for when). Rows are slimmer, a long name scrolls sideways in its column, and the buttons stay at the right edge while the columns scroll

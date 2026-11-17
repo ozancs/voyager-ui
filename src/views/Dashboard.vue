@@ -1097,7 +1097,7 @@ function detachCard(i) {
         :is-draggable="state.editDash"
         :is-resizable="false"
         vertical-compact
-        use-css-transforms
+        :use-css-transforms="false"
         @layout-updated="() => persist()"
         @layout-ready="measureScale"
       >
@@ -1841,11 +1841,9 @@ function detachCard(i) {
 .cell :deep(.card-h > .cce) {
   flex-shrink: 0;
 }
-/* each card on a layer of its own: a card sliding up after the one above folds left stale stripes of itself
-   behind in Chrome until the next repaint */
-.grid :deep(.vgl-item) {
-  will-change: transform;
-}
+/* The cards are placed with top / left, not transforms, and get no layer of their own: on a layer (translate3d,
+   will-change) Chrome rasterises the text once, and with the interface scale or the dashboard's own fit (CSS zoom)
+   at a fraction the text came out blurry, sharp again only at some zoom levels. */
 .mcell {
   height: auto;
 }
