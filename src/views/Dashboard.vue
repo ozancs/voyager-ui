@@ -878,7 +878,8 @@ function detachCard(i) {
       <template v-if="state.editDash">
         <Icon name="move" :size="18" style="color: var(--ac)" />
         <b>{{ t('Customize') }}</b>
-        <span class="chip lchip">{{
+        <!-- with two layouts the line under the bar says which one; the chip would only repeat it -->
+        <span v-if="!(state.settings.autoLayout && !(phoneEdit && wide))" class="chip lchip">{{
           t('Editing layout: {layout}', {
             layout: phoneEdit && wide ? t('Phone') : mode === 'print' ? t('Printing') : t('Idle'),
           })
@@ -1602,24 +1603,23 @@ function detachCard(i) {
   z-index: 20;
   padding: 0 0 18px;
 }
-/* the layout being edited, in words under the bar; the printing layout in the heat colour, bar and all */
+/* the layout being edited, in words: a short line of its own at the very end of the bar (after the buttons, so
+   they keep their row); the printing layout in the heat colour, bar and all */
 .lnote {
+  order: 99;
   flex-basis: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 9px;
-  background: var(--s2);
+  gap: 6px;
+  margin-top: -2px;
   color: var(--mu);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
 }
 .dbar.prn {
   border-color: var(--heat) !important;
 }
 .dbar.prn .lnote {
-  background: color-mix(in srgb, var(--heat) 14%, var(--s1));
   color: var(--heat);
 }
 .dbar.prn .lchip {
