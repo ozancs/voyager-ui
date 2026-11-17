@@ -68,13 +68,18 @@ function remove(f) {
   state.settings.favorites = favs.value.filter((x) => x.id !== f.id);
   form.value = null;
 }
+// FILAMENT_LOAD -> Filament Load
+const macroTitle = (m) =>
+  m
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+// a macro picked from the list names the button, also when another macro named it before; a name typed by hand stays
 function fromMacro(m) {
-  form.value.gcode = m;
-  if (!form.value.name)
-    form.value.name = m
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+  const f = form.value;
+  const prev = f.gcode.trim();
+  if (!f.name.trim() || f.name === macroTitle(prev) || f.name === prev.split(/\s/)[0]) f.name = macroTitle(m);
+  f.gcode = m;
 }
 // reordering: the button being dragged takes the place of the one it is over at once, the others slide aside,
 // so where it lands is visible before letting go. A short pause after each move stops two buttons of different
