@@ -7,7 +7,7 @@ import { ref, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
 import { api } from '../api/moonraker';
-import { toast, askConfirm } from '../store';
+import { toast, askConfirm, fmtDay } from '../store';
 import { t } from '../i18n';
 const users = ref(null); // null until the first answer; [] = none
 const avail = ref(false);
@@ -94,7 +94,7 @@ async function copyKey() {
     showKey.value = true;
   }
 }
-const when = (ts) => (ts ? new Date(ts * 1000).toLocaleDateString() : '');
+const when = (ts) => (ts ? fmtDay(ts * 1000, true) : '');
 </script>
 <template>
   <section v-if="avail" class="card">

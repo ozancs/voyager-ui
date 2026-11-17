@@ -18,6 +18,7 @@ import {
   gcode,
   cancelPrint,
   pauseResume,
+  fmtClock,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -36,11 +37,7 @@ const thumb = computed(() => {
   const dir = fn.split('/').slice(0, -1).join('/');
   return api.fileUrl('gcodes', (dir ? dir + '/' : '') + th.relative_path);
 });
-const eta = computed(() =>
-  printTimes.value.eta
-    ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-    : '--:--',
-);
+const eta = computed(() => (printTimes.value.eta ? fmtClock(printTimes.value.eta) : '--:--'));
 const eo = computed(() => S('exclude_object'));
 const hasCmd = (c) => Object.keys(state.commands || {}).some((k) => k.toUpperCase() === c);
 const pauseNext = computed(

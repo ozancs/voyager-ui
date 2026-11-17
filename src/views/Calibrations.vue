@@ -9,7 +9,7 @@ import ShakeTune from './ShakeTune.vue';
 import ShaperGraphs from '../components/ShaperGraphs.vue';
 import CalibPath from '../components/CalibPath.vue';
 import CalibSide from '../components/CalibSide.vue';
-import { state, S, gcode, toast, isPrinting } from '../store';
+import { state, S, gcode, toast, isPrinting, fmtClock } from '../store';
 import {
   availableGroups,
   buildCommand,
@@ -246,9 +246,7 @@ function applyShaper(r) {
         <section v-if="lastShaper" class="card">
           <div class="card-h">
             <h2>{{ t('Last input shaper result') }}</h2>
-            <span class="mono mu sm">{{
-              new Date(lastShaper.time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }}</span>
+            <span class="mono mu sm">{{ fmtClock(lastShaper.time * 1000) }}</span>
           </div>
           <ShaperResults :fitted="lastShaper.fitted" />
         </section>

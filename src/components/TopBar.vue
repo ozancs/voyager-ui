@@ -36,6 +36,7 @@ import {
   restartKlipper,
   activeExtruder,
   layerInfo,
+  fmtClock,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -49,11 +50,7 @@ const emit = defineEmits(['exclude', 'menu']);
 const props = defineProps({ brand: { type: Boolean, default: true }, tabs: Boolean, dock: Boolean });
 // a print shown in the bar itself: when moved up, and always with the bottom dock menu (the bar is the print's)
 const pillTop = computed(() => isPrinting.value && (props.dock || state.settings.printBar === 'top'));
-const etaTxt = computed(() =>
-  printTimes.value.eta
-    ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-    : '--',
-);
+const etaTxt = computed(() => (printTimes.value.eta ? fmtClock(printTimes.value.eta) : '--'));
 const fileInput = ref(null);
 const uploading = ref(null);
 const showBell = ref(false);

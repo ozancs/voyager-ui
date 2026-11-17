@@ -61,6 +61,8 @@ import {
   layoutSnapshot,
   pushLayoutBackup,
   restoreLayout,
+  fmtDay,
+  fmtClock,
 } from '../store';
 import IconPicker from '../components/IconPicker.vue';
 import LiveZCard from '../components/LiveZCard.vue';
@@ -743,8 +745,7 @@ function restore(b) {
   reload();
   restoreOpen.value = false;
 }
-const fmtT = (t) =>
-  new Date(t).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const fmtT = (t) => fmtDay(t) + ' ' + fmtClock(t);
 watch(
   () => state.editDash,
   (v) => document.body.classList.toggle('dash-edit', v),

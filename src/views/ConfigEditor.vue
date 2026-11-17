@@ -699,7 +699,7 @@ async function save(restart) {
     if (restart) {
       if (a.path === 'moonraker.conf') await api.call('server.restart');
       else if (a.path === 'crowsnest.conf') await api.call('machine.services.restart', { service: 'crowsnest' });
-      else await restartKlipper(true);
+      else await restartKlipper(state.settings.restartMethod !== 'restart'); // Settings > General
     }
   } catch (e) {
     toast(t('Save failed: {e}', { e: e.message }), 'error');

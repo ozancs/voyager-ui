@@ -28,6 +28,7 @@ import { undoable, isHidden, stillSame } from '../undo';
 import { nameTaken } from '../fileNames';
 import { droppedFiles, pickedFolderFiles, moveItems, DRAG_TYPE, isRowDrag } from '../fileMove';
 import FolderPicker from '../components/FolderPicker.vue';
+import { jobStatus, jobsByFile } from '../jobStatus';
 const path = ref('gcodes');
 const grid = ref(state.settings.filesView === 'grid');
 watch(grid, (value) => {
@@ -130,6 +131,56 @@ useApiEvent('notify_filelist_changed', ([p]) => {
   rt = setTimeout(load, 300);
 });
 const rel = (f) => (path.value === 'gcodes' ? '' : path.value.slice(7) + '/') + f.filename;
+// The print history by file, for the status mark next to each file (how often it printed to the end, how its last
+// print ended) and its last print's duration. Read once when the page opens, again when the history changes.
+const jobs = ref(state.cache.fileJobs || null);
+async function loadJobs() {
+  try {
+    const r = await api.call('server.history.list', { limit: 1000, order: 'desc' });
+    jobs.value = state.cache.fileJobs = jobsByFile(r.jobs);
+  } catch {
+    /* no history component: the files show without it */
+  }
+}
+onMounted(loadJobs);
+let jt;
+useApiEvent('notify_history_changed', () => {
+  clearTimeout(jt);
+  jt = setTimeout(loadJobs, 800);
+});
+function job(f) {
+  const e = jobs.value?.[rel(f)];
+  if (!e) return null;
+  const s = e.last.status;
+  return {
+    ...jobStatus(s),
+    done: e.done,
+    dur: e.last.print_duration,
+    tip:
+      t('Printed to the end: {n}', { n: e.done }) +
+      ' · ' +
+      t('Last print: {status}, {date}', { status: t(s.replace('_', ' ')), date: fmtDate(e.last.start_time) }),
+  };
+}
+// the slicer's facts about a file, as shown in the table
+const mm = (v) => (v ? +(+v).toFixed(2) + ' mm' : '--');
+const deg = (v) => (v > 0 ? Math.round(v) + ' °C' : '--');
+const grams = (f) => (f.filament_weight_total ? +f.filament_weight_total.toFixed(1) + ' g' : '');
+const filType = (f) =>
+  [
+    ...new Set(
+      String(f.filament_type || '')
+        .split(';')
+        .filter(Boolean),
+    ),
+  ].join(' / ');
+// the filament colours the slicer wrote (OrcaSlicer, PrusaSlicer); none: the chip stays grey
+const filColors = (f) =>
+  (Array.isArray(f.filament_colors) ? f.filament_colors : String(f.filament_colors || '').split(/[;,]/))
+    .map((c) => String(c).trim())
+    .filter((c) => /^#[0-9a-f]{3,8}$/i.test(c));
+// sortable by the columns that are not plain metadata too
+const sortVal = (x, k) => (k === 'last' ? (job(x)?.dur ?? 0) : (x[k] ?? 0));
 const list = computed(() => {
   const f = q.value.toLowerCase();
   const k = sort.value.k,
@@ -137,7 +188,7 @@ const list = computed(() => {
   return files.value
     .filter((x) => !isHidden('g:' + path.value + '/' + x.filename))
     .filter((x) => !f || x.filename.toLowerCase().includes(f))
-    .sort((a, b) => pinned(b) - pinned(a) || ((a[k] ?? 0) > (b[k] ?? 0) ? d : -d));
+    .sort((a, b) => pinned(b) - pinned(a) || (sortVal(a, k) > sortVal(b, k) ? d : -d));
 });
 // search reaches every folder: the matches outside this one are listed under the table and open their folder
 const allFiles = ref(null);
@@ -656,12 +707,20 @@ async function moveTo(dest) {
               </th>
               <th style="width: 60px"></th>
               <th class="s" @click="sortBy('filename')">{{ t('Name') }}</th>
+              <th></th>
               <th class="s" @click="sortBy('size')">{{ t('Size') }}</th>
               <th class="s" @click="sortBy('estimated_time')">{{ t('Print time') }}</th>
-              <th class="s" @click="sortBy('filament_total')">{{ t('Filament') }}</th>
-              <th>{{ t('Layer') }}</th>
+              <th class="s" @click="sortBy('last')">{{ t('Last print') }}</th>
+              <th class="s" @click="sortBy('filament_weight_total')">{{ t('Filament') }}</th>
+              <th class="s" @click="sortBy('object_height')">{{ t('Object height') }}</th>
+              <th class="s" @click="sortBy('layer_height')">{{ t('Layer height') }}</th>
+              <th class="s" @click="sortBy('nozzle_diameter')">{{ t('Nozzle') }}</th>
+              <th class="s" @click="sortBy('slicer')">{{ t('Slicer') }}</th>
+              <th class="s" @click="sortBy('first_layer_extr_temp')">{{ t('Extruder') }}</th>
+              <th class="s" @click="sortBy('first_layer_bed_temp')">{{ t('Bed') }}</th>
+              <th class="s" @click="sortBy('chamber_temp')">{{ t('Chamber') }}</th>
               <th class="s" @click="sortBy('modified')">{{ t('Modified') }}</th>
-              <th style="width: 190px"></th>
+              <th class="act"></th>
             </tr>
           </thead>
           <tbody>
@@ -685,13 +744,14 @@ async function moveTo(dest) {
               <td>
                 <div class="th fo"><Icon name="folder" :size="22" /></div>
               </td>
-              <td class="nm">{{ d.dirname }}</td>
+              <td class="nm">
+                <div class="nmx">{{ d.dirname }}</div>
+              </td>
+              <td></td>
               <td class="mono mu">{{ fmtBytes(d.size) }}</td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td colspan="10"></td>
               <td class="mono mu">{{ fmtDate(d.modified) }}</td>
-              <td></td>
+              <td class="act"></td>
             </tr>
             <tr
               v-for="f in list"
@@ -725,7 +785,17 @@ async function moveTo(dest) {
                   />
                 </div>
               </td>
-              <td class="nm"><Icon v-if="pinned(f)" name="bookmark" :size="13" class="pinm" />{{ f.filename }}</td>
+              <td class="nm">
+                <div class="nmx" :title="f.filename">
+                  <Icon v-if="pinned(f)" name="bookmark" :size="13" class="pinm" />{{ f.filename }}
+                </div>
+              </td>
+              <td class="jst">
+                <span v-if="job(f)" :style="{ color: job(f).c }" :data-tip="job(f).tip" :aria-label="job(f).tip"
+                  ><b v-if="job(f).done" class="mono">{{ job(f).done }}</b
+                  ><Icon :name="job(f).i" :size="14" :stroke="2.6"
+                /></span>
+              </td>
               <td class="mono mu">{{ fmtBytes(f.size) }}</td>
               <td
                 class="mono"
@@ -737,10 +807,30 @@ async function moveTo(dest) {
               >
                 {{ fmtTime(fileTime(f) || f.estimated_time) }}
               </td>
-              <td class="mono mu">{{ f.filament_total ? (f.filament_total / 1000).toFixed(1) + ' m' : '--' }}</td>
-              <td class="mono mu">{{ f.layer_height ?? '--' }}</td>
+              <td class="mono mu">{{ job(f)?.dur ? fmtTime(job(f).dur) : '--' }}</td>
+              <td class="fil">
+                <span
+                  v-if="grams(f) || filType(f)"
+                  class="fch"
+                  :style="filColors(f).length ? { '--fc': filColors(f)[0] } : null"
+                  :class="{ tinted: filColors(f).length }"
+                  :data-tip="f.filament_name || null"
+                  ><b v-if="grams(f)" class="mono">{{ grams(f) }}</b
+                  >{{ filType(f) }}</span
+                ><span v-if="f.filament_total" class="mono mu">{{ (f.filament_total / 1000).toFixed(2) }} m</span
+                ><span v-if="!grams(f) && !filType(f) && !f.filament_total" class="mu">--</span>
+              </td>
+              <td class="mono mu">{{ mm(f.object_height) }}</td>
+              <td class="mono mu">{{ mm(f.layer_height) }}</td>
+              <td class="mono mu">{{ mm(f.nozzle_diameter) }}</td>
+              <td class="mu sl" :title="[f.slicer, f.slicer_version].filter(Boolean).join(' ')">
+                {{ f.slicer || '--' }}<small v-if="f.slicer_version"> {{ f.slicer_version }}</small>
+              </td>
+              <td class="mono mu">{{ deg(f.first_layer_extr_temp) }}</td>
+              <td class="mono mu">{{ deg(f.first_layer_bed_temp) }}</td>
+              <td class="mono mu">{{ deg(f.chamber_temp) }}</td>
               <td class="mono mu">{{ fmtDate(f.modified) }}</td>
-              <td>
+              <td class="act">
                 <div class="row" style="gap: 6px">
                   <button
                     class="btn acc ibtn sm"
@@ -1049,8 +1139,8 @@ tr.dropto td {
 }
 
 .th {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   background: var(--s2);
   border: 1px solid var(--bd);
@@ -1068,10 +1158,89 @@ tr.dropto td {
 .th.fo {
   color: var(--ac);
 }
+/* the name gets a fixed width so the other columns fit; a longer name scrolls sideways in its cell */
 .nm {
   font-weight: 600;
-  overflow-wrap: anywhere;
-  min-width: 200px;
+  min-width: 0;
+}
+table.tbl td.nm {
+  min-width: 0;
+  overflow-wrap: normal;
+}
+.nmx {
+  width: 300px;
+  max-width: 30vw;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nmx::-webkit-scrollbar {
+  display: none;
+}
+/* slimmer rows than the general table */
+.tbl td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.tbl th {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.tbl td,
+.tbl th {
+  padding-left: 9px;
+  padding-right: 9px;
+  white-space: nowrap;
+}
+/* how often the file printed to the end, and how its last print ended */
+.jst span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+}
+/* filament: weight and type in a chip of the filament colour, the length beside it */
+.fil {
+  white-space: nowrap;
+}
+.fch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--s2);
+  color: var(--tx);
+}
+.fch.tinted {
+  background: var(--fc);
+  color: #fff;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.fch b {
+  font-weight: 600;
+}
+.sl {
+  font-size: 12.5px;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sl small {
+  margin-left: 4px;
+  font-size: 11px;
+}
+/* the buttons stay at the right edge while the columns scroll under them */
+.tbl .act {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: var(--s1);
+  box-shadow: -10px 0 10px -10px rgba(0, 0, 0, 0.35);
 }
 .mu {
   color: var(--mu);

@@ -6,7 +6,7 @@
 import { ref, computed, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import ImageViewer from './ImageViewer.vue';
-import { state, S, gcode, toast, useApiEvent } from '../store';
+import { state, S, gcode, toast, useApiEvent, fmtDay, fmtClock } from '../store';
 import { api } from '../api/moonraker';
 import { t } from '../i18n';
 const cfg = computed(() => S('configfile').config || {});
@@ -68,8 +68,7 @@ useApiEvent('notify_filelist_changed', ([p]) => {
 });
 const url = (f) => api.fileUrl('config', f.path, 'm=' + Math.round(f.modified));
 const viewer = ref(null);
-const fmt = (ts) =>
-  new Date(ts * 1000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const fmt = (ts) => fmtDay(ts * 1000) + ' ' + fmtClock(ts * 1000);
 </script>
 <template>
   <section class="card">

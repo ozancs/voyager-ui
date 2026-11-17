@@ -4,7 +4,7 @@
 // current print in "timelapse_frames". It talks over machine.timelapse.* and sends notify_timelapse_event.
 import { reactive, computed, watch } from 'vue';
 import { api } from './api/moonraker';
-import { state, toast, updateToast, closeToast, printState, layerInfo } from './store';
+import { state, toast, updateToast, closeToast, printState, layerInfo, fmtDay, fmtClock } from './store';
 import { t } from './i18n';
 
 export const tl = reactive({
@@ -28,9 +28,7 @@ export function clipInfo(name) {
 export function clipDate(d) {
   if (!d) return '';
   const dt = new Date(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8), +d.slice(9, 11) || 0, +d.slice(11, 13) || 0);
-  return isNaN(dt)
-    ? d
-    : dt.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return isNaN(dt) ? d : fmtDay(dt) + ' ' + fmtClock(dt);
 }
 
 export const frameUrl = (f) => (f ? api.fileUrl('timelapse_frames', f) : ''); // each frame has its own name

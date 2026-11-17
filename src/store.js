@@ -82,8 +82,14 @@ export const DEFAULT_SETTINGS = () => ({
   layoutBackups: [],
   // layout used while printing (null = same as idle until edited)
   theme: 'dark', // dark | light | auto
+  dateFormat: 'browser', // browser | iso (2026-11-17) | dmy (17.11.2026) | mdy (11/17/2026)
+  timeFormat: 'browser', // browser | 24 | 12
+  progressCalc: 'file', // print progress: file (position in the file) | relative (G-code only) | filament | slicer (M73)
+  estimateCalc: ['smart'], // time left: smart, or the average of file / filament / slicer
+  etaCalc: ['smart'], // the clock time the print ends: the same choices
+  restartMethod: 'firmware', // Save & Restart in the config editor: firmware (FIRMWARE_RESTART) | restart (RESTART)
   searchContent: true, // Ctrl+K also searches inside .py .sh .txt files in the config folder
-  heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false }, // colour range and 3D z axis, auto = from the mesh
+  heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false, view: 'fl' }, // colour range and 3D z axis, auto = from the mesh
   printBar: 'band', // where the running print shows: band (its own bar under the top bar) | top (compact pill in the top bar)
   favScale: 1, // size of the favorite buttons (0.7 to 1.3); the bar follows the buttons
   favBar: 'always', // favorites bar under the top bar: always | dashboard | off (a Favorites card can go on the dashboard)
@@ -468,14 +474,33 @@ export function fmtBytes(b) {
   }
   return `${b.toFixed(i ? 1 : 0)} ${u[i]}`;
 }
+// Dates and clock times as Settings > General asks (Date format, Time format); 'browser' follows the browser's
+// language. They take a Date or milliseconds.
+const pad2 = (n) => String(n).padStart(2, '0');
+export function fmtClock(d, seconds = false, f = state.settings.timeFormat) {
+  d = d instanceof Date ? d : new Date(d);
+  return d.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    ...(seconds ? { second: '2-digit' } : {}),
+    ...(f === '24' ? { hourCycle: 'h23' } : f === '12' ? { hour12: true } : {}),
+  });
+}
+export function fmtDay(d, year = false, f = state.settings.dateFormat) {
+  d = d instanceof Date ? d : new Date(d);
+  const y = d.getFullYear(),
+    m = pad2(d.getMonth() + 1),
+    dd = pad2(d.getDate());
+  if (f === 'iso') return year ? `${y}-${m}-${dd}` : `${m}-${dd}`;
+  if (f === 'dmy') return year ? `${dd}.${m}.${y}` : `${dd}.${m}`;
+  if (f === 'mdy') return year ? `${m}/${dd}/${y}` : `${m}/${dd}`;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(year ? { year: 'numeric' } : {}) });
+}
+// a Moonraker time (seconds): the day and the clock time
 export function fmtDate(ts) {
   if (!ts) return '--';
   const d = new Date(ts * 1000);
-  return (
-    d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
-    ' ' +
-    d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-  );
+  return fmtDay(d) + ' ' + fmtClock(d);
 }
 export function toast(msg, kind = 'info', opts = {}) {
   // same message twice within a few seconds (e.g. rpc error + "!!" echo) shows once
@@ -517,9 +542,21 @@ export const printerName = computed(
 export const printState = computed(() => S('print_stats').state || 'standby');
 // only while Klipper runs: after a shutdown print_stats can still say "printing", but that print is over
 export const isPrinting = computed(() => state.klippy === 'ready' && ['printing', 'paused'].includes(printState.value));
+// Print progress, by Settings > General > Print progress: the position in the file (Klipper's own number, the
+// default), the position within the G-code only (without the slicer's header and thumbnails), the filament used
+// of the file's total, or what the slicer reports with M73. A method without its numbers falls back to the file.
 export const progress = computed(() => {
-  const p = S('virtual_sdcard').progress ?? S('display_status').progress ?? 0;
-  return Math.max(0, Math.min(1, p));
+  const file = S('virtual_sdcard').progress ?? S('display_status').progress ?? 0;
+  const m = state.currentMeta || {};
+  let p = file;
+  const how = state.settings.progressCalc;
+  if (how === 'relative' && m.gcode_start_byte != null && m.gcode_end_byte > m.gcode_start_byte) {
+    const pos = S('virtual_sdcard').file_position || 0;
+    p = (pos - m.gcode_start_byte) / (m.gcode_end_byte - m.gcode_start_byte);
+  } else if (how === 'filament' && m.filament_total > 0) {
+    p = (S('print_stats').filament_used || 0) / m.filament_total;
+  } else if (how === 'slicer' && S('display_status').progress != null) p = S('display_status').progress;
+  return Math.max(0, Math.min(1, p || 0));
 });
 // the tab title shows the print: "42% bracket_v3 · Voron" while printing, "Paused ..." or "Done ..." after
 const tabTitle = computed(() => {
@@ -564,11 +601,28 @@ export const printTimes = computed(() => {
     w = Math.min(1, Math.max(0, (p - 0.03) / 0.5));
     left = slicerLeft * (1 - w) + fileLeft * w;
   }
+  // Time left and ETA, by Settings > General: Smart (the above), or the average of the chosen plain methods
+  const plain = {
+    smart: left,
+    file: fileLeft,
+    filament: (() => {
+      const used = ps.filament_used || 0,
+        total = state.currentMeta?.filament_total;
+      return used > 0 && total > 0 && dur > 0 ? Math.max(0, dur / Math.min(1, used / total) - dur) : null;
+    })(),
+    slicer: meta ? Math.max(0, meta - dur) : null,
+  };
+  const pick = (ms) => {
+    const vs = (Array.isArray(ms) && ms.length ? ms : ['smart']).map((k) => plain[k]).filter((v) => v != null);
+    return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null;
+  };
+  const shown = pick(state.settings.estimateCalc),
+    toEnd = pick(state.settings.etaCalc);
   return {
     elapsed: ps.total_duration || 0,
     print: dur,
-    left,
-    eta: left != null ? new Date(Date.now() + left * 1000) : null,
+    left: shown,
+    eta: toEnd != null ? new Date(Date.now() + toEnd * 1000) : null,
     why: { slicerLeft, fileLeft, k: state.etaLearn.k, n: state.etaLearn.n, w, sf, prev: same ? prev.dur : null },
   };
 });

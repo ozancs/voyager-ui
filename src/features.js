@@ -17,6 +17,7 @@ import {
   prettyName,
   notify,
   unnotify,
+  fmtDay,
 } from './store';
 import { holdFindings, heatFinding, COLD } from './heaterHealth';
 import { t } from './i18n';
@@ -671,7 +672,7 @@ function sampleHealth() {
 
 export function heaterFindingText(n, f) {
   const name = n.split(' ').pop();
-  const since = f.since ? new Date(f.since * 1000).toLocaleDateString() : '';
+  const since = f.since ? fmtDay(f.since * 1000, true) : '';
   if (f.kind === 'swing')
     return t('{name} swings ±{s}° while holding its target. PID tuning usually fixes this.', {
       name,

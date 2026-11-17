@@ -12,6 +12,7 @@ const props = defineProps({
   palette: String,
   wire: Boolean,
   grid: Array,
+  view: { type: String, default: 'fl' }, // the corner the bed is seen from: fl fr bl br (front/back, left/right)
 });
 const el = ref(null);
 let Plotly = null;
@@ -106,14 +107,14 @@ async function draw() {
         },
         aspectmode: 'manual',
         aspectratio: { x: 1, y: (y1 - y0) / Math.max(1, x1 - x0), z: 0.4 },
-        camera: { eye: { x: -1.2, y: -1.5, z: 0.9 } },
+        camera: { eye: { x: props.view[1] === 'r' ? 1.2 : -1.2, y: props.view[0] === 'b' ? 1.5 : -1.5, z: 0.9 } },
       },
     },
     { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toImage', 'resetCameraLastSave3d'] },
   );
 }
 onMounted(draw);
-watch(() => [props.z, props.lim, props.zmax, props.palette, props.wire], draw);
+watch(() => [props.z, props.lim, props.zmax, props.palette, props.wire, props.view], draw);
 onBeforeUnmount(() => {
   alive = false;
   if (Plotly && el.value) Plotly.purge(el.value);

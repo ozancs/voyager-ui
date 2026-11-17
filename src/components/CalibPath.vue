@@ -7,7 +7,7 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
-import { state, S, gcode, toast, closeToast, updateToast, isPrinting, spoolPreset, setFan } from '../store';
+import { state, S, gcode, toast, closeToast, updateToast, isPrinting, spoolPreset, setFan, fmtDay } from '../store';
 import { api } from '../api/moonraker';
 import {
   pathSteps,
@@ -61,7 +61,6 @@ const steps = computed(() =>
   }),
 );
 const done = computed(() => state.settings.calibPath || {});
-const fmtDay = (ts) => new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 function markDone(step, sum, at) {
   const cur = state.settings.calibPath?.[step.key];
   if (cur && cur.at === at && cur.sum === sum) return; // the same run seen again when the dialog is reopened

@@ -19,6 +19,7 @@ import {
   toast,
   cancelPrint,
   pauseResume,
+  fmtClock,
 } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
@@ -75,11 +76,7 @@ const filament = computed(() => ((ps.value.filament_used || 0) / 1000).toFixed(2
 const filPct = computed(() =>
   filTotal.value ? Math.min(100, Math.round(((ps.value.filament_used || 0) / filTotal.value) * 100)) + '%' : null,
 );
-const eta = computed(() =>
-  printTimes.value.eta
-    ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-    : '--',
-);
+const eta = computed(() => (printTimes.value.eta ? fmtClock(printTimes.value.eta) : '--'));
 // the "why" of the finish time, shown when the ETA is clicked
 const showWhy = ref(false);
 const why = computed(() => {

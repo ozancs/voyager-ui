@@ -19,7 +19,7 @@ import {
   deleteZip,
   fileUrl,
 } from '../timelapse';
-import { state, printState, fmtBytes, fmtTime, askConfirm, toast, firstCam } from '../store';
+import { state, printState, fmtBytes, fmtTime, askConfirm, toast, firstCam, fmtDay } from '../store';
 import { t } from '../i18n';
 
 const printing = computed(() => ['printing', 'paused'].includes(printState.value));
@@ -195,7 +195,7 @@ onMounted(() => {
         <span class="meta">
           <b class="nm">{{ f.printfile }}</b>
           <span class="mu mono" style="font-size: 11px"
-            >{{ clipDate(f.date) || new Date(f.modified * 1000).toLocaleDateString() }} · {{ fmtBytes(f.size) }}</span
+            >{{ clipDate(f.date) || fmtDay(f.modified * 1000, true) }} · {{ fmtBytes(f.size) }}</span
           >
         </span>
       </button>

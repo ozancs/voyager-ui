@@ -30,6 +30,8 @@ import {
   setCams,
   moveCam,
   graphHidden,
+  fmtDay,
+  fmtClock,
 } from '../store';
 import { api } from '../api/moonraker';
 import { playSound, speak, desktopPermission, askDesktop } from '../features';
@@ -67,6 +69,32 @@ function peekFrom(e) {
   if (row && e.target.closest('button, label, input')) peek.value = row.dataset.pk;
 }
 const close = () => (peek.value ? (peek.value = null) : (state.settingsOpen = null));
+// General: date and time formats, shown with today as the example
+const dateSample = (k) => fmtDay(new Date(), true, k);
+const timeSample = (k) => fmtClock(new Date(), false, k);
+// print progress, time left and ETA: how they are worked out (store.js progress and printTimes)
+const CALC = [
+  ['file', 'File'],
+  ['relative', 'Relative'],
+  ['filament', 'Filament'],
+  ['slicer', 'Slicer'],
+];
+const ESTIMATES = [
+  [
+    'estimateCalc',
+    'Time left',
+    'Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.',
+  ],
+  ['etaCalc', 'ETA', 'When the print ends, worked out the same way.'],
+];
+const calcOn = (key, k) => (state.settings[key] || ['smart']).includes(k);
+// Smart stands alone; the others can be combined (their average), and one always stays picked
+function pickCalc(key, k) {
+  let v = (state.settings[key] || ['smart']).filter((x) => x !== 'smart');
+  if (k === 'smart') v = [];
+  else v = v.includes(k) ? v.filter((x) => x !== k) : [...v, k];
+  state.settings[key] = v.length ? v : ['smart'];
+}
 // Cameras: the sound stream's noise filter, read when the tab opens (null: no go2rtc sound on this printer)
 const noise = ref(null);
 const noiseBusy = ref(false);
@@ -421,10 +449,7 @@ function togglePart(p, id) {
 function undoRestore() {
   if (prev.value) apply(prev.value.settings, t('Previous settings restored'));
 }
-const fmtD = (d) =>
-  d
-    ? new Date(d).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-    : '';
+const fmtD = (d) => (d ? fmtDay(d) + ' ' + fmtClock(d) : '');
 function reset() {
   confirmReset.value = false;
   apply(
@@ -509,7 +534,94 @@ const consoleSample = (() => {
                   <option v-for="[k, n] in LANGS" :key="k" :value="k">{{ n }}</option>
                 </select>
               </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Date format') }}</b>
+                </div>
+                <select
+                  class="input v"
+                  :value="state.settings.dateFormat || 'browser'"
+                  :aria-label="t('Date format')"
+                  @change="state.settings.dateFormat = $event.target.value"
+                >
+                  <option v-for="k in ['browser', 'iso', 'dmy', 'mdy']" :key="k" :value="k">
+                    {{ k === 'browser' ? t('Browser') : '' }} ({{ dateSample(k) }})
+                  </option>
+                </select>
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Time format') }}</b>
+                </div>
+                <div class="seg v">
+                  <button
+                    v-for="k in ['browser', '24', '12']"
+                    :key="k"
+                    :class="{ on: (state.settings.timeFormat || 'browser') === k }"
+                    @click="state.settings.timeFormat = k"
+                  >
+                    {{ k === 'browser' ? t('Browser') : '' }} {{ timeSample(k) }}
+                  </button>
+                </div>
+              </div>
               <h3 class="sec">{{ t('Printing') }}</h3>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Print progress') }}</b
+                  ><span>{{
+                    t(
+                      'File: the position in the file, as Klipper counts it. Relative: in the G-code only, without the slicer header. Filament: the filament used of the file total. Slicer: what the file reports with M73.',
+                    )
+                  }}</span>
+                </div>
+                <div class="seg v">
+                  <button
+                    v-for="[k, l] in CALC"
+                    :key="k"
+                    :class="{ on: (state.settings.progressCalc || 'file') === k }"
+                    @click="state.settings.progressCalc = k"
+                  >
+                    {{ t(l) }}
+                  </button>
+                </div>
+              </div>
+              <div v-for="[key, label, note] in ESTIMATES" :key="key" class="rw">
+                <div class="k">
+                  <b>{{ t(label) }}</b
+                  ><span>{{ t(note) }}</span>
+                </div>
+                <div class="seg v multi" role="group" :aria-label="t(label)">
+                  <button
+                    v-for="[k, l] in [['smart', 'Smart'], ...CALC.filter(([m]) => m !== 'relative')]"
+                    :key="k"
+                    :class="{ on: calcOn(key, k) }"
+                    :aria-pressed="calcOn(key, k)"
+                    @click="pickCalc(key, k)"
+                  >
+                    {{ t(l) }}
+                  </button>
+                </div>
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Klipper restart method') }}</b
+                  ><span>{{ t('What Save & Restart in the config editor sends.') }}</span>
+                </div>
+                <div class="seg v">
+                  <button
+                    v-for="[k, l] in [
+                      ['firmware', 'FIRMWARE_RESTART'],
+                      ['restart', 'RESTART'],
+                    ]"
+                    :key="k"
+                    class="mono"
+                    :class="{ on: (state.settings.restartMethod || 'firmware') === k }"
+                    @click="state.settings.restartMethod = k"
+                  >
+                    {{ l }}
+                  </button>
+                </div>
+              </div>
               <div class="rw">
                 <div class="k">
                   <b>{{ t('Check the file before printing') }}</b

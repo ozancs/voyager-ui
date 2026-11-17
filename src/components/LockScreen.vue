@@ -22,6 +22,7 @@ import {
   fmtTime,
   toast,
   devices,
+  fmtClock,
 } from '../store';
 import { sortSensors, sensorColor } from '../sensorStyle';
 import { unlockUi, lockHasPin } from '../lock';
@@ -150,11 +151,7 @@ const target = (n) => S(n).target;
 const col = (n, i) => sensorColor(state.settings.sensorColors, n, i);
 const active = computed(() => ['printing', 'paused'].includes(printState.value));
 const file = computed(() => (S('print_stats').filename || '').split('/').pop());
-const eta = computed(() =>
-  printTimes.value.eta
-    ? printTimes.value.eta.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-    : '--:--',
-);
+const eta = computed(() => (printTimes.value.eta ? fmtClock(printTimes.value.eta) : '--:--'));
 const pos = computed(() => S('gcode_move').gcode_position || S('toolhead').position || []);
 const homed = computed(() => S('toolhead').homed_axes || '');
 const stateText = computed(() => {
@@ -163,7 +160,7 @@ const stateText = computed(() => {
   return t(printState.value);
 });
 const clock = ref('');
-const tick = () => (clock.value = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+const tick = () => (clock.value = fmtClock(new Date()));
 let clk;
 onMounted(() => {
   tick();

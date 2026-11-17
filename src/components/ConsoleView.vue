@@ -10,7 +10,7 @@ import { copyText } from '../clipboard';
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import CmdInput from './CmdInput.vue';
-import { state, gcode, restartKlipper, toast, isPrinting, dangerIn, askGuard } from '../store';
+import { state, gcode, restartKlipper, toast, isPrinting, dangerIn, askGuard, fmtClock } from '../store';
 import { t } from '../i18n';
 import { richHtml, hasMarkup, plainText } from '../richText';
 import Popover from './Popover.vue';
@@ -110,7 +110,7 @@ async function copy(ls, which) {
 const copyAll = () => copy(lines.value, 'all');
 const THEMES = ['default', 'soft', 'terminal', 'contrast', 'paper'];
 const theme = computed(() => (THEMES.includes(state.settings.consoleTheme) ? state.settings.consoleTheme : 'default'));
-const fmt = (t) => new Date(t * 1000).toLocaleTimeString(undefined, { hour12: false });
+const fmt = (t) => fmtClock(t * 1000, true);
 function scroll() {
   if (auto.value && box.value) box.value.scrollTop = rev.value ? 0 : box.value.scrollHeight;
 }

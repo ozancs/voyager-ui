@@ -1,6 +1,7 @@
 <script setup>
 // Print history from Moonraker: totals, a searchable list with results and filament used, reprint
 // and delete.
+import { jobStatus } from '../jobStatus';
 import { ref, computed, onMounted, watch } from 'vue';
 import Icon from '../components/Icon.vue';
 import Modal from '../components/Modal.vue';
@@ -68,17 +69,7 @@ useApiEvent('notify_history_changed', () => {
   rt = setTimeout(load, 500);
   setTimeout(loadShots, 12000); // the picture is taken a few seconds after the job ends
 });
-const STATUS = {
-  completed: { c: 'var(--ok)', i: 'check' },
-  cancelled: { c: 'var(--wn)', i: 'x' },
-  error: { c: 'var(--dg)', i: 'warn' },
-  klippy_shutdown: { c: 'var(--dg)', i: 'warn' },
-  klippy_disconnect: { c: 'var(--dg)', i: 'warn' },
-  interrupted: { c: 'var(--dg)', i: 'warn' },
-  server_exit: { c: 'var(--dg)', i: 'warn' },
-  in_progress: { c: 'var(--bl)', i: 'play' },
-};
-const st = (s) => STATUS[s] || { c: 'var(--mu)', i: 'info' };
+const st = jobStatus;
 // filter by Spoolman spool: Moonraker stores the spools a job used in auxiliary_data (spool_ids)
 const spoolOf = (j) => (j.auxiliary_data || []).find((d) => d.name === 'spool_ids')?.value || [];
 const spoolIds = computed(() => [...new Set(jobs.value.flatMap(spoolOf))].sort((a, b) => a - b));

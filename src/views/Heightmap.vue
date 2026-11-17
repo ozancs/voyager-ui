@@ -77,7 +77,19 @@ const zMax = computed(() => (hv.value.zAuto ? null : Math.max(Number(hv.value.zM
 function color(z) {
   return paletteColor(hv.value.palette, z / lim.value);
 }
-const rows = computed(() => (matrix.value ? [...matrix.value].reverse() : []));
+// The corner the bed is seen from (kept in settings): a printer whose front is not where Klipper's Y starts can
+// turn the view round. 2D: seen from the back, the back of the bed is at the bottom (the grid turned half round).
+const VIEWS = [
+  ['fl', 'Front left'],
+  ['fr', 'Front right'],
+  ['bl', 'Back left'],
+  ['br', 'Back right'],
+];
+const view = computed(() => hv.value.view || 'fl');
+const fromBack = computed(() => view.value[0] === 'b');
+const rows = computed(() =>
+  !matrix.value ? [] : fromBack.value ? matrix.value.map((r) => [...r].reverse()) : [...matrix.value].reverse(),
+);
 const profiles = computed(() => Object.keys(bm.value.profiles || {}));
 function doSave() {
   const name = saveName.value.replace(/["\r\n#;*]/g, '').trim();
@@ -123,6 +135,16 @@ async function removeProfile(p) {
             <button :class="{ on: mode3d }" @click="mode3d = true">3D</button
             ><button :class="{ on: !mode3d }" @click="mode3d = false">2D</button>
           </div>
+          <select
+            class="input"
+            style="height: 34px; width: auto"
+            :value="view"
+            :aria-label="t('View from')"
+            :data-tip="t('View from')"
+            @change="hv.view = $event.target.value"
+          >
+            <option v-for="[k, l] in VIEWS" :key="k" :value="k">{{ t(l) }}</option>
+          </select>
           <div class="seg" style="width: 180px">
             <button :class="{ on: useProbed }" @click="useProbed = true">{{ t('Probed') }}</button
             ><button :class="{ on: !useProbed }" @click="useProbed = false">{{ t('Mesh') }}</button>
@@ -141,6 +163,7 @@ async function removeProfile(p) {
           :zmax="zMax"
           :palette="hv.palette"
           :wire="!!hv.wire"
+          :view="view"
           :grid="bm.probed_matrix?.length ? [bm.probed_matrix[0].length, bm.probed_matrix.length] : null"
         />
       </div>
@@ -165,7 +188,7 @@ async function removeProfile(p) {
         </div>
       </div>
       <div class="mono mu" style="font-size: 12px" v-if="matrix && !mode3d">
-        {{ t('front of bed is at the bottom') }}
+        {{ fromBack ? t('back of bed is at the bottom') : t('front of bed is at the bottom') }}
       </div>
       <div v-if="compareErr" class="mu" style="font-size: 12.5px; color: var(--wn)">{{ compareErr }}</div>
       <div v-else-if="compare && stats" class="mu" style="font-size: 12.5px">

@@ -44,6 +44,8 @@ export function startSegSlide() {
       if (reduced()) return;
       const btn = e.target.closest?.('.seg > button');
       const seg = btn?.parentElement;
+      // a group where several options can be on at once (.multi) has nothing to slide
+      if (seg?.classList.contains('multi')) return;
       const from = seg?.querySelector(':scope > button.on');
       if (!from || from === btn) return;
       // Vue updates the classes in its next tick, after this click's handlers ran

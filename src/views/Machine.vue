@@ -10,7 +10,7 @@ import UsersCard from '../components/UsersCard.vue';
 import MacroVars from '../components/MacroVars.vue';
 import SystemLoads from '../components/SystemLoads.vue';
 import FileBrowser from '../components/FileBrowser.vue';
-import { state, S, gcode, toast, fmtBytes, useApiEvent, applyUpd, restartKlipper } from '../store';
+import { state, S, gcode, toast, fmtBytes, useApiEvent, applyUpd, restartKlipper, fmtDay } from '../store';
 import { api } from '../api/moonraker';
 import { macroVars } from '../features';
 import { t } from '../i18n';
@@ -142,7 +142,7 @@ const commits = computed(() =>
     ? cv.value.commits_behind.filter((c) => c && typeof c === 'object').slice(0, 30)
     : [],
 );
-const fmtC = (c) => (c.date ? new Date(+c.date * 1000).toLocaleDateString() : '');
+const fmtC = (c) => (c.date ? fmtDay(+c.date * 1000, true) : '');
 function verText(v) {
   return v.version || v.full_version_string || '';
 }
