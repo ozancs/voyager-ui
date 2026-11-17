@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.58
+
+- Phone and tablet: tapping the console line (or any text field) no longer zooms the page in, and the page no longer opens zoomed in afterwards; text fields use 16 px on touch screens, pinch zoom still works
+
 ## 0.38.57
 
 - Interface settings: the folded-down panel (picking a colour or the size) has an accent edge that glows and pulses a few times as it lands, and an accent Done button, so the move to the bottom is not missed
