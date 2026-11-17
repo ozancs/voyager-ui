@@ -2620,4 +2620,10 @@ export default {
   "What Save & Restart in the config editor sends.": "Co wysyła Zapisz i uruchom ponownie w edytorze konfiguracji.",
   "View from": "Widok od",
   "back of bed is at the bottom": "tył stołu jest na dole",
+  "Clock": "Zegar",
+  "In the top bar": "Na górnym pasku",
+  "Large, in the middle": "Duży, na środku",
+  "Clock size": "Rozmiar zegara",
+  "Clock opacity": "Krycie zegara",
+  "Print info size (under the clock)": "Rozmiar informacji o wydruku (pod zegarem)",
 }

@@ -2620,4 +2620,10 @@ export default {
   "What Save & Restart in the config editor sends.": "Що надсилає «Зберегти й перезапустити» в редакторі конфігурації.",
   "View from": "Вигляд з",
   "back of bed is at the bottom": "задня частина столу внизу",
+  "Clock": "Годинник",
+  "In the top bar": "У верхній панелі",
+  "Large, in the middle": "Великий, по центру",
+  "Clock size": "Розмір годинника",
+  "Clock opacity": "Непрозорість годинника",
+  "Print info size (under the clock)": "Розмір відомостей про друк (під годинником)",
 }

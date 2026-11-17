@@ -2620,4 +2620,10 @@ export default {
   "What Save & Restart in the config editor sends.": "Wat Opslaan en herstarten in de configuratie-editor stuurt.",
   "View from": "Bekijken vanaf",
   "back of bed is at the bottom": "achterkant van het bed is onder",
+  "Clock": "Klok",
+  "In the top bar": "In de bovenbalk",
+  "Large, in the middle": "Groot, in het midden",
+  "Clock size": "Klokgrootte",
+  "Clock opacity": "Dekking van de klok",
+  "Print info size (under the clock)": "Grootte printinfo (onder de klok)",
 }

@@ -2613,5 +2613,11 @@
   "Nozzle",
   "Chamber",
   "View from",
-  "back of bed is at the bottom"
+  "back of bed is at the bottom",
+  "Clock",
+  "In the top bar",
+  "Large, in the middle",
+  "Clock size",
+  "Clock opacity",
+  "Print info size (under the clock)"
 ]

@@ -4,6 +4,7 @@
 
 - G-code Files: the table shows more of what the slicer wrote: filament weight and type in a chip of the filament colour (and its length), object height, layer height, nozzle, slicer, extruder, bed and chamber temperatures, and the last print's duration; next to each file how often it printed to the end and how its last print ended (hover for when). Rows are slimmer, a long name scrolls sideways in its column, and the buttons stay at the right edge while the columns scroll
 - Interface settings > General: date format and time format (browser, 24 h, 12 h); print progress by file position, G-code only, filament or slicer (M73); time left and ETA by Smart (as before) or the average of file, filament and slicer; Klipper restart method for Save & Restart (FIRMWARE_RESTART or RESTART)
+- Lock screen: the clock can be large in the middle of the screen (Customize > Clock), with its size and opacity; while printing, progress, time left and ETA show under it in a size of their own
 - Heightmap: View from front left, front right, back left or back right, for the 3D view and the 2D grid, kept for next time
 
 ## 0.38.55

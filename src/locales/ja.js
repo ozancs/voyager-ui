@@ -2620,4 +2620,10 @@ export default {
   "What Save & Restart in the config editor sends.": "設定エディターの「保存して再起動」が送るコマンド。",
   "View from": "表示方向",
   "back of bed is at the bottom": "ベッドの奥が下",
+  "Clock": "時計",
+  "In the top bar": "上部バーに表示",
+  "Large, in the middle": "中央に大きく",
+  "Clock size": "時計のサイズ",
+  "Clock opacity": "時計の不透明度",
+  "Print info size (under the clock)": "印刷情報のサイズ（時計の下）",
 }

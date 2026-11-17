@@ -2620,4 +2620,10 @@ export default {
   "What Save & Restart in the config editor sends.": "配置编辑器中“保存并重启”发送的命令。",
   "View from": "查看方向",
   "back of bed is at the bottom": "热床后侧在下方",
+  "Clock": "时钟",
+  "In the top bar": "在顶部栏",
+  "Large, in the middle": "居中大字",
+  "Clock size": "时钟大小",
+  "Clock opacity": "时钟不透明度",
+  "Print info size (under the clock)": "打印信息大小（时钟下方）",
 }

@@ -2620,4 +2620,10 @@ export default {
   "What Save & Restart in the config editor sends.": "Was Speichern & Neustart im Konfig-Editor sendet.",
   "View from": "Ansicht von",
   "back of bed is at the bottom": "Rückseite des Betts ist unten",
+  "Clock": "Uhr",
+  "In the top bar": "In der oberen Leiste",
+  "Large, in the middle": "Groß, in der Mitte",
+  "Clock size": "Uhrgröße",
+  "Clock opacity": "Deckkraft der Uhr",
+  "Print info size (under the clock)": "Größe der Druckinfo (unter der Uhr)",
 }

@@ -2638,4 +2638,10 @@ export default {
   "What Save & Restart in the config editor sends.": "Yapılandırma düzenleyicisindeki Kaydet ve Yeniden Başlat'ın gönderdiği komut.",
   "View from": "Bakış yönü",
   "back of bed is at the bottom": "tablanın arkası altta",
+  "Clock": "Saat",
+  "In the top bar": "Üst çubukta",
+  "Large, in the middle": "Büyük, ortada",
+  "Clock size": "Saat boyutu",
+  "Clock opacity": "Saat opaklığı",
+  "Print info size (under the clock)": "Baskı bilgisi boyutu (saatin altında)",
 }

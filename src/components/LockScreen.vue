@@ -32,6 +32,28 @@ import { t } from '../i18n';
 // ---------------------------------------------------------------- what shows (Customize, kept in settings)
 const conf = computed(() => state.settings.lockScreen || { cam: true, show: {} });
 const SCALES = [0.8, 1, 1.25, 1.5, 1.75];
+// The clock: small in the top bar, or large in the middle of the screen (its size and how strongly it shows),
+// with the running print's progress, time left and ETA under it in a size of their own
+const clockMid = computed(() => conf.value.clock === 'center');
+const CLOCK_SIZES = [
+  ['s', 'S', 14],
+  ['m', 'M', 19],
+  ['l', 'L', 25],
+  ['xl', 'XL', 32],
+]; // vmin
+const INFO_SIZES = [
+  ['s', 'S', 3],
+  ['m', 'M', 4],
+  ['l', 'L', 5.2],
+  ['xl', 'XL', 6.5],
+]; // vmin
+const OPACITIES = [0.35, 0.55, 0.75, 1];
+const vmin = (list, k, d) => (list.find((x) => x[0] === k) || list.find((x) => x[0] === d))[2] + 'vmin';
+const bigClock = computed(() => ({
+  fontSize: vmin(CLOCK_SIZES, conf.value.clockSize, 'l'),
+  opacity: conf.value.clockOpacity ?? 0.75,
+}));
+const bigInfo = computed(() => ({ fontSize: vmin(INFO_SIZES, conf.value.infoSize, 'm') }));
 const scale = computed(() => conf.value.scale || 1);
 const hiddenTemps = computed(() => state.settings.hiddenSensors || []);
 // a card shows when Customize says so; until then the sensors follow the Temperatures card, graph on, rest off
@@ -236,6 +258,14 @@ async function estop() {
       </TransitionGroup>
     </div>
     <div class="shade"></div>
+    <!-- the large clock in the middle (Customize > Clock), behind the cards -->
+    <div v-if="clockMid" class="bigc" aria-hidden="true">
+      <b class="mono" :style="bigClock">{{ clock }}</b>
+      <span v-if="active" class="mono bi" :style="bigInfo"
+        >{{ Math.floor(progress * 100) }}% · {{ t('Left {time}', { time: fmtTime(printTimes.left) }) }} ·
+        {{ t('ETA {time}', { time: eta }) }}</span
+      >
+    </div>
 
     <div class="ui" :style="{ zoom: scale }">
       <div class="top">
@@ -244,7 +274,7 @@ async function estop() {
         <span v-if="camOn" class="live">LIVE</span>
         <Icon name="lock" :size="16" class="mu" />
         <b class="pn">{{ printerName }}</b>
-        <span class="mu">{{ clock }}</span>
+        <span v-if="!clockMid" class="mu">{{ clock }}</span>
         <span class="mu st">· {{ stateText }}</span>
         <span class="grow"></span>
         <button
@@ -368,6 +398,46 @@ async function estop() {
         <div class="seg">
           <button :class="{ on: !conf.camColor }" @click="conf.camColor = false">{{ t('Grey') }}</button>
           <button :class="{ on: !!conf.camColor }" @click="conf.camColor = true">{{ t('Colour') }}</button>
+        </div>
+      </template>
+      <span class="sec">{{ t('Clock') }}</span>
+      <div class="seg two">
+        <button :class="{ on: !clockMid }" @click="conf.clock = 'top'">{{ t('In the top bar') }}</button>
+        <button :class="{ on: clockMid }" @click="conf.clock = 'center'">{{ t('Large, in the middle') }}</button>
+      </div>
+      <template v-if="clockMid">
+        <span class="sec">{{ t('Clock size') }}</span>
+        <div class="seg">
+          <button
+            v-for="[k, l] in CLOCK_SIZES"
+            :key="k"
+            :class="{ on: (conf.clockSize || 'l') === k }"
+            @click="conf.clockSize = k"
+          >
+            {{ l }}
+          </button>
+        </div>
+        <span class="sec">{{ t('Clock opacity') }}</span>
+        <div class="seg">
+          <button
+            v-for="k in OPACITIES"
+            :key="k"
+            :class="{ on: (conf.clockOpacity ?? 0.75) === k }"
+            @click="conf.clockOpacity = k"
+          >
+            {{ Math.round(k * 100) }}%
+          </button>
+        </div>
+        <span class="sec">{{ t('Print info size (under the clock)') }}</span>
+        <div class="seg">
+          <button
+            v-for="[k, l] in INFO_SIZES"
+            :key="k"
+            :class="{ on: (conf.infoSize || 'm') === k }"
+            @click="conf.infoSize = k"
+          >
+            {{ l }}
+          </button>
         </div>
       </template>
       <span class="sec">{{ t('Size') }}</span>
@@ -496,6 +566,30 @@ async function estop() {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(15, 16, 18, 0.6), rgba(15, 16, 18, 0.15) 35%, rgba(15, 16, 18, 0.82));
+}
+/* the large clock: centred on the screen, under the cards, readable over any camera picture */
+.bigc {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1vmin;
+  pointer-events: none;
+  color: #fff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+}
+.bigc b {
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.bigc .bi {
+  font-weight: 500;
+  opacity: 0.85;
+  white-space: nowrap;
 }
 .ui {
   position: absolute;

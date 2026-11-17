@@ -2620,4 +2620,10 @@ export default {
   "What Save & Restart in the config editor sends.": "설정 편집기의 저장 후 재시작이 보내는 명령.",
   "View from": "보는 방향",
   "back of bed is at the bottom": "베드 뒤쪽이 아래",
+  "Clock": "시계",
+  "In the top bar": "상단 바에",
+  "Large, in the middle": "가운데에 크게",
+  "Clock size": "시계 크기",
+  "Clock opacity": "시계 불투명도",
+  "Print info size (under the clock)": "출력 정보 크기 (시계 아래)",
 }

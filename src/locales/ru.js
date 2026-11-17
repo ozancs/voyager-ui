@@ -2620,4 +2620,10 @@ export default {
   "What Save & Restart in the config editor sends.": "Что отправляет «Сохранить и перезапустить» в редакторе конфигурации.",
   "View from": "Вид с",
   "back of bed is at the bottom": "задняя сторона стола внизу",
+  "Clock": "Часы",
+  "In the top bar": "В верхней панели",
+  "Large, in the middle": "Крупно, по центру",
+  "Clock size": "Размер часов",
+  "Clock opacity": "Непрозрачность часов",
+  "Print info size (under the clock)": "Размер сведений о печати (под часами)",
 }
