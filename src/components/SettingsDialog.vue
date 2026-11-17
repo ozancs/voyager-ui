@@ -1767,14 +1767,37 @@ const consoleSample = (() => {
   width: 820px;
   height: auto;
   max-height: 60vh;
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
-  animation: pk-in 0.28s var(--ease-out);
+  /* an accent edge and glow that pulses a few times as it lands, so the move to the bottom is not missed */
+  border-color: var(--ac);
+  box-shadow:
+    0 16px 50px rgba(0, 0, 0, 0.45),
+    0 0 0 1px var(--ac),
+    0 0 22px color-mix(in srgb, var(--ac) 35%, transparent);
+  animation:
+    pk-in 0.28s var(--ease-out),
+    pk-glow 1.1s ease-in-out 0.28s 3;
 }
 @keyframes pk-in {
   from {
     translate: 0 24px;
     opacity: 0;
   }
+}
+@keyframes pk-glow {
+  50% {
+    box-shadow:
+      0 16px 50px rgba(0, 0, 0, 0.45),
+      0 0 0 2px var(--ac),
+      0 0 48px color-mix(in srgb, var(--ac) 70%, transparent);
+  }
+}
+.pkf .btn.acc {
+  background: var(--ac);
+  color: var(--oa);
+}
+.pkf .btn.acc:hover:not(:disabled) {
+  background: var(--ac);
+  filter: brightness(1.08);
 }
 .dlg.peek .hd,
 .dlg.peek .nv,

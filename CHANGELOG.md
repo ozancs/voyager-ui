@@ -2,6 +2,7 @@
 
 ## 0.38.57
 
+- Interface settings: the folded-down panel (picking a colour or the size) has an accent edge that glows and pulses a few times as it lands, and an accent Done button, so the move to the bottom is not missed
 - Dashboard: the text on the cards is sharp at every interface size and window width; the cards sat on layers of their own, which Chrome drew blurry at some zoom levels (reported by Bassam)
 
 ## 0.38.56
