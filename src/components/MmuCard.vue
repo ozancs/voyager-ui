@@ -512,7 +512,7 @@ const hasPath = computed(() => kind.value === 'hh' && m.value.filament_pos != nu
 .dbar i {
   display: block;
   height: 100%;
-  background: var(--ok);
+  background: var(--ac);
 }
 
 .why {
