@@ -6,6 +6,7 @@
 - Customize with Separate layout while printing: a line under the bar says which layout is being edited, the printing one in the heat colour (bar included), and Customize opens on the layout on screen (the printing one while a print runs)
 - Phone layout: a card is taken off the phone with × and comes back through Add card (in Customize > Phone layout and on the phone), instead of the eye and Show hidden; the computer keeps all its cards
 - System Loads: Details sits under the tiles, so the four tiles keep equal widths
+- Background: Darker with a theme colour (or Accent strength normal / strong) darkens only the page again; the cards, panels and grey text had turned lighter instead
 - Gentler motion: buttons ease in and rise a little under the pointer and spring back after a press, switches land with a small bounce, a checkbox pops and its tick draws itself, the highlight of option groups slides to the picked option, dashboard tiles lift on hover; all of it off when the system asks for less motion
 
 ## 0.38.53

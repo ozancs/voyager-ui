@@ -263,3 +263,16 @@ describe('orderKeys', () => {
     ]);
   });
 });
+
+import { basePalette } from '../src/baseColor.js';
+describe('theme colour', () => {
+  it('Background: Darker lowers only the page, the cards and panels stay', () => {
+    for (const hex of ['#4b5563', '#16181c', '#2f4f4f']) {
+      const n = basePalette(hex, 'dark', false),
+        d = basePalette(hex, 'dark', true);
+      for (const k of ['--s1', '--s2', '--s3', '--bd', '--mu', '--mu2']) expect(d[k]).toBe(n[k]);
+      const l = (v) => +/ ([\d.]+)%\)$/.exec(v)[1];
+      expect(l(d['--bg'])).toBeLessThan(l(n['--bg']));
+    }
+  });
+});

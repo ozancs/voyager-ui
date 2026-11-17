@@ -65,7 +65,9 @@ export function basePalette(hex, mode, darker = false) {
   const lift =
     mode === 'light'
       ? Math.max(-10, Math.min(0, (c.l - 50) * 0.12))
-      : Math.max(-7, Math.min(22, c.l - (darker ? DARKER['--bg'] : DARK['--bg'])));
+      : // measured from the normal page in both cases: Darker then only lowers the page (and its plate and grid),
+        // the cards and panels stay where Normal has them
+        Math.max(-7, Math.min(22, c.l - DARK['--bg']));
   const steps = mode === 'light' ? LIGHT : { ...DARK, ...(darker ? DARKER : {}) };
   const out = {};
   for (const [k, l] of Object.entries(steps)) {
