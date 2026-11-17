@@ -23,7 +23,7 @@ const DEMO_THUMBS = [
 ];
 const thumbSvg = (hue) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="#0006" stroke-width="1.5" stroke-linejoin="round"><path d="M50 18 82 34 50 50 18 34Z" fill="hsl(${hue} 80% 62%)"/><path d="M18 34 50 50v32L18 66Z" fill="hsl(${hue} 70% 45%)"/><path d="M82 34 50 50v32l32-16Z" fill="hsl(${hue} 70% 36%)"/></g></svg>`;
-const objects = ['mmu'].concat([
+const objects = ['mmu', 'mmu_machine'].concat([
   'probe_eddy_current btt_eddy',
   'axis_twist_compensation',
   'adxl345',
@@ -106,8 +106,11 @@ const status = {
   'led_effect rainbow': { enabled: false },
   'led_effect critical_error': { enabled: false },
   webhooks: { state: 'ready', state_message: 'Printer is ready' },
+  mmu_machine: { num_units: 1, unit_0: { name: 'ERCF', selector_type: 'LinearSelector', num_gates: 6, first_gate: 0 } },
   mmu: {
     enabled: true,
+    servo: 'Up',
+    spoolman_support: 'pull',
     is_homed: true,
     num_gates: 6,
     tool: 2,
@@ -131,7 +134,7 @@ const status = {
     ],
     gate_name: ['Prusament Galaxy Red', 'Sunlu Blue', 'Polymaker ABS', '', 'Bambu ASA Yellow', 'NinjaTek'],
     gate_temperature: [215, 240, 255, 0, 260, 225],
-    gate_spool_id: [14, -1, 12, -1, -1, -1],
+    gate_spool_id: [14, 21, 12, -1, 31, -1],
     ttg_map: [0, 1, 2, 3, 4, 5],
     endless_spool: 1,
     endless_spool_groups: [0, 1, 2, 3, 0, 5],
@@ -1445,6 +1448,7 @@ const SPOOLS = [
     id: 12,
     remaining_weight: 642,
     initial_weight: 1000,
+    remaining_length: 213400,
     filament: {
       name: 'ABS Black',
       material: 'ABS',
@@ -1475,6 +1479,19 @@ const SPOOLS = [
       color_hex: 'f2f2ef',
       settings_extruder_temp: 240,
       vendor: { name: 'Extrudr' },
+    },
+  },
+  {
+    id: 31,
+    remaining_weight: 95,
+    initial_weight: 1000,
+    remaining_length: 31600,
+    filament: {
+      name: 'ASA Yellow',
+      material: 'ASA',
+      color_hex: 'f2c21b',
+      settings_extruder_temp: 260,
+      vendor: { name: 'Bambu Lab' },
     },
   },
 ];
@@ -1858,6 +1875,12 @@ function handle(m) {
         MMU_HOME: 'Home',
         MMU_RECOVER: 'Recover',
         MMU_SELECT_BYPASS: 'Bypass',
+        MMU_STATS: 'Statistics',
+        MMU_SPOOLMAN: 'Spoolman',
+        MMU_SERVO: 'Servo',
+        MMU_SYNC_GEAR_MOTOR: 'Sync gear motor',
+        MMU_MOTORS_ON: 'Motors on',
+        MMU_MOTORS_OFF: 'Motors off',
         CHANGE_TOOL: 'AFC change',
         TOOL_UNLOAD: 'AFC unload',
         LANE_UNLOAD: 'AFC eject',
