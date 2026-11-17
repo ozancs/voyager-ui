@@ -15,7 +15,10 @@ function place() {
   const a = props.anchor;
   if (!a || !el.value) return;
   const r = a.getBoundingClientRect();
-  const k = r.width / (a.offsetWidth || r.width) || 1;
+  // measured on the panel itself, not on the button: the panel sits in <body>, where only the interface scale
+  // applies, while a button on the dashboard is also scaled by the dashboard's own zoom (a scaled-down layout)
+  const pr = el.value.getBoundingClientRect();
+  const k = pr.width / (el.value.offsetWidth || pr.width) || 1;
   const vw = window.innerWidth / k,
     vh = window.innerHeight / k;
   // the panel's real width: its content can make it wider than asked
