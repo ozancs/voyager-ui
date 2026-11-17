@@ -1,7 +1,7 @@
 /* ---- "Panel" look ----
    The status strip becomes an instrument bank: tiles sit tight together and each one fills
    from the bottom like a gauge (heaters toward their target, fans by speed, spool by weight left).
-   Numbers and headings use Archivo, stretched wide for readouts and narrow for labels.
+   Numbers and headings use Archivo, stretched wide for readouts and a little narrow for labels.
    Everything here is scoped to [data-look="panel"], Settings > Appearance > Style switches back. */
 :root[data-look='panel'] {
   --fx: 'Archivo Variable', var(--fd);
@@ -42,7 +42,7 @@
 [data-look='panel'] .ds .tt,
 [data-look='panel'] .ds .auto {
   font-family: var(--fx);
-  font-stretch: 70%;
+  font-stretch: 85%;
   font-size: 12.5px;
   font-weight: 600;
 }
