@@ -1,12 +1,12 @@
 <script setup>
 // The printer at the top of the side menu: its icon, name and address, and the switcher to the other printers
 // (the same list as the top bar's on small screens). rail: only the icon, which opens the switcher.
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import Icon from './Icon.vue';
 import Logo from './Logo.vue';
 import Popover from './Popover.vue';
 import { state, printerName } from '../store';
-import { printerList, currentPrinter, selectPrinter } from '../printers';
+import { printerList, currentPrinter, selectPrinter, ownEntryId } from '../printers';
 import { listIconUrl } from '../printerIcon';
 import { go } from '../router';
 import { t } from '../i18n';
@@ -15,6 +15,8 @@ const here = location.host;
 const hostName = currentPrinter()?.host || here;
 const printers = printerList;
 const curId = currentPrinter()?.id || '';
+const ownId = computed(ownEntryId); // a saved entry for this page's machine replaces "This address"
+const isCur = (id) => id === curId || (!curId && id === ownId.value);
 const open = ref(false);
 const box = ref(null);
 </script>
@@ -44,9 +46,15 @@ const box = ref(null);
         "
       >
         <Icon name="grid" :size="15" /><span class="grow">{{ t('All printers') }}</span
-        ><span class="mono mu">{{ printers.length + 1 }}</span>
+        ><span class="mono mu">{{ printers.length + (ownId == null ? 1 : 0) }}</span>
       </button>
-      <button class="btn clear pmi" :class="{ cur: !curId }" :disabled="!curId" @click="selectPrinter('')">
+      <button
+        v-if="ownId == null"
+        class="btn clear pmi"
+        :class="{ cur: !curId }"
+        :disabled="!curId"
+        @click="selectPrinter('')"
+      >
         <img v-if="listIconUrl('')" class="pmic" :src="listIconUrl('')" alt="" /><Logo v-else :size="22" />
         <span class="grow">{{ t('This address') }}</span
         ><span class="mono mu">{{ here }}</span>
@@ -55,8 +63,8 @@ const box = ref(null);
         v-for="p in printers"
         :key="p.id"
         class="btn clear pmi"
-        :class="{ cur: p.id === curId }"
-        :disabled="p.id === curId"
+        :class="{ cur: isCur(p.id) }"
+        :disabled="isCur(p.id)"
         @click="selectPrinter(p.id)"
       >
         <img v-if="listIconUrl(p.id)" class="pmic" :src="listIconUrl(p.id)" alt="" /><Logo v-else :size="22" />
