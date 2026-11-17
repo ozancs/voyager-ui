@@ -26,7 +26,7 @@ const show = computed(() =>
 const biasPos = computed(() => ((clamp(bias.value ?? 0, -1, 1) + 1) / 2) * 100);
 const biasCol = computed(() => {
   const a = Math.abs(bias.value ?? 0);
-  return a >= 0.8 ? 'var(--dg)' : a >= 0.5 ? 'var(--wn)' : 'var(--ok)';
+  return a >= 0.8 ? 'var(--dg)' : a >= 0.5 ? 'var(--wn)' : 'var(--ac)';
 });
 const stateLbl = computed(
   () =>
@@ -51,7 +51,7 @@ const TRACK = arc(0, 1);
 
 const flowF = computed(() => clamp((flow.value ?? 0) / 100, 0, 1));
 const flowCol = computed(() =>
-  (flow.value ?? 0) >= 85 ? 'var(--ok)' : (flow.value ?? 0) >= 60 ? 'var(--wn)' : 'var(--dg)',
+  (flow.value ?? 0) >= 85 ? 'var(--ac)' : (flow.value ?? 0) >= 60 ? 'var(--wn)' : 'var(--dg)',
 );
 
 // FlowGuard: needle at the level, the band from the centre to it; ticks at the worst tangle and clog seen
@@ -59,7 +59,7 @@ const fgLevel = computed(() => clamp(num(fg.value?.level) ?? 0, -1, 1));
 const fgF = computed(() => (fgLevel.value + 1) / 2);
 const fgCol = computed(() => {
   const a = Math.abs(fgLevel.value);
-  return a >= 0.7 ? 'var(--dg)' : a >= 0.35 ? 'var(--wn)' : 'var(--ok)';
+  return a >= 0.7 ? 'var(--dg)' : a >= 0.35 ? 'var(--wn)' : 'var(--ac)';
 });
 const needle = computed(() => {
   const a = Math.PI * (1 - fgF.value);
@@ -187,7 +187,7 @@ const fgLbl = computed(() =>
   width: 12px;
   height: 16px;
   border-radius: 4px;
-  border: 2px solid var(--ok);
+  border: 2px solid var(--ac);
   background: var(--s2);
   transform: translate(-50%, -50%);
   transition: left 0.4s ease;
