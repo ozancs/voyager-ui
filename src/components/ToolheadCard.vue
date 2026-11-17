@@ -6,7 +6,6 @@ import CardTitle from './CardTitle.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import CircleJog from './CircleJog.vue';
-import ToolheadStyle from './ToolheadStyle.vue';
 import { state, S, gcode, isPrinting, toast } from '../store';
 import { t } from '../i18n';
 const th = computed(() => S('toolhead'));
@@ -196,7 +195,6 @@ onBeforeUnmount(() => {
         >
           <Icon name="power" :size="16" :stroke="2.4" />{{ t('Motors off') }}
         </button>
-        <ToolheadStyle />
       </div>
       <CardCollapse />
     </div>
@@ -638,18 +636,22 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 @container cell (max-width: 760px) {
+  /* title | the actions, in the middle | collapse */
   .toolhead > .toolhead-h {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(28px, 1fr);
     gap: 4px 8px;
   }
   .toolhead-h > :deep(h2) {
     grid-column: 1;
     grid-row: 1;
+    max-width: none; /* the column is the title's own */
   }
-  .toolhead-h > :deep(.clp) {
+  .toolhead-h > :deep(.clp),
+  .toolhead-h > :deep(.cce) {
     grid-column: 3;
     grid-row: 1;
+    justify-self: end;
   }
   .toolhead-h > .gm {
     display: none;
@@ -666,13 +668,10 @@ onBeforeUnmount(() => {
     width: 28px;
     padding: 0 !important;
   }
-  .toolhead-h .acts > :deep(.toolhead-style) {
-    margin-left: auto;
-  }
 }
 
 /* Only use a second row when the title and controls no longer fit together. */
-@container cell (max-width: 360px) {
+@container cell (max-width: 230px) {
   .toolhead > .toolhead-h {
     grid-template-columns: minmax(0, 1fr) auto;
   }

@@ -907,7 +907,7 @@ function detachCard(i) {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page dash">
     <div v-if="state.editDash" class="dbar on" :class="{ prn: editingPrint }">
       <template v-if="state.editDash">
         <Icon name="move" :size="18" style="color: var(--ac)" />
@@ -1635,7 +1635,7 @@ function detachCard(i) {
   align-items: flex-start;
   position: relative;
   z-index: 20;
-  padding: 0 0 18px;
+  padding: 0 0 8px;
 }
 /* the layout being edited, in words: a short line of its own at the very end of the bar (after the buttons, so
    they keep their row); the printing layout in the heat colour, bar and all */
@@ -1758,7 +1758,14 @@ function detachCard(i) {
   margin: 0;
 }
 :root.compact .top {
-  padding-bottom: 6px;
+  padding-bottom: 0;
+}
+/* the dashboard sits closer to the top bar and its rows closer together than other pages */
+.page.dash {
+  gap: 12px;
+}
+.page.dash > :first-child {
+  margin-top: -12px;
 }
 .cell {
   position: relative;
