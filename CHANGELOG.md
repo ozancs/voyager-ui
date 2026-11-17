@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.54
+
+- Interface settings: picking a colour (mode, background, theme colour, accent, accent strength) or the interface size folds the settings down to those rows at the bottom of the screen, without the dark backdrop, so the page behind shows the change; Done brings back all the settings
+- Gentler motion: buttons ease in and rise a little under the pointer and spring back after a press, switches land with a small bounce, a checkbox pops and its tick draws itself, the highlight of option groups slides to the picked option, dashboard tiles lift on hover; all of it off when the system asks for less motion
+
 ## 0.38.53
 
 - Console: RatOS messages show coloured, with their bold title, as in Mainsail, instead of raw HTML; http(s) links in console messages open in a new tab, their address shown on hover (thanks DubMonstaa, #17)

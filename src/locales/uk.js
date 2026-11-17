@@ -2583,4 +2583,5 @@ export default {
   "runout: {done} / {of} mm": "обрив: {done} / {of} мм",
   "only while printing": "лише під час друку",
   "only when idle": "лише в простої",
+  "The page behind shows the change. Done brings back all the settings.": "Сторінка позаду показує зміну. «Готово» повертає всі налаштування.",
 }

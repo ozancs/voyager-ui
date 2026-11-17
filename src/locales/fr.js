@@ -2583,4 +2583,5 @@ export default {
   "runout: {done} / {of} mm": "fin de filament : {done} / {of} mm",
   "only while printing": "seulement en impression",
   "only when idle": "seulement au repos",
+  "The page behind shows the change. Done brings back all the settings.": "La page derrière montre le changement. Terminé ramène tous les réglages.",
 }

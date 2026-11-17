@@ -2583,4 +2583,5 @@ export default {
   "runout: {done} / {of} mm": "koniec: {done} / {of} mm",
   "only while printing": "tylko podczas druku",
   "only when idle": "tylko w spoczynku",
+  "The page behind shows the change. Done brings back all the settings.": "Strona w tle pokazuje zmianę. Gotowe przywraca wszystkie ustawienia.",
 }

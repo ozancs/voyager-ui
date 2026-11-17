@@ -2583,4 +2583,5 @@ export default {
   "runout: {done} / {of} mm": "обрыв: {done} / {of} мм",
   "only while printing": "только при печати",
   "only when idle": "только в простое",
+  "The page behind shows the change. Done brings back all the settings.": "Страница позади показывает изменение. «Готово» возвращает все настройки.",
 }

@@ -58,7 +58,15 @@ const tab = computed({
   get: () => (TABS.some(([k]) => k === state.settingsOpen) ? state.settingsOpen : 'general'),
   set: (v) => (state.settingsOpen = v),
 });
-const close = () => (state.settingsOpen = null);
+// Peek: picking a colour or the interface size folds the dialog down to those rows at the bottom of the screen,
+// without the dark backdrop, so the page behind shows what the choice does. Done (or Escape) unfolds it again.
+const peek = ref(null); // 'color' | 'size' | null
+function peekFrom(e) {
+  if (peek.value) return;
+  const row = e.target.closest?.('.rw[data-pk]');
+  if (row && e.target.closest('button, label, input')) peek.value = row.dataset.pk;
+}
+const close = () => (peek.value ? (peek.value = null) : (state.settingsOpen = null));
 // Cameras: the sound stream's noise filter, read when the tab opens (null: no go2rtc sound on this printer)
 const noise = ref(null);
 const noiseBusy = ref(false);
@@ -450,8 +458,8 @@ const consoleSample = (() => {
 
 <template>
   <Teleport to="body">
-    <div class="ov" @mousedown.self="close">
-      <div class="dlg" role="dialog" :aria-label="t('Interface settings')">
+    <div class="ov" :class="{ peek }" @mousedown.self="close">
+      <div class="dlg" :class="peek && 'peek peek-' + peek" role="dialog" :aria-label="t('Interface settings')">
         <div class="hd">
           <Icon name="gear" :size="20" />
           <h2>{{ t('Interface settings') }}</h2>
@@ -472,7 +480,7 @@ const consoleSample = (() => {
               <Icon :name="ic" :size="17" /><span>{{ t(l) }}</span>
             </button>
           </nav>
-          <div class="pn">
+          <div class="pn" @click="peekFrom" @input="peekFrom">
             <!-- General -->
             <template v-if="tab === 'general'">
               <h3 class="sec">{{ t('Printer') }}</h3>
@@ -951,7 +959,7 @@ const consoleSample = (() => {
             <!-- Appearance -->
             <template v-else-if="tab === 'appearance'">
               <h3 class="sec">{{ t('Theme') }}</h3>
-              <div class="rw">
+              <div class="rw" data-pk="color">
                 <div class="k">
                   <b>{{ t('Mode') }}</b>
                 </div>
@@ -970,7 +978,7 @@ const consoleSample = (() => {
                   </button>
                 </div>
               </div>
-              <div class="rw">
+              <div class="rw" data-pk="color">
                 <div class="k">
                   <b>{{ t('Background') }}</b
                   ><span>{{
@@ -985,7 +993,7 @@ const consoleSample = (() => {
                   </button>
                 </div>
               </div>
-              <div class="rw">
+              <div class="rw" data-pk="color">
                 <div class="k">
                   <b>{{ t('Theme colour') }}</b
                   ><span>{{
@@ -1013,7 +1021,7 @@ const consoleSample = (() => {
                   /></label>
                 </div>
               </div>
-              <div class="rw">
+              <div class="rw" data-pk="color">
                 <div class="k">
                   <b>{{ t('Accent') }}</b
                   ><span>{{ t('Colour of actions, selected options, section headings and the logo.') }}</span>
@@ -1033,7 +1041,7 @@ const consoleSample = (() => {
                   /></label>
                 </div>
               </div>
-              <div class="rw">
+              <div class="rw" data-pk="color">
                 <div class="k">
                   <b>{{ t('Accent strength') }}</b
                   ><span>{{
@@ -1101,7 +1109,7 @@ const consoleSample = (() => {
                 </div>
               </div>
               <h3 class="sec">{{ t('Size') }}</h3>
-              <div class="rw">
+              <div class="rw" data-pk="size">
                 <div class="k">
                   <b>{{ t('Interface size') }}</b
                   ><span
@@ -1519,6 +1527,10 @@ const consoleSample = (() => {
             </template>
           </div>
         </div>
+        <div v-if="peek" class="pkf">
+          <span class="mu">{{ t('The page behind shows the change. Done brings back all the settings.') }}</span>
+          <button class="btn acc lg" @click="peek = null">{{ t('Done') }}</button>
+        </div>
       </div>
     </div>
   </Teleport>
@@ -1630,6 +1642,56 @@ const consoleSample = (() => {
   z-index: 95;
   /* the top bar stays above the dialog (E-STOP reachable), so the dialog starts under it */
   padding: 80px 16px 16px;
+}
+/* Peek (picking a colour or the size): no backdrop, the page behind stays visible and usable; the dialog shrinks to
+   the rows of that choice at the bottom of the screen */
+.ov.peek {
+  background: transparent;
+  pointer-events: none;
+  align-items: flex-end;
+}
+.ov.peek .dlg {
+  pointer-events: auto;
+  width: 820px;
+  height: auto;
+  max-height: 60vh;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+  animation: pk-in 0.28s var(--ease-out);
+}
+@keyframes pk-in {
+  from {
+    translate: 0 24px;
+    opacity: 0;
+  }
+}
+.dlg.peek .hd,
+.dlg.peek .nv,
+.dlg.peek .pn > * {
+  display: none;
+}
+.dlg.peek .pn {
+  padding: 4px 22px 0;
+}
+.dlg.peek-color .pn > [data-pk='color'],
+.dlg.peek-size .pn > [data-pk='size'] {
+  display: grid;
+}
+/* the colour rows without their long notes, so the panel stays low; the size row keeps its percentage */
+.dlg.peek-color .k > span {
+  display: none;
+}
+.pkf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 22px 16px;
+  font-size: 12.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ov.peek .dlg {
+    animation: none;
+  }
 }
 .dlg {
   /* large enough that a tab (Appearance has the most) fits without scrolling on a usual screen */

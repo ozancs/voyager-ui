@@ -2576,5 +2576,6 @@
   "The first four pages are in the bar, the rest are under More in this order. Drag a page onto another to swap them.",
   "runout: {done} / {of} mm",
   "only while printing",
-  "only when idle"
+  "only when idle",
+  "The page behind shows the change. Done brings back all the settings."
 ]

@@ -2583,4 +2583,5 @@ export default {
   "runout: {done} / {of} mm": "切れ: {done} / {of} mm",
   "only while printing": "印刷中のみ",
   "only when idle": "待機中のみ",
+  "The page behind shows the change. Done brings back all the settings.": "後ろのページに変更が表示されます。完了ですべての設定に戻ります。",
 }

@@ -2601,4 +2601,5 @@ export default {
   "runout: {done} / {of} mm": "bitti: {done} / {of} mm",
   "only while printing": "sadece baskıda",
   "only when idle": "sadece boştayken",
+  "The page behind shows the change. Done brings back all the settings.": "Arkadaki sayfa değişikliği gösteriyor. Tamam'a basınca tüm ayarlar geri gelir.",
 }

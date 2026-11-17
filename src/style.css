@@ -1,4 +1,7 @@
 :root {
+  /* motion: quick out, and a small overshoot where something lands (a released button, a switch's knob) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   /* neutrals: soft graphite, a touch of blue so it doesn't read as pure black */
   --bg: #16181c;
   --s1: #1e2126;
@@ -290,21 +293,38 @@ a.btn {
   font-size: 13px;
   white-space: nowrap;
   transition:
-    filter 0.12s,
-    background 0.12s,
-    scale 0.08s;
+    filter 0.18s,
+    background 0.18s var(--ease-out),
+    color 0.18s,
+    box-shadow 0.18s var(--ease-out),
+    translate 0.18s var(--ease-out),
+    scale 0.32s var(--spring);
 }
 .btn:hover:not(:disabled) {
   background: var(--s3);
+}
+/* a filled button rises a hair with a soft shadow; a clear one (icon buttons in headers) only colours in */
+.btn:not(.clear):hover:not(:disabled) {
+  translate: 0 -1px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+}
+/* the icon in a button grows a little under the pointer */
+.btn > svg {
+  transition: scale 0.25s var(--spring);
+}
+.btn:hover:not(:disabled) > svg {
+  scale: 1.1;
 }
 /* pressed: the button dips and darkens for as long as it is held, so a tap is visibly taken (on a touch screen
    too, main.js registers a touch listener so :active works there). `scale` composes with any transform a button
    already has. */
 .btn:active:not(:disabled),
 .seg button:active:not(:disabled) {
-  scale: 0.94;
-  filter: brightness(0.82);
-  transition-duration: 0s;
+  scale: 0.95;
+  translate: 0 0;
+  box-shadow: none;
+  filter: brightness(0.85);
+  transition-duration: 0.06s;
 }
 .btn.clear:active:not(:disabled) {
   background: var(--s3);
@@ -312,8 +332,12 @@ a.btn {
 }
 @media (prefers-reduced-motion: reduce) {
   .btn:active:not(:disabled),
-  .seg button:active:not(:disabled) {
+  .seg button:active:not(:disabled),
+  .btn:hover:not(:disabled) > svg {
     scale: none;
+  }
+  .btn:not(.clear):hover:not(:disabled) {
+    translate: none;
   }
 }
 /* filled danger buttons (E-STOP, delete): a deeper red than the danger text colour, so their white label reads
@@ -413,6 +437,9 @@ a.btn {
   gap: 2px;
 }
 .seg button {
+  transition:
+    color 0.2s,
+    background 0.2s var(--ease-out);
   white-space: nowrap;
   flex: 1;
   height: 28px;
@@ -432,6 +459,20 @@ a.btn {
   background: color-mix(in srgb, var(--ac) var(--ac-sel), var(--s3));
   color: color-mix(in srgb, var(--ac) var(--ac-ink), var(--tx));
 }
+/* while the highlight slides over (segSlide.js) the picked option leaves its own background to the slider */
+.seg button.seg-to {
+  background: transparent;
+  transition: none;
+}
+.seg-pill {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+.seg > button {
+  position: relative;
+  z-index: 1;
+}
 
 .toggle {
   width: 46px;
@@ -443,6 +484,7 @@ a.btn {
   padding: 3px;
   display: flex;
   justify-content: flex-start;
+  transition: background 0.22s var(--ease-out);
 }
 .toggle span {
   width: 20px;
@@ -450,7 +492,17 @@ a.btn {
   border-radius: 10px;
   background: var(--mu);
   display: block;
-  transition: transform 0.15s;
+  /* the knob lands with a small overshoot and stretches while held, as on a phone */
+  transition:
+    transform 0.34s var(--spring),
+    width 0.18s var(--ease-out),
+    background 0.22s;
+}
+.toggle:active span {
+  width: 25px;
+}
+.toggle.on:active span {
+  transform: translateX(15px);
 }
 .toggle.on {
   background: var(--ac);
@@ -768,32 +820,53 @@ input[type='checkbox'] {
   cursor: pointer;
   vertical-align: middle;
   transition:
-    background 0.12s,
-    border-color 0.12s;
+    background 0.18s var(--ease-out),
+    border-color 0.18s,
+    scale 0.3s var(--spring);
 }
 input[type='checkbox']:hover {
   border-color: var(--mu);
 }
+input[type='checkbox']:active {
+  scale: 0.88;
+  transition-duration: 0.06s;
+}
+/* the tick is a drawn path shown through a mask; growing the box from the left draws it, left to right */
 input[type='checkbox']::before {
   content: '';
-  width: 10px;
+  justify-self: start;
+  width: 0;
   height: 10px;
   background: var(--oa);
-  transform: scale(0);
-  transition: transform 0.12s;
-  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.4 5.2 4 7.6 8.6 2.2' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    0 0 / 10px 10px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.4 5.2 4 7.6 8.6 2.2' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    0 0 / 10px 10px no-repeat;
+  transition: width 0.1s;
 }
 input[type='checkbox']:checked,
 input[type='checkbox']:indeterminate {
   background: var(--ac);
   border-color: var(--ac);
 }
+input[type='checkbox']:checked {
+  animation: cb-pop 0.32s var(--spring);
+}
+@keyframes cb-pop {
+  from {
+    scale: 0.8;
+  }
+}
 input[type='checkbox']:checked::before {
-  transform: scale(1);
+  width: 10px;
+  transition: width 0.24s var(--ease-out) 0.08s;
 }
 input[type='checkbox']:indeterminate::before {
-  transform: scale(1);
-  clip-path: inset(38% 5% 38% 5% round 2px);
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  -webkit-mask: none;
+  mask: none;
 }
 input[type='checkbox']:focus-visible {
   outline: 2px solid var(--ac);
@@ -803,6 +876,11 @@ input[type='checkbox']:focus-visible {
   input[type='checkbox'],
   input[type='checkbox']::before {
     transition: none;
+    animation: none;
+  }
+  .toggle,
+  .toggle span {
+    transition-duration: 0.01s;
   }
 }
 

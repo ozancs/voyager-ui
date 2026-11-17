@@ -2583,4 +2583,5 @@ export default {
   "runout: {done} / {of} mm": "断料: {done} / {of} mm",
   "only while printing": "仅打印时",
   "only when idle": "仅空闲时",
+  "The page behind shows the change. Done brings back all the settings.": "后面的页面会显示更改。点“完成”即可回到全部设置。",
 }

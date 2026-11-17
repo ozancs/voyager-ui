@@ -643,6 +643,11 @@ function sensorExtra(id) {
   min-width: 0;
 }
 .dc.click {
+  transition:
+    border-color 0.2s var(--ease-out),
+    translate 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out),
+    scale 0.3s var(--spring);
   cursor: pointer;
   user-select: none;
 }
@@ -742,6 +747,23 @@ function sensorExtra(id) {
 .dc.click:hover,
 .dc.open {
   border-color: var(--k, var(--mu2));
+}
+/* outside Customize (where dragging moves the tiles) a tile rises a little under the pointer and dips when pressed */
+.ds:not(.editing) .dc.click:hover {
+  translate: 0 -2px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+.ds:not(.editing) .dc.click:not(.open):active {
+  scale: 0.97;
+  transition-duration: 0.06s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds:not(.editing) .dc.click:hover {
+    translate: none;
+  }
+  .ds:not(.editing) .dc.click:not(.open):active {
+    scale: none;
+  }
 }
 .dc.open {
   z-index: 60;

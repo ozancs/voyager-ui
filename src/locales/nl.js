@@ -2583,4 +2583,5 @@ export default {
   "runout: {done} / {of} mm": "op: {done} / {of} mm",
   "only while printing": "alleen tijdens printen",
   "only when idle": "alleen in rust",
+  "The page behind shows the change. Done brings back all the settings.": "De pagina erachter toont de wijziging. Klaar brengt alle instellingen terug.",
 }

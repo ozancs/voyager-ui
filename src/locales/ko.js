@@ -2583,4 +2583,5 @@ export default {
   "runout: {done} / {of} mm": "소진: {done} / {of} mm",
   "only while printing": "출력 중에만",
   "only when idle": "대기 중에만",
+  "The page behind shows the change. Done brings back all the settings.": "뒤의 페이지에 변경 사항이 보입니다. 완료를 누르면 모든 설정이 다시 나타납니다.",
 }

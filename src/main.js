@@ -19,6 +19,7 @@ import { away } from './away';
 import { vfit } from './fit';
 import { vzoom } from './thumbZoom';
 import { reloadForStaleChunk } from './staleChunk';
+import { startSegSlide } from './segSlide';
 // a lazily loaded page whose file is gone means the UI was replaced under this open page
 window.addEventListener('vite:preloadError', (e) => {
   if (reloadForStaleChunk()) e.preventDefault();
@@ -30,6 +31,7 @@ async function boot() {
   await loadLang(i18n.lang).catch(() => {});
   start();
   startTabIcon();
+  startSegSlide();
   createApp(App).directive('away', away).directive('fit', vfit).directive('zoom', vzoom).mount('#app');
 }
 // iOS Safari only applies :active (the pressed look of buttons) when the page listens to touches
