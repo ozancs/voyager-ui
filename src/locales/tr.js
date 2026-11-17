@@ -2588,7 +2588,6 @@ export default {
   "Phone preview": "Telefon önizlemesi",
   "Live preview: drag to scroll, buttons act on the printer.": "Canlı önizleme: kaydırmak için sürükle, butonlar yazıcıda çalışır.",
   "Cards on the phone": "Telefondaki kartlar",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Sırayı değiştirmek için sürükle, bir kartı telefonda göstermemek için göze bas. Bilgisayar tüm kartlarını korur.",
   "Show on the phone": "Telefonda göster",
   "Hide on the phone": "Telefonda gizle",
   "Top tiles on the phone": "Telefondaki üst kutucuklar",
@@ -2602,4 +2601,9 @@ export default {
   "only while printing": "sadece baskıda",
   "only when idle": "sadece boştayken",
   "The page behind shows the change. Done brings back all the settings.": "Arkadaki sayfa değişikliği gösteriyor. Tamam'a basınca tüm ayarlar geri gelir.",
+  "Drag to change the order, \u00d7 to take a card off the phone. The computer keeps all its cards.": "Sırayı değiştirmek için sürükle, kartı telefondan kaldırmak için ×. Bilgisayar tüm kartlarını korur.",
+  "Taken off the phone": "Telefondan kaldırılanlar",
+  "Take off the phone": "Telefondan kaldır",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Baskı düzenini düzenliyorsun, sadece baskı sürerken görünür. Boştaki düzen olduğu gibi kalır.",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Boştaki düzeni düzenliyorsun, baskı yokken görünür. Baskı düzeni olduğu gibi kalır.",
 }

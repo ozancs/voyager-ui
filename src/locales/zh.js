@@ -2570,7 +2570,6 @@ export default {
   "Phone preview": "手机预览",
   "Live preview: drag to scroll, buttons act on the printer.": "实时预览：拖动即可滚动，按钮会操作打印机。",
   "Cards on the phone": "手机上的卡片",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "拖动以更改顺序，点眼睛图标仅在手机上隐藏卡片。电脑上保留所有卡片。",
   "Show on the phone": "在手机上显示",
   "Hide on the phone": "在手机上隐藏",
   "Top tiles on the phone": "手机上的顶部磁贴",
@@ -2584,4 +2583,9 @@ export default {
   "only while printing": "仅打印时",
   "only when idle": "仅空闲时",
   "The page behind shows the change. Done brings back all the settings.": "后面的页面会显示更改。点“完成”即可回到全部设置。",
+  "Drag to change the order, \u00d7 to take a card off the phone. The computer keeps all its cards.": "拖动可调整顺序，× 可将卡片从手机上移除。电脑保留所有卡片。",
+  "Taken off the phone": "已从手机移除",
+  "Take off the phone": "从手机移除",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "你正在编辑打印布局，仅在打印时显示。空闲布局保持不变。",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "你正在编辑空闲布局，在未打印时显示。打印布局保持不变。",
 }

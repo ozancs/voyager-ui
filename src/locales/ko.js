@@ -2570,7 +2570,6 @@ export default {
   "Phone preview": "휴대폰 미리보기",
   "Live preview: drag to scroll, buttons act on the printer.": "실시간 미리보기: 드래그로 스크롤, 버튼은 프린터를 동작시킵니다.",
   "Cards on the phone": "휴대폰 카드",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "드래그해서 순서를 바꾸고, 눈 아이콘으로 휴대폰에서만 카드를 숨깁니다. 컴퓨터에는 모든 카드가 남습니다.",
   "Show on the phone": "휴대폰에 표시",
   "Hide on the phone": "휴대폰에서 숨기기",
   "Top tiles on the phone": "휴대폰 상단 타일",
@@ -2584,4 +2583,9 @@ export default {
   "only while printing": "출력 중에만",
   "only when idle": "대기 중에만",
   "The page behind shows the change. Done brings back all the settings.": "뒤의 페이지에 변경 사항이 보입니다. 완료를 누르면 모든 설정이 다시 나타납니다.",
+  "Drag to change the order, \u00d7 to take a card off the phone. The computer keeps all its cards.": "끌어서 순서를 바꾸고, ×로 카드를 휴대폰에서 뺍니다. 컴퓨터는 모든 카드를 유지합니다.",
+  "Taken off the phone": "휴대폰에서 뺀 카드",
+  "Take off the phone": "휴대폰에서 빼기",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "출력 레이아웃을 편집 중입니다. 출력 중에만 보입니다. 대기 레이아웃은 그대로입니다.",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "대기 레이아웃을 편집 중입니다. 출력하지 않을 때 보입니다. 출력 레이아웃은 그대로입니다.",
 }

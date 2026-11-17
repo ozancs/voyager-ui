@@ -2570,7 +2570,6 @@ export default {
   "Phone preview": "Handy-Vorschau",
   "Live preview: drag to scroll, buttons act on the printer.": "Live-Vorschau: zum Blättern ziehen, Knöpfe wirken auf den Drucker.",
   "Cards on the phone": "Karten auf dem Handy",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Ziehen ändert die Reihenfolge, das Auge blendet eine Karte nur auf dem Handy aus. Der Computer behält alle Karten.",
   "Show on the phone": "Auf dem Handy zeigen",
   "Hide on the phone": "Auf dem Handy ausblenden",
   "Top tiles on the phone": "Obere Kacheln auf dem Handy",
@@ -2584,4 +2583,9 @@ export default {
   "only while printing": "nur beim Drucken",
   "only when idle": "nur im Leerlauf",
   "The page behind shows the change. Done brings back all the settings.": "Die Seite dahinter zeigt die Änderung. Fertig bringt alle Einstellungen zurück.",
+  "Drag to change the order, \u00d7 to take a card off the phone. The computer keeps all its cards.": "Ziehen ändert die Reihenfolge, × nimmt eine Karte vom Handy. Der Computer behält alle seine Karten.",
+  "Taken off the phone": "Vom Handy genommen",
+  "Take off the phone": "Vom Handy nehmen",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Du bearbeitest das Drucklayout, das nur während eines Drucks erscheint. Das Leerlauf-Layout bleibt, wie es ist.",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Du bearbeitest das Leerlauf-Layout, das ohne laufenden Druck erscheint. Das Drucklayout bleibt, wie es ist.",
 }

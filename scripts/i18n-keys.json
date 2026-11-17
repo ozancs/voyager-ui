@@ -2563,7 +2563,6 @@
   "Reload preview",
   "Phone preview",
   "Cards on the phone",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.",
   "Show on the phone",
   "Hide on the phone",
   "Top tiles on the phone",
@@ -2577,5 +2576,10 @@
   "runout: {done} / {of} mm",
   "only while printing",
   "only when idle",
-  "The page behind shows the change. Done brings back all the settings."
+  "The page behind shows the change. Done brings back all the settings.",
+  "Drag to change the order, × to take a card off the phone. The computer keeps all its cards.",
+  "Taken off the phone",
+  "Take off the phone",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is."
 ]

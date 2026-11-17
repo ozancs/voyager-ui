@@ -174,13 +174,9 @@ const tiles = computed(() => [
         <span class="sub mono">{{ x.sub }}</span>
       </div>
     </div>
-    <button
-      class="more"
-      :aria-label="details ? t('Less') : t('Details')"
-      :data-tip="details ? t('Less') : t('Details')"
-      @click="details = !details"
-    >
-      <Icon :name="details ? 'up' : 'info'" :size="14" />
+    <!-- under the tiles, so it takes no width from them (in a corner it squeezed the right column) -->
+    <button class="more" :aria-expanded="details" @click="details = !details">
+      {{ details ? t('Less') : t('Details') }}<Icon :name="details ? 'up' : 'down'" :size="13" />
     </button>
     <div v-if="details" class="det">
       <div v-for="m in mcus" :key="m.name" class="sm">
@@ -216,22 +212,23 @@ const tiles = computed(() => [
   container: sl / inline-size;
 }
 .more {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 24px;
-  height: 24px;
+  align-self: center;
+  flex-shrink: 0;
+  margin-top: 6px;
+  height: 22px;
+  padding: 0 8px;
   border: none;
   border-radius: 6px;
   background: transparent;
   color: var(--mu2);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  justify-content: center;
-  opacity: 0.6;
+  gap: 4px;
 }
 .more:hover {
-  opacity: 1;
   color: var(--tx);
   background: var(--s2);
 }
@@ -309,7 +306,6 @@ const tiles = computed(() => [
   .tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
-    padding-right: 18px;
   }
   .tl {
     display: grid;

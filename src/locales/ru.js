@@ -2570,7 +2570,6 @@ export default {
   "Phone preview": "Предпросмотр на телефоне",
   "Live preview: drag to scroll, buttons act on the printer.": "Живой предпросмотр: перетаскивайте для прокрутки, кнопки управляют принтером.",
   "Cards on the phone": "Карточки на телефоне",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Перетаскивайте, чтобы изменить порядок; глаз скрывает карточку только на телефоне. На компьютере остаются все карточки.",
   "Show on the phone": "Показать на телефоне",
   "Hide on the phone": "Скрыть на телефоне",
   "Top tiles on the phone": "Верхние плитки на телефоне",
@@ -2584,4 +2583,9 @@ export default {
   "only while printing": "только при печати",
   "only when idle": "только в простое",
   "The page behind shows the change. Done brings back all the settings.": "Страница позади показывает изменение. «Готово» возвращает все настройки.",
+  "Drag to change the order, \u00d7 to take a card off the phone. The computer keeps all its cards.": "Перетаскивайте, чтобы изменить порядок, × убирает карточку с телефона. Компьютер сохраняет все свои карточки.",
+  "Taken off the phone": "Убраны с телефона",
+  "Take off the phone": "Убрать с телефона",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Вы редактируете макет печати, он виден только во время печати. Макет простоя остаётся как есть.",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Вы редактируете макет простоя, он виден, когда печать не идёт. Макет печати остаётся как есть.",
 }

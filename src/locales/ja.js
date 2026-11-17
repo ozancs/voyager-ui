@@ -2570,7 +2570,6 @@ export default {
   "Phone preview": "スマホのプレビュー",
   "Live preview: drag to scroll, buttons act on the printer.": "ライブプレビュー：ドラッグでスクロール、ボタンはプリンターに作用します。",
   "Cards on the phone": "スマホのカード",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "ドラッグで順番を変更、目のアイコンでスマホだけカードを非表示。パソコンではすべてのカードが残ります。",
   "Show on the phone": "スマホで表示",
   "Hide on the phone": "スマホで非表示",
   "Top tiles on the phone": "スマホの上部タイル",
@@ -2584,4 +2583,9 @@ export default {
   "only while printing": "印刷中のみ",
   "only when idle": "待機中のみ",
   "The page behind shows the change. Done brings back all the settings.": "後ろのページに変更が表示されます。完了ですべての設定に戻ります。",
+  "Drag to change the order, \u00d7 to take a card off the phone. The computer keeps all its cards.": "ドラッグで順番を変更、×でカードをスマホから外します。パソコンはすべてのカードを保持します。",
+  "Taken off the phone": "スマホから外したカード",
+  "Take off the phone": "スマホから外す",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "印刷中のレイアウトを編集しています（印刷中のみ表示）。待機中のレイアウトは変わりません。",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "待機中のレイアウトを編集しています（印刷していないときに表示）。印刷中のレイアウトは変わりません。",
 }

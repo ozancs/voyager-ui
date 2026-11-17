@@ -281,6 +281,17 @@ const mode = computed(() =>
       ? 'print'
       : 'idle',
 );
+// Customize opens on the layout on screen: the printing one while a print runs (with its own layout), so the cards
+// do not change under the pointer and what is edited is what was seen
+watch(
+  () => state.editDash,
+  (on) => on && (editMode.value = state.settings.autoLayout && isPrinting.value ? 'print' : 'idle'),
+);
+// which of the two layouts is being edited, said plainly under the bar (the printing one in the heat colour), so the
+// one not meant is not changed by mistake
+const editingPrint = computed(
+  () => state.settings.autoLayout && mode.value === 'print' && !(phoneEdit.value && wide.value),
+);
 
 const width = ref(window.innerWidth);
 const onResize = () => (width.value = window.innerWidth);
@@ -411,23 +422,16 @@ const columnAll = computed(() => {
   const ids = [...ord.filter(has), ...sorted.value.map((x) => x.i).filter((i) => !ord.includes(i))];
   return ids.map((i) => layout.value.find((x) => x.i === i));
 });
-// the cards left out on a phone (Customize > Phone) are listed while editing, so they can be shown again
-// Customize on a phone lists the hidden cards only on request, so the rest is quick to drag
-const mShowHidden = ref(false);
+// A card taken off the phone (Customize on a phone, or Customize > Phone layout) leaves the phone's list; the
+// computer keeps it. Add card lists those first, to put one back.
 const phoneHid = (i) => (state.settings.mobileHidden || []).includes(i);
-const phoneHidN = computed(() => columnAll.value.filter((x) => phoneHid(x.i)).length);
-const column = computed(() =>
-  state.editDash && mShowHidden.value ? columnAll.value : columnAll.value.filter((x) => !phoneHid(x.i)),
-);
+const column = computed(() => columnAll.value.filter((x) => !phoneHid(x.i)));
 function setPhoneOrder(list) {
-  const ids = list.map((x) => x.i);
-  state.settings.mobileOrder = mShowHidden.value
-    ? ids
-    : mergeOrder(
-        columnAll.value.map((x) => x.i),
-        ids,
-        phoneHid,
-      );
+  state.settings.mobileOrder = mergeOrder(
+    columnAll.value.map((x) => x.i),
+    list.map((x) => x.i),
+    phoneHid,
+  );
 }
 // Customize > Phone lists the cards of both layouts: the phone shows the idle one, or the print one while printing,
 // so a card that is only on one of them is listed too (tagged) and can be ordered and left out like the rest. The
@@ -453,6 +457,10 @@ function togglePhoneCard(i) {
   const h = state.settings.mobileHidden || [];
   state.settings.mobileHidden = h.includes(i) ? h.filter((x) => x !== i) : [...h, i];
 }
+// Add card on a phone, or with the phone layout open: the cards taken off the phone, to put one back
+const phoneRemoved = computed(() =>
+  !wide.value || phoneEdit.value ? phoneCards.value.filter((c) => phoneHid(c.i)) : [],
+);
 // grid-layout-plus also emits layout-updated on mount and on resize; only a Customize session writes settings
 function persist(force = false) {
   if (!state.editDash && !force) return;
@@ -866,11 +874,11 @@ function detachCard(i) {
 
 <template>
   <div class="page">
-    <div v-if="state.editDash" class="dbar on">
+    <div v-if="state.editDash" class="dbar on" :class="{ prn: editingPrint }">
       <template v-if="state.editDash">
         <Icon name="move" :size="18" style="color: var(--ac)" />
         <b>{{ t('Customize') }}</b>
-        <span class="chip">{{
+        <span class="chip lchip">{{
           t('Editing layout: {layout}', {
             layout: phoneEdit && wide ? t('Phone') : mode === 'print' ? t('Printing') : t('Idle'),
           })
@@ -929,6 +937,15 @@ function detachCard(i) {
         <span v-if="wide && !phoneEdit" class="mu hint">{{
           t('Drag by title, resize from the corner. Top cards: drag to reorder, eye to hide.')
         }}</span>
+        <div v-if="state.settings.autoLayout && !(phoneEdit && wide)" class="lnote" role="status">
+          <Icon :name="editingPrint ? 'printer3d' : 'moon'" :size="15" />{{
+            editingPrint
+              ? t('You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.')
+              : t(
+                  'You are editing the idle layout, shown when no print is running. The printing layout stays as it is.',
+                )
+          }}
+        </div>
         <div class="grow"></div>
         <div class="rel">
           <button
@@ -941,6 +958,20 @@ function detachCard(i) {
             <Icon name="plus" :size="16" :stroke="2.6" />{{ t('Add card') }}
           </button>
           <div v-if="addOpen" v-fit-below class="dd card" v-away="() => (addOpen = false)">
+            <template v-if="phoneRemoved.length">
+              <span class="sec-lbl">{{ t('Taken off the phone') }}</span>
+              <button
+                v-for="c in phoneRemoved"
+                :key="'ph:' + c.i"
+                class="btn clear di"
+                @click="
+                  togglePhoneCard(c.i);
+                  addOpen = false;
+                "
+              >
+                <Icon name="phone" :size="16" />{{ c.name }}
+              </button>
+            </template>
             <span class="sec-lbl">{{ t('Modules') }}</span>
             <button v-for="k in available" :key="k" class="btn clear di" @click="addModule(k)">
               {{ t(MODULES[k].n) }}
@@ -1156,17 +1187,6 @@ function detachCard(i) {
         </GridItem>
       </GridLayout>
       <div v-else class="col" style="gap: 20px">
-        <button
-          v-if="state.editDash && phoneHidN"
-          class="btn sm"
-          :class="{ on: mShowHidden }"
-          style="align-self: flex-start"
-          @click="mShowHidden = !mShowHidden"
-        >
-          <Icon :name="mShowHidden ? 'eye' : 'eyeoff'" :size="15" />{{
-            mShowHidden ? t('Hide the hidden ones') : t('Show hidden ({n})', { n: phoneHidN })
-          }}
-        </button>
         <SortList
           v-if="state.editDash"
           class="mlist"
@@ -1175,21 +1195,13 @@ function detachCard(i) {
           @update:model-value="setPhoneOrder"
         >
           <template #default="{ item: it }">
-            <span class="grow" :class="{ moff: (state.settings.mobileHidden || []).includes(it.i) }">{{
-              isCustom(it.i) ? nameOf(it.i) : t(nameOf(it.i))
-            }}</span>
+            <span class="grow">{{ isCustom(it.i) ? nameOf(it.i) : t(nameOf(it.i)) }}</span>
             <button v-if="isCustom(it.i)" class="btn ibtn sm" :aria-label="t('Edit')" @click="editCard(it.i)">
               <Icon name="pencil" :size="16" />
             </button>
-            <!-- leaves the card out on the phone only; the computer's grid keeps it -->
-            <button
-              class="btn ibtn sm"
-              :aria-label="
-                (state.settings.mobileHidden || []).includes(it.i) ? t('Show on the phone') : t('Hide on the phone')
-              "
-              @click="togglePhoneCard(it.i)"
-            >
-              <Icon :name="(state.settings.mobileHidden || []).includes(it.i) ? 'eyeoff' : 'eye'" :size="18" />
+            <!-- takes the card off the phone only; the computer's grid keeps it, Add card brings it back -->
+            <button class="btn clear ibtn sm" :aria-label="t('Take off the phone')" @click="togglePhoneCard(it.i)">
+              <Icon name="x" :size="18" />
             </button>
           </template>
         </SortList>
@@ -1574,10 +1586,6 @@ function detachCard(i) {
 .dbar .seg.dim {
   opacity: 0.55;
 }
-.mlist .moff {
-  opacity: 0.45;
-  text-decoration: line-through;
-}
 .mlist :deep(.sr.drag) {
   background: var(--s2);
 }
@@ -1593,6 +1601,30 @@ function detachCard(i) {
   position: relative;
   z-index: 20;
   padding: 0 0 18px;
+}
+/* the layout being edited, in words under the bar; the printing layout in the heat colour, bar and all */
+.lnote {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: var(--s2);
+  color: var(--mu);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.dbar.prn {
+  border-color: var(--heat) !important;
+}
+.dbar.prn .lnote {
+  background: color-mix(in srgb, var(--heat) 14%, var(--s1));
+  color: var(--heat);
+}
+.dbar.prn .lchip {
+  color: var(--heat);
+  background: color-mix(in srgb, var(--heat) 14%, transparent);
 }
 .dbar.on {
   padding: 10px 14px;

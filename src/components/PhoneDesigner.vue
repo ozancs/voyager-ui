@@ -132,21 +132,17 @@ function toggleCard(i) {
   const h = hiddenCards.value;
   state.settings.mobileHidden = h.includes(i) ? h.filter((x) => x !== i) : [...h, i];
 }
-// the cards left out on the phone stay out of the list unless asked for, so the rest is quick to drag
-const showHidden = ref(false);
-const hiddenN = computed(() => props.cards.filter((c) => hiddenCards.value.includes(c.i)).length);
-const listed = computed(() =>
-  showHidden.value ? props.cards : props.cards.filter((c) => !hiddenCards.value.includes(c.i)),
-);
+// A card taken off the phone leaves the list (the computer keeps it); Add card lists those, to put one back. The
+// phone's own order keeps its place for when it comes back.
+const removed = computed(() => props.cards.filter((c) => hiddenCards.value.includes(c.i)));
+const listed = computed(() => props.cards.filter((c) => !hiddenCards.value.includes(c.i)));
+const addOpen = ref(false);
 function setOrder(list) {
-  const ids = list.map((x) => x.i);
-  state.settings.mobileOrder = showHidden.value
-    ? ids
-    : mergeOrder(
-        props.cards.map((c) => c.i),
-        ids,
-        (i) => hiddenCards.value.includes(i),
-      );
+  state.settings.mobileOrder = mergeOrder(
+    props.cards.map((c) => c.i),
+    list.map((x) => x.i),
+    (i) => hiddenCards.value.includes(i),
+  );
 }
 // the tiles the desktop hides stay hidden on the phone too; only the ones shown there are listed
 const tiles = computed(() =>
@@ -287,33 +283,39 @@ const KINDS = {
         <section class="card cards">
           <div class="card-h">
             <h2>{{ t('Cards on the phone') }}</h2>
-            <span class="mono mu cnt">{{ cards.length - hiddenN }} / {{ cards.length }}</span>
+            <span class="mono mu cnt">{{ listed.length }} / {{ cards.length }}</span>
           </div>
           <span class="mu note">{{
-            t('Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.')
+            t('Drag to change the order, × to take a card off the phone. The computer keeps all its cards.')
           }}</span>
-          <button v-if="hiddenN" class="btn sm shb" :class="{ on: showHidden }" @click="showHidden = !showHidden">
-            <Icon :name="showHidden ? 'eye' : 'eyeoff'" :size="15" />{{
-              showHidden ? t('Hide the hidden ones') : t('Show hidden ({n})', { n: hiddenN })
-            }}
-          </button>
+          <div v-if="removed.length" class="rel shb">
+            <button class="btn sm" :aria-expanded="addOpen" @click="addOpen = !addOpen">
+              <Icon name="plus" :size="15" :stroke="2.6" />{{ t('Add card') }}
+              <span class="mono mu">{{ removed.length }}</span>
+            </button>
+            <div v-if="addOpen" class="dd card" v-away="() => (addOpen = false)">
+              <span class="mu dl">{{ t('Taken off the phone') }}</span>
+              <button v-for="c in removed" :key="c.i" class="btn clear di" @click="toggleCard(c.i)">
+                {{ c.name }}
+              </button>
+            </div>
+          </div>
           <div class="scroll">
             <SortList class="plist" :model-value="listed" :item-key="(c) => c.i" @update:model-value="setOrder">
               <template #default="{ item: c }">
-                <span class="grow nm" :class="{ off: hiddenCards.includes(c.i) }"
+                <span class="grow nm"
                   >{{ c.name
                   }}<span v-if="c.only" class="when">{{
                     c.only === 'print' ? t('only while printing') : t('only when idle')
                   }}</span></span
                 >
                 <button
-                  class="btn ibtn sm"
-                  :aria-pressed="!hiddenCards.includes(c.i)"
-                  :aria-label="hiddenCards.includes(c.i) ? t('Show on the phone') : t('Hide on the phone')"
-                  :data-tip="hiddenCards.includes(c.i) ? t('Show on the phone') : t('Hide on the phone')"
+                  class="btn clear ibtn sm"
+                  :aria-label="t('Take off the phone')"
+                  :data-tip="t('Take off the phone')"
                   @click="toggleCard(c.i)"
                 >
-                  <Icon :name="hiddenCards.includes(c.i) ? 'eyeoff' : 'eye'" :size="16" />
+                  <Icon name="x" :size="16" />
                 </button>
               </template>
             </SortList>
@@ -500,6 +502,41 @@ iframe {
 .side .note {
   text-align: left;
   max-width: none;
+}
+.rel {
+  position: relative;
+}
+/* the cards taken off the phone, to put one back */
+.dd {
+  position: absolute;
+  left: 0;
+  top: 36px;
+  width: 260px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  max-height: 320px;
+  overflow-y: auto;
+}
+.dd > * {
+  flex-shrink: 0;
+}
+.dl {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px 4px;
+}
+.di {
+  justify-content: flex-start;
+  height: auto;
+  min-height: 34px;
+  padding-block: 6px;
+  color: var(--tx);
+  white-space: normal;
+  text-align: left;
 }
 .shb {
   align-self: flex-start;

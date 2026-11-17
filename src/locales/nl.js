@@ -2570,7 +2570,6 @@ export default {
   "Phone preview": "Telefoonvoorbeeld",
   "Live preview: drag to scroll, buttons act on the printer.": "Live voorbeeld: sleep om te scrollen, knoppen werken op de printer.",
   "Cards on the phone": "Kaarten op de telefoon",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Sleep om de volgorde te wijzigen, het oog verbergt een kaart alleen op de telefoon. De computer houdt alle kaarten.",
   "Show on the phone": "Tonen op de telefoon",
   "Hide on the phone": "Verbergen op de telefoon",
   "Top tiles on the phone": "Bovenste tegels op de telefoon",
@@ -2584,4 +2583,9 @@ export default {
   "only while printing": "alleen tijdens printen",
   "only when idle": "alleen in rust",
   "The page behind shows the change. Done brings back all the settings.": "De pagina erachter toont de wijziging. Klaar brengt alle instellingen terug.",
+  "Drag to change the order, \u00d7 to take a card off the phone. The computer keeps all its cards.": "Sleep om de volgorde te wijzigen, × haalt een kaart van de telefoon. De computer houdt al zijn kaarten.",
+  "Taken off the phone": "Van de telefoon gehaald",
+  "Take off the phone": "Van de telefoon halen",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Je bewerkt de printindeling, alleen te zien tijdens een print. De rustindeling blijft zoals hij is.",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Je bewerkt de rustindeling, te zien als er niet geprint wordt. De printindeling blijft zoals hij is.",
 }

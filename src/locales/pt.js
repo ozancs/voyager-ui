@@ -2570,7 +2570,6 @@ export default {
   "Phone preview": "Pré-visualização do telemóvel",
   "Live preview: drag to scroll, buttons act on the printer.": "Pré-visualização ao vivo: arraste para deslocar, os botões atuam na impressora.",
   "Cards on the phone": "Cartões no telemóvel",
-  "Drag to change the order, eye to leave a card out on the phone. The computer keeps all its cards.": "Arraste para mudar a ordem; o olho esconde um cartão só no telemóvel. O computador mantém todos os cartões.",
   "Show on the phone": "Mostrar no telemóvel",
   "Hide on the phone": "Esconder no telemóvel",
   "Top tiles on the phone": "Mosaicos de topo no telemóvel",
@@ -2584,4 +2583,9 @@ export default {
   "only while printing": "só a imprimir",
   "only when idle": "só em repouso",
   "The page behind shows the change. Done brings back all the settings.": "A página por trás mostra a alteração. Concluído traz de volta todas as definições.",
+  "Drag to change the order, \u00d7 to take a card off the phone. The computer keeps all its cards.": "Arraste para mudar a ordem, × tira um cartão do telemóvel. O computador mantém todos os seus cartões.",
+  "Taken off the phone": "Tirados do telemóvel",
+  "Take off the phone": "Tirar do telemóvel",
+  "You are editing the printing layout, shown only while a print runs. The idle layout stays as it is.": "Está a editar a disposição de impressão, mostrada só durante uma impressão. A disposição em repouso fica como está.",
+  "You are editing the idle layout, shown when no print is running. The printing layout stays as it is.": "Está a editar a disposição em repouso, mostrada quando não há impressão. A disposição de impressão fica como está.",
 }
