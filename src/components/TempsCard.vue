@@ -5,6 +5,7 @@
 //            small popup to set it) and the power as a line along the bottom of the row; sensors without a target
 //            as small two-line chips below, two to a row. Fits a narrow card.
 // Presets and cooldown are in the header.
+import { groupTemperatures } from '../temperatureGroups';
 import { heatEta, fmtEta } from '../heatEta';
 import { longHist } from '../temphist';
 import { computed, ref } from 'vue';
@@ -101,8 +102,13 @@ const grouped = computed(() => {
   return out;
 });
 // heaters first, then the sensors without a target; a group heading stays with the first item of its group
-const heaters = computed(() => grouped.value.filter(settable));
-const plain = computed(() => grouped.value.filter((s) => !settable(s)));
+const heaters = computed(() => groupTemperatures(sensors.value.filter(settable), state.settings.sensorGroups));
+const plain = computed(() =>
+  groupTemperatures(
+    sensors.value.filter((s) => !settable(s)),
+    state.settings.sensorGroups,
+  ),
+);
 </script>
 <template>
   <section class="card temps">
@@ -205,7 +211,15 @@ const plain = computed(() => grouped.value.filter((s) => !settable(s)));
       <div v-if="plain.length" class="sg">
         <template v-for="s in plain" :key="s.name">
           <div v-if="s.head" class="ghd sgh">{{ s.head }}</div>
-          <div class="sc" :data-tip="mmTip(s)" role="button" tabindex="0" @click.stop="openMinMax(s, $event)">
+          <div
+            class="sc"
+            :data-tip="mmTip(s)"
+            role="button"
+            tabindex="0"
+            @keydown.enter.prevent="openMinMax(s, $event)"
+            @keydown.space.prevent="openMinMax(s, $event)"
+            @click.stop="openMinMax(s, $event)"
+          >
             <SensorIcon :name="s.name" :color="colorOf(s.ci, s.name)" class="ic" />
             <span class="sx">
               <span class="sn">{{ s.label }}</span>

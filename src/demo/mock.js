@@ -2101,6 +2101,14 @@ function handle(m) {
           : { estimated_time: 7400, layer_height: 0.2, object_height: 42, thumbnails: DEMO_THUMBS };
     case 'server.database.get_item': {
       if (p.namespace === 'mainsail') return { value: { printername: 'Voyager Demo' } };
+      if (p.key == null)
+        return {
+          value: Object.fromEntries(
+            Object.entries(db)
+              .filter(([key]) => key.startsWith(p.namespace + '/'))
+              .map(([key, value]) => [key.slice(p.namespace.length + 1), value]),
+          ),
+        };
       const k = p.namespace + '/' + p.key;
       if (!db[k]) throw { code: 404, message: "Namespace '" + p.namespace + "' not found" };
       return { value: db[k] };

@@ -14,7 +14,8 @@ import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 import { notificationDismissKey } from './firmware';
 import { applyBase } from './baseColor';
-import { pickLayout as pickDeviceLayout, withOwnLayout, toStored, fitToDevice } from './deviceLayout';
+import { pickLayout as pickDeviceLayout, withOwnLayout, toStored } from './deviceLayout';
+import { readDeviceLayouts, writeDeviceLayout } from './deviceLayoutStorage';
 
 export const VERSION = __APP_VERSION__;
 export const APP = 'voyager-ui';
@@ -71,7 +72,7 @@ export const DEFAULT_SETTINGS = () => ({
   consoleWrap: true, // long lines wrap; off: one line each, the log scrolls sideways
   consoleNewestFirst: false, // the newest line at the top, under the input (like Mainsail's Table direction)
   tempRange: 600,
-  strip: { order: [], hidden: [], humidity: true, pressure: true }, // humidity/pressure: shown on sensor tiles that have them
+  strip: { order: [], hidden: [] },
   layout: null,
   hiddenCards: [],
   invertZ: true,
@@ -249,6 +250,9 @@ export const LAYOUT_KEYS = [
   'hiddenCards',
   'strip',
   'customCards',
+  'cardOpts',
+  'compactCards',
+  'layoutBackups',
   'layoutPrint',
   'layoutWidths',
   'toolheadStyle',
@@ -315,67 +319,65 @@ export function restoreLayout(snap) {
   for (const k of LAYOUT_KEYS) state.settings[k] = JSON.parse(JSON.stringify(snap[k] ?? DEFAULT_SETTINGS()[k] ?? null));
 }
 
-// ---------- own dashboard layout on this device ----------
-// The dashboard layout (LAYOUT_KEYS) is part of the printer's settings, so every browser shows the same one.
-// A device can keep its own instead (a tablet next to the printer, a phone): the printer's settings then hold
-// it under deviceLayouts[id], and the shared layout stays as the other browsers left it. Whether this device
-// uses its own layout, and its id, live in this browser only.
+// ---------- automatic browser-specific dashboard ----------
+// The identity lives in this browser; layouts live on the printer in separate database keys.
+// A new browser starts from the shared layout without inheriting another screen's canvas width.
 const DEVICE_KEY = APP + '-device-layout';
 function readDevice() {
   try {
-    const d = JSON.parse(localStorage.getItem(DEVICE_KEY) || 'null');
-    return d && d.id ? d : null;
+    return JSON.parse(localStorage.getItem(DEVICE_KEY) || 'null');
   } catch {
     return null;
   }
 }
-const deviceInfo = readDevice(); // { id, name, on } once this device has used its own layout
-// this device's entry ({ id, name }) while it shows its own layout, null while it shows the shared one
-export const deviceLayout = ref(deviceInfo?.on ? deviceInfo : null);
-let sharedLayout = null; // the printer's shared layout, set aside while this device shows its own
+const oldDevice = readDevice();
+const deviceInfo = {
+  id:
+    oldDevice?.id || globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2) + Date.now().toString(36),
+  name: oldDevice?.name || (/android|iphone|ipad|mobile/i.test(navigator.userAgent) ? 'Tablet / phone' : 'Browser'),
+};
+try {
+  localStorage.setItem(DEVICE_KEY, JSON.stringify(deviceInfo));
+} catch {}
+export const deviceLayout = ref(deviceInfo);
+let sharedLayout = null;
 const pickLayout = (s) => pickDeviceLayout(s, LAYOUT_KEYS);
-// settings as stored on the printer -> the settings this device shows
 function forDevice(stored) {
   const shown = mergeSettings(stored);
   sharedLayout = pickLayout(shown);
-  withOwnLayout(shown, stored, deviceLayout.value?.id, LAYOUT_KEYS, DEFAULT_SETTINGS());
-  return deviceLayout.value ? fitToDevice(shown, sharedLayout) : shown;
+  const own = stored?.deviceLayouts?.[deviceInfo.id]?.data;
+  withOwnLayout(shown, stored, deviceInfo.id, LAYOUT_KEYS, DEFAULT_SETTINGS());
+  if (!own) shown.layoutWidths = null;
+  return shown;
 }
-// the settings this device shows -> settings to store (see deviceLayout.js)
-const forStorage = (shown) => toStored(shown, sharedLayout, deviceLayout.value, LAYOUT_KEYS);
-// switch this device between its own layout and the shared one. Turning it on starts from a copy of what is
-// shown now (or the layout this device had before, if it had one); turning it off shows the shared layout again.
-export function setDeviceLayout(on) {
-  if (!!deviceLayout.value === !!on) return;
-  if (on) {
-    const prev = readDevice();
-    const d = {
-      id: prev?.id || Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4),
-      name: prev?.name || (/android|iphone|ipad|mobile/i.test(navigator.userAgent) ? 'Tablet / phone' : 'Browser'),
-      on: true,
-    };
-    sharedLayout = pickLayout(state.settings);
-    withOwnLayout(state.settings, state.settings, d.id, LAYOUT_KEYS, DEFAULT_SETTINGS());
-    fitToDevice(state.settings, sharedLayout);
-    deviceLayout.value = { id: d.id, name: d.name };
-    try {
-      localStorage.setItem(DEVICE_KEY, JSON.stringify(d));
-    } catch {}
-  } else {
-    const d = deviceLayout.value;
-    // keep this device's layout in deviceLayouts, so turning it back on brings it back
-    const kept = pickLayout(state.settings);
-    if (sharedLayout) for (const k of LAYOUT_KEYS) state.settings[k] = JSON.parse(JSON.stringify(sharedLayout[k]));
-    state.settings.deviceLayouts = {
-      ...(state.settings.deviceLayouts || {}),
-      [d.id]: { name: d.name, t: Date.now(), data: kept },
-    };
-    deviceLayout.value = null;
-    try {
-      localStorage.setItem(DEVICE_KEY, JSON.stringify({ ...d, on: false }));
-    } catch {}
+const forStorage = (shown) => toStored(shown, sharedLayout, deviceInfo, LAYOUT_KEYS);
+
+// Export refreshes other devices from the printer, not a potentially stale in-memory copy.
+export async function exportSettingsBackup() {
+  const layouts = await readDeviceLayouts(api);
+  const shown = JSON.parse(JSON.stringify(state.settings));
+  shown.deviceLayouts = {
+    ...layouts,
+    [deviceInfo.id]: {
+      name: deviceInfo.name,
+      t: Date.now(),
+      data: pickLayout(shown),
+    },
+  };
+  return shown;
+}
+// Restoring a backup is explicit: retain its other browser layouts, and restore the visible layout
+// onto this browser through the normal save path. Older backups without deviceLayouts still work.
+export async function restoreDeviceLayouts(layouts) {
+  if (!layouts || typeof layouts !== 'object' || Array.isArray(layouts)) return;
+  for (const [id, entry] of Object.entries(layouts)) {
+    if (id === deviceInfo.id || !/^[a-zA-Z0-9_-]+$/.test(id) || !entry?.data) continue;
+    await writeDeviceLayout(api, id, {
+      name: String(entry.name || 'Browser'),
+      t: Date.now(),
+      data: pickLayout(entry.data),
+    });
   }
-  saveSettings();
 }
 
 export const state = reactive({
@@ -1315,6 +1317,8 @@ export function saveSettings() {
   saveTimer = setTimeout(async () => {
     try {
       const v = forStorage(state.settings);
+      await writeDeviceLayout(api, deviceInfo.id, v.deviceLayouts[deviceInfo.id]);
+      delete v.deviceLayouts; // never write other browsers' records through the shared settings
       v.migratedCarbon = true;
       await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: v });
       settingsDirty = false;
@@ -1356,6 +1360,16 @@ async function loadSettings() {
         await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: cur });
       } catch {}
     }
+  }
+  // Load independently persisted device records. A failed read must not seed an empty layout over them.
+  try {
+    const layouts = await readDeviceLayouts(api);
+    if (missing && !cur) cur = lsGet(APP + '-settings') || {};
+    cur = { ...(cur || {}), deviceLayouts: { ...(cur?.deviceLayouts || {}), ...layouts } };
+  } catch (e) {
+    state.settingsLoaded = false;
+    toast(t('Settings could not be saved: {err}', { err: e.message }), 'error');
+    return;
   }
   if (phonePreview && previewSettings) {
     // the editor's settings (possibly not saved yet) win over the database here

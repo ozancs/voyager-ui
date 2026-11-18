@@ -6,6 +6,8 @@ export const PARTS = [
     id: 'dash',
     name: 'Dashboard cards',
     keys: [
+      'deviceLayouts',
+      'tempsStyle',
       'layout',
       'layoutPrint',
       'layoutWidths',

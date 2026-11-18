@@ -26,6 +26,14 @@ const dlg = ref(''); // 'filaments' | 'recover' | 'maint' | 'check'
 const off = computed(() => m.value.enabled === false);
 
 async function send(cmd, done) {
+  if (
+    off.value ||
+    (isPrinting.value &&
+      /^(MMU_CHECK_GATE|MMU_HOME|MMU_GRIP|MMU_RELEASE|MMU_SERVO|MMU_SYNC_GEAR_MOTOR|MMU_LOAD|MMU_UNLOAD|MMU_MOTORS_ON|MMU_MOTORS_OFF)\b/.test(
+        cmd,
+      ))
+  )
+    return;
   try {
     await gcode(cmd);
     if (done) toast(done);
@@ -271,6 +279,7 @@ const MAINT = computed(() =>
         <button class="btn lg" @click="dlg = ''">{{ t('Cancel') }}</button>
         <button
           class="btn lg acc"
+          :disabled="off || isPrinting"
           @click="
             dlg = '';
             send('MMU_CHECK_GATE ALL=1');

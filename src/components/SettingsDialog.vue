@@ -32,8 +32,8 @@ import {
   graphHidden,
   fmtDay,
   fmtClock,
-  deviceLayout,
-  setDeviceLayout,
+  exportSettingsBackup,
+  restoreDeviceLayouts,
 } from '../store';
 import { api } from '../api/moonraker';
 import { playSound, speak, desktopPermission, askDesktop } from '../features';
@@ -172,19 +172,6 @@ async function pickIcon(e) {
     toast(t('This file is not an image'), 'error');
   }
 }
-// extra values of environment sensors on the status tiles (DeviceStrip)
-const ENV_VALUES = [
-  {
-    key: 'humidity',
-    title: 'Humidity on sensor tiles',
-    desc: 'Sensors that measure it (BME280, SHT3x, AHT10 ...) show the humidity above the temperature.',
-  },
-  {
-    key: 'pressure',
-    title: 'Pressure on sensor tiles',
-    desc: 'Sensors that measure it (BME280, BMP280 ...) show the air pressure above the temperature.',
-  },
-];
 const zoomNow = computed(() => uiZoomFor(state.uiScale ?? 100));
 // Interface size in 5 % steps (− / +); from Auto the steps start at the size Auto shows now
 const ZOOM_MIN = 50,
@@ -417,12 +404,19 @@ api
   .call('server.database.get_item', { namespace: APP, key: 'settings_prev' })
   .then((r) => (prev.value = r.value))
   .catch(() => {});
-function download() {
+async function download() {
+  let settings;
+  try {
+    settings = await exportSettingsBackup();
+  } catch (e) {
+    toast(e.message, 'error');
+    return;
+  }
   const data = {
     app: APP,
     version: VERSION,
     date: new Date().toISOString(),
-    settings: JSON.parse(JSON.stringify(state.settings)),
+    settings,
   };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
@@ -443,7 +437,7 @@ async function pickFile(e) {
     toast(t('Could not read backup: {msg}', { msg: err.message }), 'error');
   }
 }
-async function apply(data, label) {
+async function apply(data, label, restoreLayouts = false) {
   const cur = JSON.parse(JSON.stringify(state.settings));
   try {
     await api.call('server.database.post_item', {
@@ -453,6 +447,12 @@ async function apply(data, label) {
     });
   } catch {}
   prev.value = { date: new Date().toISOString(), settings: cur };
+  try {
+    if (restoreLayouts) await restoreDeviceLayouts(data.deviceLayouts);
+  } catch (e) {
+    toast(e.message, 'error');
+    return;
+  }
   const def = DEFAULT_SETTINGS();
   state.settings = {
     ...def,
@@ -473,6 +473,7 @@ function applyPending() {
   apply(
     restoreParts(cur, p.settings, p.pick, DEFAULT_SETTINGS()),
     t('Settings restored from {name}', { name: p.name }),
+    p.pick.includes('dash'),
   );
 }
 function togglePart(p, id) {
@@ -755,17 +756,6 @@ const consoleSample = (() => {
                 <Toggle v-model="state.settings.autoLayout" :label="t('Separate dashboard while printing')" />
               </div>
               <h3 class="sec">{{ t('Temperatures') }}</h3>
-              <div v-for="e in ENV_VALUES" :key="e.key" class="rw">
-                <div class="k">
-                  <b>{{ t(e.title) }}</b
-                  ><span>{{ t(e.desc) }}</span>
-                </div>
-                <Toggle
-                  :model-value="state.settings.strip[e.key] !== false"
-                  :label="t(e.title)"
-                  @update:model-value="state.settings.strip = { ...state.settings.strip, [e.key]: $event }"
-                />
-              </div>
               <div v-for="g in SENSOR_LISTS" :key="g.key" class="rw col">
                 <div class="k">
                   <b>{{ t(g.title) }}</b
@@ -1331,7 +1321,7 @@ const consoleSample = (() => {
                   </button>
                 </div>
               </div>
-              <div class="rw">
+              <div class="rw" data-pk="size">
                 <div class="k">
                   <b>{{ t('Status tiles size') }}</b
                   ><span>{{
@@ -1377,21 +1367,6 @@ const consoleSample = (() => {
                   }}</span>
                 </div>
                 <Toggle :model-value="state.tablet" :label="t('Tablet mode')" @update:model-value="setTablet" />
-              </div>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('Own dashboard layout') }}</b
-                  ><span>{{
-                    t(
-                      'This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.',
-                    )
-                  }}</span>
-                </div>
-                <Toggle
-                  :model-value="!!deviceLayout"
-                  :label="t('Own dashboard layout')"
-                  @update:model-value="setDeviceLayout"
-                />
               </div>
               <h3 class="sec">{{ t('Menu') }}</h3>
               <div class="rw">
