@@ -30,7 +30,12 @@ const temps = computed(() =>
       <span v-if="printState === 'paused'" class="ps">{{ t('Paused') }}</span>
     </div>
     <div class="ln mono sm">
-      <span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span>
+      <span>{{
+        t('Layer {cur}/{total}', {
+          cur: (layerInfo.estimated ? '~' : '') + layerInfo.cur,
+          total: layerInfo.total || '--',
+        })
+      }}</span>
       <span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span>
       <span>{{ t('ETA {time}', { time: eta }) }}</span>
       <span v-for="[n, v] in temps" :key="n">{{ n }} {{ v }}</span>

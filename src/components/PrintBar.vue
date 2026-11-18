@@ -66,12 +66,23 @@ const msg = computed(() => (S('display_status').message || '').trim());
         <div :style="{ width: progress * 100 + '%' }"></div>
       </div>
       <div class="mmeta mono">
-        {{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }} ·
+        {{
+          t('Layer {cur}/{total}', {
+            cur: (layerInfo.estimated ? '~' : '') + layerInfo.cur,
+            total: layerInfo.total || '--',
+          })
+        }}
+        ·
         {{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}
       </div>
     </div>
     <div class="row mono meta">
-      <span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span
+      <span>{{
+        t('Layer {cur}/{total}', {
+          cur: (layerInfo.estimated ? '~' : '') + layerInfo.cur,
+          total: layerInfo.total || '--',
+        })
+      }}</span
       ><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span
       ><span class="eta">{{ t('ETA {time}', { time: eta }) }}</span>
     </div>

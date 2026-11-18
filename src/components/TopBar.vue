@@ -319,7 +319,10 @@ onBeforeUnmount(() => ovObs?.disconnect());
           </div>
         </div>
         <span v-if="dock" class="mono meta jl">{{
-          t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' })
+          t('Layer {cur}/{total}', {
+            cur: (layerInfo.estimated ? '~' : '') + layerInfo.cur,
+            total: layerInfo.total || '--',
+          })
         }}</span>
         <span class="mono meta jl">{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span>
         <span v-if="dock" class="mono meta jl">{{ t('ETA {time}', { time: etaTxt }) }}</span>

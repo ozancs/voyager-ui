@@ -1,3 +1,4 @@
+import { fileRemaining, slicerRemaining, createLayerTracker, layers } from './printMetrics';
 // The app state and the connection to Moonraker.
 //  - state: everything the UI shows (printer objects, settings, console, files cache...), reactive
 //  - start(): connects the websocket, subscribes to all printer objects and keeps state.status up to date
@@ -87,9 +88,9 @@ export const DEFAULT_SETTINGS = () => ({
   theme: 'dark', // dark | light | auto
   dateFormat: 'browser', // browser | iso (2026-11-17) | dmy (17.11.2026) | mdy (11/17/2026)
   timeFormat: 'browser', // browser | 24 | 12
-  progressCalc: 'file', // print progress: file (position in the file) | relative (G-code only) | filament | slicer (M73)
-  estimateCalc: ['smart'], // time left: smart, or the average of file / filament / slicer
-  etaCalc: ['smart'], // the clock time the print ends: the same choices
+  progressCalc: 'slicer', // prefer M73 when available; file (position in the file) | relative (G-code only) | filament | slicer (M73)
+  estimateCalc: ['slicer'], // slicer duration first, with a fallback when missing or exceeded
+  etaCalc: ['slicer'], // the clock time the print ends: the same choices
   restartMethod: 'firmware', // Save & Restart in the config editor: firmware (FIRMWARE_RESTART) | restart (RESTART)
   searchContent: true, // Ctrl+K also searches inside .py .sh .txt files in the config folder
   heightmap: { colorAuto: true, colorLim: 0.1, zAuto: true, zMax: 0.5, palette: 'voyager', wire: false, view: 'fl' }, // colour range and 3D z axis, auto = from the mesh
@@ -622,7 +623,7 @@ export const printState = computed(() => S('print_stats').state || 'standby');
 // only while Klipper runs: after a shutdown print_stats can still say "printing", but that print is over
 export const isPrinting = computed(() => state.klippy === 'ready' && ['printing', 'paused'].includes(printState.value));
 // Print progress, by Settings > General > Print progress: the position in the file (Klipper's own number, the
-// default), the position within the G-code only (without the slicer's header and thumbnails), the filament used
+// fallback), the position within the G-code only (without the slicer's header and thumbnails), the filament used
 // of the file's total, or what the slicer reports with M73. A method without its numbers falls back to the file.
 export const progress = computed(() => {
   const file = S('virtual_sdcard').progress ?? S('display_status').progress ?? 0;
@@ -634,7 +635,13 @@ export const progress = computed(() => {
     p = (pos - m.gcode_start_byte) / (m.gcode_end_byte - m.gcode_start_byte);
   } else if (how === 'filament' && m.filament_total > 0) {
     p = (S('print_stats').filament_used || 0) / m.filament_total;
-  } else if (how === 'slicer' && S('display_status').progress != null) p = S('display_status').progress;
+  } else if (
+    how === 'slicer' &&
+    Number.isFinite(S('display_status').progress) &&
+    S('display_status').progress > 0 &&
+    S('display_status').progress <= 1
+  )
+    p = S('display_status').progress;
   return Math.max(0, Math.min(1, p || 0));
 });
 // the tab title shows the print: "42% bracket_v3 · Voron" while printing, "Paused ..." or "Done ..." after
@@ -662,7 +669,7 @@ export function expectedTime(filename, est) {
 export const printTimes = computed(() => {
   const ps = S('print_stats');
   const dur = ps.print_duration || 0;
-  const p = progress.value;
+  const p = Math.max(0, Math.min(1, S('virtual_sdcard').progress || 0));
   // Smart estimate: the slicer time (corrected by what past prints showed and the speed override)
   // counts most at the start, the measured pace from file progress takes over as the print goes on.
   // a file printed to the end before (and not sliced again since): its real time, no correction needed
@@ -672,7 +679,7 @@ export const printTimes = computed(() => {
   const est = same ? prev.dur : meta;
   const k = same ? 1 : state.etaLearn.k || 1;
   const sf = S('gcode_move').speed_factor || 1;
-  const fileLeft = p > 0.01 && dur > 0 ? dur / p - dur : null;
+  const fileLeft = fileRemaining(p, dur);
   const slicerLeft = est ? (Math.max(0, est * (1 - p)) * k) / sf : null;
   let left = fileLeft ?? slicerLeft,
     w = fileLeft != null ? 1 : 0;
@@ -689,10 +696,10 @@ export const printTimes = computed(() => {
         total = state.currentMeta?.filament_total;
       return used > 0 && total > 0 && dur > 0 ? Math.max(0, dur / Math.min(1, used / total) - dur) : null;
     })(),
-    slicer: meta ? Math.max(0, meta - dur) : null,
+    slicer: slicerRemaining(meta, dur, left),
   };
   const pick = (ms) => {
-    const vs = (Array.isArray(ms) && ms.length ? ms : ['smart']).map((k) => plain[k]).filter((v) => v != null);
+    const vs = (Array.isArray(ms) && ms.length ? ms : ['slicer']).map((k) => plain[k]).filter((v) => v != null);
     return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null;
   };
   const shown = pick(state.settings.estimateCalc),
@@ -705,19 +712,21 @@ export const printTimes = computed(() => {
     why: { slicerLeft, fileLeft, k: state.etaLearn.k, n: state.etaLearn.n, w, sf, prev: same ? prev.dur : null },
   };
 });
-export const layerInfo = computed(() => {
-  const info = S('print_stats').info || {};
-  let cur = info.current_layer,
-    total = info.total_layer;
-  const m = state.currentMeta;
-  if ((cur == null || total == null) && m?.layer_height) {
-    const z = S('gcode_move').gcode_position?.[2] || 0;
-    const first = m.first_layer_height || m.layer_height;
-    if (total == null && m.object_height) total = Math.ceil((m.object_height - first) / m.layer_height + 1);
-    if (cur == null) cur = z > 0 ? Math.max(1, Math.ceil((z - first) / m.layer_height + 1)) : 0;
-  }
-  return { cur: cur ?? 0, total: total ?? 0 };
-});
+const trackExtrusionLayer = createLayerTracker();
+const extrusionZ = ref(null);
+watch(
+  () => [
+    S('print_stats').filename,
+    S('print_stats').state,
+    S('print_stats').print_duration,
+    ...(S('gcode_move').gcode_position || []),
+  ],
+  () => {
+    extrusionZ.value = trackExtrusionLayer(S('print_stats'), S('gcode_move'));
+  },
+  { immediate: true },
+);
+export const layerInfo = computed(() => layers(S('print_stats').info, state.currentMeta || {}, extrusionZ.value));
 
 // every temperature the UI can show: Klipper's sensors plus stepper drivers that report their own temperature
 // (TMC2240). Those are not temperature sensors in Klipper, so they are not in heaters.available_sensors.

@@ -513,17 +513,7 @@ function sensorExtra(id) {
         <span class="mono sm">{{ ledOn(d.obj) ? ledHex(d.obj).toUpperCase() : t('OFF') }}</span>
         <div v-if="open === d.id" class="pop card" :class="{ rt: popRight }" @click.stop>
           <span class="lbl">{{ t('Color') }}</span>
-          <div class="row" style="flex-wrap: wrap">
-            <button
-              v-for="c in SWATCH"
-              :key="c"
-              class="swb"
-              :style="{ background: c }"
-              :aria-label="c"
-              @click="setLed(d.obj, c)"
-            ></button>
-          </div>
-          <LedPicker :id="d.obj" @set="(c, w) => setLedRgb(d.obj, c, w)" />
+          <LedPicker :id="d.obj" @set="(c, w) => setLedRgb(d.obj, c, w)" @close="open = null" />
           <button class="btn" @click="ledToggle(d.obj, false)">{{ t('Turn off') }}</button>
         </div>
       </template>

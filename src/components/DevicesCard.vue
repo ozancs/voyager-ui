@@ -130,9 +130,9 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
           />
         </template>
       </div>
-      <Popover v-if="picking" :anchor="picking.el" :width="260" @close="picking = null">
+      <Popover v-if="picking" :anchor="picking.el" :width="380" @close="picking = null">
         <span class="lbl">{{ prettyName(picking.id) }}</span>
-        <LedPicker :id="picking.id" @set="(c, w) => ledSet(picking.id, c, w)" />
+        <LedPicker :id="picking.id" @set="(c, w) => ledSet(picking.id, c, w)" @close="picking = null" />
       </Popover>
       <div v-if="!list.length" class="empty">{{ t('No fans, pins or LEDs found') }}</div>
     </div>

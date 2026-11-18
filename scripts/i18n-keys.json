@@ -2676,5 +2676,12 @@
   "Clock opacity",
   "Print info size (under the clock)",
   "Own dashboard layout",
-  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser."
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.",
+  "Could not pick a screen colour",
+  "Enter a valid hex colour",
+  "Saturation",
+  "Hue and lightness",
+  "Previous colour",
+  "New colour",
+  "Pick from screen"
 ]

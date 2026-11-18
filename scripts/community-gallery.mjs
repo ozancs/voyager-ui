@@ -53,11 +53,28 @@ const groups = [
     ],
   ],
 ];
+groups.push(
+  [
+    'Ortak renk seçici',
+    'Tema, vurgu, kart, ikon/sensör, filament ve LED renkleri aynı seçiciyi kullanıyor. Solda doygunluk; ortada renk tonu ve açıklık; Hex/HSL/RGB; eski-yeni karşılaştırması ve 16 hazır renk. İptal değişikliği uygulamıyor. Damlalık yalnızca tarayıcı ve güvenli bağlantı destekliyorsa görünüyor.',
+    [
+      ['08-colour-spectrum', 'Renk tayfı'],
+      ['08-colour-grey', 'Gri tonlar'],
+      ['08-colour-phone', 'Telefon görünümü'],
+      ['08-led-colour', 'LED rengi'],
+    ],
+  ],
+  [
+    'Katman ve süre hesabı',
+    'Gerçek katman bilgisi öncelikli. Yoksa katman yalnızca aynı Z seviyesinde ilerleyen ekstrüzyon örneklerinden tahmin ediliyor; tahmin ~ ile işaretli. File hesabı görüntülenen ilerleme seçiminden ayrıldı. Yeni kurulumlarda Slicer varsayılan; eski seçimler korunuyor. Slicer süresi aşılırsa 0 saniyeye takılmak yerine mevcut tahmine dönüyor. Gerçek baskı verisiyle ayrıca gözlemlemek gerekiyor.',
+    [['09-progress-settings', 'İlerleme ve ETA seçenekleri']],
+  ],
+);
 const sections = groups
   .map(
     ([title, desc, photos], i) =>
       `<section id="item${i + 1}"><h2><b>${i + 1}</b>${title}</h2><p>${desc}</p><div class="photos">${photos.map(([file, label]) => `<figure><figcaption>${label}</figcaption><a href="${file}.png" target="_blank"><img src="${file}.png" alt="${label}" loading="lazy"></a></figure>`).join('')}</div></section>`,
   )
   .join('');
-const html = `<!doctype html><html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Voyager · 7 değişiklik</title><style>*{box-sizing:border-box}body{margin:0;background:#101315;color:#eef1f3;font:16px/1.6 system-ui}main{max-width:1320px;margin:auto;padding:36px 24px}h1{font-size:36px;line-height:1.2}h2{display:flex;align-items:center;gap:16px;font-size:25px}h2 b{display:grid;place-items:center;background:#00b99c;color:#09251e;width:42px;height:42px;border-radius:12px}header p,section>p{max-width:850px;color:#bbc7cf}nav{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}a{color:#4edac5}nav a{background:#262e34;padding:8px 16px;border-radius:8px;text-decoration:none}section{padding:24px 0 38px;border-top:1px solid #30383e}.photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}figure{margin:0;background:#1c2227;padding:12px;border-radius:14px;align-self:start}figure:only-child{grid-column:1/-1}figcaption{font-weight:600;padding:0 0 12px}img{display:block;width:100%;height:auto;border-radius:8px}.badge{color:#48d9be;font-weight:700}@media(max-width:760px){.photos{grid-template-columns:1fr}main{padding:20px 14px}}</style><main><header><span class="badge">YEREL DEMO · ONAY BEKLİYOR · PUSH YOK</span><h1>Voyager — yedi değişiklik</h1><p>18 Kasım 2026. Görseller çalışan yerel arayüzden alındı. Her görsele tıklayarak tam boy açabilirsin. Onaylarını aynı numaralarla iletebilirsin.</p><nav>${groups.map(([t], i) => `<a href="#item${i + 1}">${i + 1}. ${t}</a>`).join('')}</nav><a href="http://127.0.0.1:5198/" target="_blank">Çalışan yerel demoyu aç →</a></header>${sections}</main></html>`;
+const html = `<!doctype html><html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Voyager · 9 değişiklik</title><style>*{box-sizing:border-box}body{margin:0;background:#101315;color:#eef1f3;font:16px/1.6 system-ui}main{max-width:1320px;margin:auto;padding:36px 24px}h1{font-size:36px;line-height:1.2}h2{display:flex;align-items:center;gap:16px;font-size:25px}h2 b{display:grid;place-items:center;background:#00b99c;color:#09251e;width:42px;height:42px;border-radius:12px}header p,section>p{max-width:850px;color:#bbc7cf}nav{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}a{color:#4edac5}nav a{background:#262e34;padding:8px 16px;border-radius:8px;text-decoration:none}section{padding:24px 0 38px;border-top:1px solid #30383e}.photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}figure{margin:0;background:#1c2227;padding:12px;border-radius:14px;align-self:start}figure:only-child{grid-column:1/-1}figcaption{font-weight:600;padding:0 0 12px}img{display:block;width:100%;height:auto;border-radius:8px}.badge{color:#48d9be;font-weight:700}@media(max-width:760px){.photos{grid-template-columns:1fr}main{padding:20px 14px}}</style><main><header><span class="badge">YEREL DEMO · ONAY BEKLİYOR · PUSH YOK</span><h1>Voyager — dokuz değişiklik</h1><p>18 Kasım 2026. Görseller çalışan yerel arayüzden alındı. Her görsele tıklayarak tam boy açabilirsin. Onaylarını aynı numaralarla iletebilirsin.</p><nav>${groups.map(([t], i) => `<a href="#item${i + 1}">${i + 1}. ${t}</a>`).join('')}</nav><a href="http://127.0.0.1:5198/" target="_blank">Çalışan yerel demoyu aç →</a></header>${sections}</main></html>`;
 await fs.writeFile('../_reviews/voyager-seven-prs/index.html', html);

@@ -1,5 +1,13 @@
 // 日本語. Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "画面の色を取得できませんでした",
+  "Enter a valid hex colour": "有効な16進数の色を入力してください",
+  "Saturation": "彩度",
+  "Hue and lightness": "色相と明度",
+  "Previous colour": "前の色",
+  "New colour": "新しい色",
+  "Pick from screen": "画面から選択",
+
   "Set part cooling fan speed": "造形物冷却ファンの速度を設定",
   "Fan speed (%)": "ファン速度 (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "PID調整前に適用します。終了後に元のファン速度に戻します。",

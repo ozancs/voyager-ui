@@ -1,5 +1,13 @@
 // Українська. Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "Не вдалося вибрати колір з екрана",
+  "Enter a valid hex colour": "Введіть коректний HEX-колір",
+  "Saturation": "Насиченість",
+  "Hue and lightness": "Тон і світлість",
+  "Previous colour": "Попередній колір",
+  "New colour": "Новий колір",
+  "Pick from screen": "Вибрати з екрана",
+
   "Set part cooling fan speed": "Задати швидкість обдуву деталі",
   "Fan speed (%)": "Швидкість вентилятора (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "Застосовується перед налаштуванням PID. Після завершення відновлюється попередня швидкість вентилятора.",

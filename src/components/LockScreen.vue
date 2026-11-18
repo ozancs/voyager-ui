@@ -339,7 +339,12 @@ async function estop() {
             >
             <div class="bar"><i :style="{ width: progress * 100 + '%' }"></i></div>
             <div class="meta mono">
-              <span>{{ t('Layer {cur}/{total}', { cur: layerInfo.cur, total: layerInfo.total || '--' }) }}</span
+              <span>{{
+                t('Layer {cur}/{total}', {
+                  cur: (layerInfo.estimated ? '~' : '') + layerInfo.cur,
+                  total: layerInfo.total || '--',
+                })
+              }}</span
               ><span>{{ t('Left {time}', { time: fmtTime(printTimes.left) }) }}</span
               ><span>{{ t('ETA {time}', { time: eta }) }}</span>
             </div>

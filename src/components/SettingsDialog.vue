@@ -1,4 +1,5 @@
 <script setup>
+import ColorField from './ColorField.vue';
 // Interface settings as a dialog (like Mainsail's), categories on the left. Opened from the gear in the top bar.
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { hexToHsl } from '../baseColor';
@@ -89,13 +90,13 @@ const ESTIMATES = [
   ],
   ['etaCalc', 'ETA', 'When the print ends, worked out the same way.'],
 ];
-const calcOn = (key, k) => (state.settings[key] || ['smart']).includes(k);
+const calcOn = (key, k) => (state.settings[key] || ['slicer']).includes(k);
 // Smart stands alone; the others can be combined (their average), and one always stays picked
 function pickCalc(key, k) {
-  let v = (state.settings[key] || ['smart']).filter((x) => x !== 'smart');
+  let v = (state.settings[key] || ['slicer']).filter((x) => x !== 'smart');
   if (k === 'smart') v = [];
   else v = v.includes(k) ? v.filter((x) => x !== k) : [...v, k];
-  state.settings[key] = v.length ? v : ['smart'];
+  state.settings[key] = v.length ? v : ['slicer'];
 }
 // Cameras: the sound stream's noise filter, read when the tab opens (null: no go2rtc sound on this printer)
 const noise = ref(null);
@@ -611,7 +612,7 @@ const consoleSample = (() => {
                   <button
                     v-for="[k, l] in CALC"
                     :key="k"
-                    :class="{ on: (state.settings.progressCalc || 'file') === k }"
+                    :class="{ on: (state.settings.progressCalc || 'slicer') === k }"
                     @click="state.settings.progressCalc = k"
                   >
                     {{ t(l) }}
@@ -1186,12 +1187,11 @@ const consoleSample = (() => {
                     :data-tip="c ? c : t('Default')"
                     @click="state.settings.baseColor = c"
                   ></button
-                  ><label class="swc cu" :aria-label="t('Custom theme colour')"
-                    ><input
-                      type="color"
-                      :value="state.settings.baseColor || '#16181c'"
-                      @input="state.settings.baseColor = $event.target.value"
-                  /></label>
+                  ><ColorField
+                    :label="t('Custom theme colour')"
+                    :model-value="state.settings.baseColor || '#16181c'"
+                    @update:model-value="state.settings.baseColor = $event"
+                  />
                 </div>
               </div>
               <div class="rw" data-pk="color">
@@ -1209,9 +1209,7 @@ const consoleSample = (() => {
                     :aria-label="t('Accent') + ' ' + c"
                     @click="state.settings.accent = c"
                   ></button
-                  ><label class="swc cu" :aria-label="t('Custom accent')"
-                    ><input v-model="state.settings.accent" type="color"
-                  /></label>
+                  ><ColorField v-model="state.settings.accent" :label="t('Custom accent')" />
                 </div>
               </div>
               <div class="rw" data-pk="color">

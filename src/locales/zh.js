@@ -1,5 +1,13 @@
 // 简体中文. Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "无法拾取屏幕颜色",
+  "Enter a valid hex colour": "请输入有效的十六进制颜色",
+  "Saturation": "饱和度",
+  "Hue and lightness": "色相和亮度",
+  "Previous colour": "原来的颜色",
+  "New colour": "新颜色",
+  "Pick from screen": "从屏幕拾取",
+
   "Set part cooling fan speed": "设置模型冷却风扇速度",
   "Fan speed (%)": "风扇速度 (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "在 PID 调整前应用。完成后恢复之前的风扇速度。",

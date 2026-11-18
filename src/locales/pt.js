@@ -1,5 +1,13 @@
 // Português (Brasil). Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "Não foi possível obter a cor do ecrã",
+  "Enter a valid hex colour": "Introduza uma cor hexadecimal válida",
+  "Saturation": "Saturação",
+  "Hue and lightness": "Matiz e luminosidade",
+  "Previous colour": "Cor anterior",
+  "New colour": "Nova cor",
+  "Pick from screen": "Obter do ecrã",
+
   "Set part cooling fan speed": "Definir a velocidade do ventilador da peça",
   "Fan speed (%)": "Velocidade do ventilador (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "Aplicada antes do ajuste PID. A velocidade anterior é restaurada ao terminar.",

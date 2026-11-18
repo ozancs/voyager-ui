@@ -1,4 +1,5 @@
 <script setup>
+import ColorField from '../components/ColorField.vue';
 import { hasLedEffects } from '../ledEffects';
 // Dashboard: the status tiles (DeviceStrip) and a grid of cards the user arranges (grid-layout-plus).
 // MODULES lists every card type with its size limits. `scale`: made smaller than its content, the card shrinks all of
@@ -1205,10 +1206,10 @@ function detachCard(i) {
                   ></button>
                 </div>
                 <label class="row cpc"
-                  ><input
-                    type="color"
-                    :value="tintKey(it.i).startsWith('#') ? tintKey(it.i) : '#5aa9ee'"
-                    @input="setTint(it.i, $event.target.value)"
+                  ><ColorField
+                    :model-value="tintKey(it.i).startsWith('#') ? tintKey(it.i) : '#5aa9ee'"
+                    :label="t('Custom color')"
+                    @update:model-value="setTint(it.i, $event)"
                   /><span>{{ t('Custom color') }}</span></label
                 >
                 <button

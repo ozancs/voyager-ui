@@ -1,5 +1,13 @@
 // 한국어. Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "화면 색상을 선택하지 못했습니다",
+  "Enter a valid hex colour": "올바른 HEX 색상을 입력하세요",
+  "Saturation": "채도",
+  "Hue and lightness": "색조 및 명도",
+  "Previous colour": "이전 색상",
+  "New colour": "새 색상",
+  "Pick from screen": "화면에서 선택",
+
   "Set part cooling fan speed": "출력물 냉각 팬 속도 설정",
   "Fan speed (%)": "팬 속도 (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "PID 조정 전에 적용합니다. 완료되면 이전 팬 속도로 복원합니다.",

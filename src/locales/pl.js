@@ -1,5 +1,13 @@
 // Polski. Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "Nie można pobrać koloru z ekranu",
+  "Enter a valid hex colour": "Wpisz poprawny kolor szesnastkowy",
+  "Saturation": "Nasycenie",
+  "Hue and lightness": "Odcień i jasność",
+  "Previous colour": "Poprzedni kolor",
+  "New colour": "Nowy kolor",
+  "Pick from screen": "Pobierz z ekranu",
+
   "Set part cooling fan speed": "Ustaw prędkość wentylatora wydruku",
   "Fan speed (%)": "Prędkość wentylatora (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "Ustawiana przed strojeniem PID. Po zakończeniu zostanie przywrócona poprzednia prędkość.",

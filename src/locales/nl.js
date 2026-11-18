@@ -1,5 +1,13 @@
 // Nederlands. Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "Kan geen schermkleur kiezen",
+  "Enter a valid hex colour": "Voer een geldige hexkleur in",
+  "Saturation": "Verzadiging",
+  "Hue and lightness": "Tint en lichtheid",
+  "Previous colour": "Vorige kleur",
+  "New colour": "Nieuwe kleur",
+  "Pick from screen": "Van scherm kiezen",
+
   "Set part cooling fan speed": "Koelventilator voor het werkstuk instellen",
   "Fan speed (%)": "Ventilatorsnelheid (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "Wordt vóór de PID-afstelling ingesteld. Na afloop wordt de vorige ventilatorsnelheid hersteld.",

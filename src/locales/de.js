@@ -1,5 +1,13 @@
 // Deutsch. Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "Bildschirmfarbe konnte nicht gewählt werden",
+  "Enter a valid hex colour": "Gültige Hex-Farbe eingeben",
+  "Saturation": "Sättigung",
+  "Hue and lightness": "Farbton und Helligkeit",
+  "Previous colour": "Vorherige Farbe",
+  "New colour": "Neue Farbe",
+  "Pick from screen": "Vom Bildschirm wählen",
+
   "Set part cooling fan speed": "Bauteillüfter einstellen",
   "Fan speed (%)": "Lüftergeschwindigkeit (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "Wird vor der PID-Abstimmung eingestellt. Danach wird die vorherige Lüftergeschwindigkeit wiederhergestellt.",

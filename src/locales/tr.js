@@ -1,5 +1,13 @@
 // Türkçe. Key = English text shown in the UI.
 export default {
+  "Could not pick a screen colour": "Ekrandan renk alınamadı",
+  "Enter a valid hex colour": "Geçerli bir Hex rengi girin",
+  "Saturation": "Doygunluk",
+  "Hue and lightness": "Renk tonu ve açıklık",
+  "Previous colour": "Önceki renk",
+  "New colour": "Yeni renk",
+  "Pick from screen": "Ekrandan renk al",
+
   "Set part cooling fan speed": "Parça soğutma fanı hızını ayarla",
   "Fan speed (%)": "Fan hızı (%)",
   "Applied before PID tuning. The previous fan speed is restored when it finishes.": "PID başlamadan uygulanır. İşlem bitince önceki fan hızına dönülür.",

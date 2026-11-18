@@ -1,4 +1,5 @@
 <script setup>
+import ColorField from './ColorField.vue';
 // Set what is loaded in one MMU gate / AFC lane: material, colour, name, temperature and the Spoolman spool.
 // Happy Hare:  MMU_GATE_MAP GATE=n MATERIAL=.. COLOR=rrggbb NAME=.. TEMP=.. SPOOLID=.. AVAILABLE=0|1
 // AFC:         SET_MATERIAL / SET_COLOR / SET_SPOOL_ID LANE=..  (only the ones this AFC version has)
@@ -116,7 +117,7 @@ const title = computed(
       /></label>
       <label class="col"
         ><span class="lbl">{{ t('Colour') }}</span
-        ><input v-model="f.color" type="color" class="clr"
+        ><ColorField v-model="f.color" :label="t('Colour')"
       /></label>
     </div>
     <datalist id="mmu-mats"><option v-for="x in MATERIALS" :key="x" :value="x" /></datalist>

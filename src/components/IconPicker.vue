@@ -1,4 +1,5 @@
 <script setup>
+import ColorField from './ColorField.vue';
 // Icon picker for favorites and custom cards: the app's own icons plus ~750 Lucide ones that fit a printer UI,
 // searchable by name and by keyword (search "temperature" finds thermometers), and an optional icon colour.
 import { computed, ref, onMounted, nextTick } from 'vue';
@@ -70,9 +71,11 @@ function pick(n) {
         :aria-label="c"
         @click="emit('color', c)"
       ></button>
-      <label class="dot cu" :aria-label="t('Custom colour')"
-        ><input type="color" :value="cur || '#ff6b1a'" @input="emit('color', $event.target.value)"
-      /></label>
+      <ColorField
+        :model-value="cur || '#ff6b1a'"
+        :label="t('Custom colour')"
+        @update:model-value="emit('color', $event)"
+      />
     </div>
     <div class="scr">
       <template v-if="basic.length">
