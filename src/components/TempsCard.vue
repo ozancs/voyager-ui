@@ -175,8 +175,11 @@ const plain = computed(() =>
         <div class="hr">
           <SensorIcon :name="s.name" :color="colorOf(s.ci, s.name)" class="ic" />
           <span class="hn"
-            >{{ s.label
-            }}<template v-if="s.isHeater && s.target > 0 && heatEta(s.name)"
+            ><span class="hn-label">{{ s.label }}</span
+            ><small v-if="pwr(s) != null" class="hp mono" :data-tip="pwrText(s)" :aria-label="pwrText(s)">{{
+              s.power != null ? Math.round(s.power * 100) + '%' : t('fan {n}%', { n: Math.round(s.speed * 100) })
+            }}</small
+            ><template v-if="s.isHeater && s.target > 0 && heatEta(s.name)"
               ><small
                 v-if="heatEta(s.name).levels != null"
                 class="eta lv mono"
@@ -376,12 +379,25 @@ const plain = computed(() =>
   border-bottom: 1px solid var(--bd);
 }
 .hn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex: 1;
   min-width: 0;
   font-size: 14px;
   font-weight: 600;
+}
+.hn-label {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hp {
+  flex: none;
+  color: var(--mu);
+  font-size: 11px;
+  font-weight: 400;
   white-space: nowrap;
 }
 .hv {
