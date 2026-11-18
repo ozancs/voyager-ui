@@ -44,6 +44,19 @@ function goLive() {
   zoom.value = zoom.value && zoom.value.span !== range.value ? { span: zoom.value.span, end: 0 } : null;
 }
 
+// Smoothing (the graph menu): each point drawn as the average of the readings around it, over 15 or 60 seconds,
+// so a sensor that wanders by half a degree draws a calm line. The drawing only: the values in the legend stay
+// the readings as they are.
+function smoother(vals, half) {
+  if (half < 1) return (k) => vals[k];
+  const pre = [0];
+  for (let i = 0; i < vals.length; i++) pre.push(pre[i] + vals[i]);
+  return (k) => {
+    const a = Math.max(0, k - half),
+      b = Math.min(vals.length - 1, k + half);
+    return (pre[b + 1] - pre[a]) / (b - a + 1);
+  };
+}
 // one series for the window: [{a: seconds ago, v, g}], thinned to ~300 points at fixed positions so the line does
 // not jitter as time passes; `brk` marks a gap in the long history (nothing recorded in between)
 function series(name) {
@@ -51,7 +64,9 @@ function series(name) {
     en = end.value;
   const out = [];
   const h = hist[name];
+  const sm = state.settings.graphSmooth || 0; // seconds
   if (sp + en <= SHORT && h && h.t.length) {
+    const v = smoother(h.t, Math.round(sm / 2));
     const len = h.t.length;
     const first = (h.n ?? len) - len; // absolute index of t[0]
     const step = Math.max(1, Math.round(sp / 300));
@@ -59,12 +74,13 @@ function series(name) {
       k1 = len - 1 - Math.floor(en);
     for (let k = k0; k <= k1; k++) {
       if ((first + k) % step && k !== k1) continue;
-      out.push({ a: len - 1 - k, v: h.t[k], g: h.target[k] });
+      out.push({ a: len - 1 - k, v: v(k), g: h.target[k] });
     }
     return out;
   }
   const l = longHist[name];
   if (!l || !l.ts.length) return out;
+  const v = smoother(l.t, Math.round(sm / STEP / 2));
   const now = Date.now() / 1000;
   const step = Math.max(1, Math.round(sp / STEP / 300));
   const tEnd = now - en,
@@ -76,7 +92,7 @@ function series(name) {
     if (ts > tEnd) break;
     const last = k === l.ts.length - 1 || l.ts[k + 1] > tEnd;
     if (Math.floor(ts / STEP) % step && !last) continue;
-    out.push({ a: now - ts, v: l.t[k], g: l.g[k], brk: prev != null && ts - prev > STEP * step * 3 });
+    out.push({ a: now - ts, v: v(k), g: l.g[k], brk: prev != null && ts - prev > STEP * step * 3 });
     prev = ts;
   }
   return out;

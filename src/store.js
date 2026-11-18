@@ -156,6 +156,7 @@ export const DEFAULT_SETTINGS = () => ({
   idleHeatOff: false, // heaters left on with no print are turned off after the warning (features.js)
   endShot: true, // keep the webcam's picture at the end of each print with the job (endShot.js)
   graphFill: true, // temperature graph: each line's area filled with a faint shade of its colour
+  graphSmooth: 0, // temperature graph: lines drawn as the average over this many seconds (0 = off); legend stays raw
   accentReach: 'subtle', // how far the accent colour reaches: subtle (buttons only) | normal | strong (card and dialog outlines)
 });
 

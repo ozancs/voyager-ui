@@ -151,6 +151,17 @@ function move(s, dir) {
             {{ w }}
           </button>
         </div>
+        <span class="lbl">{{ t('Smoothing') }}</span>
+        <div class="seg">
+          <button
+            v-for="s in [0, 15, 60]"
+            :key="s"
+            :class="{ on: (state.settings.graphSmooth || 0) === s }"
+            @click="state.settings.graphSmooth = s"
+          >
+            {{ s ? s + ' s' : t('Off') }}
+          </button>
+        </div>
         <label class="fl">
           <input v-model="state.settings.graphFill" type="checkbox" @change="saveSettings()" />{{
             t('Shade under the lines')
