@@ -340,6 +340,12 @@ function forDevice(stored) {
 }
 // the settings this device shows -> settings to store (see deviceLayout.js)
 const forStorage = (shown) => toStored(shown, sharedLayout, deviceLayout.value, LAYOUT_KEYS);
+// Settings backups work on the settings as stored on the printer, so a backup made on a device with its own layout
+// still holds the shared layout (and every device's own one), and restoring it puts each back in its place.
+export const storedSettings = () => forStorage(state.settings);
+export function setStoredSettings(stored) {
+  state.settings = forDevice(stored);
+}
 // switch this device between its own layout and the shared one. Turning it on starts from a copy of what is
 // shown now (or the layout this device had before, if it had one); turning it off shows the shared layout again.
 export function setDeviceLayout(on) {

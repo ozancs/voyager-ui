@@ -17,6 +17,8 @@ import { getNoise, setNoise } from '../camAudio';
 import {
   state,
   saveSettings,
+  storedSettings,
+  setStoredSettings,
   prettyName,
   tempSensors,
   DEFAULT_SETTINGS,
@@ -392,7 +394,7 @@ function download() {
     app: APP,
     version: VERSION,
     date: new Date().toISOString(),
-    settings: JSON.parse(JSON.stringify(state.settings)),
+    settings: storedSettings(),
   };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
@@ -414,7 +416,7 @@ async function pickFile(e) {
   }
 }
 async function apply(data, label) {
-  const cur = JSON.parse(JSON.stringify(state.settings));
+  const cur = storedSettings();
   try {
     await api.call('server.database.post_item', {
       namespace: APP,
@@ -424,13 +426,13 @@ async function apply(data, label) {
   } catch {}
   prev.value = { date: new Date().toISOString(), settings: cur };
   const def = DEFAULT_SETTINGS();
-  state.settings = {
+  setStoredSettings({
     ...def,
     ...data,
     devices: { ...def.devices, ...(data.devices || {}) },
     strip: { ...def.strip, ...(data.strip || {}) },
     control: { ...def.control, ...(data.control || {}) },
-  };
+  });
   saveSettings();
   toast(label);
 }
@@ -439,7 +441,7 @@ function applyPending() {
   const p = pending.value;
   pending.value = null;
   if (!p.pick.length) return;
-  const cur = JSON.parse(JSON.stringify(state.settings));
+  const cur = storedSettings();
   apply(
     restoreParts(cur, p.settings, p.pick, DEFAULT_SETTINGS()),
     t('Settings restored from {name}', { name: p.name }),

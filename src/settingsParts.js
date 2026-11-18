@@ -19,6 +19,7 @@ export const PARTS = [
       'autoLayout',
       'compactCards',
       'layoutBackups',
+      'deviceLayouts',
       'strip',
       'devices',
       'ledfxSeen',

@@ -62,3 +62,20 @@ describe('fitting a copied layout to the device', () => {
     expect(fitToDevice(shown, shared).layoutWidths).toEqual({ idle: 1000 });
   });
 });
+
+// settings backup: made on a device with its own layout, it holds the shared layout at the top and the device's
+// own under deviceLayouts; restoring the dashboard part brings both back
+import { restoreParts, partOf } from '../src/settingsParts.js';
+describe('settings backup with a device layout', () => {
+  it('stores the shared layout and the device one, and the dashboard part restores both', () => {
+    const shared = { layout: ['pc'] };
+    const tablet = { layout: ['tab'] };
+    const file = toStored({ ...tablet, lang: 'en' }, shared, { id: 'tab1', name: 'Tablet' }, ['layout'], 7);
+    expect(file.layout).toEqual(['pc']);
+    expect(file.deviceLayouts.tab1.data).toEqual(tablet);
+    expect(partOf('deviceLayouts')).toBe('dash');
+    const back = restoreParts({ layout: ['x'], deviceLayouts: {} }, file, ['dash'], {});
+    expect(back.layout).toEqual(['pc']);
+    expect(back.deviceLayouts.tab1.data).toEqual(tablet);
+  });
+});
