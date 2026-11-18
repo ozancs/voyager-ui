@@ -257,6 +257,29 @@ function valueAt(entry) {
   return best && Math.abs(best.a - hover.value) < span.value / 50 ? best.v : null;
 }
 const fmt = (v) => (v != null ? (dev.value && v > 0 ? '+' : '') + v.toFixed(1) + '°' : '--');
+// a dot on each line where the pointer's time crosses it, between two readings where it falls between them, so it
+// sits on the line (drawn as HTML over the plot: the plot stretches, a circle in it would turn into an oval)
+const hoverDots = computed(() => {
+  const a = hover.value;
+  if (a == null) return [];
+  const color = Object.fromEntries(lines.value.map((l) => [l.name, l.color]));
+  const out = [];
+  for (const { s, pts } of data.value) {
+    let v = null;
+    for (let k = 0; k < pts.length - 1; k++) {
+      const p = pts[k],
+        q = pts[k + 1];
+      // points run from old (large a) to new (small a)
+      if (p.a >= a && q.a <= a && !q.brk) {
+        v = p.a === q.a ? q.v : p.v + ((q.v - p.v) * (p.a - a)) / (p.a - q.a);
+        break;
+      }
+    }
+    if (v == null) continue;
+    out.push({ name: s.name, left: (x(a) / W) * 100, top: (yc(v) / H) * 100, color: color[s.name] });
+  }
+  return out;
+});
 
 // zoom and pan
 const plot = ref(null);
@@ -503,6 +526,13 @@ onBeforeUnmount(() => ptrs.clear());
             vector-effect="non-scaling-stroke"
           />
         </svg>
+        <span
+          v-for="d in hoverDots"
+          :key="'hd' + d.name"
+          class="hdot"
+          :style="{ left: d.left + '%', top: d.top + '%', background: d.color }"
+          :class="{ dim: solo && solo !== d.name }"
+        ></span>
         <span v-for="g in scale.ticks" :key="'l' + g" class="yl mono" :style="{ top: (y(g) / H) * 100 + '%' }"
           >{{ dev && g > 0 ? '+' + g : g }}°</span
         >
@@ -564,6 +594,19 @@ onBeforeUnmount(() => ptrs.clear());
   height: 100%;
   display: block;
   overflow: visible;
+}
+/* the dots on the lines at the pointer's time */
+.hdot {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--s1);
+  pointer-events: none;
+}
+.hdot.dim {
+  opacity: 0.2;
 }
 .yl {
   position: absolute;
