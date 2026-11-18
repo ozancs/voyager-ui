@@ -1539,17 +1539,25 @@ async function initKlippyOnce() {
   }
 }
 
+let histLoading = false;
 async function loadTempHistory() {
+  if (histLoading) return; // a resync already on its way
+  histLoading = true;
   try {
     const r = await api.call('server.temperature_store', { include_monitors: false });
     for (const [name, d] of Object.entries(r)) {
       const t = (d.temperatures || []).slice(-HIST_MAX);
-      // n counts every sample ever added, so the graph can thin out points at fixed positions
-      hist[name] = { t, target: (d.targets || []).slice(-HIST_MAX), n: t.length };
+      // n counts every sample ever added, so the graph can thin out points at fixed positions; it carries on from
+      // the old count so the thinning does not jump when the buffers are read anew
+      hist[name] = { t, target: (d.targets || []).slice(-HIST_MAX), n: Math.max(t.length, hist[name]?.n || 0) };
     }
     backfillLong(r);
     state.histTick++;
-  } catch {}
+  } catch {
+    /* the graph keeps what it has */
+  } finally {
+    histLoading = false;
+  }
 }
 async function loadGcodeStore() {
   try {
@@ -1823,8 +1831,24 @@ export function start() {
     klippyMessage: () => state.klippyMessage,
   });
   window.addEventListener('pagehide', () => saveLong(true));
+  // The 1-second buffers count on one sample a second: the graph places them by their index. A browser slows the
+  // timer down in a background tab or while the computer sleeps (to once a minute), which left old readings where
+  // the last minutes should be, drawn as jumps and zigzags. After such a gap, and when the tab shows again, the
+  // buffers are read anew from Moonraker's own store, which kept a sample every second meanwhile.
+  let lastTick = Date.now();
+  const resync = () => state.connected && state.klippy === 'ready' && loadTempHistory();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') resync();
+  });
   setInterval(() => {
+    const now = Date.now(),
+      gap = now - lastTick;
+    lastTick = now;
     if (!state.connected || state.klippy !== 'ready') return;
+    if (gap > 3000) {
+      resync();
+      return;
+    }
     const names = tempSensors.value;
     const readings = {};
     for (const n of names) if (state.status[n]) readings[n] = state.status[n];
