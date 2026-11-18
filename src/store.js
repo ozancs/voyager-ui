@@ -1064,9 +1064,12 @@ export function clearConsole() {
   state.console = [];
   lsSet(APP + '-console-cleared', Date.now() / 1000);
 }
+// console lines kept in memory; the Console page shows them all, the dashboard card the newest half. A single
+// command (MMU statistics, a macro dump) can print dozens of lines, so this is a few hours of a busy printer.
+export const CONSOLE_KEEP = 2000;
 export function pushConsole(message, type = 'response', time = Date.now() / 1000) {
   state.console.push({ message, type, time, id: ++consoleSeq });
-  if (state.console.length > 600) state.console.splice(0, state.console.length - 600);
+  if (state.console.length > CONSOLE_KEEP) state.console.splice(0, state.console.length - CONSOLE_KEEP);
 }
 
 // ---------- notifications (only important things, like Mainsail) ----------
@@ -1672,7 +1675,7 @@ async function loadTempHistory() {
 }
 async function loadGcodeStore() {
   try {
-    const r = await api.call('server.gcode_store', { count: 200 });
+    const r = await api.call('server.gcode_store', { count: 1000 });
     const cleared = Number(lsGet(APP + '-console-cleared')) || 0;
     state.console = [];
     for (const g of r.gcode_store) if (!(g.time <= cleared)) pushConsole(g.message, g.type, g.time);
