@@ -2,6 +2,8 @@
 
 ## 0.38.58
 
+- Shake&Tune: Apply and Save to config take the damping ratio Shake&Tune estimated too (damping_ratio_x / _y, shown as ζ next to the result) (thanks to a Discord report)
+- Shake&Tune: the test forms have the parameters of the current Shake&Tune: TRAVEL_SPEED on every test, ACCEL_CHIP, ACCEL_PER_HZ and MAX_SCALE where it takes them
 - Phone and tablet: tapping the console line (or any text field) no longer zooms the page in, and the page no longer opens zoomed in afterwards; text fields use 16 px on touch screens, pinch zoom still works
 
 ## 0.38.57

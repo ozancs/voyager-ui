@@ -15,7 +15,8 @@ import { t } from '../i18n';
 import { undoable, isHidden, stillSame } from '../undo';
 import { cleanVal } from '../calibrations';
 
-// the tests and their parameters (names and defaults from the Shake&Tune docs)
+// the tests and their parameters (names and defaults from the Shake&Tune docs and its commands' code; an empty
+// field is left out, so Shake&Tune uses its own default: [resonance_tester] for the frequencies and ACCEL_PER_HZ)
 const TESTS = [
   {
     cmd: 'AXES_SHAPER_CALIBRATION',
@@ -27,9 +28,13 @@ const TESTS = [
       ['FREQ_START', '', 'Hz'],
       ['FREQ_END', '', 'Hz'],
       ['HZ_PER_SEC', '1', ''],
+      ['ACCEL_PER_HZ', '', ''],
       ['SCV', '', 'mm/s'],
       ['MAX_SMOOTHING', '', ''],
+      ['TRAVEL_SPEED', '120', 'mm/s'],
       ['Z_HEIGHT', '', 'mm'],
+      ['MAX_SCALE', '', ''],
+      ['ACCEL_CHIP', '', ''],
     ],
   },
   {
@@ -41,7 +46,11 @@ const TESTS = [
       ['FREQ_START', '', 'Hz'],
       ['FREQ_END', '', 'Hz'],
       ['HZ_PER_SEC', '1', ''],
+      ['ACCEL_PER_HZ', '', ''],
+      ['TRAVEL_SPEED', '120', 'mm/s'],
       ['Z_HEIGHT', '', 'mm'],
+      ['MAX_SCALE', '', ''],
+      ['ACCEL_CHIP', '', ''],
     ],
   },
   {
@@ -55,6 +64,8 @@ const TESTS = [
       ['MAX_SPEED', '200', 'mm/s'],
       ['SPEED_INCREMENT', '2', 'mm/s'],
       ['ACCEL', '3000', 'mm/s²'],
+      ['TRAVEL_SPEED', '120', 'mm/s'],
+      ['ACCEL_CHIP', '', ''],
     ],
   },
   {
@@ -66,6 +77,7 @@ const TESTS = [
       ['Z_HEIGHT', '20', 'mm'],
       ['SPEED', '80', 'mm/s'],
       ['ACCEL', '1500', 'mm/s²'],
+      ['TRAVEL_SPEED', '120', 'mm/s'],
     ],
   },
   {
@@ -78,6 +90,10 @@ const TESTS = [
       ['DURATION', '30', 's'],
       ['AXIS', 'x', 'x, y, a or b'],
       ['CREATE_GRAPH', '0', '0 or 1'],
+      ['ACCEL_PER_HZ', '', ''],
+      ['TRAVEL_SPEED', '120', 'mm/s'],
+      ['Z_HEIGHT', '', 'mm'],
+      ['ACCEL_CHIP', '', ''],
     ],
   },
 ];
@@ -118,14 +134,23 @@ const runLines = computed(() =>
 const strip = (m) => String(m || '').replace(/^\/\/\s?/gm, '');
 // "X axis frequency profile generation..." tells which axis the next "Recommended filters" block is for
 const recs = computed(() => {
-  const out = [];
+  const out = [],
+    zeta = {};
   let axis = run.value?.cmd === 'AXES_SHAPER_CALIBRATION' ? String(vals.value.AXIS || 'all').toLowerCase() : null;
   for (const text of runLines.value)
     for (const line of text.split('\n')) {
       const a = /^\s*([XY]) axis frequency profile/i.exec(line) || /^\s*Measuring ([XY])\b/i.exec(line);
       if (a) axis = a[1].toLowerCase();
-      const m = /->\s*(For performance|For low vibrations|Best shaper):\s*([A-Z0-9]+)\s*@\s*([\d.]+)\s*Hz/i.exec(line);
-      if (m && (axis === 'x' || axis === 'y')) out.push({ axis, kind: m[1], type: m[2].toLowerCase(), freq: +m[3] });
+      const m =
+        /->\s*(For performance|For low vibrations|Best shaper):\s*([A-Z0-9]+)\s*@\s*([\d.]+)\s*Hz(?:.*?damping ratio of (\d+(?:\.\d+)?))?/i.exec(
+          line,
+        );
+      // the damping ratio Shake&Tune estimated for the axis (each recommendation repeats it; older versions only
+      // say it once, in "Detected a square corner velocity of ... and a damping ratio of ...")
+      const z = /damping ratio of (\d+(?:\.\d+)?)/i.exec(line);
+      if (z && !m && (axis === 'x' || axis === 'y')) zeta[axis] = +z[1];
+      if (m && (axis === 'x' || axis === 'y'))
+        out.push({ axis, kind: m[1], type: m[2].toLowerCase(), freq: +m[3], zeta: m[4] ? +m[4] : zeta[axis] });
     }
   return out;
 });
@@ -136,9 +161,16 @@ const axesMap = computed(() => {
   }
   return null;
 });
+// the damping ratio goes along with the shaper when Shake&Tune measured one
+const dampArg = (r) => (r.zeta ? ` DAMPING_RATIO_${r.axis.toUpperCase()}=${r.zeta}` : '');
+const shaperOpts = (r) => [
+  { section: 'input_shaper', key: 'shaper_type_' + r.axis, value: r.type },
+  { section: 'input_shaper', key: 'shaper_freq_' + r.axis, value: String(r.freq) },
+  ...(r.zeta ? [{ section: 'input_shaper', key: 'damping_ratio_' + r.axis, value: String(r.zeta) }] : []),
+];
 function applyNow(r) {
   const A = r.axis.toUpperCase();
-  gcode(`SET_INPUT_SHAPER SHAPER_TYPE_${A}=${r.type} SHAPER_FREQ_${A}=${r.freq}`);
+  gcode(`SET_INPUT_SHAPER SHAPER_TYPE_${A}=${r.type} SHAPER_FREQ_${A}=${r.freq}${dampArg(r)}`);
   toast(t('Input shaper {axis} set until Klipper restarts', { axis: A }));
 }
 // both axes measured: the best shaper of each, applied or saved together (one write, one restart)
@@ -154,26 +186,20 @@ const both = computed(() => {
 function applyBoth() {
   const [x, y] = both.value;
   gcode(
-    `SET_INPUT_SHAPER SHAPER_TYPE_X=${x.type} SHAPER_FREQ_X=${x.freq} SHAPER_TYPE_Y=${y.type} SHAPER_FREQ_Y=${y.freq}`,
+    `SET_INPUT_SHAPER SHAPER_TYPE_X=${x.type} SHAPER_FREQ_X=${x.freq}${dampArg(x)} SHAPER_TYPE_Y=${y.type} SHAPER_FREQ_Y=${y.freq}${dampArg(y)}`,
   );
   toast(t('Input shaper X and Y set until Klipper restarts'));
 }
 function askSaveBoth() {
   saveLog.value = null;
-  saveAsk.value = both.value.flatMap((r) => [
-    { section: 'input_shaper', key: 'shaper_type_' + r.axis, value: r.type },
-    { section: 'input_shaper', key: 'shaper_freq_' + r.axis, value: String(r.freq) },
-  ]);
+  saveAsk.value = both.value.flatMap(shaperOpts);
 }
 const saveAsk = ref(null); // [{ section, key, value }]
 const saving = ref(false);
 const saveLog = ref(null);
 function askSave(r) {
   saveLog.value = null;
-  saveAsk.value = [
-    { section: 'input_shaper', key: 'shaper_type_' + r.axis, value: r.type },
-    { section: 'input_shaper', key: 'shaper_freq_' + r.axis, value: String(r.freq) },
-  ];
+  saveAsk.value = shaperOpts(r);
 }
 async function doSave() {
   saving.value = true;
@@ -453,7 +479,11 @@ const shortName = (n) => n.replace(/\.png$/i, '');
         <template v-if="recs.length">
           <div v-for="(r, i) in recs" :key="i" class="rec">
             <div class="grow">
-              <b class="mono">{{ r.axis.toUpperCase() }} · {{ r.type.toUpperCase() }} @ {{ r.freq }} Hz</b>
+              <b class="mono"
+                >{{ r.axis.toUpperCase() }} · {{ r.type.toUpperCase() }} @ {{ r.freq }} Hz<template v-if="r.zeta">
+                  · ζ {{ r.zeta }}</template
+                ></b
+              >
               <span class="mu sm">{{ r.kind }}</span>
             </div>
             <button class="btn" :data-tip="t('SET_INPUT_SHAPER, until Klipper restarts')" @click="applyNow(r)">
