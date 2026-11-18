@@ -428,6 +428,15 @@ export const state = reactive({
       return 100;
     }
   })(),
+  // size of the status tiles above the dashboard in this browser (percent), on top of the interface size: a tablet
+  // can show smaller tiles than the rest. Kept in the browser like uiScale.
+  stripScale: (() => {
+    try {
+      return +localStorage.getItem('voyager-ui-stripscale') || 100;
+    } catch {
+      return 100;
+    }
+  })(),
   power: [], // Moonraker [power] devices: { device, status, locked_while_printing, type }
   login: null, // { needed, sources, source } when Moonraker asks for a login
   settingsOpen: null, // name of the settings dialog tab while it is open
@@ -1465,6 +1474,14 @@ function applyScale() {
   } catch {}
 }
 watch(() => state.uiScale, applyScale, { immediate: true });
+watch(
+  () => state.stripScale,
+  (v) => {
+    try {
+      localStorage.setItem(APP + '-stripscale', String(v));
+    } catch {}
+  },
+);
 let rsz;
 window.addEventListener('resize', () => {
   clearTimeout(rsz);
