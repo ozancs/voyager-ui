@@ -3,7 +3,7 @@
 import { ref, computed } from 'vue';
 import Icon from '../components/Icon.vue';
 import ConsoleView from '../components/ConsoleView.vue';
-import { state, macroList, clearConsole } from '../store';
+import { state, macroList, clearConsole, CONSOLE_KEEP } from '../store';
 import { t } from '../i18n';
 import { macroDesc } from '../macros';
 const cv = ref(null);
@@ -64,7 +64,7 @@ const desc = (c) => macroDesc(c, state.settings.cardOpts?.macros?.descs, state.c
           </button>
         </div>
       </div>
-      <ConsoleView ref="cv" :limit="600" :search="find" :errors="errOnly" />
+      <ConsoleView ref="cv" :limit="CONSOLE_KEEP" :search="find" :errors="errOnly" />
     </section>
     <section class="card side-col">
       <div class="card-h">

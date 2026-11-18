@@ -39,6 +39,6 @@ const cv = ref(null);
       </div>
       <CardCollapse />
     </div>
-    <ConsoleView ref="cv" :limit="200" />
+    <ConsoleView ref="cv" :limit="1000" />
   </section>
 </template>
