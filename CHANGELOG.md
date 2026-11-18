@@ -2,6 +2,9 @@
 
 ## 0.38.58
 
+- Community contributions from @DubMonstaa (#18–#24): automatic per-browser dashboard layouts with isolated storage and backup/restore; interface size in 5% steps and separate status tile size with live preview; richer Happy Hare MMU feedback, spool details and maintenance actions; automatic humidity/pressure readings; compact temperatures with min/max, target controls and small power percentages; correctly anchored popovers and tighter dashboard spacing. Circle/Buttons remains in the Toolhead header, and MMU confirmations recheck print state before sending commands.
+- Colours: a shared picker for theme, cards, sensors, filament and LEDs, with Hex/HSL/RGB inputs, preset colours, old/new comparison and a supported-browser eyedropper. LED changes apply only on confirmation.
+- Print estimates: reject travel and Z-hop samples when estimating layers, mark estimated layer numbers, and keep file-based time estimates independent of the displayed progress method. New installations default to Slicer estimates; existing choices are preserved and overrun estimates no longer stay at zero.
 - Shake&Tune: Apply and Save to config take the damping ratio Shake&Tune estimated too (damping_ratio_x / _y, shown as ζ next to the result) (thanks to a Discord report)
 - Shake&Tune: the test forms have the parameters of the current Shake&Tune: TRAVEL_SPEED on every test, ACCEL_CHIP, ACCEL_PER_HZ and MAX_SCALE where it takes them
 - Temperature graph: pointing at the graph puts a dot on each line where the pointer's time crosses it, in the line's colour; on a line, that line stands out (the others dim, as when pointing at it in the legend), its reading shows under the dot and follows it without running off either side, and the crosshair turns bolder
