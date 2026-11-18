@@ -32,6 +32,8 @@ import {
   graphHidden,
   fmtDay,
   fmtClock,
+  deviceLayout,
+  setDeviceLayout,
 } from '../store';
 import { api } from '../api/moonraker';
 import { playSound, speak, desktopPermission, askDesktop } from '../features';
@@ -1254,6 +1256,21 @@ const consoleSample = (() => {
                   }}</span>
                 </div>
                 <Toggle :model-value="state.tablet" :label="t('Tablet mode')" @update:model-value="setTablet" />
+              </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Own dashboard layout') }}</b
+                  ><span>{{
+                    t(
+                      'This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle
+                  :model-value="!!deviceLayout"
+                  :label="t('Own dashboard layout')"
+                  @update:model-value="setDeviceLayout"
+                />
               </div>
               <h3 class="sec">{{ t('Menu') }}</h3>
               <div class="rw">

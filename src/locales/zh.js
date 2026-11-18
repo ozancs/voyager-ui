@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "时钟大小",
   "Clock opacity": "时钟不透明度",
   "Print info size (under the clock)": "打印信息大小（时钟下方）",
+  "Own dashboard layout": "本设备专用仪表盘布局",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "此设备以自己的方式排列仪表盘卡片，例如打印机旁的平板。其他浏览器保留共享布局。仅此浏览器。",
 }

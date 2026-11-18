@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "Размер часов",
   "Clock opacity": "Непрозрачность часов",
   "Print info size (under the clock)": "Размер сведений о печати (под часами)",
+  "Own dashboard layout": "Собственная раскладка панели",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "Это устройство располагает карточки панели по-своему, например планшет рядом с принтером. Другие браузеры сохраняют общую раскладку. Только этот браузер.",
 }

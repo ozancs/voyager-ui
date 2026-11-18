@@ -14,6 +14,7 @@ import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 import { notificationDismissKey } from './firmware';
 import { applyBase } from './baseColor';
+import { pickLayout as pickDeviceLayout, withOwnLayout, toStored, fitToDevice } from './deviceLayout';
 
 export const VERSION = __APP_VERSION__;
 export const APP = 'voyager-ui';
@@ -312,6 +313,69 @@ export function restoreLayout(snap) {
   for (const k of LAYOUT_KEYS) state.settings[k] = JSON.parse(JSON.stringify(snap[k] ?? DEFAULT_SETTINGS()[k] ?? null));
 }
 
+// ---------- own dashboard layout on this device ----------
+// The dashboard layout (LAYOUT_KEYS) is part of the printer's settings, so every browser shows the same one.
+// A device can keep its own instead (a tablet next to the printer, a phone): the printer's settings then hold
+// it under deviceLayouts[id], and the shared layout stays as the other browsers left it. Whether this device
+// uses its own layout, and its id, live in this browser only.
+const DEVICE_KEY = APP + '-device-layout';
+function readDevice() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DEVICE_KEY) || 'null');
+    return d && d.id ? d : null;
+  } catch {
+    return null;
+  }
+}
+const deviceInfo = readDevice(); // { id, name, on } once this device has used its own layout
+// this device's entry ({ id, name }) while it shows its own layout, null while it shows the shared one
+export const deviceLayout = ref(deviceInfo?.on ? deviceInfo : null);
+let sharedLayout = null; // the printer's shared layout, set aside while this device shows its own
+const pickLayout = (s) => pickDeviceLayout(s, LAYOUT_KEYS);
+// settings as stored on the printer -> the settings this device shows
+function forDevice(stored) {
+  const shown = mergeSettings(stored);
+  sharedLayout = pickLayout(shown);
+  withOwnLayout(shown, stored, deviceLayout.value?.id, LAYOUT_KEYS, DEFAULT_SETTINGS());
+  return deviceLayout.value ? fitToDevice(shown, sharedLayout) : shown;
+}
+// the settings this device shows -> settings to store (see deviceLayout.js)
+const forStorage = (shown) => toStored(shown, sharedLayout, deviceLayout.value, LAYOUT_KEYS);
+// switch this device between its own layout and the shared one. Turning it on starts from a copy of what is
+// shown now (or the layout this device had before, if it had one); turning it off shows the shared layout again.
+export function setDeviceLayout(on) {
+  if (!!deviceLayout.value === !!on) return;
+  if (on) {
+    const prev = readDevice();
+    const d = {
+      id: prev?.id || Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4),
+      name: prev?.name || (/android|iphone|ipad|mobile/i.test(navigator.userAgent) ? 'Tablet / phone' : 'Browser'),
+      on: true,
+    };
+    sharedLayout = pickLayout(state.settings);
+    withOwnLayout(state.settings, state.settings, d.id, LAYOUT_KEYS, DEFAULT_SETTINGS());
+    fitToDevice(state.settings, sharedLayout);
+    deviceLayout.value = { id: d.id, name: d.name };
+    try {
+      localStorage.setItem(DEVICE_KEY, JSON.stringify(d));
+    } catch {}
+  } else {
+    const d = deviceLayout.value;
+    // keep this device's layout in deviceLayouts, so turning it back on brings it back
+    const kept = pickLayout(state.settings);
+    if (sharedLayout) for (const k of LAYOUT_KEYS) state.settings[k] = JSON.parse(JSON.stringify(sharedLayout[k]));
+    state.settings.deviceLayouts = {
+      ...(state.settings.deviceLayouts || {}),
+      [d.id]: { name: d.name, t: Date.now(), data: kept },
+    };
+    deviceLayout.value = null;
+    try {
+      localStorage.setItem(DEVICE_KEY, JSON.stringify({ ...d, on: false }));
+    } catch {}
+  }
+  saveSettings();
+}
+
 export const state = reactive({
   connected: false,
   klippy: 'disconnected', // ready | startup | shutdown | error | disconnected
@@ -415,8 +479,9 @@ export function mergeSettings(v) {
   };
 }
 function cachedSettings() {
-  return mergeSettings(lsGet(APP + '-settings'));
+  return forDevice(lsGet(APP + '-settings'));
 }
+
 state.objects = lsGet(APP + '-objects') || [];
 {
   const h = lsGet(APP + '-heaters');
@@ -1233,12 +1298,12 @@ export function saveSettings() {
   if (phonePreview) return;
   clearTimeout(saveTimer);
   settingsDirty = true;
-  const value = JSON.parse(JSON.stringify(state.settings));
+  const value = forStorage(state.settings);
   value.migratedCarbon = true;
   lsSet(APP + '-settings', value); // the local copy is written at once, the DB write is debounced
   saveTimer = setTimeout(async () => {
     try {
-      const v = JSON.parse(JSON.stringify(state.settings));
+      const v = forStorage(state.settings);
       v.migratedCarbon = true;
       await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: v });
       settingsDirty = false;
@@ -1289,14 +1354,16 @@ async function loadSettings() {
   }
   if (settingsDirty) {
     // changed while offline or within the save debounce: this browser's copy is newer than the DB, push it instead
+    // (with its own layout on, the shared layout to store is the printer's current one)
+    if (cur && deviceLayout.value) sharedLayout = pickLayout(mergeSettings(cur));
     state.settingsLoaded = true;
     saveSettings();
     return;
   }
   if (cur) {
-    state.settings = mergeSettings(cur);
+    state.settings = forDevice(cur);
     lsSet(APP + '-settings', cur);
-  } else if (missing) state.settings = mergeSettings(lsGet(APP + '-settings')); // fresh Moonraker DB: seed it from the browser copy
+  } else if (missing) state.settings = forDevice(lsGet(APP + '-settings')); // fresh Moonraker DB: seed it from the browser copy
   state.settingsLoaded = true;
 }
 watch(

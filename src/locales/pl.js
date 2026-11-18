@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "Rozmiar zegara",
   "Clock opacity": "Krycie zegara",
   "Print info size (under the clock)": "Rozmiar informacji o wydruku (pod zegarem)",
+  "Own dashboard layout": "Własny układ pulpitu",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "To urządzenie układa karty pulpitu po swojemu, na przykład tablet obok drukarki. Inne przeglądarki zachowują wspólny układ. Tylko ta przeglądarka.",
 }

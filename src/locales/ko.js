@@ -2626,4 +2626,6 @@ export default {
   "Clock size": "시계 크기",
   "Clock opacity": "시계 불투명도",
   "Print info size (under the clock)": "출력 정보 크기 (시계 아래)",
+  "Own dashboard layout": "이 기기 전용 대시보드 레이아웃",
+  "This device arranges the dashboard cards its own way, for example a tablet next to the printer. Other browsers keep the shared layout. Only this browser.": "이 기기는 대시보드 카드를 자체 방식으로 배치합니다(예: 프린터 옆 태블릿). 다른 브라우저는 공유 레이아웃을 유지합니다. 이 브라우저만 해당.",
 }
