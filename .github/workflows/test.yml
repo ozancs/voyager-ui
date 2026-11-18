@@ -13,7 +13,8 @@ jobs:
   # every page of the demo at phone, tablet and desktop widths: sideways scrolling, overlapping
   # buttons, content spilling onto another card, console errors (scripts/layout-sweep.mjs)
   layout:
-    runs-on: ubuntu-latest
+    # Playwright 1.56 supports Ubuntu 24.04; ubuntu-latest may advance before its browser dependencies do.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
