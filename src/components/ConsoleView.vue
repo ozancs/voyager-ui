@@ -13,6 +13,7 @@ import CmdInput from './CmdInput.vue';
 import { state, gcode, restartKlipper, toast, isPrinting, dangerIn, askGuard, fmtClock } from '../store';
 import { t } from '../i18n';
 import { richHtml, hasMarkup, plainText } from '../richText';
+import { api } from '../api/moonraker';
 import Popover from './Popover.vue';
 import ExplainBox from './ExplainBox.vue';
 import { explain } from '../explain';
@@ -273,7 +274,11 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
           </button>
           <div v-for="l in b.lines" :key="l.id" class="ln" :class="cls(l)" @dblclick="reuse(l)">
             <span v-if="state.settings.consoleTime" class="t">{{ fmt(l.time) }}</span
-            ><span v-if="l.type !== 'command' && hasMarkup(l.message)" class="m" v-html="richHtml(l.message)"></span
+            ><span
+              v-if="l.type !== 'command' && hasMarkup(l.message)"
+              class="m"
+              v-html="richHtml(l.message, (p) => api.url(p))"
+            ></span
             ><span
               v-else
               class="m"
@@ -501,6 +506,12 @@ mark {
 .ln .m {
   white-space: pre-wrap;
   word-break: break-word;
+}
+/* a printer image in a line (RatOS's welcome logo): never wider than the console */
+.ln .m :deep(.cimg) {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 .nowrap .ln .m {
   white-space: pre;
