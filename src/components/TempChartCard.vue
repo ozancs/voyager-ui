@@ -10,7 +10,7 @@ import SensorIcon from './SensorIcon.vue';
 import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import Popover from './Popover.vue';
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { state, graphSensors as sensors, hist } from '../store';
 import { longHist, STEP, MAX_AGE, oldestLong } from '../temphist';
 import { tempEvents } from '../tempEvents';
@@ -26,7 +26,9 @@ const SHORT = 1200; // seconds the 1-second buffers hold
 // solo: pointing at a sensor in the legend dims the other lines; a click keeps it that way and fits the scale to it
 const hot = ref(null),
   pinned = ref(null);
-const solo = computed(() => hot.value || pinned.value);
+// the line under the pointer in the plot counts as pointed at too (near, below)
+const near = ref(null);
+const solo = computed(() => hot.value || near.value || pinned.value);
 const pin = (n) => (pinned.value = pinned.value === n ? null : n);
 const pinOn = computed(() => !!pinned.value && sensors.value.some((s) => s.name === pinned.value));
 const zoom = ref(null);
@@ -276,9 +278,36 @@ const hoverDots = computed(() => {
       }
     }
     if (v == null) continue;
-    out.push({ name: s.name, left: (x(a) / W) * 100, top: (yc(v) / H) * 100, color: color[s.name] });
+    out.push({ name: s.name, v, left: (x(a) / W) * 100, top: (yc(v) / H) * 100, color: color[s.name] });
   }
   return out;
+});
+// the pointer's height in the plot (0..1) and the plot's height in pixels, to find the line it is on
+const hoverY = ref(null);
+let plotH = 1;
+watch([hoverDots, hoverY], () => {
+  if (hoverY.value == null || !hoverDots.value.length) return (near.value = null);
+  let best = null;
+  for (const d of hoverDots.value) {
+    const dist = Math.abs((d.top / 100 - hoverY.value) * plotH);
+    if (dist <= 14 && (!best || dist < best.dist)) best = { name: d.name, dist };
+  }
+  near.value = best?.name || null;
+});
+// the reading of the line pointed at, under its dot; it slides along so it never runs out of the plot at either
+// side (at the left edge it sits right of the dot, at the right edge left of it), and goes above near the bottom
+const dotLabel = computed(() => {
+  const d = solo.value && hoverDots.value.find((x) => x.name === solo.value);
+  if (!d) return null;
+  return {
+    text: fmt(d.v),
+    style: {
+      left: d.left + '%',
+      top: d.top + '%',
+      color: d.color,
+      transform: `translate(-${d.left}%, ${d.top > 80 ? 'calc(-100% - 10px)' : '10px'})`,
+    },
+  };
 });
 
 // zoom and pan
@@ -339,7 +368,12 @@ function onMove(e) {
     if (drag.moved) setWindow(span.value, drag.end + (dx / (r.width || 1)) * span.value);
     return;
   }
-  if (e.pointerType === 'mouse') hover.value = end.value + span.value * (1 - frac(e.clientX));
+  if (e.pointerType === 'mouse') {
+    hover.value = end.value + span.value * (1 - frac(e.clientX));
+    const r = plot.value.getBoundingClientRect();
+    plotH = r.height || 1;
+    hoverY.value = Math.min(1, Math.max(0, (e.clientY - r.top) / plotH));
+  }
 }
 function onUp(e) {
   ptrs.delete(e.pointerId);
@@ -348,6 +382,7 @@ function onUp(e) {
 }
 function onLeave() {
   hover.value = null;
+  hoverY.value = null;
 }
 onBeforeUnmount(() => ptrs.clear());
 </script>
@@ -431,7 +466,7 @@ onBeforeUnmount(() => ptrs.clear());
       <div
         class="plot"
         ref="plot"
-        :class="{ drag: !!drag }"
+        :class="{ drag: !!drag, near: !!near }"
         @wheel="onWheel"
         @pointerdown="onDown"
         @pointermove="onMove"
@@ -533,6 +568,7 @@ onBeforeUnmount(() => ptrs.clear());
           :style="{ left: d.left + '%', top: d.top + '%', background: d.color }"
           :class="{ dim: solo && solo !== d.name }"
         ></span>
+        <span v-if="dotLabel" class="hlbl mono" :style="dotLabel.style">{{ dotLabel.text }}</span>
         <span v-for="g in scale.ticks" :key="'l' + g" class="yl mono" :style="{ top: (y(g) / H) * 100 + '%' }"
           >{{ dev && g > 0 ? '+' + g : g }}°</span
         >
@@ -588,6 +624,25 @@ onBeforeUnmount(() => ptrs.clear());
 }
 .plot.drag {
   cursor: grabbing;
+}
+/* on a line: a bolder crosshair */
+.plot.near:not(.drag) {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M12 3v18M3 12h18' stroke='%23000' stroke-width='4.5' stroke-linecap='round'/%3E%3Cpath d='M12 3v18M3 12h18' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")
+      12 12,
+    crosshair;
+}
+/* the reading of the line pointed at, under its dot */
+.hlbl {
+  position: absolute;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--s1) 88%, transparent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .plot svg {
   width: 100%;
