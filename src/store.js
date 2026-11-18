@@ -76,6 +76,7 @@ export const DEFAULT_SETTINGS = () => ({
   hiddenCards: [],
   invertZ: true,
   toolheadStyle: 'circle', // Toolhead card jog: circle (round pad, as Mainsail's) | buttons (rows per axis and a D-pad)
+  tempsStyle: 'classic', // Temperatures card: classic (a table) | compact (rows with target chips, sensors as chips)
   hiddenCfgs: [],
   pinnedMachine: [], // Machine page files and folders pinned to the top, by full path (config/printer.cfg)
   printerName: '',
@@ -251,6 +252,7 @@ export const LAYOUT_KEYS = [
   'layoutPrint',
   'layoutWidths',
   'toolheadStyle',
+  'tempsStyle',
   'hiddenCardsPrint',
   'autoLayout',
   'cardColors',

@@ -353,7 +353,7 @@ const status = {
   },
   heater_bed: { temperature: 110.1, target: 110, power: 0.61 },
   'heater_generic chamber': { temperature: 49.6, target: 50, power: 0.3 },
-  'temperature_sensor EBB_MCU': { temperature: 48.2 },
+  'temperature_sensor EBB_MCU': { temperature: 48.2, measured_min_temp: 23.4, measured_max_temp: 52.7 },
   'temperature_sensor Chamber_Top': { temperature: 47.1 },
   'bme280 Chamber_Top': { temperature: 47.1, humidity: 21.4, pressure: 1008.6 },
   'temperature_fan XY_Driver_Fan': { temperature: 38, target: 40, speed: 0 },
