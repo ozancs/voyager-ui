@@ -93,9 +93,12 @@ const ESTIMATES = [
 const calcOn = (key, k) => (state.settings[key] || ['slicer']).includes(k);
 // Smart stands alone; the others can be combined (their average), and one always stays picked
 function pickCalc(key, k) {
+  if (k === 'smart') {
+    state.settings[key] = ['smart'];
+    return;
+  }
   let v = (state.settings[key] || ['slicer']).filter((x) => x !== 'smart');
-  if (k === 'smart') v = [];
-  else v = v.includes(k) ? v.filter((x) => x !== k) : [...v, k];
+  v = v.includes(k) ? v.filter((x) => x !== k) : [...v, k];
   state.settings[key] = v.length ? v : ['slicer'];
 }
 // Cameras: the sound stream's noise filter, read when the tab opens (null: no go2rtc sound on this printer)
