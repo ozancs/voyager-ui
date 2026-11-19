@@ -2731,4 +2731,8 @@ export default {
   "Printers in {name}:": "Printers in {name}:",
   "not in your printer list": "niet in je printerlijst",
   "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "Elke printer krijgt zijn eigen instellingen en indelingen terug. De huidige instellingen worden bewaard, zodat je op die printer terug kunt.",
+  "Layout on this device": "Indeling op dit apparaat",
+  "The file's main layout": "Hoofdindeling van het bestand",
+  "Keep its current layout": "Huidige indeling behouden",
+  "(this device)": "(dit apparaat)",
 }

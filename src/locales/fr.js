@@ -2731,4 +2731,8 @@ export default {
   "Printers in {name}:": "Imprimantes dans {name} :",
   "not in your printer list": "absente de votre liste d'imprimantes",
   "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "Chaque imprimante retrouve ses propres réglages et dispositions. Ses réglages actuels sont conservés pour pouvoir y revenir.",
+  "Layout on this device": "Disposition sur cet appareil",
+  "The file's main layout": "Disposition principale du fichier",
+  "Keep its current layout": "Garder sa disposition actuelle",
+  "(this device)": "(cet appareil)",
 }

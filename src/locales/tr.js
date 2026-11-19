@@ -2749,4 +2749,8 @@ export default {
   "Printers in {name}:": "{name} içindeki yazıcılar:",
   "not in your printer list": "yazıcı listende yok",
   "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "Her yazıcı kendi ayarlarını ve düzenlerini geri alır. Mevcut ayarları saklanır, böylece o yazıcıda geri dönebilirsin.",
+  "Layout on this device": "Bu cihazdaki düzen",
+  "The file's main layout": "Dosyanın ana düzeni",
+  "Keep its current layout": "Mevcut düzeni koru",
+  "(this device)": "(bu cihaz)",
 }

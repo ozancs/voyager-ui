@@ -2731,4 +2731,8 @@ export default {
   "Printers in {name}:": "Принтеры в {name}:",
   "not in your printer list": "нет в вашем списке принтеров",
   "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "Каждый принтер получает обратно свои настройки и раскладки. Его текущие настройки сохраняются, чтобы к ним можно было вернуться.",
+  "Layout on this device": "Раскладка на этом устройстве",
+  "The file's main layout": "Основная раскладка из файла",
+  "Keep its current layout": "Оставить текущую раскладку",
+  "(this device)": "(это устройство)",
 }

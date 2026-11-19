@@ -102,3 +102,12 @@ export function matchPrinters(file, list = fleetList(), here = location.host) {
     return m ? (m.own ? '' : m.host) : null;
   });
 }
+
+// a file's device layouts to offer as "the layout on this device" (after a reinstall the browser is a new device,
+// so its old layout sits in the file under another id): newest first, this device's own marked
+export function layoutChoices(layouts, ownId) {
+  return Object.entries(layouts || {})
+    .filter(([, v]) => v && v.data)
+    .map(([id, v]) => ({ id, name: String(v.name || 'Browser'), t: v.t || 0, own: id === ownId }))
+    .sort((a, b) => b.t - a.t);
+}

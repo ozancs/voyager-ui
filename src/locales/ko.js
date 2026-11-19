@@ -2731,4 +2731,8 @@ export default {
   "Printers in {name}:": "{name}의 프린터:",
   "not in your printer list": "프린터 목록에 없음",
   "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "각 프린터에 고유한 설정과 레이아웃이 복원됩니다. 현재 설정은 보관되므로 되돌릴 수 있습니다.",
+  "Layout on this device": "이 기기의 레이아웃",
+  "The file's main layout": "파일의 기본 레이아웃",
+  "Keep its current layout": "현재 레이아웃 유지",
+  "(this device)": "(이 기기)",
 }

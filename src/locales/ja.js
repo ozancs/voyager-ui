@@ -2731,4 +2731,8 @@ export default {
   "Printers in {name}:": "{name} のプリンター:",
   "not in your printer list": "プリンターリストにありません",
   "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "各プリンターに独自の設定とレイアウトが戻ります。現在の設定は保持されるため、元に戻すことができます。",
+  "Layout on this device": "このデバイスのレイアウト",
+  "The file's main layout": "ファイルのメインレイアウト",
+  "Keep its current layout": "現在のレイアウトを維持",
+  "(this device)": "（このデバイス）",
 }

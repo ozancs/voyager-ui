@@ -59,3 +59,17 @@ describe('backupAll', () => {
     expect(matchPrinters(file, list, '192.168.0.208:1977')).toEqual(['', '192.168.0.243:1977', null]);
   });
 });
+
+describe('layoutChoices', () => {
+  it('offers the file device layouts, newest first, marking this device', async () => {
+    const { layoutChoices } = await import('../src/backupAll.js');
+    const c = layoutChoices(
+      { old: { name: 'Tablet / phone', t: 5, data: {} }, pc: { name: 'Browser', t: 9, data: {} }, bad: { name: 'x' } },
+      'pc',
+    );
+    expect(c.map((x) => [x.id, x.own])).toEqual([
+      ['pc', true],
+      ['old', false],
+    ]);
+  });
+});

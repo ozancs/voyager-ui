@@ -2731,4 +2731,8 @@ export default {
   "Printers in {name}:": "{name} 中的打印机：",
   "not in your printer list": "不在打印机列表中",
   "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "每台打印机都会恢复自己的设置和布局。当前设置会被保留，以便在该打印机上还原。",
+  "Layout on this device": "此设备上的布局",
+  "The file's main layout": "文件的主布局",
+  "Keep its current layout": "保留当前布局",
+  "(this device)": "（此设备）",
 }

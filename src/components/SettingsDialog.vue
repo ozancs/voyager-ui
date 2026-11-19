@@ -53,7 +53,7 @@ import { PARTS, partsIn, restoreParts } from '../settingsParts';
 import { compactStoredHistories } from '../deviceLayout';
 import { previousDeviceLayouts, applyDeviceLayouts } from '../deviceLayoutStorage';
 import { PROGRESS_METHODS, TIME_METHODS } from '../printMetrics';
-import { backupAll, isAllPrinters, matchPrinters, writePrinter, rpc } from '../backupAll';
+import { backupAll, isAllPrinters, matchPrinters, writePrinter, rpc, layoutChoices } from '../backupAll';
 import { currentHost } from '../printers';
 
 const TABS = [
@@ -449,7 +449,14 @@ async function applyAll() {
   const failed = [];
   for (const x of picked) {
     try {
-      await writePrinter((m, prm) => rpc(x.to, m, prm), x);
+      const me = deviceLayout.value;
+      const pickedLayout = x.use && x.layouts?.[x.use];
+      // "Layout on this device": that layout goes under this browser's id on the printer
+      const part =
+        pickedLayout && me?.id
+          ? { ...x, layouts: { ...x.layouts, [me.id]: { ...pickedLayout, name: me.name, t: Date.now() } } }
+          : x;
+      await writePrinter((m, prm) => rpc(x.to, m, prm), part);
     } catch {
       failed.push(x.name);
     }
@@ -499,14 +506,27 @@ async function pickFile(e) {
       pendingAll.value = {
         ...d,
         name: f.name,
-        printers: d.printers.map((x, i) => ({ ...x, to: to[i], pick: to[i] !== null })),
+        printers: d.printers.map((x, i) => ({
+          ...x,
+          to: to[i],
+          pick: to[i] !== null,
+          choices: layoutChoices(x.layouts, deviceLayout.value?.id),
+          use: '',
+        })),
       };
       return;
     }
     if (![APP, ...OLD_APPS].includes(d.app) || !d.settings)
       throw new Error(t('not a {app} settings file', { app: APP_NAME }));
     const parts = partsIn(d.settings);
-    pending.value = { ...d, name: f.name, parts, pick: parts.filter((x) => !x.off).map((x) => x.id) };
+    pending.value = {
+      ...d,
+      name: f.name,
+      parts,
+      pick: parts.filter((x) => !x.off).map((x) => x.id),
+      choices: layoutChoices(d.settings.deviceLayouts, deviceLayout.value?.id),
+      use: '',
+    };
   } catch (err) {
     toast(t('Could not read backup: {msg}', { msg: err.message }), 'error');
   }
@@ -545,14 +565,20 @@ function applyPending() {
   const p = pending.value;
   pending.value = null;
   if (!p.pick.length) return;
-  const own = p.settings.deviceLayouts?.[deviceLayout.value.id]?.data;
+  // "Layout on this device": the picked device layout from the file, else this device's own one if it has one
+  const me = deviceLayout.value;
+  const picked = p.use && p.settings.deviceLayouts?.[p.use];
+  const layouts = picked
+    ? { ...p.settings.deviceLayouts, [me.id]: { ...picked, name: me.name, t: Date.now() } }
+    : p.settings.deviceLayouts;
+  const own = layouts?.[me.id]?.data;
   const incoming = p.pick.includes('dash') && own ? { ...p.settings, ...own } : p.settings;
   const shared = p.pick.includes('dash') && p.sharedLayout;
   const cur = JSON.parse(JSON.stringify(state.settings));
   apply(
     restoreParts(cur, incoming, p.pick, DEFAULT_SETTINGS()),
     t('Settings restored from {name}', { name: p.name }),
-    p.pick.includes('dash') ? importedDeviceLayouts(p.settings.deviceLayouts) : {},
+    p.pick.includes('dash') ? importedDeviceLayouts(layouts) : {},
     shared ? restoreParts(sharedLayoutSnapshot(), shared, p.pick, DEFAULT_SETTINGS()) : null,
   );
 }
@@ -1908,6 +1934,17 @@ const consoleSample = (() => {
         }}</label
       >
     </div>
+    <div v-if="pending.choices.length" class="rw ldev">
+      <div class="k">
+        <b>{{ t('Layout on this device') }}</b>
+      </div>
+      <select v-model="pending.use" class="input v" :aria-label="t('Layout on this device')">
+        <option value="">{{ t("The file's main layout") }}</option>
+        <option v-for="c in pending.choices" :key="c.id" :value="c.id">
+          {{ c.name }}{{ c.t ? ' · ' + fmtD(c.t) : '' }}{{ c.own ? ' ' + t('(this device)') : '' }}
+        </option>
+      </select>
+    </div>
     <span class="mu">{{
       t('Parts left unticked keep what this printer has now. Your current settings are kept so you can go back.')
     }}</span>
@@ -1932,10 +1969,21 @@ const consoleSample = (() => {
       >
     </p>
     <div class="parts">
-      <label v-for="x in pendingAll.printers" :key="x.host" class="part"
-        ><input v-model="x.pick" type="checkbox" :disabled="x.to === null" />{{ x.name }}
-        <span class="mu">{{ x.to === null ? t('not in your printer list') : x.host }}</span></label
-      >
+      <template v-for="x in pendingAll.printers" :key="x.host">
+        <label class="part"
+          ><input v-model="x.pick" type="checkbox" :disabled="x.to === null" />{{ x.name }}
+          <span class="mu">{{ x.to === null ? t('not in your printer list') : x.host }}</span></label
+        >
+        <div v-if="x.pick && x.choices.length" class="ldev sub">
+          <span class="mu">{{ t('Layout on this device') }}</span>
+          <select v-model="x.use" class="input v" :aria-label="t('Layout on this device') + ': ' + x.name">
+            <option value="">{{ t('Keep its current layout') }}</option>
+            <option v-for="c in x.choices" :key="c.id" :value="c.id">
+              {{ c.name }}{{ c.t ? ' · ' + fmtD(c.t) : '' }}{{ c.own ? ' ' + t('(this device)') : '' }}
+            </option>
+          </select>
+        </div>
+      </template>
     </div>
     <span class="mu">{{
       t('Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.')
@@ -2344,6 +2392,18 @@ const consoleSample = (() => {
     width: 100%;
     max-width: 100%;
   }
+}
+.ldev {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ldev.sub {
+  padding: 0 10px 6px 44px;
+}
+.ldev select {
+  max-width: 60%;
 }
 .parts {
   display: flex;

@@ -2719,5 +2719,9 @@
   "Restore all printers?",
   "Printers in {name}:",
   "not in your printer list",
-  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it."
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.",
+  "Layout on this device",
+  "The file's main layout",
+  "Keep its current layout",
+  "(this device)"
 ]
