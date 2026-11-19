@@ -2711,5 +2711,13 @@
   "Plugins",
   "Copy this section",
   "Go to the header of this section",
-  "Could not copy"
+  "Could not copy",
+  "Every printer in your printer list in one file, each with its own settings and dashboard layouts. Restore it with Restore from file.",
+  "Back up all printers",
+  "Could not reach: {list}",
+  "Printers restored: {n}",
+  "Restore all printers?",
+  "Printers in {name}:",
+  "not in your printer list",
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it."
 ]

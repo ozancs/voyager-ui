@@ -2723,4 +2723,12 @@ export default {
   "Click to edit": "クリックして編集",
   "Command {n}": "コマンド {n}",
   "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "スマートは過去の印刷結果でスライサーの推定時間を補正し、印刷が進むにつれて実測速度を重視します。",
+  "Every printer in your printer list in one file, each with its own settings and dashboard layouts. Restore it with Restore from file.": "プリンターリストのすべてのプリンターを1つのファイルに。それぞれ独自の設定とダッシュボードレイアウトを含みます。「ファイルから復元」で復元します。",
+  "Back up all printers": "すべてのプリンターをバックアップ",
+  "Could not reach: {list}": "接続できません: {list}",
+  "Printers restored: {n}": "復元したプリンター: {n}",
+  "Restore all printers?": "すべてのプリンターを復元しますか？",
+  "Printers in {name}:": "{name} のプリンター:",
+  "not in your printer list": "プリンターリストにありません",
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "各プリンターに独自の設定とレイアウトが戻ります。現在の設定は保持されるため、元に戻すことができます。",
 }

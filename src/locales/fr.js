@@ -2723,4 +2723,12 @@ export default {
   "Click to edit": "Cliquer pour modifier",
   "Command {n}": "Commande {n}",
   "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Le mode Intelligent ajuste l’estimation du trancheur à partir des impressions précédentes et accorde plus de poids à la vitesse mesurée à mesure que l’impression avance.",
+  "Every printer in your printer list in one file, each with its own settings and dashboard layouts. Restore it with Restore from file.": "Toutes les imprimantes de votre liste dans un seul fichier, chacune avec ses propres réglages et dispositions du tableau de bord. Restaurez-le avec « Restaurer depuis un fichier ».",
+  "Back up all printers": "Sauvegarder toutes les imprimantes",
+  "Could not reach: {list}": "Injoignable : {list}",
+  "Printers restored: {n}": "Imprimantes restaurées : {n}",
+  "Restore all printers?": "Restaurer toutes les imprimantes ?",
+  "Printers in {name}:": "Imprimantes dans {name} :",
+  "not in your printer list": "absente de votre liste d'imprimantes",
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "Chaque imprimante retrouve ses propres réglages et dispositions. Ses réglages actuels sont conservés pour pouvoir y revenir.",
 }

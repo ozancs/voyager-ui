@@ -2723,4 +2723,12 @@ export default {
   "Click to edit": "Klik om te bewerken",
   "Command {n}": "Opdracht {n}",
   "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Slim stelt de schatting van de slicer bij op basis van eerdere prints en laat het gemeten tempo zwaarder meewegen naarmate de print vordert.",
+  "Every printer in your printer list in one file, each with its own settings and dashboard layouts. Restore it with Restore from file.": "Alle printers uit je printerlijst in één bestand, elk met eigen instellingen en dashboardindelingen. Herstel het met 'Herstellen vanuit bestand'.",
+  "Back up all printers": "Alle printers back-uppen",
+  "Could not reach: {list}": "Niet bereikbaar: {list}",
+  "Printers restored: {n}": "Printers hersteld: {n}",
+  "Restore all printers?": "Alle printers herstellen?",
+  "Printers in {name}:": "Printers in {name}:",
+  "not in your printer list": "niet in je printerlijst",
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "Elke printer krijgt zijn eigen instellingen en indelingen terug. De huidige instellingen worden bewaard, zodat je op die printer terug kunt.",
 }

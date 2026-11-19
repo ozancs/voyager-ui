@@ -2723,4 +2723,12 @@ export default {
   "Click to edit": "Zum Bearbeiten klicken",
   "Command {n}": "Befehl {n}",
   "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Smart korrigiert die Slicer-Schätzung anhand früherer Drucke und gewichtet das gemessene Tempo mit fortschreitendem Druck stärker.",
+  "Every printer in your printer list in one file, each with its own settings and dashboard layouts. Restore it with Restore from file.": "Alle Drucker deiner Druckerliste in einer Datei, jeder mit seinen eigenen Einstellungen und Dashboard-Layouts. Wiederherstellen mit „Aus Datei wiederherstellen“.",
+  "Back up all printers": "Alle Drucker sichern",
+  "Could not reach: {list}": "Nicht erreichbar: {list}",
+  "Printers restored: {n}": "Drucker wiederhergestellt: {n}",
+  "Restore all printers?": "Alle Drucker wiederherstellen?",
+  "Printers in {name}:": "Drucker in {name}:",
+  "not in your printer list": "nicht in deiner Druckerliste",
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "Jeder Drucker erhält seine eigenen Einstellungen und Layouts zurück. Seine aktuellen Einstellungen werden aufbewahrt, sodass du auf ihm zurückgehen kannst.",
 }

@@ -2723,4 +2723,12 @@ export default {
   "Click to edit": "点击编辑",
   "Command {n}": "命令 {n}",
   "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "智能模式会根据以往的打印记录修正切片软件的预计时间，并随着打印推进逐步提高实测速度的权重。",
+  "Every printer in your printer list in one file, each with its own settings and dashboard layouts. Restore it with Restore from file.": "打印机列表中的所有打印机保存在一个文件中，每台都包含各自的设置和仪表板布局。使用“从文件恢复”来恢复。",
+  "Back up all printers": "备份所有打印机",
+  "Could not reach: {list}": "无法连接：{list}",
+  "Printers restored: {n}": "已恢复的打印机：{n}",
+  "Restore all printers?": "恢复所有打印机？",
+  "Printers in {name}:": "{name} 中的打印机：",
+  "not in your printer list": "不在打印机列表中",
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "每台打印机都会恢复自己的设置和布局。当前设置会被保留，以便在该打印机上还原。",
 }

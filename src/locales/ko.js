@@ -2723,4 +2723,12 @@ export default {
   "Click to edit": "클릭하여 편집",
   "Command {n}": "명령 {n}",
   "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "스마트 모드는 이전 출력 기록으로 슬라이서의 예상 시간을 보정하고, 출력이 진행될수록 실측 속도에 더 큰 비중을 둡니다.",
+  "Every printer in your printer list in one file, each with its own settings and dashboard layouts. Restore it with Restore from file.": "프린터 목록의 모든 프린터를 하나의 파일에 담습니다. 각 프린터의 설정과 대시보드 레이아웃이 포함됩니다. '파일에서 복원'으로 복원하세요.",
+  "Back up all printers": "모든 프린터 백업",
+  "Could not reach: {list}": "연결할 수 없음: {list}",
+  "Printers restored: {n}": "복원된 프린터: {n}",
+  "Restore all printers?": "모든 프린터를 복원할까요?",
+  "Printers in {name}:": "{name}의 프린터:",
+  "not in your printer list": "프린터 목록에 없음",
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "각 프린터에 고유한 설정과 레이아웃이 복원됩니다. 현재 설정은 보관되므로 되돌릴 수 있습니다.",
 }

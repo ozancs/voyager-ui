@@ -2723,4 +2723,12 @@ export default {
   "Click to edit": "Нажмите, чтобы изменить",
   "Command {n}": "Команда {n}",
   "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Умный режим корректирует прогноз слайсера по предыдущим печатям и по мере печати придаёт больший вес измеренной скорости.",
+  "Every printer in your printer list in one file, each with its own settings and dashboard layouts. Restore it with Restore from file.": "Все принтеры из вашего списка в одном файле, каждый со своими настройками и раскладками панели. Восстановите его кнопкой «Восстановить из файла».",
+  "Back up all printers": "Резервная копия всех принтеров",
+  "Could not reach: {list}": "Недоступны: {list}",
+  "Printers restored: {n}": "Восстановлено принтеров: {n}",
+  "Restore all printers?": "Восстановить все принтеры?",
+  "Printers in {name}:": "Принтеры в {name}:",
+  "not in your printer list": "нет в вашем списке принтеров",
+  "Each printer gets back its own settings and layouts. Its current settings are kept so you can go back on it.": "Каждый принтер получает обратно свои настройки и раскладки. Его текущие настройки сохраняются, чтобы к ним можно было вернуться.",
 }

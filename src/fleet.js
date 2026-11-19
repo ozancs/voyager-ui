@@ -7,14 +7,14 @@ const Q =
   '/printer/objects/query?webhooks&print_stats=state,filename,print_duration&virtual_sdcard=progress&display_status=progress' +
   '&extruder=temperature,target&heater_bed=temperature,target';
 
-const base = (host) => (host ? `${location.protocol}//${host}` : '');
+export const base = (host) => (host ? `${location.protocol}//${host}` : '');
 // nginx serves webcams next to Moonraker; an address with Moonraker's own port (71xx) has them on port 80
 export function webBase(host) {
   if (!host) return '';
   const [h, port] = host.split(':');
   return `${location.protocol}//${port && /^71\d\d$/.test(port) ? h : host}`;
 }
-function token(host) {
+export function token(host) {
   try {
     return JSON.parse(localStorage.getItem('voyager-ui-auth' + (host ? '@' + host : '')) || '{}').token || '';
   } catch {
