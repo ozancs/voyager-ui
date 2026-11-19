@@ -83,8 +83,9 @@ function envObj(obj) {
 function envLine(obj) {
   const o = envObj(obj),
     parts = [];
-  if (typeof o.humidity === 'number') parts.push(o.humidity.toFixed(0) + ' %');
-  if (typeof o.pressure === 'number') parts.push(o.pressure.toFixed(0) + ' hPa');
+  const show = state.settings.strip || {};
+  if (show.humidity !== false && typeof o.humidity === 'number') parts.push(o.humidity.toFixed(0) + ' %');
+  if (show.pressure !== false && typeof o.pressure === 'number') parts.push(o.pressure.toFixed(0) + ' hPa');
   return parts.join(' · ');
 }
 function toggleHide(d) {
