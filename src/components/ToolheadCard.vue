@@ -196,7 +196,8 @@ onBeforeUnmount(() => {
         >
           <Icon name="power" :size="16" :stroke="2.4" />{{ t('Motors off') }}
         </button>
-        <ToolheadStyle />
+        <ToolheadStyle class="ths-seg" />
+        <ToolheadStyle flip class="ths-flip" />
       </div>
       <CardCollapse />
     </div>
@@ -637,6 +638,9 @@ onBeforeUnmount(() => {
 .motion-viewport .steps {
   flex-shrink: 0;
 }
+.toolhead-h .acts > .ths-flip {
+  display: none;
+}
 @container cell (max-width: 760px) {
   /* title | the actions, in the middle | collapse */
   .toolhead > .toolhead-h {
@@ -670,10 +674,17 @@ onBeforeUnmount(() => {
     width: 28px;
     padding: 0 !important;
   }
+  /* one button that flips Circle / Buttons instead of the two-button switch, so the header stays one row */
+  .toolhead-h .acts > .ths-seg {
+    display: none;
+  }
+  .toolhead-h .acts > .ths-flip {
+    display: inline-flex;
+  }
 }
 
 /* Only use a second row when the title and controls no longer fit together. */
-@container cell (max-width: 350px) {
+@container cell (max-width: 280px) {
   .toolhead > .toolhead-h {
     grid-template-columns: minmax(0, 1fr) auto;
   }
