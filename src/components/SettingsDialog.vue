@@ -176,6 +176,19 @@ async function pickIcon(e) {
     toast(t('This file is not an image'), 'error');
   }
 }
+// extra values of environment sensors on the status tiles (DeviceStrip); both on unless switched off
+const ENV_VALUES = [
+  {
+    key: 'humidity',
+    title: 'Humidity on sensor tiles',
+    desc: 'Sensors that measure it (BME280, SHT3x, AHT10 ...) show the humidity above the temperature.',
+  },
+  {
+    key: 'pressure',
+    title: 'Pressure on sensor tiles',
+    desc: 'Sensors that measure it (BME280, BMP280 ...) show the air pressure above the temperature.',
+  },
+];
 const zoomNow = computed(() => uiZoomFor(state.uiScale ?? 100));
 // Interface size in 5 % steps (− / +); from Auto the steps start at the size Auto shows now
 const ZOOM_MIN = 50,
@@ -760,6 +773,17 @@ const consoleSample = (() => {
                 <Toggle v-model="state.settings.autoLayout" :label="t('Separate dashboard while printing')" />
               </div>
               <h3 class="sec">{{ t('Temperatures') }}</h3>
+              <div v-for="e in ENV_VALUES" :key="e.key" class="rw">
+                <div class="k">
+                  <b>{{ t(e.title) }}</b
+                  ><span>{{ t(e.desc) }}</span>
+                </div>
+                <Toggle
+                  :model-value="state.settings.strip[e.key] !== false"
+                  :label="t(e.title)"
+                  @update:model-value="state.settings.strip = { ...state.settings.strip, [e.key]: $event }"
+                />
+              </div>
               <div v-for="g in SENSOR_LISTS" :key="g.key" class="rw col">
                 <div class="k">
                   <b>{{ t(g.title) }}</b
