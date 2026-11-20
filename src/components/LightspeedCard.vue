@@ -6,7 +6,6 @@ import { ref, computed } from 'vue';
 import CardTitle from './CardTitle.vue';
 import CardCollapse from './CardCollapse.vue';
 import Icon from './Icon.vue';
-import Toggle from './Toggle.vue';
 import Popover from './Popover.vue';
 import RangeSlider from './RangeSlider.vue';
 import LightspeedSwatch from './LightspeedSwatch.vue';
@@ -72,7 +71,18 @@ const bright = computed(() => Math.round((ls.value.brightness ?? 1) * 100));
           @click.prevent="go('lightspeed')"
           ><Icon name="ext" :size="15" :stroke="2.4"
         /></a>
-        <Toggle :model-value="!!ls.enabled" :label="t('Lightspeed')" @update:model-value="setEnabled" />
+        <!-- on / off as a bulb: lit when Lightspeed drives the LEDs, faded when it is off -->
+        <button
+          class="btn clear ibtn sm bulb"
+          :class="{ lit: ls.enabled }"
+          role="switch"
+          :aria-checked="!!ls.enabled"
+          :aria-label="t('Lightspeed')"
+          :data-tip="t('Lightspeed') + ': ' + t(ls.enabled ? 'On' : 'Off')"
+          @click="setEnabled(!ls.enabled)"
+        >
+          <Icon name="bulb" :size="17" :stroke="2.3" />
+        </button>
       </div>
       <CardCollapse />
     </div>
@@ -120,6 +130,22 @@ const bright = computed(() => Math.round((ls.value.brightness ?? 1) * 100));
   </section>
 </template>
 <style scoped>
+.bulb {
+  color: var(--mu);
+  opacity: 0.45;
+  transition:
+    color 0.2s,
+    opacity 0.2s,
+    filter 0.2s;
+}
+.bulb.lit {
+  color: #f5b23a; /* Lightspeed's amber */
+  opacity: 1;
+  filter: drop-shadow(0 0 5px rgba(245, 178, 58, 0.75));
+}
+.bulb:hover {
+  opacity: 1;
+}
 .ell {
   overflow: hidden;
   text-overflow: ellipsis;

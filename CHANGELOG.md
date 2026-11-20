@@ -6,7 +6,7 @@
 - Lightspeed: clicking such a tile opens its effects, colours and speed, with Auto (back to the scene for the printer's state) and Turn off; the arrow on the tile opens the Lightspeed page
 - PA Sensei and Lightspeed have their own coloured logos in the menu, Calibrations and Add card
 - Lightspeed page: when the printer has Lightspeed, the menu has a Lightspeed entry under PA Sensei that shows the plugin's own page inside Voyager; the arrows on the tiles and the card open it too
-- Lightspeed card (Add card): on/off, brightness, which scene shows (Auto follows the printer) and every strip with its effect, each opening the same pop-up
+- Lightspeed card (Add card): a bulb to turn it on and off (lit when on, faded when off), brightness, which scene shows (Auto follows the printer) and every strip with its effect, each opening the same pop-up
 - Dashboard: a plugin's card (LED effects, Lightspeed, Spoolman, MMU, Timelapse, Phoenix, firmware retraction) is not shown while the printer does not have it, and comes back in its place when it is installed again; Add card shows built-in cards, plugins and custom cards side by side (under each other on a phone), each card with an icon
 - Temperatures: a button in the card's header switches between Classic and Compact
 - Console: with the newest line on top the command suggestions open below the input instead of being cut off above it (reported on Discord)
