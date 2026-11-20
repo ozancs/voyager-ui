@@ -6,10 +6,8 @@
 // The module is [pa_sensei ...] with pa_sensei.html; before its rename (OznLab Sensor) it was [oznlab_sensor ...]
 // with oznlab.html. The side menu shows this page only when Klipper has one of the two.
 import { ref, computed, onMounted } from 'vue';
-import Icon from '../components/Icon.vue';
 import { api } from '../api/moonraker';
 import { state } from '../store';
-import { t } from '../i18n';
 
 const file = computed(() => (state.objects.some((o) => /^pa_sensei( |$)/.test(o)) ? 'pa_sensei.html' : 'oznlab.html'));
 // the same printer's port 80 (Mainsail / Fluidd), whatever port Voyager or Moonraker is on
@@ -35,11 +33,6 @@ onMounted(async () => {
 </script>
 <template>
   <div class="oz">
-    <div v-if="src && !fromOwn" class="row note">
-      <a class="btn clear sm" :href="src" target="_blank" rel="noopener"
-        ><Icon name="ext" :size="14" />{{ t('Open in a new tab') }}</a
-      >
-    </div>
     <iframe v-if="src" :src="src" title="PA Sensei by oznlab" class="frame" allow="clipboard-write"></iframe>
   </div>
 </template>
@@ -51,12 +44,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-.note {
-  gap: 10px;
-  justify-content: flex-end;
-  font-size: 12.5px;
-  padding: 0 4px;
 }
 .frame {
   flex: 1;
