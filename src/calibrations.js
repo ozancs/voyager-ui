@@ -39,7 +39,7 @@ export const GROUPS = [
   {
     key: 'oznlab',
     name: 'PA Sensei',
-    icon: 'sensor',
+    icon: 'brand:sensei',
     items: [
       {
         cmd: 'SENSEI_CHECK',

@@ -4,6 +4,7 @@
 
 - Lightspeed (LED effects plugin for Klipper): when the printer has it, the lights it drives follow it. Their status tiles show the effect running, drawn live with the plugin's own effect engine (a breathing hotend breathes on the tile, a rainbow strip runs as a rainbow and the tile glows in its colour), WLED and ESP32 strips get tiles of their own, and the switch, the Devices card, the camera's light button and typed commands talk to Lightspeed instead of SET_LED, which it would paint over
 - Lightspeed: clicking such a tile opens its effects, colours and speed, with Auto (back to the scene for the printer's state) and Turn off; the arrow on the tile opens the Lightspeed page
+- PA Sensei and Lightspeed have their own coloured logos in the menu, Calibrations and Add card
 - Lightspeed page: when the printer has Lightspeed, the menu has a Lightspeed entry under PA Sensei that shows the plugin's own page inside Voyager; the arrows on the tiles and the card open it too
 - Lightspeed card (Add card): on/off, brightness, which scene shows (Auto follows the printer) and every strip with its effect, each opening the same pop-up
 - Dashboard: a plugin's card (LED effects, Lightspeed, Spoolman, MMU, Timelapse, Phoenix, firmware retraction) is not shown while the printer does not have it, and comes back in its place when it is installed again; Add card shows built-in cards, plugins and custom cards side by side (under each other on a phone), each card with an icon

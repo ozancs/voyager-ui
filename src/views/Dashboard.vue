@@ -202,7 +202,7 @@ const MODULE_ICON = {
   print: 'printer3d',
   thumb: 'image',
   ledfx: 'bulb',
-  lightspeed: 'sparkle',
+  lightspeed: 'brand:lightspeed',
   objects: 'cube',
   mesh: 'mesh',
   system: 'cpu',

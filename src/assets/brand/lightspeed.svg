@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="760" viewBox="230 210 760 760" role="img" aria-labelledby="title"><title id="title">Lightspeed optical star</title><defs>
+<path id="star" d="M714 220 C749 380 687 467 656 547 C641 593 723 641 831 626 C867 623 891 615 916 602 C825 663 738 643 687 665 C585 693 505 838 506 965 C481 864 551 725 579 661 C607 610 541 576 471 575 C394 574 338 599 299 626 C366 559 468 551 534 550 C659 549 746 358 714 220 Z"/>
+<radialGradient id="light" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(623 602) scale(318 385)" fx="0" fy="0">
+<stop offset="0" stop-color="#FFFFE7"/><stop offset=".08" stop-color="#FFF9CE"/><stop offset=".22" stop-color="#FFE18C"/><stop offset=".43" stop-color="#F5B23A"/><stop offset=".83" stop-color="#E99327"/><stop offset="1" stop-color="#F5B23A" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="core"><stop stop-color="#FFFFEC"/><stop offset=".4" stop-color="#FFF6BF" stop-opacity=".85"/><stop offset="1" stop-color="#FFF1B0" stop-opacity="0"/></radialGradient>
+<radialGradient id="fade" gradientUnits="userSpaceOnUse" cx="620" cy="600" r="405"><stop offset=".45" stop-color="white"/><stop offset=".78" stop-color="white" stop-opacity=".8"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient>
+<mask id="softends"><rect width="1254" height="1254" fill="url(#fade)"/></mask>
+<filter id="halo" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="38"/></filter>
+<filter id="bloom" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="18"/></filter>
+<filter id="soft" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="2.5"/></filter>
+<filter id="fringe" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="4"/></filter>
+</defs><g mask="url(#softends)">
+<use href="#star" fill="#E88817" opacity=".95" filter="url(#halo)"/>
+<use href="#star" fill="#F5B23A" opacity="1" filter="url(#bloom)"/>
+<g fill="none" stroke-linecap="round" filter="url(#fringe)">
+<path d="M716 233 C735 318 721 384 699 439" stroke="#289FE7" stroke-width="8" opacity=".8"/>
+<path d="M701 391 L686 449" stroke="#BA7BDC" stroke-width="9" opacity=".7"/>
+<path d="M310 617 Q350 587 399 576" stroke="#42B8ED" stroke-width="7" opacity=".8"/>
+<path d="M380 582 L427 573" stroke="#B98CCF" stroke-width="7" opacity=".65"/>
+<path d="M817 634 Q873 628 909 608" stroke="#49B8ED" stroke-width="7" opacity=".8"/>
+<path d="M788 635 L841 633" stroke="#AD7CCC" stroke-width="8" opacity=".7"/>
+<path d="M509 950 Q500 890 521 820" stroke="#2EA7EB" stroke-width="7" opacity=".8"/>
+<path d="M513 863 L530 807" stroke="#B37FE1" stroke-width="9" opacity=".7"/>
+</g>
+<use href="#star" fill="url(#light)" filter="url(#soft)"/>
+<ellipse cx="619" cy="602" rx="70" ry="80" fill="url(#core)" filter="url(#bloom)"/>
+</g></svg>
