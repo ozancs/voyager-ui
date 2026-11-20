@@ -9,13 +9,19 @@ beforeEach(() => {
     setItem: (k, v) => (store[k] = String(v)),
     removeItem: (k) => delete store[k],
   });
-  vi.stubGlobal('location', { protocol: 'http:', host: '192.168.0.208:1977', hostname: '192.168.0.208' });
+  vi.stubGlobal('location', {
+    protocol: 'http:',
+    host: '192.168.0.208:1977',
+    hostname: '192.168.0.208',
+    port: '1977',
+  });
   vi.resetModules();
 });
 
 const load = async (list, cur) => {
   store['voyager-ui-printers'] = JSON.stringify(list);
   if (cur != null) store['voyager-ui-printer'] = JSON.stringify(cur);
+  vi.resetModules(); // the saved list is read when the module loads
   return (await import('../src/fleet.js')).fleetList();
 };
 
@@ -36,6 +42,17 @@ describe('fleetList', () => {
       expect(l.find((p) => p.id === 'b').cur).toBe(true);
       expect(l.find((p) => p.id === 'a').cur).toBe(false);
     }
+  });
+  it('keeps every card when two saved printers share this machine (two Moonraker instances)', async () => {
+    const l = await load([
+      { id: 'a', name: 'One', host: '192.168.0.208:7125' },
+      { id: 'b', name: 'Two', host: '192.168.0.208:7126' },
+    ]);
+    expect(l.map((p) => p.id)).toEqual(['', 'a', 'b']);
+  });
+  it("keeps the page's card when the one saved entry here is another instance's port", async () => {
+    const l = await load([{ id: 'b', name: 'Two', host: '192.168.0.208:7126' }]);
+    expect(l.map((p) => p.id)).toEqual(['', 'b']);
   });
   it('marks the saved entry connected when it was picked', async () => {
     const l = await load([{ id: 'b', name: 'Salad Fork', host: '192.168.0.208' }], 'b');

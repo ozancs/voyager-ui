@@ -8,14 +8,24 @@ import { ref } from 'vue';
 const LIST = 'voyager-ui-printers';
 const CUR = 'voyager-ui-printer';
 
-// whether a saved address is the machine this page came from: same host name, whatever the port (Voyager on 1977,
-// Moonraker on 7125 or behind nginx on 80 are one printer)
+// whether a saved address is on the machine this page came from (same host name, any port)
 export const isPageHost = (host) => {
   const h = String(host || '')
     .split(':')[0]
     .toLowerCase();
   return !!h && h === String(location.hostname || '').toLowerCase();
 };
+// the saved entry that is this page's own printer, or undefined. Same host name, on the page's own port or one
+// that reaches the same Moonraker (Moonraker's 7125, nginx on 80). Only when one saved entry is on this machine:
+// a Pi running two printers (Moonraker on 7125 and 7126, KIAUH's multi-instance) has two entries there, and
+// which one is the page's cannot be told from the address, so then every entry stays.
+function ownEntry(list) {
+  const here = list.filter((p) => isPageHost(p.host));
+  if (here.length !== 1) return undefined;
+  const port = here[0].host.split(':')[1] || '80';
+  return [location.port || '80', '7125', '80'].includes(port) ? here[0] : undefined;
+}
+export const ownPrinter = () => ownEntry(printerList.value);
 
 export const HOST_RE = /^[A-Za-z0-9.-]+(:\d{1,5})?$/; // host[:port] only, never a path or credentials
 
@@ -54,7 +64,7 @@ export function currentPrinter() {
 }
 export const currentHost = () => currentPrinter()?.host || '';
 // the saved entry that is this page's own machine, if any: it stands in for "This address" in the lists
-export const ownEntryId = () => printerList.value.find((p) => isPageHost(p.host))?.id ?? null;
+export const ownEntryId = () => ownPrinter()?.id ?? null;
 
 export function selectPrinter(id) {
   try {

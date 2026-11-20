@@ -19,7 +19,7 @@ const other = computed(() => STYLES.find(([v]) => v !== cur.value));
     v-if="flip"
     class="btn ibtn sm toolhead-style flip"
     :aria-label="t('Control style') + ': ' + t(other[1])"
-    :title="t('Control style') + ': ' + t(other[1])"
+    :data-tip="t('Control style') + ': ' + t(other[1])"
     @click.stop="state.settings.toolheadStyle = other[0]"
   >
     <Icon :name="other[2]" :size="15" />
@@ -31,7 +31,7 @@ const other = computed(() => STYLES.find(([v]) => v !== cur.value));
       class="btn ibtn sm"
       role="radio"
       :aria-label="t(label)"
-      :title="t(label)"
+      :data-tip="t(label)"
       :aria-checked="cur === value"
       :class="{ on: cur === value }"
       @click.stop="state.settings.toolheadStyle = value"

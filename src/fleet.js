@@ -1,7 +1,7 @@
 // All printers overview: reads the state of every saved printer over plain HTTP (no second websocket), every few
 // seconds while the page is open. Each printer is asked with its own login token (the same one the UI keeps per
 // address), never with another printer's. The printer this page is connected to comes from the live state.
-import { printerList, currentHost, isPageHost } from './printers';
+import { printerList, currentHost, ownPrinter } from './printers';
 
 const Q =
   '/printer/objects/query?webhooks&print_stats=state,filename,print_duration&virtual_sdcard=progress&display_status=progress' +
@@ -43,7 +43,7 @@ async function get(host, path) {
 // A saved entry for the page's own machine stands in for the page's card, so one printer shows once.
 export function fleetList() {
   const cur = currentHost();
-  const own = printerList.value.find((p) => isPageHost(p.host));
+  const own = ownPrinter();
   return [...(own ? [] : [{ id: '', name: '', host: '' }]), ...printerList.value].map((p) => ({
     ...p,
     cur: p.host === cur || (!cur && p === own),

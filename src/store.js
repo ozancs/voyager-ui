@@ -1064,7 +1064,8 @@ export function clearConsole() {
   state.console = [];
   lsSet(APP + '-console-cleared', Date.now() / 1000);
 }
-// console lines kept in memory; the Console page shows them all, the dashboard card the newest half. A single
+// console lines kept in memory; the Console page shows them all, the dashboard card the newest 300 (each line is
+// drawn, a long list slows a tablet down on the dashboard). A single
 // command (MMU statistics, a macro dump) can print dozens of lines, so this is a few hours of a busy printer.
 export const CONSOLE_KEEP = 2000;
 export function pushConsole(message, type = 'response', time = Date.now() / 1000) {

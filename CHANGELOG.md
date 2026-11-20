@@ -4,6 +4,7 @@
 
 - Machine: Connected hardware (serial ports, USB devices, CAN boards and cameras, with the path or UUID to copy) is on the Machine page too, above Macro variables (asked for on Discord); on a wide card each device is one line in a table, on a narrow one it stays stacked
 - Machine: every card on the page folds to its header with the chevron on the right, and stays folded in this browser
+- Community contributions from @DubMonstaa (#26–#32): Smart can be picked again for Time left and ETA; switches for humidity and pressure on the sensor tiles (Settings > Dashboard > Temperatures); sharper tile labels in the Panel style; one Circle / Buttons button on a narrow Toolhead card so its header stays one row; the console keeps 2000 lines and loads the printer's last 1000 at start (the dashboard card shows the newest 300); RatOS's welcome message shows with its logo (only images from the printer itself, anything else stays text); a saved printer that is the page's own machine shows once in the printer lists (a Pi with two Moonraker instances keeps both)
 
 ## 0.38.58
 
