@@ -1844,6 +1844,19 @@ function openSearch() {
   font-size: 11.5px;
   white-space: nowrap;
 }
+/* the header the sticky bar jumped to flashes once */
+.cm-editor .cm-line.cm-sec-flash {
+  animation: cm-sec-flash 1.2s ease-out;
+}
+@keyframes cm-sec-flash {
+  0%,
+  35% {
+    background: color-mix(in srgb, var(--ac) 28%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
 .cm-editor .cm-sticky-sec .cm-sec-copy {
   margin: 0 0 0 auto;
 }

@@ -137,9 +137,24 @@ export function sectionTools({ labels, copy }) {
         this.name.addEventListener('mousedown', (e) => e.preventDefault());
         this.name.addEventListener('click', () => {
           if (!this.start) return;
+          // the header lands a few lines below the top, with the end of the block before it above, and flashes
+          // once: landing exactly at the top edge it was hard to tell the jump had happened
           const pos = view.state.doc.line(this.start).from;
-          view.dispatch({ selection: { anchor: pos }, effects: EditorView.scrollIntoView(pos, { y: 'start' }) });
+          const margin = view.defaultLineHeight * 3;
+          view.dispatch({
+            selection: { anchor: pos },
+            effects: EditorView.scrollIntoView(pos, { y: 'start', yMargin: margin }),
+          });
           view.focus();
+          setTimeout(() => {
+            const line = view.domAtPos(pos).node;
+            const el = (line.nodeType === 1 ? line : line.parentElement)?.closest('.cm-line');
+            if (!el) return;
+            el.classList.remove('cm-sec-flash');
+            void el.offsetWidth; // restart the animation when it is clicked again
+            el.classList.add('cm-sec-flash');
+            setTimeout(() => el.classList.remove('cm-sec-flash'), 1300);
+          }, 60);
         });
         this.ln = document.createElement('span');
         this.ln.className = 'ln';
@@ -160,10 +175,13 @@ export function sectionTools({ labels, copy }) {
             const doc = view.state.doc;
             const start = sectionStart(doc, doc.lineAt(blk.from).number);
             if (!start) return { start: 0 };
-            // only once the header itself has gone above the top edge
+            // only once the header itself has gone above the top edge, and not while the next block's header is
+            // right under the bar (the bar would name the block that is just ending)
             const hb = view.lineBlockAt(doc.line(start).from);
+            const below = view.lineBlockAtHeight(h + view.defaultLineHeight * 3.5);
+            const next = sectionStart(doc, doc.lineAt(below.from).number);
             return {
-              start: hb.top < h - 2 ? start : 0,
+              start: hb.top < h - 2 && next === start ? start : 0,
               left: view.contentDOM.getBoundingClientRect().left - view.dom.getBoundingClientRect().left,
             };
           },
