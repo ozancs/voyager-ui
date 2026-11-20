@@ -2717,4 +2717,5 @@ export default {
  "Shutdown": "Abschaltung",
  "Lightspeed (LED effects plugin)": "Lightspeed (LED-Effekt-Plugin)",
  "Solid": "Einfarbig",
+  "Plugins": "Plugins",
 }

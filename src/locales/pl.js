@@ -2717,4 +2717,5 @@ export default {
  "Shutdown": "Wyłączenie",
  "Lightspeed (LED effects plugin)": "Lightspeed (wtyczka efektów LED)",
  "Solid": "Jednolity",
+  "Plugins": "Wtyczki",
 }

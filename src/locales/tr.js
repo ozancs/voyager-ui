@@ -2735,4 +2735,5 @@ export default {
  "Shutdown": "Kapanma",
  "Lightspeed (LED effects plugin)": "Lightspeed (LED efekt eklentisi)",
  "Solid": "Tek renk",
+  "Plugins": "Eklentiler",
 }

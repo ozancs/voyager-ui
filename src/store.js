@@ -399,7 +399,7 @@ export const state = reactive({
   webcams: [],
   webcamOrder: [], // camera names in Moonraker's order (state.webcams is sorted by name)
   components: [], // Moonraker components loaded (server.info), e.g. 'timelapse'
-  spoolman: { server: '', spool: null },
+  spoolman: { server: '', spool: null, checked: false }, // checked: Moonraker's config has been read
   settings: cachedSettings(),
   settingsLoaded: false,
   notifications: [],
@@ -1766,6 +1766,7 @@ async function onOpen() {
     .call('server.config')
     .then((c) => {
       state.spoolman.server = c.config?.spoolman?.server || '';
+      state.spoolman.checked = true;
       if (state.spoolman.server) loadSpool();
     })
     .catch(() => {});

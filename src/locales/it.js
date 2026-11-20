@@ -2717,4 +2717,5 @@ export default {
  "Shutdown": "Spegnimento",
  "Lightspeed (LED effects plugin)": "Lightspeed (plugin effetti LED)",
  "Solid": "Colore fisso",
+  "Plugins": "Plugin",
 }

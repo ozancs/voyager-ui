@@ -105,13 +105,18 @@ const MODULES = {
     n: 'LED effects',
     min: [2, 3],
     def: [6, 5],
+    plugin: true,
+    need: () => hasLedEffects(state.objects, S('configfile').config || S('configfile').settings, state.commands),
+    away: () => objectsKnown() && !state.objects.some((o) => o.startsWith('led_effect ')),
   },
   lightspeed: {
     c: LightspeedCard,
     n: 'Lightspeed (LED effects plugin)',
     min: [2, 3],
     def: [4, 6],
+    plugin: true,
     need: () => hasLightspeed.value,
+    away: () => objectsKnown() && !hasLightspeed.value,
   },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },
@@ -121,7 +126,16 @@ const MODULES = {
   devices: { c: DevicesCard, n: 'Devices (fans, pins, LEDs)', min: [2, 3], def: [6, 7], scale: true },
   files: { c: RecentFilesCard, n: 'Recent files', min: [2, 3], def: [6, 7] },
   jobs: { c: RecentJobsCard, n: 'Recent prints', min: [2, 3], def: [6, 7] },
-  spool: { c: SpoolCard, n: 'Spoolman', min: [2, 2], def: [4, 4], scale: true, need: () => !!state.spoolman.server },
+  spool: {
+    c: SpoolCard,
+    n: 'Spoolman',
+    min: [2, 2],
+    def: [4, 4],
+    scale: true,
+    plugin: true,
+    need: () => !!state.spoolman.server,
+    away: () => state.spoolman.checked && !state.spoolman.server,
+  },
   retraction: {
     c: RetractionCard,
     n: 'Firmware retraction',
@@ -129,6 +143,7 @@ const MODULES = {
     scale: true,
     def: [6, 4],
     need: () => state.objects.includes('firmware_retraction'),
+    away: () => objectsKnown() && !state.objects.includes('firmware_retraction'),
   },
   hardware: { c: HardwareCard, n: 'Connected hardware (serial, USB, CAN, cameras)', min: [2, 3], def: [6, 6] },
   health: { c: HealthCard, n: 'Health', min: [2, 2], def: [4, 4], scale: true },
@@ -140,18 +155,43 @@ const MODULES = {
     scale: true,
     need: () => state.power.length > 0,
   },
-  mmu: { c: MmuCard, n: 'MMU (Happy Hare, Box Turtle)', min: [4, 5], def: [12, 7], need: () => hasMmu.value },
-  timelapse: { c: TimelapseCard, n: 'Timelapse', min: [2, 3], def: [4, 4], scale: true, need: () => tl.has },
+  mmu: {
+    c: MmuCard,
+    n: 'MMU (Happy Hare, Box Turtle)',
+    min: [4, 5],
+    def: [12, 7],
+    plugin: true,
+    need: () => hasMmu.value,
+    away: () => objectsKnown() && !hasMmu.value,
+  },
+  timelapse: {
+    c: TimelapseCard,
+    n: 'Timelapse',
+    min: [2, 3],
+    def: [4, 4],
+    scale: true,
+    plugin: true,
+    need: () => tl.has,
+    away: () => state.components.length > 0 && !state.components.includes('timelapse'),
+  },
   phoenix: {
     c: PhoenixCard,
     n: 'Phoenix (print recovery)',
     min: [1, 3],
     def: [2, 4],
     scale: true,
+    plugin: true,
     need: () => hasPhoenix.value,
+    away: () => objectsKnown() && !hasPhoenix.value,
   },
 };
 const isCustom = (i) => i.startsWith('c_');
+// A card for a plugin (or a Klipper section) the printer does not have now stays in the saved layout but is not
+// shown, so removing a plugin takes its card away and putting it back brings the card back where it was. "Not
+// there" is only decided once the printer has said what it has: Klipper's object list is empty while it is
+// disconnected or restarting, Spoolman's address comes with Moonraker's config, Timelapse with its component list.
+const objectsKnown = () => state.klippy === 'ready' && state.objects.length > 0;
+const away = (i) => !!MODULES[i]?.away?.();
 // a multi material unit shows up on the dashboard by itself the first time it is found
 const hasMmu = computed(() => state.objects.includes('mmu') || state.objects.includes('AFC'));
 // Default hue per module follows meaning, the same as the top tiles: orange = heat, purple = filament,
@@ -373,7 +413,7 @@ function clean(l) {
   const seen = new Set();
   const ok = (i) => MODULES[i] || (isCustom(i) && state.settings.customCards?.[i]);
   const out = (l || [])
-    .filter((x) => ok(x.i) && !seen.has(x.i) && seen.add(x.i))
+    .filter((x) => ok(x.i) && !seen.has(x.i) && seen.add(x.i) && !away(x.i))
     .map(({ i, x, y, w, h }) => ({ i, x, y, w: Math.max(w, minOf(i)[0]), h: Math.max(h, minOf(i)[1]) })); // a raised minimum applies to saved layouts too
   // a default card missing from the layout comes back (unless hidden); for a layout someone saved, only the cards
   // that were defaults when it was saved, so a newer default card does not appear on its own
@@ -419,6 +459,7 @@ function reload() {
   layout.value = applyCollapsed(clean(srcLayout()));
 }
 watch(mode, reload);
+watch(() => Object.keys(MODULES).filter(away).join(), reload);
 // a restored settings file (or a reset, or Go back) replaces the settings as a whole: show its cards at once, so the
 // old layout still on screen is never written back over the restored one
 watch(() => state.settings, reload);
@@ -435,7 +476,7 @@ const isExtra = (i) => (state.settings.mobileExtra || []).includes(i) && !layout
 const columnAll = computed(() => {
   const ord = state.settings.mobileOrder || DEFAULT_MOBILE_ORDER;
   const extra = (state.settings.mobileExtra || [])
-    .filter((i) => isExtra(i) && (MODULES[i] || (isCustom(i) && state.settings.customCards?.[i])))
+    .filter((i) => isExtra(i) && !away(i) && (MODULES[i] || (isCustom(i) && state.settings.customCards?.[i])))
     .map((i) => ({ i, x: 0, y: 9999, w: 12, h: (MODULES[i]?.def || [6, 6])[1] }));
   const items = [...sorted.value, ...extra];
   const has = (i) => items.some((x) => x.i === i);
@@ -501,13 +542,18 @@ function persist(force = false) {
       [key]: sizing.value.width,
     };
   }
-  state.settings[LK()] = layout.value.map(({ i, x, y, w, h }) => ({
-    i,
-    x,
-    y,
-    w,
-    h: folded(i) ? fullH[i] || h : h,
-  }));
+  const shown = new Set(layout.value.map((x) => x.i));
+  const kept = (srcLayout() || []).filter((x) => away(x.i) && !shown.has(x.i)).map((x) => ({ ...x }));
+  state.settings[LK()] = [
+    ...layout.value.map(({ i, x, y, w, h }) => ({
+      i,
+      x,
+      y,
+      w,
+      h: folded(i) ? fullH[i] || h : h,
+    })),
+    ...kept,
+  ];
 }
 const bottom = () => Math.max(0, ...layout.value.map((x) => x.y + x.h));
 // klipper-led_effect: the LED effects card goes on the dashboard by itself the first time effects are found
@@ -1020,12 +1066,28 @@ function detachCard(i) {
               </button>
             </template>
             <span class="sec-lbl">{{ t('Modules') }}</span>
-            <button v-for="k in available" :key="k" class="btn clear di" @click="addModule(k)">
+            <button
+              v-for="k in available.filter((k) => !MODULES[k].plugin)"
+              :key="k"
+              class="btn clear di"
+              @click="addModule(k)"
+            >
               {{ t(MODULES[k].n) }}
             </button>
             <span v-if="!available.length" class="mu" style="font-size: 12px">{{
               t('All modules are on the dashboard')
             }}</span>
+            <template v-if="available.some((k) => MODULES[k].plugin)">
+              <span class="sec-lbl" style="margin-top: 8px">{{ t('Plugins') }}</span>
+              <button
+                v-for="k in available.filter((k) => MODULES[k].plugin)"
+                :key="k"
+                class="btn clear di"
+                @click="addModule(k)"
+              >
+                {{ t(MODULES[k].n) }}
+              </button>
+            </template>
             <span class="sec-lbl" style="margin-top: 8px">{{ t('Custom') }}</span>
             <button class="btn clear di" @click="addCustom('btn')">
               <Icon name="star" :size="16" />{{ t('Command button (square)') }}

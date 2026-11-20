@@ -2717,4 +2717,5 @@ export default {
  "Shutdown": "셧다운",
  "Lightspeed (LED effects plugin)": "Lightspeed (LED 효과 플러그인)",
  "Solid": "단색",
+  "Plugins": "플러그인",
 }

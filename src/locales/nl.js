@@ -2717,4 +2717,5 @@ export default {
  "Shutdown": "Afsluiten",
  "Lightspeed (LED effects plugin)": "Lightspeed (LED-effectenplugin)",
  "Solid": "Effen",
+  "Plugins": "Plugins",
 }

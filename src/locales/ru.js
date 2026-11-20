@@ -2717,4 +2717,5 @@ export default {
  "Shutdown": "Аварийная остановка",
  "Lightspeed (LED effects plugin)": "Lightspeed (плагин LED-эффектов)",
  "Solid": "Сплошной",
+  "Plugins": "Плагины",
 }

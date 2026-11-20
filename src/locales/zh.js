@@ -2717,4 +2717,5 @@ export default {
  "Shutdown": "关机",
  "Lightspeed (LED effects plugin)": "Lightspeed（LED 效果插件）",
  "Solid": "纯色",
+  "Plugins": "插件",
 }
