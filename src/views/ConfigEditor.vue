@@ -1786,10 +1786,13 @@ function openSearch() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin: 0 8px;
+  /* negative top and bottom margins: the button takes no more height than the text, so the line under the mouse
+     does not grow and push the lines below when it appears */
+  margin: -4px 8px;
   padding: 0 7px;
   height: 18px;
-  vertical-align: 1px;
+  line-height: 1;
+  vertical-align: middle;
   border: 1px solid var(--bd);
   border-radius: 5px;
   background: var(--s2);
