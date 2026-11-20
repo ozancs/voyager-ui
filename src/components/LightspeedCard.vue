@@ -141,7 +141,10 @@ const bright = computed(() => Math.round((ls.value.brightness ?? 1) * 100));
 .bulb.lit {
   color: #f5b23a; /* Lightspeed's amber */
   opacity: 1;
-  filter: drop-shadow(0 0 5px rgba(245, 178, 58, 0.75));
+}
+/* the glow is on the bulb itself, not on the button around it */
+.bulb.lit svg {
+  filter: drop-shadow(0 0 3px rgba(245, 178, 58, 0.9));
 }
 .bulb:hover {
   opacity: 1;
