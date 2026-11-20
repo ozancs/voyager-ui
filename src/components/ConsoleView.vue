@@ -333,7 +333,7 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
         ><CmdInput
           ref="ci"
           v-model="cmd"
-          drop-up
+          :drop-up="!rev"
           :placeholder="t('Send G-code… (type to search commands, ↑↓ history)')"
           :aria-label="t('G-code command')"
           input-class="cin"

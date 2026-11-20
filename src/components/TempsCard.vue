@@ -116,6 +116,15 @@ const plain = computed(() =>
       <CardTitle :text="t('Temperatures')" />
       <div class="acts">
         <SensorPicker />
+        <!-- the same switch as Settings > Dashboard > Temperatures card, here so the card can be tried both ways -->
+        <button
+          class="btn ibtn"
+          :aria-label="t('View') + ': ' + t(compact ? 'Compact' : 'Classic')"
+          :data-tip="t('View') + ': ' + t(compact ? 'Compact' : 'Classic')"
+          @click="state.settings.tempsStyle = compact ? 'classic' : 'compact'"
+        >
+          <Icon :name="compact ? 'list' : 'grid'" :size="16" :stroke="2.2" />
+        </button>
         <div>
           <button
             ref="presetBtn"
