@@ -2736,4 +2736,7 @@ export default {
  "Lightspeed (LED effects plugin)": "Lightspeed (LED efekt eklentisi)",
  "Solid": "Tek renk",
   "Plugins": "Eklentiler",
+  "Copy this section": "Bu bölümü kopyala",
+  "Go to the header of this section": "Bu bölümün başlığına git",
+  "Could not copy": "Kopyalanamadı",
 }

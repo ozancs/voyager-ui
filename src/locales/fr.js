@@ -2718,4 +2718,7 @@ export default {
  "Lightspeed (LED effects plugin)": "Lightspeed (plugin d’effets LED)",
  "Solid": "Couleur fixe",
   "Plugins": "Plugins",
+  "Copy this section": "Copier cette section",
+  "Go to the header of this section": "Aller à l'en-tête de cette section",
+  "Could not copy": "Copie impossible",
 }

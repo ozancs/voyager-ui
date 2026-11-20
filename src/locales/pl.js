@@ -2718,4 +2718,7 @@ export default {
  "Lightspeed (LED effects plugin)": "Lightspeed (wtyczka efektów LED)",
  "Solid": "Jednolity",
   "Plugins": "Wtyczki",
+  "Copy this section": "Kopiuj tę sekcję",
+  "Go to the header of this section": "Przejdź do nagłówka tej sekcji",
+  "Could not copy": "Nie udało się skopiować",
 }

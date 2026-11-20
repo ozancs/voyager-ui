@@ -2718,4 +2718,7 @@ export default {
  "Lightspeed (LED effects plugin)": "Lightspeed (плагін LED-ефектів)",
  "Solid": "Суцільний",
   "Plugins": "Плагіни",
+  "Copy this section": "Копіювати цей розділ",
+  "Go to the header of this section": "До заголовка цього розділу",
+  "Could not copy": "Не вдалося скопіювати",
 }

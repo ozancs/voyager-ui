@@ -2718,4 +2718,7 @@ export default {
  "Lightspeed (LED effects plugin)": "Lightspeed (LED-effectenplugin)",
  "Solid": "Effen",
   "Plugins": "Plugins",
+  "Copy this section": "Deze sectie kopiëren",
+  "Go to the header of this section": "Naar de kop van deze sectie",
+  "Could not copy": "Kopiëren mislukt",
 }

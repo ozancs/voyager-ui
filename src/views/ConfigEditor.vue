@@ -34,6 +34,8 @@ import { history as cfgVersions, summarize } from '../cfgHistory';
 import { klipper } from '../editor/klipperLang';
 import { lintKlipper } from '../editor/lint';
 import { sectionLinks } from '../editor/sectionLinks';
+import { sectionTools } from '../editor/sectionTools';
+import { copyText } from '../clipboard';
 import { SECTION_NAMES, optionsFor, docUrl, sectionType } from '../editor/klipperDocs';
 
 const ROOTS = ['config', 'gcodes', 'logs', 'config_examples', 'docs', 'timelapse'];
@@ -399,6 +401,22 @@ const flashField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
+// Copy on a [section] block and its header kept at the top while scrolling through it (editor/sectionTools.js)
+const secTools = sectionTools({
+  labels: {
+    copy: t('Copy'),
+    copied: t('Copied'),
+    tip: t('Copy this section'),
+    jump: t('Go to the header of this section'),
+    line: t('line {n}'),
+  },
+  copy: (text) =>
+    copyText(text).then(
+      () => true,
+      () => (toast(t('Could not copy'), 'error'), false),
+    ),
+});
+
 // ---------------------------------------------------------------- editor setup
 function extensions(tab) {
   return [
@@ -422,7 +440,7 @@ function extensions(tab) {
     lintExt,
     flashField,
     sectionLinks(docUrl, t('Ctrl+click: Klipper documentation for this section')),
-    lang.of(/\.(cfg|conf)$/i.test(tab.path) ? klipper : []),
+    lang.of(/\.(cfg|conf)$/i.test(tab.path) ? [klipper, secTools] : []),
     ro.of(EditorState.readOnly.of(tab.root === 'logs')),
     keymap.of([
       { key: 'Mod-s', preventDefault: true, run: () => (save(false), true) },
@@ -1762,6 +1780,72 @@ function openSearch() {
   color: var(--mu);
   padding: 0 6px;
   border-radius: 4px;
+}
+/* Copy at the end of a [section] header line (the block under the mouse or the cursor) */
+.cm-editor .cm-sec-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 8px;
+  padding: 0 7px;
+  height: 18px;
+  vertical-align: 1px;
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  background: var(--s2);
+  color: var(--mu);
+  font: 600 11px var(--fd);
+  cursor: pointer;
+}
+.cm-editor .cm-sec-copy:hover {
+  color: var(--tx);
+  border-color: var(--mu2);
+}
+/* the block's header kept at the top of the editor: a bar over the text with its own shadow, so it is not taken
+   for a line of the file */
+.cm-editor .cm-sticky-sec {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 10px 3px 8px;
+  background: color-mix(in srgb, var(--s2) 94%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--bd);
+  border-left: 3px solid var(--ac);
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.6);
+  font-family: var(--fm, monospace);
+  font-size: 13px;
+}
+.cm-editor .cm-sticky-sec[hidden] {
+  display: none;
+}
+.cm-editor .cm-sticky-sec .nm {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--ac);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.cm-editor .cm-sticky-sec .nm:hover {
+  text-decoration: underline;
+}
+.cm-editor .cm-sticky-sec .ln {
+  color: var(--mu2);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.cm-editor .cm-sticky-sec .cm-sec-copy {
+  margin: 0 0 0 auto;
 }
 .cm-editor .cm-foldGutter span {
   color: var(--mu2);

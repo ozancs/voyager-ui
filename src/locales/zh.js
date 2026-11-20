@@ -2718,4 +2718,7 @@ export default {
  "Lightspeed (LED effects plugin)": "Lightspeed（LED 效果插件）",
  "Solid": "纯色",
   "Plugins": "插件",
+  "Copy this section": "复制此部分",
+  "Go to the header of this section": "转到此部分的标题",
+  "Could not copy": "无法复制",
 }

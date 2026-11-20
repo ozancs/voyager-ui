@@ -2718,4 +2718,7 @@ export default {
  "Lightspeed (LED effects plugin)": "Lightspeed (LED 효과 플러그인)",
  "Solid": "단색",
   "Plugins": "플러그인",
+  "Copy this section": "이 섹션 복사",
+  "Go to the header of this section": "이 섹션의 헤더로 이동",
+  "Could not copy": "복사할 수 없습니다",
 }

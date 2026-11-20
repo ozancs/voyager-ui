@@ -2718,4 +2718,7 @@ export default {
  "Lightspeed (LED effects plugin)": "Lightspeed（LEDエフェクトプラグイン）",
  "Solid": "単色",
   "Plugins": "プラグイン",
+  "Copy this section": "このセクションをコピー",
+  "Go to the header of this section": "このセクションの見出しへ移動",
+  "Could not copy": "コピーできませんでした",
 }
