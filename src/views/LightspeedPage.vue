@@ -10,9 +10,6 @@ import { t } from '../i18n';
 <template>
   <div class="lsp">
     <div class="row note">
-      <span class="mu"
-        >{{ t('Shown from Mainsail / Fluidd on this printer (port 80). If it does not load, one of them is needed.') }}
-      </span>
       <a class="btn clear sm" :href="pageUrl" target="_blank" rel="noopener"
         ><Icon name="ext" :size="14" />{{ t('Open in a new tab') }}</a
       >
@@ -30,12 +27,9 @@ import { t } from '../i18n';
 }
 .note {
   gap: 10px;
-  justify-content: space-between;
+  justify-content: flex-end;
   font-size: 12.5px;
   padding: 0 4px;
-}
-.mu {
-  color: var(--mu);
 }
 .frame {
   flex: 1;
