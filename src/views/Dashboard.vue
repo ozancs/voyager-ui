@@ -186,6 +186,40 @@ const MODULES = {
   },
 };
 const isCustom = (i) => i.startsWith('c_');
+// Add card shows each module with an icon, so the list can be scanned without reading every name
+const MODULE_ICON = {
+  console: 'term',
+  temps: 'thermo',
+  tempchart: 'wave',
+  speedchart: 'pulse',
+  webcam: 'cam',
+  toolhead: 'nozzle',
+  favorites: 'star',
+  livez: 'axis',
+  extruder: 'drop',
+  limits: 'shield',
+  printctl: 'sliders',
+  print: 'printer3d',
+  thumb: 'image',
+  ledfx: 'bulb',
+  lightspeed: 'sparkle',
+  objects: 'cube',
+  mesh: 'mesh',
+  system: 'cpu',
+  queue: 'queue',
+  macros: 'code',
+  devices: 'fan',
+  files: 'file',
+  jobs: 'clock',
+  spool: 'spool',
+  retraction: 'rewind',
+  hardware: 'chip',
+  health: 'heart',
+  power: 'power',
+  mmu: 'layers',
+  timelapse: 'video',
+  phoenix: 'restart',
+};
 // A card for a plugin (or a Klipper section) the printer does not have now stays in the saved layout but is not
 // shown, so removing a plugin takes its card away and putting it back brings the card back where it was. "Not
 // there" is only decided once the printer has said what it has: Klipper's object list is empty while it is
@@ -737,10 +771,14 @@ onBeforeUnmount(rzEnd);
 // ---- customize session with undo / backups ----
 let entry = null;
 const addOpen = ref(false);
-// a drop-down menu is as tall as the room left under it in the window (it scrolls inside when longer)
+// a drop-down menu is as tall as the room left under it in the window (it scrolls inside when longer), and a wide
+// one (Add card) moves sideways to stay inside the window
 const vFitBelow = {
   mounted(el) {
-    el.style.maxHeight = Math.max(180, innerHeight - el.getBoundingClientRect().top - 12) + 'px';
+    const r = el.getBoundingClientRect();
+    el.style.maxHeight = Math.max(180, innerHeight - r.top - 12) + 'px';
+    const shift = r.left < 12 ? 12 - r.left : r.right > innerWidth - 12 ? innerWidth - 12 - r.right : 0;
+    if (shift) el.style.right = parseFloat(getComputedStyle(el).right) - shift + 'px';
   },
 };
 const restoreOpen = ref(false);
@@ -1050,7 +1088,7 @@ function detachCard(i) {
           >
             <Icon name="plus" :size="16" :stroke="2.6" />{{ t('Add card') }}
           </button>
-          <div v-if="addOpen" v-fit-below class="dd card" v-away="() => (addOpen = false)">
+          <div v-if="addOpen" v-fit-below class="dd card add" v-away="() => (addOpen = false)">
             <template v-if="phoneRemoved.length">
               <span class="sec-lbl">{{ t('Taken off the phone') }}</span>
               <button
@@ -1065,50 +1103,59 @@ function detachCard(i) {
                 <Icon name="phone" :size="16" />{{ c.name }}
               </button>
             </template>
-            <span class="sec-lbl">{{ t('Modules') }}</span>
-            <button
-              v-for="k in available.filter((k) => !MODULES[k].plugin)"
-              :key="k"
-              class="btn clear di"
-              @click="addModule(k)"
-            >
-              {{ t(MODULES[k].n) }}
-            </button>
-            <span v-if="!available.length" class="mu" style="font-size: 12px">{{
-              t('All modules are on the dashboard')
-            }}</span>
-            <template v-if="available.some((k) => MODULES[k].plugin)">
-              <span class="sec-lbl" style="margin-top: 8px">{{ t('Plugins') }}</span>
-              <button
-                v-for="k in available.filter((k) => MODULES[k].plugin)"
-                :key="k"
-                class="btn clear di"
-                @click="addModule(k)"
-              >
-                {{ t(MODULES[k].n) }}
-              </button>
-            </template>
-            <span class="sec-lbl" style="margin-top: 8px">{{ t('Custom') }}</span>
-            <button class="btn clear di" @click="addCustom('btn')">
-              <Icon name="star" :size="16" />{{ t('Command button (square)') }}
-            </button>
-            <button class="btn clear di" @click="addCustom('macros')">
-              <Icon name="dash" :size="16" />{{ t('Macro group') }}
-            </button>
-            <button class="btn clear di" @click="addCustom('ctl')">
-              <Icon name="sliders" :size="16" />{{ t('Controls (sliders, switches, macro inputs)') }}
-            </button>
-            <button class="btn clear di" @click="addCustom('tabs')">
-              <Icon name="layers" :size="16" />{{ t('Tabs (several cards in one)') }}
-            </button>
-            <button
-              v-for="w in state.webcams.filter((w) => w.enabled !== false)"
-              :key="'cam:' + w.name"
-              class="btn clear di"
-              @click="addCustom('cam', w.name)"
-            >
-              <Icon name="snap" :size="16" />{{ t('Webcam: {name}', { name: w.name }) }}
-            </button>
+            <!-- built-in cards, plugins and custom cards side by side; one column under each other when narrow -->
+            <div class="cols">
+              <div class="grp mods">
+                <span class="sec-lbl">{{ t('Modules') }}</span>
+                <div class="items">
+                  <button
+                    v-for="k in available.filter((k) => !MODULES[k].plugin)"
+                    :key="k"
+                    class="btn clear di"
+                    @click="addModule(k)"
+                  >
+                    <Icon :name="MODULE_ICON[k] || 'grid'" :size="16" />{{ t(MODULES[k].n) }}
+                  </button>
+                </div>
+                <span v-if="!available.length" class="mu" style="font-size: 12px">{{
+                  t('All modules are on the dashboard')
+                }}</span>
+              </div>
+              <div v-if="available.some((k) => MODULES[k].plugin)" class="grp">
+                <span class="sec-lbl">{{ t('Plugins') }}</span>
+                <button
+                  v-for="k in available.filter((k) => MODULES[k].plugin)"
+                  :key="k"
+                  class="btn clear di"
+                  @click="addModule(k)"
+                >
+                  <Icon :name="MODULE_ICON[k] || 'plug'" :size="16" />{{ t(MODULES[k].n) }}
+                </button>
+              </div>
+              <div class="grp">
+                <span class="sec-lbl">{{ t('Custom') }}</span>
+                <button class="btn clear di" @click="addCustom('btn')">
+                  <Icon name="star" :size="16" />{{ t('Command button (square)') }}
+                </button>
+                <button class="btn clear di" @click="addCustom('macros')">
+                  <Icon name="dash" :size="16" />{{ t('Macro group') }}
+                </button>
+                <button class="btn clear di" @click="addCustom('ctl')">
+                  <Icon name="sliders" :size="16" />{{ t('Controls (sliders, switches, macro inputs)') }}
+                </button>
+                <button class="btn clear di" @click="addCustom('tabs')">
+                  <Icon name="layers" :size="16" />{{ t('Tabs (several cards in one)') }}
+                </button>
+                <button
+                  v-for="w in state.webcams.filter((w) => w.enabled !== false)"
+                  :key="'cam:' + w.name"
+                  class="btn clear di"
+                  @click="addCustom('cam', w.name)"
+                >
+                  <Icon name="snap" :size="16" />{{ t('Webcam: {name}', { name: w.name }) }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="rel">
@@ -1810,6 +1857,48 @@ function detachCard(i) {
 }
 .dd > * {
   flex-shrink: 0;
+}
+/* Add card: wide enough for the groups side by side, never wider than the window */
+.dd.add {
+  width: min(820px, calc(100vw - 24px));
+  container-type: inline-size;
+}
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: start;
+}
+.grp,
+.grp .items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.grp .items {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.grp + .grp {
+  border-left: 1px solid var(--bd);
+  padding-left: 14px;
+}
+@container (max-width: 620px) {
+  .cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .grp + .grp {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--bd);
+    padding-top: 8px;
+  }
+}
+@container (max-width: 380px) {
+  .grp .items {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .di {
   justify-content: flex-start;
