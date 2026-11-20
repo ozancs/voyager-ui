@@ -8,6 +8,7 @@ import RangeSlider from './RangeSlider.vue';
 import ColorEditor from './ColorEditor.vue';
 import LightspeedSwatch from './LightspeedSwatch.vue';
 import { t } from '../i18n';
+import { go } from '../router';
 import {
   E,
   lsStrips,
@@ -67,6 +68,7 @@ function choosePeriod(v) {
           rel="noopener"
           :aria-label="t('Open Lightspeed')"
           :data-tip="t('Open Lightspeed')"
+          @click.prevent="go('lightspeed')"
           ><Icon name="ext" :size="15" :stroke="2.4"
         /></a>
       </div>

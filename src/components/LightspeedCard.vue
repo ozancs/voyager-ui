@@ -13,6 +13,7 @@ import LightspeedSwatch from './LightspeedSwatch.vue';
 import LightspeedPop from './LightspeedPop.vue';
 import { S } from '../store';
 import { t } from '../i18n';
+import { go } from '../router';
 import {
   E,
   lsStrips,
@@ -68,6 +69,7 @@ const bright = computed(() => Math.round((ls.value.brightness ?? 1) * 100));
           rel="noopener"
           :aria-label="t('Open Lightspeed')"
           :data-tip="t('Open Lightspeed')"
+          @click.prevent="go('lightspeed')"
           ><Icon name="ext" :size="15" :stroke="2.4"
         /></a>
         <Toggle :model-value="!!ls.enabled" :label="t('Lightspeed')" @update:model-value="setEnabled" />

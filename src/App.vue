@@ -72,6 +72,7 @@ const LOADERS = {
   heightmap: ['Heightmap', () => import('./views/Heightmap.vue')],
   calibrations: ['Calibrations', () => import('./views/Calibrations.vue')],
   oznlab: ['PA Sensei', () => import('./views/OznLabPage.vue')],
+  lightspeed: ['Lightspeed', () => import('./views/LightspeedPage.vue')],
   fleet: ['All printers', () => import('./views/Fleet.vue')],
   files: ['G-code Files', () => import('./views/Files.vue')],
   viewer: ['G-code Viewer', () => import('./views/Viewer.vue')],

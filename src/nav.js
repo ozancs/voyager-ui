@@ -13,6 +13,7 @@ export const NAV = [
   ['heightmap', 'hmap', 'Heightmap'],
   ['calibrations', 'target', 'Calibrations'],
   ['oznlab', 'sensor', 'PA Sensei'],
+  ['lightspeed', 'sparkle', 'Lightspeed'],
   ['files', 'file', 'G-code Files', 'Files'],
   ['viewer', 'cube', 'G-code Viewer', 'Viewer'],
   ['machine', 'cpu', 'Machine'],
@@ -26,9 +27,13 @@ export const NAV2 = [
 // the PA Sensei page only on printers that have the sensor's Klipper module: [pa_sensei ...], or [oznlab_sensor ...]
 // from before the rename
 const hasOznlab = computed(() => state.objects.some((o) => /^(pa_sensei|oznlab_sensor)( |$)/.test(o)));
-export const navItems = computed(() =>
-  NAV.filter(([k]) => route.name === k || (k === 'oznlab' ? hasOznlab.value : true)),
-);
+// the same for the Lightspeed page: only with the plugin's [lightspeed] section
+const PLUGIN_PAGE = {
+  oznlab: () => hasOznlab.value,
+  lightspeed: () => state.objects.includes('lightspeed'),
+};
+const pageThere = (k) => !PLUGIN_PAGE[k] || PLUGIN_PAGE[k]();
+export const navItems = computed(() => NAV.filter(([k]) => route.name === k || pageThere(k)));
 // the number of health issues on the Health page's entry, coloured by the worst of them
 export const healthBadge = computed(() => {
   const l = healthIssues.value;
@@ -42,7 +47,7 @@ export const healthBadge = computed(() => {
 // Phone: the bottom bar shows the first four pages of this list, More holds the rest in the same order. The order
 // is set in Customize > Phone (settings.bottomNavOrder); until then the bar is Dashboard, Camera, Console, Files.
 export const PHONE_BAR = ['dashboard', 'webcam', 'console', 'files'];
-const phonePageList = computed(() => [...NAV, ...NAV2].filter(([k]) => k !== 'oznlab' || hasOznlab.value));
+const phonePageList = computed(() => [...NAV, ...NAV2].filter(([k]) => pageThere(k)));
 export const phonePages = computed(() => {
   const all = phonePageList.value;
   return orderKeys(

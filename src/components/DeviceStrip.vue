@@ -29,6 +29,7 @@ import {
   stripTargetable,
 } from '../store';
 import { t } from '../i18n';
+import { go } from '../router';
 import { usePhoenixView, openSetup } from '../phoenix';
 const phx = usePhoenixView();
 // the Phoenix tile does what the card's button does, the Setup window when there is nothing to act on
@@ -509,7 +510,7 @@ function sensorExtra(id) {
             rel="noopener"
             :aria-label="t('Open Lightspeed')"
             :data-tip="t('Open Lightspeed')"
-            @click.stop
+            @click.stop.prevent="go('lightspeed')"
             ><Icon name="ext" :size="14" :stroke="2.4"
           /></a>
         </div>
