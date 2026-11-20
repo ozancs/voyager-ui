@@ -1652,6 +1652,60 @@ if (PHOENIX_FIXTURES[phoenixDemo] || phoenixDemo === 'unknown') {
     status.print_stats.filename = 'example.gcode';
   }
 }
+// Lightspeed (LED effects plugin): not part of the public demo either. Set localStorage voyager-ui-lightspeed-demo
+// to 1 to get its status object: the hotend neopixel and the chamber light on Lightspeed, plus a WLED shelf strip
+// and an ESP32 node that have no Klipper object
+const LS_SCENE = {
+  hotend: 'breathe color=1a3cff color2=000814 period=4',
+  chamber_light: 'solid',
+  shelf: 'rainbow period=8',
+  node: 'chase color=00ff40 period=2',
+};
+const lsHeld = {};
+let lsDemo = '';
+try {
+  lsDemo = localStorage.getItem('voyager-ui-lightspeed-demo') || '';
+} catch {}
+function lsStatus() {
+  const strip = (output, kind, count, name) => ({
+    output,
+    kind,
+    count,
+    place: '',
+    effect: lsHeld[name] || lsHeld.all || LS_SCENE[name],
+    fps: 25,
+    bytes_sent: 0,
+    dropped: 0,
+    errors: 0,
+    disabled: false,
+    last_error: '',
+    manual: lsHeld[name] ? 86000 : 0,
+  });
+  return {
+    strips: {
+      hotend: strip('neopixel hotend_rgb', 'neopixel', 3, 'hotend'),
+      chamber_light: strip('pin Chamber_Light', 'pin', 1, 'chamber_light'),
+      shelf: strip('wled 192.168.1.60', 'wled', 40, 'shelf'),
+      node: strip('esp_bridge led', 'esp_bridge', 30, 'node'),
+    },
+  };
+}
+if (lsDemo) {
+  objects.push('lightspeed');
+  status.lightspeed = {
+    version: '0.1.2',
+    enabled: true,
+    state: 'printing',
+    auto_state: 'printing',
+    override: false,
+    guard: false,
+    brightness: 0.6,
+    model: 'voron24',
+    size: '350,350,340',
+    mcu_rate: 1,
+    ...lsStatus(),
+  };
+}
 // what the other demo printers answer on the All printers page (plain HTTP queries to their address)
 const h = (temperature, target) => ({ temperature, target });
 const FLEET = {
@@ -2806,6 +2860,25 @@ gcodeScript = function (sc) {
       const c = [v('RED'), v('GREEN'), v('BLUE'), v('WHITE')];
       pushStatus({ [o]: { color_data: status[o].color_data.map(() => c) } });
     }
+    return 'ok';
+  }
+  if (
+    status.lightspeed &&
+    (m = sc.trim().match(/^LIGHTSPEED_PREVIEW STRIP=(\S+)(?: EFFECT="([^"]*)")?(?: HOLD=([\d.]+))?/i))
+  ) {
+    if (m[3] === '0') delete lsHeld[m[1]];
+    else if (m[2]) lsHeld[m[1]] = m[2];
+    pushStatus({ lightspeed: lsStatus() });
+    return 'ok';
+  }
+  if (status.lightspeed && (m = S.match(/^LIGHTSPEED_(BRIGHTNESS|ENABLE|STATE) \w+=(\S+)/))) {
+    const v = m[2].toLowerCase();
+    if (m[1] === 'BRIGHTNESS') pushStatus({ lightspeed: { brightness: Number(v) } });
+    else if (m[1] === 'ENABLE') pushStatus({ lightspeed: { enabled: v === '1' } });
+    else
+      pushStatus({
+        lightspeed: { override: v !== 'auto', state: v === 'auto' ? status.lightspeed.auto_state : v },
+      });
     return 'ok';
   }
   if ((m = S.match(/^SET_LED_EFFECT EFFECT=(\S+)( STOP=1)?/))) {

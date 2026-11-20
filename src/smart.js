@@ -13,6 +13,7 @@ import {
   allPresets,
 } from './store';
 import { t } from './i18n';
+import { stripsOf } from './lightspeed';
 import { macroParams, mainParam } from './macros';
 
 const norm = (s) =>
@@ -315,7 +316,15 @@ function build(tg, p, homed) {
       }
       if (!hex) return null;
       const [r, g, b] = [1, 3, 5].map((i) => (parseInt(hex.slice(i, i + 2), 16) / 255).toFixed(3));
-      const cmd = `SET_LED LED=${shortName(tg.obj)} RED=${r} GREEN=${g} BLUE=${b} SYNC=0 TRANSMIT=1`;
+      // a light Lightspeed drives takes the colour through Lightspeed (a SET_LED would be painted over)
+      const ls = stripsOf(tg.obj);
+      const cmd = ls.length
+        ? ls
+            .map(
+              (n) => `LIGHTSPEED_PREVIEW STRIP=${n} EFFECT="${off ? 'off' : 'solid color=' + hex.slice(1)}" HOLD=86400`,
+            )
+            .join('\n')
+        : `SET_LED LED=${shortName(tg.obj)} RED=${r} GREEN=${g} BLUE=${b} SYNC=0 TRANSMIT=1`;
       return {
         t: off
           ? t('Turn off {name}', { name: nm })

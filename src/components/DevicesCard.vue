@@ -8,6 +8,9 @@ import CardCollapse from './CardCollapse.vue';
 import Toggle from './Toggle.vue';
 import Popover from './Popover.vue';
 import LedPicker from './LedPicker.vue';
+import LightspeedSwatch from './LightspeedSwatch.vue';
+import LightspeedPop from './LightspeedPop.vue';
+import { stripsOf, lsStrips, parseEffect, switchStrip } from '../lightspeed';
 import { state, S, devices, prettyName, shortName, setFan, gcode, sensorRunout } from '../store';
 import { t } from '../i18n';
 
@@ -55,6 +58,14 @@ function ledSet(id, [r, g, b], w) {
     `SET_LED LED=${shortName(id)} RED=${r.toFixed(3)} GREEN=${g.toFixed(3)} BLUE=${b.toFixed(3)}${wh} SYNC=0 TRANSMIT=1`,
   ).catch(() => {});
 }
+// a light Lightspeed drives: its strips; the swatch shows the effect and opens the Lightspeed pop-up
+const lsOf = (d) => (d.ls ? [d.ls] : ['led', 'pin'].includes(d.kind) ? stripsOf(d.id) : []);
+const lsOn = (d) =>
+  lsOf(d).some((n) => {
+    const s = lsStrips.value[n];
+    return s && !s.disabled && parseEffect(s.effect)[0] !== 'off';
+  });
+const lsPick = ref(null); // { strips, el }
 function sensor(id, on) {
   gcode(`SET_FILAMENT_SENSOR SENSOR=${shortName(id)} ENABLE=${on ? 1 : 0}`);
 }
@@ -82,6 +93,20 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
           <span v-else class="grow mu sm au">{{ t('auto') }}</span>
           <b class="mono v">{{ live[d.id] ?? pct(S(d.id).speed) }}%</b>
         </template>
+        <template v-else-if="lsOf(d).length"
+          ><span class="grow"></span
+          ><button
+            class="lsb"
+            :aria-label="t('Lightspeed')"
+            :data-tip="t('Lightspeed')"
+            @click="lsPick = lsPick?.el === $event.currentTarget ? null : { strips: lsOf(d), el: $event.currentTarget }"
+          >
+            <LightspeedSwatch :strips="lsOf(d)" :glow="false" /></button
+          ><Toggle
+            :model-value="lsOn(d)"
+            :label="prettyName(d.id)"
+            @update:model-value="(v) => lsOf(d).forEach((n) => switchStrip(n, v))"
+        /></template>
         <template v-else-if="d.kind === 'pin'">
           <template v-if="cfg(d.id).pwm">
             <Rng :value="pinVal(d)" :label="prettyName(d.id)" @input="pin(d, $event)" @live="live[d.id] = $event" />
@@ -134,12 +159,23 @@ const ICON = { fan: 'fan', pin: 'bulb', led: 'bulb', filament: 'sensor' };
         <span class="lbl">{{ prettyName(picking.id) }}</span>
         <LedPicker :id="picking.id" @set="(c, w) => ledSet(picking.id, c, w)" @close="picking = null" />
       </Popover>
+      <Popover v-if="lsPick" :anchor="lsPick.el" :width="300" @close="lsPick = null">
+        <LightspeedPop :strips="lsPick.strips" />
+      </Popover>
       <div v-if="!list.length" class="empty">{{ t('No fans, pins or LEDs found') }}</div>
     </div>
   </section>
 </template>
 
 <style scoped>
+.lsb {
+  display: flex;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+}
 .list {
   display: flex;
   flex-direction: column;

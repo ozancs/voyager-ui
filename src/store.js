@@ -15,6 +15,7 @@ import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 import { notificationDismissKey } from './firmware';
 import { applyBase } from './baseColor';
+import { freeStrips } from './lightspeed';
 import { pickLayout as pickDeviceLayout, withOwnLayout, toStored } from './deviceLayout';
 import { readDeviceLayouts, writeDeviceLayout } from './deviceLayoutStorage';
 
@@ -788,6 +789,9 @@ export const devices = computed(() => {
       out.push({ id: o, kind: 'filament', custom: true });
     }
   }
+  // Lightspeed strips on outputs Klipper has no object for (WLED, ESP32 nodes): a light tile each. Strips on a
+  // neopixel or a pin take over that object's own tile (DeviceStrip)
+  for (const s of freeStrips.value) out.push({ id: 'lightspeed ' + s.name, kind: 'led', ls: s.name });
   if (state.spoolman.server) out.push({ id: 'spoolman', kind: 'spoolman' });
   // Phoenix print recovery (phoenix.js): its status as a tile; the dashboard card is optional
   if (state.objects.includes('phoenix')) out.push({ id: 'phoenix', kind: 'phoenix' });

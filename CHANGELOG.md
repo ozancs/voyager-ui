@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.38.60
+
+- Lightspeed (LED effects plugin for Klipper): when the printer has it, the lights it drives follow it. Their status tiles show the effect running, drawn live with the plugin's own effect engine (a breathing hotend breathes on the tile, a rainbow strip runs as a rainbow and the tile glows in its colour), WLED and ESP32 strips get tiles of their own, and the switch, the Devices card, the camera's light button and typed commands talk to Lightspeed instead of SET_LED, which it would paint over
+- Lightspeed: clicking such a tile opens its effects, colours and speed, with Auto (back to the scene for the printer's state) and Turn off; the arrow on the tile opens the Lightspeed page
+- Lightspeed card (Add card): on/off, brightness, which scene shows (Auto follows the printer) and every strip with its effect, each opening the same pop-up
+
 ## 0.38.59
 
 - Machine: Connected hardware (serial ports, USB devices, CAN boards and cameras, with the path or UUID to copy) is on the Machine page too, above Macro variables (asked for on Discord); on a wide card each device is one line in a table, on a narrow one it stays stacked

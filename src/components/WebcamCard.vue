@@ -9,6 +9,7 @@ import { state, S, gcode, shortName, prettyName } from '../store';
 import { api } from '../api/moonraker';
 import { go } from '../router';
 import { t } from '../i18n';
+import { stripsOf, lsStrips, parseEffect, switchStrip } from '../lightspeed';
 const props = defineProps({ id: { type: String, default: 'webcam' } });
 const cams = computed(() => state.webcams.filter((w) => w.enabled !== false));
 const chosen = computed({
@@ -31,13 +32,17 @@ const light = computed(() => state.objects.find((o) => LIGHT.test(o) && !/^outpu
 const lightOn = computed(() => {
   const s = light.value && S(light.value);
   if (!s) return false;
+  // a light Lightspeed drives: on while its effect is not off (Klipper's own colour stays 0 there)
+  const ls = stripsOf(light.value).map((n) => lsStrips.value[n]);
+  if (ls.length) return ls.some((x) => x && !x.disabled && parseEffect(x.effect)[0] !== 'off');
   if (light.value.startsWith('output_pin')) return (s.value || 0) > 0;
   return (s.color_data?.[0] || []).some((x) => x > 0.001);
 });
 function toggleLight() {
   const id = light.value,
     on = !lightOn.value;
-  if (id.startsWith('output_pin')) gcode(`SET_PIN PIN=${shortName(id)} VALUE=${on ? 1 : 0}`);
+  if (stripsOf(id).length) stripsOf(id).forEach((n) => switchStrip(n, on));
+  else if (id.startsWith('output_pin')) gcode(`SET_PIN PIN=${shortName(id)} VALUE=${on ? 1 : 0}`);
   else gcode(`SET_LED LED=${shortName(id)} RED=${+on} GREEN=${+on} BLUE=${+on} SYNC=0 TRANSMIT=1`);
 }
 function snapshot() {

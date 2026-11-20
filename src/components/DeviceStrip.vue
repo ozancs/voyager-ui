@@ -10,6 +10,9 @@ import Modal from './Modal.vue';
 import RangeSlider from './RangeSlider.vue';
 import LedPicker from './LedPicker.vue';
 import HeaterTarget from './HeaterTarget.vue';
+import LightspeedSwatch from './LightspeedSwatch.vue';
+import LightspeedPop from './LightspeedPop.vue';
+import { stripsOf, lsStrips, parseEffect, known, EFFECT_LABEL, switchStrip, pageUrl } from '../lightspeed';
 import {
   state,
   S,
@@ -277,6 +280,23 @@ function ledToggle(id, on) {
     gcode(`SET_LED LED=${shortName(id)} RED=0 GREEN=0 BLUE=0 WHITE=0 SYNC=0 TRANSMIT=1`);
   }
 }
+// Lightspeed: the strips that drive this tile's light (none when the plugin is not there). Such a light shows the
+// effect it runs and its switch and pop-up talk to Lightspeed; a SET_LED would be painted over on the next frame
+const lsOf = (d) => (d.ls ? [d.ls] : ['led', 'pin'].includes(d.kind) ? stripsOf(d.obj) : []);
+const lsList = (d) =>
+  lsOf(d)
+    .map((n) => lsStrips.value[n])
+    .filter(Boolean);
+const lsOn = (d) => lsList(d).some((s) => !s.disabled && parseEffect(s.effect)[0] !== 'off');
+function lsText(d) {
+  const l = lsList(d);
+  if (!l.length) return '';
+  const s = l[0];
+  const n = parseEffect(s.effect)[0];
+  const txt = s.disabled ? t('stopped') : known(n) ? t(EFFECT_LABEL[n]) : n;
+  return l.length > 1 ? `${txt} +${l.length - 1}` : txt;
+}
+const lsSwitch = (d, on) => lsOf(d).forEach((n) => switchStrip(n, on));
 const isPwm = (id) => {
   const s = S('configfile').settings?.[id.toLowerCase()];
   return !!s?.pwm;
@@ -303,6 +323,7 @@ function level(d) {
     const top = o.target > 0 ? o.target : S('configfile').settings?.[d.obj.toLowerCase()]?.max_temp || 100;
     v = cur / top;
   } else if (d.kind === 'fan') v = o.speed || 0;
+  else if (lsOf(d).length) v = lsOn(d) ? 1 : 0;
   else if (d.kind === 'pin') v = o.value > 0 ? (isPwm(d.obj) ? o.value : 1) : 0;
   else if (d.kind === 'led') v = ledOn(d.obj) ? 1 : 0;
   else if (d.kind === 'filament')
@@ -358,6 +379,7 @@ function sensorExtra(id) {
           drag: dragId === d.id,
           over: overId === d.id,
           wide: d.kind === 'temp' && canTarget(d),
+          lst: lsOf(d).length > 0,
           hot: d.kind === 'temp' && S(d.obj).target > 0,
         },
       ]"
@@ -365,7 +387,7 @@ function sensorExtra(id) {
         '--dx': dragId === d.id && state.editDash ? dragPos.x + 'px' : overId === d.id ? swapOff.x + 'px' : '0px',
         '--dy': dragId === d.id && state.editDash ? dragPos.y + 'px' : overId === d.id ? swapOff.y + 'px' : '0px',
         '--lvl': level(d),
-        '--lc': d.kind === 'led' && ledOn(d.obj) ? ledHex(d.obj) : null,
+        '--lc': d.kind === 'led' && !lsOf(d).length && ledOn(d.obj) ? ledHex(d.obj) : null,
       }"
       :data-id="d.id"
       @pointerdown="pDown(d, $event)"
@@ -375,6 +397,7 @@ function sensorExtra(id) {
           : (d.kind === 'temp' && canTarget(d)) ||
               (d.kind === 'fan' && d.controllable) ||
               d.kind === 'led' ||
+              lsOf(d).length ||
               (d.kind === 'pin' && isPwm(d.obj))
             ? toggleOpen(d.id, $event)
             : null
@@ -473,6 +496,33 @@ function sensorExtra(id) {
               {{ v ? v + '%' : t('Off') }}
             </button>
           </div>
+        </div>
+      </template>
+      <!-- A LIGHT LIGHTSPEED DRIVES (its LED, its pin, or a WLED / ESP32 strip of its own) -->
+      <template v-else-if="lsOf(d).length">
+        <div class="hd">
+          <span class="lbl nm">{{ prettyName(d.obj) }}</span
+          ><a
+            class="ext lsx"
+            :href="pageUrl"
+            target="_blank"
+            rel="noopener"
+            :aria-label="t('Open Lightspeed')"
+            :data-tip="t('Open Lightspeed')"
+            @click.stop
+            ><Icon name="ext" :size="14" :stroke="2.4"
+          /></a>
+        </div>
+        <div class="row" style="justify-content: space-between">
+          <LightspeedSwatch :strips="lsOf(d)" /><Toggle
+            :model-value="lsOn(d)"
+            :label="prettyName(d.obj)"
+            @update:model-value="lsSwitch(d, $event)"
+          />
+        </div>
+        <span class="mono sm ell">{{ lsText(d) }}</span>
+        <div v-if="open === d.id" class="pop card lspop" :class="{ rt: popRight }" @click.stop>
+          <LightspeedPop :strips="lsOf(d)" @close="open = null" />
         </div>
       </template>
       <!-- OUTPUT PIN -->
@@ -905,7 +955,12 @@ function sensorExtra(id) {
 .spl:focus-visible .hd > .lbl {
   display: none;
 }
-.spl .ext {
+/* a light Lightspeed drives: its glow follows the effect (LightspeedSwatch sets --lsc) */
+.dc.lst {
+  --lc: var(--lsc);
+}
+.spl .ext,
+.lsx {
   display: grid;
   place-items: center;
   color: var(--mu);
@@ -913,7 +968,8 @@ function sensorExtra(id) {
   margin: -2px;
   border-radius: 4px;
 }
-.spl .ext:hover {
+.spl .ext:hover,
+.lsx:hover {
   color: var(--tx);
   background: var(--s3);
 }

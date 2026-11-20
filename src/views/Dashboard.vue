@@ -36,6 +36,8 @@ import QueueCard from '../components/QueueCard.vue';
 import MacrosCard from '../components/MacrosCard.vue';
 import ThumbCard from '../components/ThumbCard.vue';
 import LedEffectsCard from '../components/LedEffectsCard.vue';
+import LightspeedCard from '../components/LightspeedCard.vue';
+import { hasLightspeed } from '../lightspeed';
 import DevicesCard from '../components/DevicesCard.vue';
 import RecentFilesCard from '../components/RecentFilesCard.vue';
 import TimelapseCard from '../components/TimelapseCard.vue';
@@ -103,6 +105,13 @@ const MODULES = {
     n: 'LED effects',
     min: [2, 3],
     def: [6, 5],
+  },
+  lightspeed: {
+    c: LightspeedCard,
+    n: 'Lightspeed (LED effects plugin)',
+    min: [2, 3],
+    def: [4, 6],
+    need: () => hasLightspeed.value,
   },
   objects: { c: ObjectsCard, n: 'Objects Map', min: [2, 4], def: [4, 7] },
   mesh: { c: MiniMeshCard, n: 'Bed Mesh', min: [2, 4], def: [3, 6] },

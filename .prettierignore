@@ -4,3 +4,4 @@ node_modules
 src/icons-extra.js
 src/locales
 *.zip
+src/vendor
