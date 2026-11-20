@@ -22,10 +22,18 @@ jobs:
       # updates to Latest), whichever finishes last
       - id: latest
         run: echo "make=$([ "$(git tag -l 'v*' --sort=-v:refname | head -1)" = "${GITHUB_REF_NAME}" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      # the release notes are this version's section of CHANGELOG.md (the same text the Discord post uses);
+      # GitHub's own notes only list pull requests, which most releases do not have
+      - name: Release notes from CHANGELOG.md
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          awk -v v="$VER" '{ sub(/\r$/,"") } /^## / { h=$2; sub(/^v/,"",h); if (f) exit; f=(h==v); next } f' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "See CHANGELOG.md" > notes.md
       - uses: softprops/action-gh-release@v2
         with:
           make_latest: ${{ steps.latest.outputs.make }}
           files: |
             voyager-ui.zip
             voyager-ui.zip.sha256
+          body_path: notes.md
           generate_release_notes: true
