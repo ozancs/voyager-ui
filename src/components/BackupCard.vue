@@ -3,6 +3,7 @@
 // itself after config changes. Without Klipper-Backup it says where to get it.
 import { computed, ref } from 'vue';
 import CardTitle from './CardTitle.vue';
+import CardCollapse from './CardCollapse.vue';
 import Icon from './Icon.vue';
 import Toggle from './Toggle.vue';
 import { state, fmtDate } from '../store';
@@ -21,6 +22,7 @@ const showLog = ref(false);
           backup.running ? t('Backing up…') : t('Back up now')
         }}
       </button>
+      <CardCollapse />
     </div>
     <template v-if="cmd">
       <div class="row sb">

@@ -6,6 +6,7 @@ import { copyText } from '../clipboard';
 import { ref, onMounted } from 'vue';
 import Icon from './Icon.vue';
 import Modal from './Modal.vue';
+import CardCollapse from './CardCollapse.vue';
 import { api } from '../api/moonraker';
 import { toast, askConfirm, fmtDay } from '../store';
 import { t } from '../i18n';
@@ -103,6 +104,7 @@ const when = (ts) => (ts ? fmtDay(ts * 1000, true) : '');
       <button class="btn" @click="add = { username: '', password: '' }">
         <Icon name="plus" :size="16" />{{ t('Add user') }}
       </button>
+      <CardCollapse />
     </div>
     <div v-if="users && !users.length" class="mu sm">
       {{ t('No users. Without a user, anyone on the network who is a trusted client gets in.') }}

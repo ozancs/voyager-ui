@@ -112,6 +112,7 @@ export const DEFAULT_SETTINGS = () => ({
   bottomNavOrder: [], // pages of the phone's bottom bar (first four) and its More menu, in order; empty = default
   hiddenCardsPrint: [],
   collapsed: {}, // card id -> true while folded to its header
+  machineFold: {}, // Machine page card id -> true while folded to its header
   // alerts for print events: sounds, a system notification while the tab is in the background, spoken text
   sound: {
     enabled: false,

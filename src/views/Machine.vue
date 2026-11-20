@@ -10,6 +10,9 @@ import UsersCard from '../components/UsersCard.vue';
 import MacroVars from '../components/MacroVars.vue';
 import SystemLoads from '../components/SystemLoads.vue';
 import FileBrowser from '../components/FileBrowser.vue';
+import FoldCard from '../components/FoldCard.vue';
+import CardCollapse from '../components/CardCollapse.vue';
+import HardwareCard from '../components/HardwareCard.vue';
 import { state, S, gcode, toast, fmtBytes, useApiEvent, applyUpd, restartKlipper, fmtDay } from '../store';
 import { api } from '../api/moonraker';
 import { macroVars } from '../features';
@@ -219,140 +222,151 @@ const viewLog = ref(null);
   <div class="mg">
     <div class="left"><FileBrowser /></div>
     <div class="col" style="gap: 16px">
-      <SystemLoads detailed />
-      <section class="card">
-        <div class="card-h">
-          <h2>{{ t('Update Manager') }}</h2>
-          <div class="acts">
-            <button
-              v-if="updates.filter(([, v]) => needs(v)).length > 1"
-              class="btn upb"
-              :disabled="!!busy"
-              @click="confirm = '__all'"
-            >
-              <Icon name="download" :size="16" />{{ t('Update all') }}</button
-            ><button class="btn" :disabled="!!busy" @click="loadUpd(true)">
-              <Icon name="refresh" :size="16" />{{ busy === 'check' ? t('Checking…') : t('Check') }}
-            </button>
+      <FoldCard id="loads"><SystemLoads detailed /></FoldCard>
+      <FoldCard id="updates"
+        ><section class="card">
+          <div class="card-h">
+            <h2>{{ t('Update Manager') }}</h2>
+            <div class="acts">
+              <button
+                v-if="updates.filter(([, v]) => needs(v)).length > 1"
+                class="btn upb"
+                :disabled="!!busy"
+                @click="confirm = '__all'"
+              >
+                <Icon name="download" :size="16" />{{ t('Update all') }}</button
+              ><button class="btn" :disabled="!!busy" @click="loadUpd(true)">
+                <Icon name="refresh" :size="16" />{{ busy === 'check' ? t('Checking…') : t('Check') }}
+              </button>
+            </div>
+            <CardCollapse />
           </div>
-        </div>
-        <div v-if="!upd" class="empty">{{ t('Loading…') }}</div>
-        <template v-for="group in updateGroups" :key="group.id">
-          <component
-            :is="group.id === 'current' ? 'details' : 'div'"
-            v-if="group.entries.length"
-            :class="{ 'current-updates': group.id === 'current' }"
-          >
-            <summary v-if="group.id === 'current'">
-              <span>{{ t('Up to date') }}</span>
-              <span class="chip">{{ group.entries.length }}</span>
-            </summary>
-            <div :class="{ 'current-grid': group.id === 'current' }">
-              <template v-for="[name, v] in group.entries" :key="name"
-                ><div :id="'upd-' + name" class="it">
-                  <div class="grow update-info">
-                    <b>{{ name === 'system' ? t('System') : name }}</b
-                    ><button
-                      v-if="name === 'system' && pkgs.length"
-                      class="pkt mono mu"
-                      :aria-expanded="showPkgs"
-                      @click="showPkgs = !showPkgs"
-                    >
-                      <Icon
-                        name="chev"
-                        :size="12"
-                        :stroke="2.4"
-                        :style="{ transform: showPkgs ? 'rotate(90deg)' : '' }"
-                      />{{ t('{n} packages can be updated', { n: v.package_count }) }}</button
-                    ><span
-                      v-else
-                      class="mono mu"
-                      style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
-                      >{{ name === 'system' ? t('{n} packages', { n: v.package_count }) : verText(v)
-                      }}<template v-if="name !== 'system' && needs(v)"> → {{ v.remote_version }}</template
-                      ><template v-if="v.is_dirty"> · {{ t('dirty') }}</template
-                      ><template v-if="v.detached"> · {{ t('detached') }}</template></span
+          <div v-if="!upd" class="empty">{{ t('Loading…') }}</div>
+          <template v-for="group in updateGroups" :key="group.id">
+            <component
+              :is="group.id === 'current' ? 'details' : 'div'"
+              v-if="group.entries.length"
+              :class="{ 'current-updates': group.id === 'current' }"
+            >
+              <summary v-if="group.id === 'current'">
+                <span>{{ t('Up to date') }}</span>
+                <span class="chip">{{ group.entries.length }}</span>
+              </summary>
+              <div :class="{ 'current-grid': group.id === 'current' }">
+                <template v-for="[name, v] in group.entries" :key="name"
+                  ><div :id="'upd-' + name" class="it">
+                    <div class="grow update-info">
+                      <b>{{ name === 'system' ? t('System') : name }}</b
+                      ><button
+                        v-if="name === 'system' && pkgs.length"
+                        class="pkt mono mu"
+                        :aria-expanded="showPkgs"
+                        @click="showPkgs = !showPkgs"
+                      >
+                        <Icon
+                          name="chev"
+                          :size="12"
+                          :stroke="2.4"
+                          :style="{ transform: showPkgs ? 'rotate(90deg)' : '' }"
+                        />{{ t('{n} packages can be updated', { n: v.package_count }) }}</button
+                      ><span
+                        v-else
+                        class="mono mu"
+                        style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
+                        >{{ name === 'system' ? t('{n} packages', { n: v.package_count }) : verText(v)
+                        }}<template v-if="name !== 'system' && needs(v)"> → {{ v.remote_version }}</template
+                        ><template v-if="v.is_dirty"> · {{ t('dirty') }}</template
+                        ><template v-if="v.detached"> · {{ t('detached') }}</template></span
+                      >
+                    </div>
+                    <!-- roll back sits left of the status, in a slot every row keeps so the status buttons line up -->
+                    <span
+                      v-if="name !== 'system' && anyRollback && (group.id === 'attention' || canRollback(v))"
+                      class="rbs"
+                      ><button
+                        v-if="canRollback(v)"
+                        class="btn clear ibtn sm"
+                        :disabled="!!busy"
+                        :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
+                        :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
+                        @click="rb = name"
+                      >
+                        <Icon name="rewind" :size="16" /></button
+                    ></span>
+                    <button v-if="needs(v)" class="btn upb" :disabled="!!busy" @click="confirm = name">
+                      <Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}
+                    </button>
+                    <span
+                      v-else-if="group.id === 'attention'"
+                      class="chip"
+                      :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"
+                      ><i></i
+                      >{{
+                        v.detached
+                          ? t('Pinned')
+                          : v.is_dirty
+                            ? t('dirty')
+                            : v.is_valid === false
+                              ? t('Invalid')
+                              : t('Up to date')
+                      }}</span
                     >
                   </div>
-                  <!-- roll back sits left of the status, in a slot every row keeps so the status buttons line up -->
-                  <span
-                    v-if="name !== 'system' && anyRollback && (group.id === 'attention' || canRollback(v))"
-                    class="rbs"
-                    ><button
-                      v-if="canRollback(v)"
-                      class="btn clear ibtn sm"
-                      :disabled="!!busy"
-                      :aria-label="t('Roll back to {v}', { v: v.rollback_version })"
-                      :data-tip="t('Roll back to {v}', { v: v.rollback_version })"
-                      @click="rb = name"
-                    >
-                      <Icon name="rewind" :size="16" /></button
-                  ></span>
-                  <button v-if="needs(v)" class="btn upb" :disabled="!!busy" @click="confirm = name">
-                    <Icon name="download" :size="16" />{{ busy === name ? t('Updating…') : t('Update') }}
-                  </button>
-                  <span
-                    v-else-if="group.id === 'attention'"
-                    class="chip"
-                    :style="{ color: v.detached || v.is_dirty ? 'var(--wn)' : 'var(--mu)' }"
-                    ><i></i
-                    >{{
-                      v.detached
-                        ? t('Pinned')
-                        : v.is_dirty
-                          ? t('dirty')
-                          : v.is_valid === false
-                            ? t('Invalid')
-                            : t('Up to date')
-                    }}</span
-                  >
-                </div>
-                <div v-if="name === 'system' && showPkgs && pkgs.length" class="cl pkl mono">
-                  <span v-for="p in pkgs" :key="p">{{ p }}</span>
-                </div></template
-              >
-            </div>
-          </component>
-        </template>
-      </section>
-      <section class="card">
-        <div class="card-h">
-          <h2>{{ t('Endstops') }}</h2>
-          <button class="btn" @click="query"><Icon name="refresh" :size="16" />{{ t('Query') }}</button>
-        </div>
-        <div v-if="!ends" class="mu" style="font-size: 13px">{{ t('Press query to read endstop states.') }}</div>
-        <div v-for="(v, k) in ends" :key="k" class="row sb" style="height: 30px">
-          <span class="mono">{{ k }}</span
-          ><span class="chip" :style="{ color: v === 'open' ? 'var(--mu)' : 'var(--tx)' }"><i></i>{{ t(v) }}</span>
-        </div>
-      </section>
-      <section class="card">
-        <div class="card-h">
-          <h2>{{ t('Logs') }}</h2>
-          <button class="btn" @click="restartKlipper(true)">
-            <Icon name="restart" :size="16" />{{ t('Firmware restart') }}
-          </button>
-        </div>
-        <div v-for="l in logs" :key="l" class="row" style="height: 40px">
-          <Icon name="file" :size="16" style="color: var(--mu)" /><span class="mono grow">{{ l }}</span
-          ><button class="btn" @click="viewLog = l"><Icon name="eye" :size="15" />{{ t('View') }}</button
-          ><a
-            class="btn ibtn sm clear"
-            :href="api.url('/server/files/logs/' + l)"
-            download
-            :aria-label="t('Download {f}', { f: l })"
-            ><Icon name="download" :size="16"
-          /></a>
-        </div>
-      </section>
-      <section v-if="hasVars" class="card">
-        <div class="card-h">
-          <h2>{{ t('Macro variables') }}</h2>
-        </div>
-        <MacroVars />
-      </section>
-      <BackupCard />
-      <UsersCard />
+                  <div v-if="name === 'system' && showPkgs && pkgs.length" class="cl pkl mono">
+                    <span v-for="p in pkgs" :key="p">{{ p }}</span>
+                  </div></template
+                >
+              </div>
+            </component>
+          </template>
+        </section></FoldCard
+      >
+      <FoldCard id="endstops"
+        ><section class="card">
+          <div class="card-h">
+            <h2>{{ t('Endstops') }}</h2>
+            <button class="btn" @click="query"><Icon name="refresh" :size="16" />{{ t('Query') }}</button>
+            <CardCollapse />
+          </div>
+          <div v-if="!ends" class="mu" style="font-size: 13px">{{ t('Press query to read endstop states.') }}</div>
+          <div v-for="(v, k) in ends" :key="k" class="row sb" style="height: 30px">
+            <span class="mono">{{ k }}</span
+            ><span class="chip" :style="{ color: v === 'open' ? 'var(--mu)' : 'var(--tx)' }"><i></i>{{ t(v) }}</span>
+          </div>
+        </section></FoldCard
+      >
+      <FoldCard id="logs"
+        ><section class="card">
+          <div class="card-h">
+            <h2>{{ t('Logs') }}</h2>
+            <button class="btn" @click="restartKlipper(true)">
+              <Icon name="restart" :size="16" />{{ t('Firmware restart') }}
+            </button>
+            <CardCollapse />
+          </div>
+          <div v-for="l in logs" :key="l" class="row" style="height: 40px">
+            <Icon name="file" :size="16" style="color: var(--mu)" /><span class="mono grow">{{ l }}</span
+            ><button class="btn" @click="viewLog = l"><Icon name="eye" :size="15" />{{ t('View') }}</button
+            ><a
+              class="btn ibtn sm clear"
+              :href="api.url('/server/files/logs/' + l)"
+              download
+              :aria-label="t('Download {f}', { f: l })"
+              ><Icon name="download" :size="16"
+            /></a>
+          </div></section
+      ></FoldCard>
+      <FoldCard id="hardware"><HardwareCard /></FoldCard>
+      <FoldCard v-if="hasVars" id="vars"
+        ><section class="card">
+          <div class="card-h">
+            <h2>{{ t('Macro variables') }}</h2>
+            <CardCollapse />
+          </div>
+          <MacroVars /></section
+      ></FoldCard>
+      <FoldCard id="backup"><BackupCard /></FoldCard>
+      <FoldCard id="users"><UsersCard /></FoldCard>
     </div>
   </div>
   <LogViewer v-if="viewLog" :file="viewLog" @close="viewLog = null" />

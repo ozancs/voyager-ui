@@ -138,20 +138,19 @@ const EMPTY = {
     <p v-if="err" class="mu sm">{{ err }}</p>
     <div v-else-if="rows" class="list" data-fit>
       <div v-for="r in rows" :key="r.key" class="it">
-        <span class="col grow" style="gap: 2px; min-width: 0">
-          <b class="ti">{{ r.title }}</b>
-          <span v-if="r.copy && r.copy !== r.title" class="mono mu sm path">{{ r.copy }}</span>
-          <span v-if="r.sub" class="mu sm">{{ r.sub }}</span>
-        </span>
-        <button
-          v-if="r.copy"
-          class="btn clear ibtn sm"
-          :aria-label="t('Copy')"
-          :data-tip="copied === r.copy ? t('Copied') : t('Copy')"
-          @click="copy(r.copy)"
-        >
-          <Icon :name="copied === r.copy ? 'check' : 'copy'" :size="15" />
-        </button>
+        <b class="ti">{{ r.title }}</b>
+        <span class="mono mu sm path" :title="r.copy">{{ r.copy && r.copy !== r.title ? r.copy : '' }}</span>
+        <span class="mu sm sub">{{ r.sub }}</span>
+        <span class="cp"
+          ><button
+            v-if="r.copy"
+            class="btn clear ibtn sm"
+            :aria-label="t('Copy')"
+            :data-tip="copied === r.copy ? t('Copied') : t('Copy')"
+            @click="copy(r.copy)"
+          >
+            <Icon :name="copied === r.copy ? 'check' : 'copy'" :size="15" /></button
+        ></span>
       </div>
       <p v-if="!rows.length" class="mu sm">{{ t(EMPTY[tab]) }}</p>
     </div>
@@ -181,6 +180,9 @@ const EMPTY = {
 .canq .input {
   width: 90px;
 }
+.hw {
+  container-type: inline-size;
+}
 .list {
   display: flex;
   flex-direction: column;
@@ -188,13 +190,26 @@ const EMPTY = {
   min-height: 0;
   overflow: auto;
 }
+/* narrow card: name, path and details under each other, copy on the right */
 .it {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  column-gap: 8px;
+  row-gap: 2px;
   padding: 8px 10px;
   border-radius: 8px;
   background: var(--s2);
+}
+.it > :not(.cp) {
+  grid-column: 1;
+}
+.cp {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+}
+.it > span:not(.cp):empty {
+  display: none;
 }
 .ti {
   font-size: 13.5px;
@@ -202,5 +217,53 @@ const EMPTY = {
 }
 .path {
   overflow-wrap: anywhere;
+}
+/* wide card (Machine page, a wide dashboard card): one line per device, the columns lined up as a table */
+@container (min-width: 400px) {
+  .list {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content auto;
+    gap: 0;
+    border-radius: 8px;
+    background: var(--s2);
+    padding: 2px 0;
+  }
+  .it {
+    display: contents;
+  }
+  .it > * {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    display: flex !important;
+    align-items: center;
+    min-width: 0;
+    min-height: 36px;
+    padding: 0 10px;
+    border-top: 1px solid var(--bd);
+  }
+  .it:first-child > * {
+    border-top: none;
+  }
+  .ti {
+    overflow-wrap: normal;
+    white-space: nowrap;
+  }
+  .path {
+    display: block !important;
+    line-height: 36px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sub {
+    white-space: nowrap;
+  }
+  .cp {
+    padding: 0 4px !important;
+  }
+  .list > p {
+    grid-column: 1 / -1;
+    padding: 8px 10px;
+  }
 }
 </style>

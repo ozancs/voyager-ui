@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.59
+
+- Machine: Connected hardware (serial ports, USB devices, CAN boards and cameras, with the path or UUID to copy) is on the Machine page too, above Macro variables (asked for on Discord); on a wide card each device is one line in a table, on a narrow one it stays stacked
+- Machine: every card on the page folds to its header with the chevron on the right, and stays folded in this browser
+
 ## 0.38.58
 
 - Community contributions from @DubMonstaa (#18–#24): automatic per-browser dashboard layouts with isolated storage and backup/restore; interface size in 5% steps and separate status tile size with live preview; richer Happy Hare MMU feedback, spool details and maintenance actions; automatic humidity/pressure readings; compact temperatures with min/max, target controls and small power percentages; correctly anchored popovers and tighter dashboard spacing. Circle/Buttons remains in the Toolhead header, and MMU confirmations recheck print state before sending commands.
