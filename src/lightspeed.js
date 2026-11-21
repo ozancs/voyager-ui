@@ -5,7 +5,7 @@
 // esp_bridge nodes) get tiles of their own.
 // Status: lightspeed.strips = { name: { output: 'neopixel hotend_rgb' | 'pin X' | 'wled ip' | 'esp_bridge p',
 // kind, count, effect: 'breathe color=1a3cff period=4', manual: seconds a preview still holds, disabled, ... } }
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import './vendor/lightspeed_engine.js';
 import { state, S, gcode, toast } from './store';
 import { currentHost } from './printers';
@@ -165,11 +165,38 @@ export const setBrightness = (v) => run(`LIGHTSPEED_BRIGHTNESS VALUE=${Math.max(
 export const setEnabled = (on) => run(`LIGHTSPEED_ENABLE VALUE=${on ? 1 : 0}`);
 export const showState = (st) => run(`LIGHTSPEED_STATE STATE=${st}${st === 'auto' ? '' : ' HOLD=60'}`);
 
-// the plugin's designer page. install.sh links it into Mainsail's / Fluidd's folder on the printer, so it is on
-// the printer's port 80, not where Voyager is served; Settings can point elsewhere
+// the plugin's designer page. install.sh links it into Mainsail's / Fluidd's folder, which can be on any port
+// (80, 81 for a second UI, 4408/4409 on Creality K1, ...). Voyager finds it by itself: it loads the page's logo
+// from each likely address (an image load works across ports and fails on a 404 or an HTML fallback page) and
+// keeps the first that answers, in this order. Settings can still point elsewhere.
+const LOC = globalThis.location || { protocol: 'http:', hostname: 'localhost', origin: '' };
+const LS_PORTS = ['', ':80', ':81', ':8080', ':8081', ':4408', ':4409', ':7136', ':7125'];
+const lsFound = ref(''),
+  lsHost = computed(() => (currentHost() || '').split(':')[0] || LOC.hostname || 'localhost');
+let lsProbed = '';
+function probeLightspeed(host) {
+  if (!host || lsProbed === host || typeof Image === 'undefined') return;
+  lsProbed = host;
+  lsFound.value = '';
+  const proto = LOC.protocol === 'https:' ? 'https' : 'http';
+  const bases = [...new Set([LOC.origin, ...LS_PORTS.map((p) => `${proto}://${host}${p}`)])];
+  const tryOne = (base) =>
+    new Promise((ok) => {
+      const img = new Image();
+      const t = setTimeout(() => ok(false), 2500);
+      img.onload = () => { clearTimeout(t); ok(img.naturalWidth > 0); };
+      img.onerror = () => { clearTimeout(t); ok(false); };
+      img.src = `${base}/lightspeed/logo.svg?probe=${Date.now()}`;
+    });
+  Promise.all(bases.map(tryOne)).then((hits) => {
+    if (lsProbed !== host) return;
+    const i = hits.indexOf(true);
+    if (i >= 0) lsFound.value = `${bases[i]}/lightspeed/lightspeed.html`;
+  });
+}
+watch([hasLightspeed, lsHost], ([on, host]) => { if (on) probeLightspeed(host); }, { immediate: true });
 export const pageUrl = computed(() => {
   const own = String(state.settings.lightspeedUrl || '').trim();
   if (/^https?:\/\//i.test(own)) return own;
-  const host = (currentHost() || '').split(':')[0] || location.hostname || 'localhost';
-  return `${location.protocol === 'https:' ? 'https' : 'http'}://${host}/lightspeed/lightspeed.html`;
+  return lsFound.value || `${LOC.protocol === 'https:' ? 'https' : 'http'}://${lsHost.value}/lightspeed/lightspeed.html`;
 });
