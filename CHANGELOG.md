@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.61
+
+- Lightspeed: the plugin's page is found by itself on whatever port the printer serves it (80, 81, 4408...), so it opens inside Voyager without a setting
+
 ## 0.38.60
 
 - Lightspeed (LED effects plugin for Klipper): when the printer has it, the lights it drives follow it. Their status tiles show the effect running, drawn live with the plugin's own effect engine (a breathing hotend breathes on the tile, a rainbow strip runs as a rainbow and the tile glows in its colour), WLED and ESP32 strips get tiles of their own, and the switch, the Devices card, the camera's light button and typed commands talk to Lightspeed instead of SET_LED, which it would paint over
