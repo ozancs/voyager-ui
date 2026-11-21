@@ -458,6 +458,7 @@ function extensions(tab) {
     ]),
     EditorView.updateListener.of((u) => {
       if (u.docChanged) {
+        TABS.states[tab.key] = markRaw(u.state);
         tab.dirty = u.state.doc.toString() !== tab.orig;
         tabs.value = [...tabs.value];
       }
@@ -517,13 +518,15 @@ let viewKey = ''; // the tab whose document the editor shows right now
 // changed on disk, with Reload to take the new version.
 const fileUrl = (tab) => `/server/files/${tab.root}/${tab.path.split('/').map(encodeURIComponent).join('/')}`;
 async function refreshTab(tab, force = false) {
-  if (tab.loading || tab.failed || tab.root === 'logs' || saving.value) return;
+  if (tab.loading || tab.failed || tab.root === 'logs' || tab.saving) return;
+  const original = tab.orig;
   let raw;
   try {
     raw = await api.getText(fileUrl(tab));
   } catch {
     return;
   }
+  if (tab.saving || tab.orig !== original) return; // a local save overtook the read
   const text = raw.replace(/\r\n/g, '\n');
   const shown =
     viewKey === tab.key && view.value ? view.value.state.doc.toString() : TABS.states[tab.key]?.doc.toString();
@@ -686,11 +689,11 @@ function applyJump() {
 watch(() => state.jump, applyJump);
 
 // ---------------------------------------------------------------- save
-const saving = ref(false);
+const saving = computed(() => !!active.value?.saving);
 async function save(restart) {
   const a = active.value,
     v = view.value;
-  if (!a || !v || a.root === 'logs') return;
+  if (!a || !v || a.root === 'logs' || a.saving) return;
   // the editor must be showing this tab's own, fully loaded document
   if (a.loading || a.failed || viewKey !== a.key)
     return toast(t('This file did not load. Reopen it before saving.'), 'error');
@@ -701,8 +704,9 @@ async function save(restart) {
     restart = false;
     if (!a.dirty) return;
   }
-  saving.value = true;
-  const text = v.state.doc.toString();
+  a.saving = true;
+  const savedDoc = v.state.doc;
+  const text = savedDoc.toString();
   try {
     await backupBeforeWrite(a.root, a.path);
     await api.upload(new Blob([a.crlf ? text.replace(/\n/g, '\r\n') : text], { type: 'text/plain' }), {
@@ -711,7 +715,8 @@ async function save(restart) {
       name: a.path.split('/').pop(),
     });
     a.orig = text;
-    a.dirty = false;
+    // The user can keep typing or switch tabs while the backup and upload are in flight.
+    a.dirty = !savedDoc.eq(TABS.states[a.key]?.doc || savedDoc);
     tabs.value = [...tabs.value];
     toast(t('{f} saved', { f: a.path }));
     if (restart) {
@@ -721,8 +726,9 @@ async function save(restart) {
     }
   } catch (e) {
     toast(t('Save failed: {e}', { e: e.message }), 'error');
+  } finally {
+    a.saving = false;
   }
-  saving.value = false;
 }
 function revert() {
   const a = active.value;

@@ -123,7 +123,7 @@ async function reprint() {
       <div class="stats">
         <div :style="{ minWidth: '9ch' }">
           <span class="lbl">{{ t('Layer') }}</span
-          ><b class="mono">{{ layerInfo.estimated ? '~' : '' }}{{ layerInfo.cur }} / {{ layerInfo.total || '--' }}</b>
+          ><b class="mono">{{ layerInfo.labels.cur }} / {{ layerInfo.labels.total }}</b>
         </div>
         <div :style="{ minWidth: '8.5ch' }">
           <span class="lbl">Z</span><b class="mono">{{ z }} mm</b>

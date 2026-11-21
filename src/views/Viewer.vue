@@ -779,9 +779,9 @@ onBeforeUnmount(() => {
           <span class="chip" style="text-transform: capitalize"><i></i>{{ t(printState) }}</span>
         </div>
         <div class="row" style="align-items: baseline">
-          <b style="font-size: 32px">{{ layerInfo.cur }}</b
+          <b style="font-size: 32px">{{ layerInfo.labels.cur }}</b
           ><span class="mono mu"
-            >/ {{ layerInfo.total || '--' }} · Z {{ (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2) }}</span
+            >/ {{ layerInfo.labels.total }} · Z {{ (S('gcode_move').gcode_position?.[2] ?? 0).toFixed(2) }}</span
           >
         </div>
         <div v-if="active && file === curPrint" class="row" style="justify-content: space-between">

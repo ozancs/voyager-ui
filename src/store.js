@@ -15,9 +15,15 @@ import { startTempEvents } from './tempEvents';
 import { sortSensors } from './sensorStyle';
 import { notificationDismissKey } from './firmware';
 import { applyBase } from './baseColor';
-import { freeStrips } from './lightspeed';
-import { pickLayout as pickDeviceLayout, withOwnLayout, toStored } from './deviceLayout';
-import { readDeviceLayouts, writeDeviceLayout } from './deviceLayoutStorage';
+import { freeStrips, startLightspeedDiscovery } from './lightspeed';
+import {
+  pickLayout as pickDeviceLayout,
+  withOwnLayout,
+  toStored,
+  compactLayoutHistory,
+  compactStoredHistories,
+} from './deviceLayout';
+import { readDeviceLayouts, readStoredSettings, writeDeviceLayout, applyDeviceLayouts } from './deviceLayoutStorage';
 
 export const VERSION = __APP_VERSION__;
 export const APP = 'voyager-ui';
@@ -309,17 +315,18 @@ export function moveCam(name, dir) {
 export const firstCam = computed(
   () => state.webcams.find((c) => c.name === state.webcamOrder[0]) || state.webcams[0] || null,
 );
+// Backup history belongs to this device, but is never part of a snapshot or restored by one.
+const SNAPSHOT_KEYS = LAYOUT_KEYS.filter((key) => key !== 'layoutBackups');
 export function layoutSnapshot() {
-  const o = {};
-  for (const k of LAYOUT_KEYS) o[k] = JSON.parse(JSON.stringify(state.settings[k] ?? null));
-  return o;
+  return pickDeviceLayout(state.settings, SNAPSHOT_KEYS);
 }
 export function pushLayoutBackup(snap, label) {
   const b = [{ t: Date.now(), label, data: snap }, ...(state.settings.layoutBackups || [])];
   state.settings.layoutBackups = b.slice(0, 5);
 }
 export function restoreLayout(snap) {
-  for (const k of LAYOUT_KEYS) state.settings[k] = JSON.parse(JSON.stringify(snap[k] ?? DEFAULT_SETTINGS()[k] ?? null));
+  const defaults = DEFAULT_SETTINGS();
+  for (const k of SNAPSHOT_KEYS) state.settings[k] = JSON.parse(JSON.stringify(snap[k] ?? defaults[k] ?? null));
 }
 
 // ---------- automatic browser-specific dashboard ----------
@@ -345,6 +352,10 @@ try {
 export const deviceLayout = ref(deviceInfo);
 let sharedLayout = null;
 const pickLayout = (s) => pickDeviceLayout(s, LAYOUT_KEYS);
+export const sharedLayoutSnapshot = () => pickLayout(sharedLayout);
+export function restoreSharedLayout(layout) {
+  sharedLayout = pickLayout(compactLayoutHistory(layout));
+}
 function forDevice(stored) {
   const shown = mergeSettings(stored);
   sharedLayout = pickLayout(shown);
@@ -367,20 +378,25 @@ export async function exportSettingsBackup() {
       data: pickLayout(shown),
     },
   };
-  return shown;
+  return compactStoredHistories(shown);
 }
 // Restoring a backup is explicit: retain its other browser layouts, and restore the visible layout
 // onto this browser through the normal save path. Older backups without deviceLayouts still work.
-export async function restoreDeviceLayouts(layouts) {
-  if (!layouts || typeof layouts !== 'object' || Array.isArray(layouts)) return;
+export function importedDeviceLayouts(layouts) {
+  const changes = Object.create(null);
+  if (!layouts || typeof layouts !== 'object' || Array.isArray(layouts)) return changes;
   for (const [id, entry] of Object.entries(layouts)) {
     if (id === deviceInfo.id || !/^[a-zA-Z0-9_-]+$/.test(id) || !entry?.data) continue;
-    await writeDeviceLayout(api, id, {
+    changes[id] = {
       name: String(entry.name || 'Browser'),
       t: Date.now(),
-      data: pickLayout(entry.data),
-    });
+      data: pickLayout(compactLayoutHistory(entry.data)),
+    };
   }
+  return changes;
+}
+export async function restoreDeviceLayouts(layouts) {
+  return applyDeviceLayouts(api, importedDeviceLayouts(layouts));
 }
 
 export const state = reactive({
@@ -495,7 +511,7 @@ export function mergeSettings(v) {
   };
 }
 function cachedSettings() {
-  return forDevice(lsGet(APP + '-settings'));
+  return forDevice(compactStoredHistories(lsGet(APP + '-settings')));
 }
 
 state.objects = lsGet(APP + '-objects') || [];
@@ -1324,10 +1340,12 @@ if (phonePreview) {
 
 // ---------- settings persistence ----------
 let saveTimer = null;
+let saveVersion = 0;
 let settingsDirty = false; // changed here but not yet confirmed by Moonraker: a reload from the DB must not undo it
 export function saveSettings() {
-  if (phonePreview) return;
+  if (phonePreview || !state.settingsLoaded) return;
   clearTimeout(saveTimer);
+  const version = ++saveVersion;
   settingsDirty = true;
   const value = forStorage(state.settings);
   value.migratedCarbon = true;
@@ -1336,59 +1354,37 @@ export function saveSettings() {
     try {
       const v = forStorage(state.settings);
       await writeDeviceLayout(api, deviceInfo.id, v.deviceLayouts[deviceInfo.id]);
+      if (!state.settingsLoaded || version !== saveVersion) return;
       delete v.deviceLayouts; // never write other browsers' records through the shared settings
       v.migratedCarbon = true;
       await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: v });
-      settingsDirty = false;
+      if (version === saveVersion) settingsDirty = false;
     } catch (e) {
       if (!/not connected|disconnected/.test(e.message || ''))
         toast(t('Settings could not be saved: {err}', { err: e.message }), 'error');
     }
   }, 400);
 }
+let settingsLoadAttempt = 0;
+let settingsRetry = null;
 async function loadSettings() {
-  let cur = null,
-    missing = false;
+  const attempt = ++settingsLoadAttempt;
+  const retrying = settingsRetry != null;
+  clearTimeout(settingsRetry);
+  clearTimeout(saveTimer);
+  saveVersion++;
+  state.settingsLoaded = false;
+  let cur;
   try {
-    const r = await api.call('server.database.get_item', { namespace: NS, key: 'settings' });
-    cur = r.value || {};
+    cur = compactStoredHistories(await readStoredSettings(api, NS, OLD_APPS, () => lsGet(APP + '-settings')));
   } catch (e) {
-    // "not found" comes back with different codes depending on the Moonraker version
-    missing = e.code === 404 || /not found|does not exist|no such/i.test(e.message || '');
-    if (!missing && /^(not connected|disconnected)$/.test(e.message || '')) {
-      state.settingsLoaded = false;
-      return;
-    }
-  }
-  // one-time carry-over from the old names: their values fill in whatever the new record does not have yet,
-  // anything already set under the new name wins
-  if (!cur?.migratedCarbon && (cur || missing)) {
-    for (const oldNs of OLD_APPS) {
-      try {
-        const old = (await api.call('server.database.get_item', { namespace: oldNs, key: 'settings' })).value;
-        if (old && typeof old === 'object') {
-          cur = { ...old, ...(cur || {}) };
-          break;
-        }
-      } catch {}
-    }
-    if (cur || missing) {
-      cur = { ...(cur || {}), migratedCarbon: true };
-      try {
-        await api.call('server.database.post_item', { namespace: NS, key: 'settings', value: cur });
-      } catch {}
-    }
-  }
-  // Load independently persisted device records. A failed read must not seed an empty layout over them.
-  try {
-    const layouts = await readDeviceLayouts(api);
-    if (missing && !cur) cur = lsGet(APP + '-settings') || {};
-    cur = { ...(cur || {}), deviceLayouts: { ...(cur?.deviceLayouts || {}), ...layouts } };
-  } catch (e) {
-    state.settingsLoaded = false;
-    toast(t('Settings could not be saved: {err}', { err: e.message }), 'error');
+    if (attempt !== settingsLoadAttempt || !state.connected) return;
+    if (!retrying) toast(e.message, 'error');
+    settingsRetry = setTimeout(() => state.connected && loadSettings(), 5000);
     return;
   }
+  if (attempt !== settingsLoadAttempt || !state.connected) return;
+  settingsRetry = null;
   if (phonePreview && previewSettings) {
     // the editor's settings (possibly not saved yet) win over the database here
     state.settings = mergeSettings(previewSettings);
@@ -1403,10 +1399,8 @@ async function loadSettings() {
     saveSettings();
     return;
   }
-  if (cur) {
-    state.settings = forDevice(cur);
-    lsSet(APP + '-settings', cur);
-  } else if (missing) state.settings = forDevice(lsGet(APP + '-settings')); // fresh Moonraker DB: seed it from the browser copy
+  state.settings = forDevice(cur);
+  lsSet(APP + '-settings', cur);
   state.settingsLoaded = true;
 }
 watch(
@@ -1941,6 +1935,7 @@ export function start() {
   });
   api.on('notify_update_refreshed', ([u]) => applyUpd(u));
   api.connect(host);
+  startLightspeedDiscovery(host);
 
   // sample temperatures every second (same as moonraker's store); the long history (a day, 15 s steps, kept in
   // this browser) takes one of them every 15 s

@@ -5,6 +5,30 @@
 
 const clone = (v) => JSON.parse(JSON.stringify(v ?? null));
 
+// Older snapshots included the backup list itself. Drop that field before any deep copy:
+// traversing the nested history is the expensive part, even when only five entries are visible.
+export function compactLayoutHistory(layout) {
+  if (!Array.isArray(layout?.layoutBackups)) return layout;
+  const layoutBackups = layout.layoutBackups.slice(0, 5).flatMap((backup) => {
+    if (!backup?.data || typeof backup.data !== 'object') return [];
+    const { layoutBackups: nested, ...data } = backup.data;
+    return [{ ...backup, data }];
+  });
+  return { ...layout, layoutBackups };
+}
+
+export function compactStoredHistories(settings) {
+  const shared = compactLayoutHistory(settings);
+  if (!shared?.deviceLayouts) return shared;
+  const deviceLayouts = Object.fromEntries(
+    Object.entries(shared.deviceLayouts).map(([id, entry]) => [
+      id,
+      { ...entry, data: compactLayoutHistory(entry?.data) },
+    ]),
+  );
+  return { ...shared, deviceLayouts };
+}
+
 export function pickLayout(settings, keys) {
   const o = {};
   for (const k of keys) o[k] = clone(settings?.[k]);

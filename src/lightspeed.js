@@ -8,7 +8,6 @@
 import { computed, ref, watch } from 'vue';
 import './vendor/lightspeed_engine.js';
 import { state, S, gcode, toast } from './store';
-import { currentHost } from './printers';
 
 export const E = globalThis.Lightspeed;
 
@@ -169,34 +168,46 @@ export const showState = (st) => run(`LIGHTSPEED_STATE STATE=${st}${st === 'auto
 // (80, 81 for a second UI, 4408/4409 on Creality K1, ...). Voyager finds it by itself: it loads the page's logo
 // from each likely address (an image load works across ports and fails on a 404 or an HTML fallback page) and
 // keeps the first that answers, in this order. Settings can still point elsewhere.
-const LOC = globalThis.location || { protocol: 'http:', hostname: 'localhost', origin: '' };
-const LS_PORTS = ['', ':80', ':81', ':8080', ':8081', ':4408', ':4409', ':7136', ':7125'];
-const lsFound = ref(''),
-  lsHost = computed(() => (currentHost() || '').split(':')[0] || LOC.hostname || 'localhost');
-let lsProbed = '';
-function probeLightspeed(host) {
-  if (!host || lsProbed === host || typeof Image === 'undefined') return;
-  lsProbed = host;
-  lsFound.value = '';
-  const proto = LOC.protocol === 'https:' ? 'https' : 'http';
-  const bases = [...new Set([LOC.origin, ...LS_PORTS.map((p) => `${proto}://${host}${p}`)])];
-  const tryOne = (base) =>
-    new Promise((ok) => {
-      const img = new Image();
-      const t = setTimeout(() => ok(false), 2500);
-      img.onload = () => { clearTimeout(t); ok(img.naturalWidth > 0); };
-      img.onerror = () => { clearTimeout(t); ok(false); };
-      img.src = `${base}/lightspeed/logo.svg?probe=${Date.now()}`;
-    });
-  Promise.all(bases.map(tryOne)).then((hits) => {
-    if (lsProbed !== host) return;
-    const i = hits.indexOf(true);
-    if (i >= 0) lsFound.value = `${bases[i]}/lightspeed/lightspeed.html`;
+const designerPath = '/lightspeed/lightspeed.html';
+const lsFound = ref('');
+const configuredUrl = computed(() => {
+  const own = String(state.settings.lightspeedUrl || '').trim();
+  return /^https?:\/\//i.test(own) ? own : '';
+});
+export const pageUrl = computed(() => configuredUrl.value || lsFound.value);
+
+function hasDesignerLogo(base) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const timer = setTimeout(() => resolve(false), 2500);
+    img.onload = img.onerror = () => {
+      clearTimeout(timer);
+      resolve(img.naturalWidth > 0);
+    };
+    img.src = base + '/lightspeed/logo.svg';
   });
 }
-watch([hasLightspeed, lsHost], ([on, host]) => { if (on) probeLightspeed(host); }, { immediate: true });
-export const pageUrl = computed(() => {
-  const own = String(state.settings.lightspeedUrl || '').trim();
-  if (/^https?:\/\//i.test(own)) return own;
-  return lsFound.value || `${LOC.protocol === 'https:' ? 'https' : 'http'}://${lsHost.value}/lightspeed/lightspeed.html`;
-});
+
+// Use the endpoint passed to Moonraker at startup. The page hosting Voyager may belong to a different printer.
+export function startLightspeedDiscovery(host) {
+  const selected = new URL(host ? location.protocol + '//' + host : location.origin);
+  const bases = [selected.origin];
+  for (const port of ['', '80', '81', '8080', '8081', '4408', '4409', '7136', '7125']) {
+    const candidate = new URL(selected.origin);
+    candidate.port = port;
+    if (!bases.includes(candidate.origin)) bases.push(candidate.origin);
+  }
+  return watch(
+    [hasLightspeed, configuredUrl],
+    async ([installed, custom], _, onCleanup) => {
+      lsFound.value = selected.origin + designerPath;
+      if (!installed || custom) return;
+      let active = true;
+      onCleanup(() => (active = false));
+      const hits = await Promise.all(bases.map(hasDesignerLogo));
+      const first = hits.indexOf(true);
+      if (active && first >= 0) lsFound.value = bases[first] + designerPath;
+    },
+    { immediate: true },
+  );
+}

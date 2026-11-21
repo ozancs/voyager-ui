@@ -1,12 +1,58 @@
 // Lightspeed (lightspeed.js): which Klipper object a strip drives, the effect specs sent to the printer, and the
 // pixels the tiles draw with the plugin's own engine
 import { describe, it, expect, vi } from 'vitest';
-const { state } = vi.hoisted(() => ({ state: { objects: [], settings: {} } }));
-vi.mock('../src/store', () => ({ state, S: () => ({}), gcode: async () => {}, toast: () => {} }));
-vi.mock('../src/printers', () => ({ currentHost: () => '' }));
-import { stripObject, specOf, parseEffect, frame, frameCss, effectsFor } from '../src/lightspeed.js';
+import { nextTick } from 'vue';
+vi.mock('../src/store', async () => {
+  const { reactive } = await import('vue');
+  return { state: reactive({ objects: [], settings: {} }), S: () => ({}), gcode: async () => {}, toast: () => {} };
+});
+import { state } from '../src/store';
+import {
+  stripObject,
+  specOf,
+  parseEffect,
+  frame,
+  frameCss,
+  effectsFor,
+  startLightspeedDiscovery,
+  pageUrl,
+} from '../src/lightspeed.js';
 
 describe('lightspeed', () => {
+  it.each([
+    ['printer-b.local:7125', 'http://printer-b.local:81', 'printer-b.local'],
+    ['printer-b.local:8087', 'http://printer-b.local:8087', 'printer-b.local'],
+    ['', 'http://printer-a.local:1977', 'printer-a.local'],
+  ])('opens the designer for the active connection %s', async (host, expectedOrigin, expectedHost) => {
+    const origins = [];
+    vi.stubGlobal('location', new URL('http://printer-a.local:1977'));
+    vi.stubGlobal(
+      'Image',
+      class {
+        set src(url) {
+          const origin = new URL(url).origin;
+          origins.push(origin);
+          this.naturalWidth = [location.origin, expectedOrigin].includes(origin) ? 64 : 0;
+          queueMicrotask(() => (this.naturalWidth ? this.onload() : this.onerror()));
+        }
+      },
+    );
+    state.objects = ['lightspeed'];
+    const stop = startLightspeedDiscovery(host);
+    try {
+      await vi.waitFor(() => expect(pageUrl.value).toBe(expectedOrigin + '/lightspeed/lightspeed.html'));
+      expect(origins.length).toBeGreaterThan(0);
+      expect(origins.every((origin) => new URL(origin).hostname === expectedHost)).toBe(true);
+      state.settings.lightspeedUrl = 'https://my-proxy.local/designer';
+      await nextTick();
+      expect(pageUrl.value).toBe('https://my-proxy.local/designer');
+    } finally {
+      stop();
+      delete state.settings.lightspeedUrl;
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('finds the object a strip drives, as the printer spells it', () => {
     state.objects = ['neopixel hotend_rgb', 'output_pin Kasa_Ledi_Guc'];
     expect(stripObject({ output: 'neopixel hotend_rgb' })).toBe('neopixel hotend_rgb');

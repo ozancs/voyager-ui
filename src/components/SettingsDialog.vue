@@ -34,7 +34,10 @@ import {
   fmtDay,
   fmtClock,
   exportSettingsBackup,
-  restoreDeviceLayouts,
+  importedDeviceLayouts,
+  deviceLayout,
+  sharedLayoutSnapshot,
+  restoreSharedLayout,
 } from '../store';
 import { api } from '../api/moonraker';
 import { playSound, speak, desktopPermission, askDesktop } from '../features';
@@ -45,6 +48,8 @@ import { go } from '../router';
 import { iconUrl, readIcon, LOGOS, probeMainsailLogos } from '../printerIcon';
 import { t, LANGS } from '../i18n';
 import { PARTS, partsIn, restoreParts } from '../settingsParts';
+import { compactStoredHistories } from '../deviceLayout';
+import { previousDeviceLayouts, applyDeviceLayouts } from '../deviceLayoutStorage';
 
 const TABS = [
   ['general', 'gear', 'General'],
@@ -419,7 +424,9 @@ const pending = ref(null);
 const prev = ref(null);
 api
   .call('server.database.get_item', { namespace: APP, key: 'settings_prev' })
-  .then((r) => (prev.value = r.value))
+  .then((r) => {
+    if (!r.value?.device || r.value.device === deviceLayout.value.id) prev.value = r.value;
+  })
   .catch(() => {});
 async function download() {
   let settings;
@@ -434,6 +441,7 @@ async function download() {
     version: VERSION,
     date: new Date().toISOString(),
     settings,
+    sharedLayout: sharedLayoutSnapshot(),
   };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
@@ -454,50 +462,64 @@ async function pickFile(e) {
     toast(t('Could not read backup: {msg}', { msg: err.message }), 'error');
   }
 }
-async function apply(data, label, restoreLayouts = false) {
-  const cur = JSON.parse(JSON.stringify(state.settings));
+const applying = ref(false);
+async function apply(data, label, layoutChanges = {}, shared = null) {
+  if (applying.value || !state.settingsLoaded) return;
+  applying.value = true;
   try {
+    const previous = {
+      date: new Date().toISOString(),
+      device: deviceLayout.value.id,
+      settings: JSON.parse(JSON.stringify(state.settings)),
+      layoutChanges: await previousDeviceLayouts(api, layoutChanges),
+      sharedLayout: shared ? sharedLayoutSnapshot() : null,
+    };
     await api.call('server.database.post_item', {
       namespace: APP,
       key: 'settings_prev',
-      value: { date: new Date().toISOString(), settings: cur },
+      value: previous,
     });
-  } catch {}
-  prev.value = { date: new Date().toISOString(), settings: cur };
-  try {
-    if (restoreLayouts) await restoreDeviceLayouts(data.deviceLayouts);
+    prev.value = previous;
+    await applyDeviceLayouts(api, layoutChanges);
+    if (shared) restoreSharedLayout(shared);
+    const def = DEFAULT_SETTINGS();
+    state.settings = {
+      ...def,
+      ...compactStoredHistories(data),
+      devices: { ...def.devices, ...(data.devices || {}) },
+      strip: { ...def.strip, ...(data.strip || {}) },
+      control: { ...def.control, ...(data.control || {}) },
+    };
+    saveSettings();
+    toast(label);
   } catch (e) {
     toast(e.message, 'error');
-    return;
+  } finally {
+    applying.value = false;
   }
-  const def = DEFAULT_SETTINGS();
-  state.settings = {
-    ...def,
-    ...data,
-    devices: { ...def.devices, ...(data.devices || {}) },
-    strip: { ...def.strip, ...(data.strip || {}) },
-    control: { ...def.control, ...(data.control || {}) },
-  };
-  saveSettings();
-  toast(label);
 }
 // only the parts ticked in the dialog; the others keep what this printer has now
 function applyPending() {
   const p = pending.value;
   pending.value = null;
   if (!p.pick.length) return;
+  const own = p.settings.deviceLayouts?.[deviceLayout.value.id]?.data;
+  const incoming = p.pick.includes('dash') && own ? { ...p.settings, ...own } : p.settings;
+  const shared = p.pick.includes('dash') && p.sharedLayout;
   const cur = JSON.parse(JSON.stringify(state.settings));
   apply(
-    restoreParts(cur, p.settings, p.pick, DEFAULT_SETTINGS()),
+    restoreParts(cur, incoming, p.pick, DEFAULT_SETTINGS()),
     t('Settings restored from {name}', { name: p.name }),
-    p.pick.includes('dash'),
+    p.pick.includes('dash') ? importedDeviceLayouts(p.settings.deviceLayouts) : {},
+    shared ? restoreParts(sharedLayoutSnapshot(), shared, p.pick, DEFAULT_SETTINGS()) : null,
   );
 }
 function togglePart(p, id) {
   p.pick = p.pick.includes(id) ? p.pick.filter((x) => x !== id) : [...p.pick, id];
 }
 function undoRestore() {
-  if (prev.value) apply(prev.value.settings, t('Previous settings restored'));
+  if (prev.value)
+    apply(prev.value.settings, t('Previous settings restored'), prev.value.layoutChanges, prev.value.sharedLayout);
 }
 const fmtD = (d) => (d ? fmtDay(d) + ' ' + fmtClock(d) : '');
 function reset() {
@@ -1752,7 +1774,7 @@ const consoleSample = (() => {
                   }}</span>
                 </div>
                 <div class="sync-actions">
-                  <button class="btn acc" @click="download">
+                  <button class="btn acc" :disabled="!state.settingsLoaded || applying" @click="download">
                     <Icon name="download" :size="16" :stroke="2.4" />{{ t('Download backup') }}</button
                   ><button class="btn" @click="restoreFile.click()">
                     <Icon name="upload" :size="16" />{{ t('Restore from file') }}</button
@@ -1764,7 +1786,9 @@ const consoleSample = (() => {
                   <b>{{ t('Previous settings') }}</b
                   ><span>{{ fmtD(prev.date) }}</span>
                 </div>
-                <button class="btn" @click="undoRestore"><Icon name="rot" :size="16" />{{ t('Go back') }}</button>
+                <button class="btn" :disabled="!state.settingsLoaded || applying" @click="undoRestore">
+                  <Icon name="rot" :size="16" />{{ t('Go back') }}
+                </button>
               </div>
               <div class="rw">
                 <div class="k">
@@ -1854,7 +1878,11 @@ const consoleSample = (() => {
     }}</span>
     <template #foot
       ><button class="btn lg" @click="pending = null">{{ t('Cancel') }}</button
-      ><button class="btn lg acc" :disabled="!pending.pick.length" @click="applyPending">
+      ><button
+        class="btn lg acc"
+        :disabled="!pending.pick.length || !state.settingsLoaded || applying"
+        @click="applyPending"
+      >
         {{ t('Restore') }}
       </button></template
     >
@@ -1863,7 +1891,9 @@ const consoleSample = (() => {
     <p class="mu" style="margin: 0">{{ t('Favorites, presets and card settings go back to defaults.') }}</p>
     <template #foot
       ><button class="btn lg" @click="confirmReset = false">{{ t('Cancel') }}</button
-      ><button class="btn lg dgf" @click="reset">{{ t('Reset') }}</button></template
+      ><button class="btn lg dgf" :disabled="!state.settingsLoaded || applying" @click="reset">
+        {{ t('Reset') }}
+      </button></template
     >
   </Modal>
 </template>

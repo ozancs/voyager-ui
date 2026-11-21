@@ -1,7 +1,7 @@
 <script setup>
 // The Lightspeed designer page, inside Voyager, like the PA Sensei page. Lightspeed's install.sh links its page
-// into Mainsail's / Fluidd's folder, so it is on the printer's port 80 (pageUrl in lightspeed.js, or the address
-// set in the settings): Voyager keeps no copy, and a plugin update brings its new page with it. The side menu shows
+// into Mainsail's / Fluidd's folder. Voyager looks for it on the selected printer (pageUrl in lightspeed.js),
+// so a plugin update brings its new page with it. The side menu shows
 // this page only when Klipper has the lightspeed module.
 import { pageUrl } from '../lightspeed';
 </script>

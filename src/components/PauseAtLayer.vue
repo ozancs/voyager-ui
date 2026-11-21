@@ -46,10 +46,10 @@ async function set(n) {
   try {
     if (n === 'next') await gcode('SET_PAUSE_NEXT_LAYER ENABLE=1');
     else {
-      const total = layerInfo.value.total;
+      const total = layerInfo.value.confirmedTotal;
       const cur = layerInfo.value.cur || 0;
       const list = layers.value;
-      if (!list.length || list.some((x) => !(x >= 1) || (total && x > total)))
+      if (!list.length || list.some((x) => !Number.isSafeInteger(x) || x < 1 || (total && x > total)))
         return toast(t('Layer must be between 1 and {n}', { n: total || '?' }), 'warn');
       if (list.every((x) => x <= cur)) return toast(t('That layer is already printed'), 'warn');
       // the first goes to Klipper now, the rest wait their turn (pauseQueue.js)
@@ -91,11 +91,7 @@ async function clear() {
         }}
       </p>
       <label class="col" style="gap: 4px">
-        <span class="lbl"
-          >{{ t('Layer') }} ({{
-            t('now {cur} of {total}', { cur: layerInfo.cur || 0, total: layerInfo.total || '?' })
-          }})</span
-        >
+        <span class="lbl">{{ t('Layer') }} ({{ t('now {cur} of {total}', layerInfo.labels) }})</span>
         <input
           v-model="layer"
           class="input mono"

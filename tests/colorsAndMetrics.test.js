@@ -37,6 +37,8 @@ describe('print progress and layer fallback', () => {
       cur: 2,
       total: 50,
       estimated: true,
+      confirmedTotal: 0,
+      labels: { cur: '~2', total: '~50' },
     });
   });
   it('prefers reported layers, bounds estimates and resets for a new job', () => {
@@ -44,11 +46,31 @@ describe('print progress and layer fallback', () => {
       cur: 4,
       total: 20,
       estimated: false,
+      confirmedTotal: 20,
+      labels: { cur: '4', total: '20' },
     });
     expect(layers({}, { layer_height: 0.2, object_height: 1 }, 10).cur).toBe(5);
     const track = createLayerTracker();
     track({ filename: 'a', state: 'printing', print_duration: 1 }, { gcode_position: [0, 0, 1, 0] });
     track({ filename: 'a', state: 'printing', print_duration: 2 }, { gcode_position: [1, 1, 1, 1] });
     expect(track({ filename: 'b', state: 'printing', print_duration: 0 }, { gcode_position: [0, 0, 0, 0] })).toBeNull();
+  });
+  it('never limits a reported layer or a scheduled pause using a height estimate', () => {
+    const meta = { layer_height: 0.2, object_height: 20 };
+    // Before the estimate is exceeded it can be displayed, but cannot be used as the pause limit.
+    expect(layers({ current_layer: 90 }, meta)).toMatchObject({
+      confirmedTotal: 0,
+      labels: { cur: '90', total: '~100' },
+    });
+    expect(layers({ current_layer: 135 }, meta)).toMatchObject({
+      cur: 135,
+      total: 0,
+      confirmedTotal: 0,
+      labels: { cur: '135', total: '--' },
+    });
+    expect(layers({ current_layer: 135, total_layer: 180 }, meta)).toMatchObject({
+      confirmedTotal: 180,
+      labels: { cur: '135', total: '180' },
+    });
   });
 });

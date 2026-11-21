@@ -40,16 +40,30 @@ export function createLayerTracker() {
 export function layers(info = {}, meta = {}, extrusionZ = null) {
   info ||= {};
   const hasCurrent = Number.isFinite(info.current_layer) && info.current_layer >= 0;
-  let total = info.total_layer > 0 ? info.total_layer : null;
+  const reportedTotal = Number.isSafeInteger(info.total_layer) && info.total_layer > 0 ? info.total_layer : 0;
+  let total = reportedTotal;
   const h = meta.layer_height,
     first = meta.first_layer_height || h;
-  if (total == null && h > 0 && meta.object_height > 0)
-    total = Math.max(1, Math.round((meta.object_height - first) / h) + 1);
+  if (!total && h > 0 && meta.object_height > 0) total = Math.max(1, Math.round((meta.object_height - first) / h) + 1);
   let cur = hasCurrent
     ? info.current_layer
     : h > 0 && extrusionZ > 0
       ? Math.max(1, Math.round((extrusionZ - first) / h) + 1)
       : 0;
-  if (total > 0) cur = Math.min(cur, total);
-  return { cur, total: total || 0, estimated: !hasCurrent };
+  // With variable layer heights the printer can advance past the fixed-height estimate.
+  // Keep the printer's reading and drop a total it has already disproved.
+  if (total && cur > total) {
+    if (hasCurrent) total = 0;
+    else cur = total;
+  }
+  return {
+    cur,
+    total,
+    estimated: !hasCurrent,
+    confirmedTotal: total && reportedTotal,
+    labels: {
+      cur: hasCurrent ? String(cur) : cur ? '~' + cur : '--',
+      total: total ? (reportedTotal ? '' : '~') + total : '--',
+    },
+  };
 }

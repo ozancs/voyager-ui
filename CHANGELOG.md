@@ -2,7 +2,12 @@
 
 ## 0.38.61
 
-- Lightspeed: the plugin's page is found by itself on whatever port the printer serves it (80, 81, 4408...), so it opens inside Voyager without a setting
+- Lightspeed: Voyager looks for the designer on the selected printer, starting with its configured address and then trying common web ports (80, 81, 4408 and others).
+- Dashboard: layout backups retain the last five edits without nesting previous backups. Resetting the layout preserves the snapshot from before the reset.
+- Settings backups: new exports include the shared layout. Undo after import also restores the device layouts affected by that import.
+- Settings: if Moonraker cannot read the saved settings, Voyager keeps the current values and retries the read before saving.
+- Config editor: edits made during a save stay marked as unsaved until their own upload completes.
+- Print status: Klipper's reported layer takes precedence over estimates from the file. An estimated layer count no longer blocks a scheduled pause.
 
 ## 0.38.60
 
