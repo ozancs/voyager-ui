@@ -14,6 +14,7 @@ import { writeOptions } from '../cfgwrite';
 import { t } from '../i18n';
 import { undoable, isHidden, stillSame } from '../undo';
 import { cleanVal } from '../calibrations';
+import { st, startRun, loadGraphResults, tieGraphs, dropGone } from '../shaketuneResults';
 
 // the tests and their parameters (names and defaults from the Shake&Tune docs and its commands' code; an empty
 // field is left out, so Shake&Tune uses its own default: [resonance_tester] for the frequencies and ACCEL_PER_HZ)
@@ -114,53 +115,32 @@ const cmdLine = computed(() => {
 });
 
 // ---- running a test and reading its result from the console ----
-const run = ref(null); // { cmd, since, running }
+// the last run and what it recommended live in shaketuneResults.js, so they are still here after leaving the page
+const run = computed(() => st.run);
 async function start() {
-  const since = state.console.length ? state.console[state.console.length - 1].id : 0;
-  run.value = { cmd: test.value.cmd, since, running: true };
+  const r = startRun({
+    cmd: test.value.cmd,
+    folder: test.value.folder,
+    axis: vals.value.AXIS,
+    before: images.value.map((i) => i.path),
+  });
   try {
     await gcode(cmdLine.value);
   } catch (e) {
     toast(e.message, 'error');
   }
-  if (run.value) run.value.running = false;
+  r.running = false;
   loadImages();
 }
-const runLines = computed(() =>
-  run.value
-    ? state.console.filter((l) => l.id > run.value.since && l.type !== 'command').map((l) => strip(l.message))
-    : [],
+// The result card shows the result kept with the picked graph; while a test runs, or for a graph that has none
+// (made before results were kept), the last run's.
+const selResult = computed(() => (sel.value && st.graphs[sel.value]) || null);
+const fromGraph = computed(
+  () => !!selResult.value && !(run.value && (run.value.running || run.value.graphs.includes(sel.value))),
 );
-const strip = (m) => String(m || '').replace(/^\/\/\s?/gm, '');
-// "X axis frequency profile generation..." tells which axis the next "Recommended filters" block is for
-const recs = computed(() => {
-  const out = [],
-    zeta = {};
-  let axis = run.value?.cmd === 'AXES_SHAPER_CALIBRATION' ? String(vals.value.AXIS || 'all').toLowerCase() : null;
-  for (const text of runLines.value)
-    for (const line of text.split('\n')) {
-      const a = /^\s*([XY]) axis frequency profile/i.exec(line) || /^\s*Measuring ([XY])\b/i.exec(line);
-      if (a) axis = a[1].toLowerCase();
-      const m =
-        /->\s*(For performance|For low vibrations|Best shaper):\s*([A-Z0-9]+)\s*@\s*([\d.]+)\s*Hz(?:.*?damping ratio of (\d+(?:\.\d+)?))?/i.exec(
-          line,
-        );
-      // the damping ratio Shake&Tune estimated for the axis (each recommendation repeats it; older versions only
-      // say it once, in "Detected a square corner velocity of ... and a damping ratio of ...")
-      const z = /damping ratio of (\d+(?:\.\d+)?)/i.exec(line);
-      if (z && !m && (axis === 'x' || axis === 'y')) zeta[axis] = +z[1];
-      if (m && (axis === 'x' || axis === 'y'))
-        out.push({ axis, kind: m[1], type: m[2].toLowerCase(), freq: +m[3], zeta: m[4] ? +m[4] : zeta[axis] });
-    }
-  return out;
-});
-const axesMap = computed(() => {
-  for (const text of runLines.value) {
-    const m = /Detected axes_map:\s*([-xyz, ]+)/i.exec(text);
-    if (m) return m[1].trim();
-  }
-  return null;
-});
+const shown = computed(() => (fromGraph.value ? selResult.value : run.value));
+const recs = computed(() => shown.value?.recs || []);
+const axesMap = computed(() => shown.value?.axesMap || null);
 // the damping ratio goes along with the shaper when Shake&Tune measured one
 const dampArg = (r) => (r.zeta ? ` DAMPING_RATIO_${r.axis.toUpperCase()}=${r.zeta}` : '');
 const shaperOpts = (r) => [
@@ -263,16 +243,26 @@ async function loadImages() {
         };
       })
       .sort((a, b) => b.modified - a.modified);
+    tieGraphs(images.value);
+    if (images.value.length) dropGone(images.value);
   } catch {
     images.value = [];
   }
 }
-onMounted(loadImages);
+onMounted(async () => {
+  await loadGraphResults();
+  loadImages();
+});
 useApiEvent('notify_filelist_changed', ([p]) => {
   if (p?.item?.root === 'config' && /\.png$/i.test(p.item.path || '')) loadImages();
 });
 const folder = ref('input_shaper');
+// the graph tabs and the test go together: picking one picks the other
 watch(test, (x) => (folder.value = x.folder));
+watch(folder, (f) => {
+  const x = TESTS.find((x) => x.folder === f);
+  if (x && x !== test.value) test.value = x;
+});
 const FOLDERS = computed(() => {
   const known = TESTS.map((x) => [x.folder, x.name]);
   const extra = [...new Set(visibleImages.value.map((i) => i.folder))].filter((f) => !known.some(([k]) => k === f));
@@ -471,10 +461,12 @@ const shortName = (n) => n.replace(/\.png$/i, '');
         </template>
       </section>
 
-      <section v-if="run" class="card">
+      <section v-if="shown" class="card">
         <div class="card-h">
           <h2>{{ t('Result') }}</h2>
-          <span class="mono mu sm">{{ run.cmd }}</span>
+          <span class="mono mu sm" :data-tip="fromGraph ? sel.split('/').pop() : null">{{
+            fromGraph ? shortName(sel.split('/').pop()) : shown.cmd
+          }}</span>
         </div>
         <template v-if="recs.length">
           <div v-for="(r, i) in recs" :key="i" class="rec">
@@ -518,7 +510,9 @@ const shortName = (n) => n.replace(/\.png$/i, '');
             ><span class="mu sm">{{ t('Set it in your accelerometer section.') }}</span>
           </div>
         </div>
-        <pre class="log">{{ runLines.slice(-12).join('\n') || (run.running ? t('Waiting for output…') : '') }}</pre>
+        <pre v-if="!fromGraph" class="log">{{
+          run.lines.join('\n') || (run.running ? t('Waiting for output…') : '')
+        }}</pre>
       </section>
       <CalibSide part="cam" />
     </div>

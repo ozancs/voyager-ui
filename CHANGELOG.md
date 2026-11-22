@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.38.62
+
+- Shake&Tune: the last test's result (Apply, Save to config) stays when you leave the page and come back, until Klipper restarts. Each input shaper graph keeps the shapers its test recommended, so picking an older graph brings its Apply and Save buttons back (graphs made before this version have none). Requested on Discord.
+- Shake&Tune: the graph tabs and the test picker go together; picking one picks the other. Requested on Discord.
+
 ## 0.38.61
 
 - Lightspeed: Voyager looks for the designer on the selected printer, starting with its configured address and then trying common web ports (80, 81, 4408 and others).
