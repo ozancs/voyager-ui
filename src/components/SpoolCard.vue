@@ -20,7 +20,7 @@ const openPick = () => (state.spoolPick = true); // SpoolPicker.vue, in App.vue
 </script>
 
 <template>
-  <section v-bind="$attrs" class="card t-spool">
+  <section v-bind="$attrs" class="card">
     <div class="card-h">
       <CardTitle :text="t('Spool')" />
       <button class="btn" @click="openPick"><Icon name="spool" :size="16" />{{ t('Change') }}</button>
@@ -33,7 +33,7 @@ const openPick = () => (state.spoolPick = true); // SpoolPicker.vue, in App.vue
           >{{ sp.filament?.name || t('Spool') }} <span class="mu">#{{ sp.id }}</span></b
         >
         <span class="mu">{{ [sp.filament?.vendor?.name, sp.filament?.material].filter(Boolean).join(' · ') }}</span>
-        <div class="bar"><div :style="{ width: (pct ?? 0) + '%', background: 'var(--spool)' }"></div></div>
+        <div class="bar"><div :style="{ width: (pct ?? 0) + '%', background: 'var(--ac)' }"></div></div>
         <span class="mono"
           >{{ Math.round(sp.remaining_weight || 0) }} g
           <span class="mu">/ {{ Math.round(sp.initial_weight || 0) }} g</span></span
@@ -62,7 +62,7 @@ const openPick = () => (state.spoolPick = true); // SpoolPicker.vue, in App.vue
   width: 20px;
   height: 20px;
   border-radius: 10px;
-  background: var(--spool-bg);
+  background: var(--s1);
 }
 .mu {
   color: var(--mu);
