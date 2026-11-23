@@ -2721,4 +2721,6 @@ export default {
   "Copy this section": "このセクションをコピー",
   "Go to the header of this section": "このセクションの見出しへ移動",
   "Could not copy": "コピーできませんでした",
+  "Click to edit": "クリックして編集",
+  "Command {n}": "コマンド {n}",
 }

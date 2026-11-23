@@ -2,6 +2,7 @@
 
 ## 0.38.64
 
+- Console: in a pasted list of commands, click a line to edit it before Send all (Enter keeps it, Escape drops the change, an emptied line leaves the list)
 - Bug fixes and improvements
 
 ## 0.38.63

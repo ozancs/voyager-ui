@@ -2721,4 +2721,6 @@ export default {
   "Copy this section": "Копіювати цей розділ",
   "Go to the header of this section": "До заголовка цього розділу",
   "Could not copy": "Не вдалося скопіювати",
+  "Click to edit": "Натисніть, щоб змінити",
+  "Command {n}": "Команда {n}",
 }

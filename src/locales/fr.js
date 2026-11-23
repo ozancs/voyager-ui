@@ -2721,4 +2721,6 @@ export default {
   "Copy this section": "Copier cette section",
   "Go to the header of this section": "Aller à l'en-tête de cette section",
   "Could not copy": "Copie impossible",
+  "Click to edit": "Cliquer pour modifier",
+  "Command {n}": "Commande {n}",
 }

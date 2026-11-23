@@ -2721,4 +2721,6 @@ export default {
   "Copy this section": "Копировать этот раздел",
   "Go to the header of this section": "К заголовку этого раздела",
   "Could not copy": "Не удалось скопировать",
+  "Click to edit": "Нажмите, чтобы изменить",
+  "Command {n}": "Команда {n}",
 }

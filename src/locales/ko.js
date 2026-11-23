@@ -2721,4 +2721,6 @@ export default {
   "Copy this section": "이 섹션 복사",
   "Go to the header of this section": "이 섹션의 헤더로 이동",
   "Could not copy": "복사할 수 없습니다",
+  "Click to edit": "클릭하여 편집",
+  "Command {n}": "명령 {n}",
 }

@@ -2721,4 +2721,6 @@ export default {
   "Copy this section": "复制此部分",
   "Go to the header of this section": "转到此部分的标题",
   "Could not copy": "无法复制",
+  "Click to edit": "点击编辑",
+  "Command {n}": "命令 {n}",
 }

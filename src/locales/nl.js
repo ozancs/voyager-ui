@@ -2721,4 +2721,6 @@ export default {
   "Copy this section": "Deze sectie kopiëren",
   "Go to the header of this section": "Naar de kop van deze sectie",
   "Could not copy": "Kopiëren mislukt",
+  "Click to edit": "Klik om te bewerken",
+  "Command {n}": "Opdracht {n}",
 }

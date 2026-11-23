@@ -176,7 +176,41 @@ function onPaste(e) {
   cmd.value = '';
   batch.value = ls;
 }
+// a line clicked in the list turns into a field: Enter or leaving it keeps the change, Escape drops it, and a line
+// left empty is taken out of the list
+const editing = ref(-1);
+const editText = ref('');
+async function editLine(i) {
+  if (editing.value === i) return;
+  if (editing.value >= 0) saveLine();
+  editing.value = i;
+  editText.value = batch.value[i];
+  await nextTick();
+  const el = document.querySelector('.btl .be');
+  el?.focus();
+  el?.select();
+}
+function saveLine() {
+  const i = editing.value;
+  if (i < 0 || !batch.value) return (editing.value = -1);
+  editing.value = -1;
+  const v = editText.value.trim();
+  const ls = [...batch.value];
+  if (v) ls[i] = v;
+  else ls.splice(i, 1);
+  batch.value = ls.length ? ls : null;
+}
+function lineKey(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    saveLine();
+  } else if (e.key === 'Escape') {
+    e.stopPropagation();
+    editing.value = -1;
+  }
+}
 async function sendBatch() {
+  if (editing.value >= 0) saveLine();
   const ls = batch.value;
   if (!ls) return;
   batch.value = null;
@@ -316,14 +350,22 @@ const openX = (ev, msg) => (xOpen.value = { anchor: ev.currentTarget, e: explain
         <Icon name="list" :size="15" />
         <span class="grow">{{ t('{n} commands, one after another', { n: batch.length }) }}</span>
         <button class="btn sm" @click="batch = null">{{ t('Clear') }}</button>
-        <button class="btn sm acc" @click="sendBatch">
+        <button class="btn sm acc" @mousedown.prevent @click="sendBatch">
           <Icon name="send" :size="14" :stroke="2.4" />{{ t('Send all') }}
         </button>
       </div>
       <ol class="btl mono">
-        <li v-for="(l, i) in batch" :key="i">
+        <li v-for="(l, i) in batch" :key="i" :class="{ ed: editing === i }" @click="editLine(i)">
           <span class="bi n">{{ i + 1 }}</span
-          >{{ l }}
+          ><input
+            v-if="editing === i"
+            v-model="editText"
+            class="be mono"
+            spellcheck="false"
+            :aria-label="t('Command {n}', { n: i + 1 })"
+            @keydown="lineKey"
+            @blur="saveLine"
+          /><span v-else class="bl" :data-tip="t('Click to edit')">{{ l }}</span>
         </li>
       </ol>
     </div>
@@ -619,6 +661,29 @@ mark {
 }
 .btl .n {
   font-size: 11px;
+}
+.btl li:not(.ed) {
+  cursor: text;
+}
+.btl li:not(.ed):hover {
+  background: var(--s3, var(--bd));
+}
+.btl li.ed {
+  background: var(--s1, var(--bg));
+  box-shadow: inset 0 0 0 1px var(--ac);
+}
+/* the field sits where the text was, same font and height, so the list does not move */
+.btl .be {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
 }
 .in {
   flex: 1;

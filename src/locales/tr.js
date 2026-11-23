@@ -2739,4 +2739,6 @@ export default {
   "Copy this section": "Bu bölümü kopyala",
   "Go to the header of this section": "Bu bölümün başlığına git",
   "Could not copy": "Kopyalanamadı",
+  "Click to edit": "Düzenlemek için tıkla",
+  "Command {n}": "Komut {n}",
 }
