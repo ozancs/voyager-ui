@@ -201,7 +201,7 @@ const showFavBar = computed(() => {
   return m === 'always' || (m === 'dashboard' && route.name === 'dashboard');
 });
 const printActive = isPrinting;
-const notReady = computed(() => state.connected && state.klippy !== 'ready');
+const notReady = computed(() => state.connected && state.klippyKnown && state.klippy !== 'ready');
 // --main-h: the height of the page area under the bars (top bar, print bar, favorites bar, phone bottom bar).
 // Pages that fill the window (console, config editor, webcam, viewer) size themselves with it instead of a
 // fixed guess that was wrong as soon as a bar came or went.

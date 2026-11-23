@@ -75,6 +75,7 @@ const stateColor = computed(
 );
 const label = computed(() => {
   if (!state.connected) return t('Disconnected');
+  if (!state.klippyKnown) return t('Connecting…');
   if (state.klippy !== 'ready') return t('Klipper {state}', { state: state.klippy });
   if (activity.value) return activity.value.title; // no print, but homing, heating, a macro running...
   return t(printState.value.charAt(0).toUpperCase() + printState.value.slice(1));

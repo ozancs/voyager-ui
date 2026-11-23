@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.63
+
+- Reloading the page no longer flashes a red "Klipper disconnected" banner with Restart buttons while Voyager is still asking Moonraker what Klipper is doing; the top bar says Connecting meanwhile.
+
 ## 0.38.62
 
 - Shake&Tune: the last test's result (Apply, Save to config) stays when you leave the page and come back, until Klipper restarts. Each input shaper graph keeps the shapers its test recommended, so picking an older graph brings its Apply and Save buttons back (graphs made before this version have none). Requested on Discord.

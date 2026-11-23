@@ -402,6 +402,9 @@ export async function restoreDeviceLayouts(layouts) {
 export const state = reactive({
   connected: false,
   klippy: 'disconnected', // ready | startup | shutdown | error | disconnected
+  // Moonraker has told this connection what Klipper is doing: until then (the first moments after the page opens
+  // or the socket comes back) klippy is only the default, and showing "Klipper disconnected" would be a false alarm
+  klippyKnown: false,
   klippyMessage: '',
   running: null, // { cmd, script, at }: a command this page sent that is still running (shown in the top bar when idle)
   objects: [],
@@ -1577,6 +1580,7 @@ async function checkKlippy() {
     state.components = info.components || [];
     if (info.klippy_state === 'ready') {
       state.klippy = 'ready';
+      state.klippyKnown = true;
       return initKlippy();
     }
     // the message first, then the state: whatever watches the state (the Problem Solver's issues) must never pair
@@ -1587,6 +1591,7 @@ async function checkKlippy() {
     } catch {}
     state.klippyMessage = msg;
     state.klippy = info.klippy_state;
+    state.klippyKnown = true;
     state.booted = true;
     if (info.klippy_state === 'shutdown' || info.klippy_state === 'error') {
       // still try subscribing so webhooks/state gets through
@@ -1735,6 +1740,7 @@ export async function setPower(device, action) {
 }
 
 async function onOpen() {
+  state.klippyKnown = false;
   state.connected = true;
   state.login = null;
   state.conn = { attempts: 0, since: 0, probe: '' };
@@ -1912,6 +1918,7 @@ export function start() {
   });
   api.on('notify_klippy_disconnected', () => {
     state.klippy = 'disconnected';
+    state.klippyKnown = true;
     state.objects = [];
     checkKlippy();
   });
