@@ -174,7 +174,14 @@ const configuredUrl = computed(() => {
   const own = String(state.settings.lightspeedUrl || '').trim();
   return /^https?:\/\//i.test(own) ? own : '';
 });
-export const pageUrl = computed(() => configuredUrl.value || lsFound.value);
+// The printer's web server sends the page without Cache-Control, so the browser keeps opening an old copy (with
+// the old 3D models) after the plugin is updated. The plugin's version in the address makes each update a new
+// address. An address typed in Settings is used as it is.
+const foundUrl = computed(() => {
+  const v = String(S('lightspeed').version || '').trim();
+  return lsFound.value && v ? lsFound.value + '?v=' + encodeURIComponent(v) : lsFound.value;
+});
+export const pageUrl = computed(() => configuredUrl.value || foundUrl.value);
 
 function hasDesignerLogo(base) {
   return new Promise((resolve) => {

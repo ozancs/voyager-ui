@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.64
+
+- Bug fixes and improvements
+
 ## 0.38.63
 
 - Reloading the page no longer flashes a red "Klipper disconnected" banner with Restart buttons while Voyager is still asking Moonraker what Klipper is doing; the top bar says Connecting meanwhile.
