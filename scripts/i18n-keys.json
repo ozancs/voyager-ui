@@ -2653,7 +2653,7 @@
   "Smart",
   "Time left",
   "File: the position in the file, as Klipper counts it. Relative: in the G-code only, without the slicer header. Filament: the filament used of the file total. Slicer: what the file reports with M73.",
-  "Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.",
+  "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.",
   "When the print ends, worked out the same way.",
   "Date format",
   "Browser",

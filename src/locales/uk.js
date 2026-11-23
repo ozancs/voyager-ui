@@ -2679,7 +2679,6 @@ export default {
   "Relative": "Відносно",
   "Smart": "Розумний",
   "Time left": "Залишилось",
-  "Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.": "Розумний: час слайсера, виправлений за минулими друками, з ходом друку поступається виміряному темпу. Якщо вибрати кілька інших, показується їхнє середнє.",
   "When the print ends, worked out the same way.": "Коли друк закінчиться, рахується так само.",
   "Klipper restart method": "Спосіб перезапуску Klipper",
   "What Save & Restart in the config editor sends.": "Що надсилає «Зберегти й перезапустити» в редакторі конфігурації.",
@@ -2723,4 +2722,5 @@ export default {
   "Could not copy": "Не вдалося скопіювати",
   "Click to edit": "Натисніть, щоб змінити",
   "Command {n}": "Команда {n}",
+  "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Розумний режим коригує оцінку слайсера за попередніми друками й у міру друку надає більшої ваги виміряному темпу.",
 }

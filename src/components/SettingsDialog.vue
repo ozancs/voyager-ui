@@ -21,6 +21,7 @@ import {
   prettyName,
   tempSensors,
   DEFAULT_SETTINGS,
+  mergeSettings,
   S,
   VERSION,
   toast,
@@ -50,6 +51,7 @@ import { t, LANGS } from '../i18n';
 import { PARTS, partsIn, restoreParts } from '../settingsParts';
 import { compactStoredHistories } from '../deviceLayout';
 import { previousDeviceLayouts, applyDeviceLayouts } from '../deviceLayoutStorage';
+import { PROGRESS_METHODS, TIME_METHODS } from '../printMetrics';
 
 const TABS = [
   ['general', 'gear', 'General'],
@@ -81,30 +83,26 @@ const close = () => (peek.value ? (peek.value = null) : (state.settingsOpen = nu
 const dateSample = (k) => fmtDay(new Date(), true, k);
 const timeSample = (k) => fmtClock(new Date(), false, k);
 // print progress, time left and ETA: how they are worked out (store.js progress and printTimes)
-const CALC = [
-  ['file', 'File'],
-  ['relative', 'Relative'],
-  ['filament', 'Filament'],
-  ['slicer', 'Slicer'],
-];
-const ESTIMATES = [
+const PRINT_CALCULATIONS = [
+  [
+    'progressCalc',
+    'Print progress',
+    'File: the position in the file, as Klipper counts it. Relative: in the G-code only, without the slicer header. Filament: the filament used of the file total. Slicer: what the file reports with M73.',
+    PROGRESS_METHODS,
+  ],
   [
     'estimateCalc',
     'Time left',
-    'Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.',
+    'Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.',
+    TIME_METHODS,
   ],
-  ['etaCalc', 'ETA', 'When the print ends, worked out the same way.'],
+  ['etaCalc', 'ETA', 'When the print ends, worked out the same way.', TIME_METHODS],
 ];
-const calcOn = (key, k) => (state.settings[key] || ['slicer']).includes(k);
-// Smart stands alone; the others can be combined (their average), and one always stays picked
-function pickCalc(key, k) {
-  if (k === 'smart') {
-    state.settings[key] = ['smart'];
-    return;
-  }
-  let v = (state.settings[key] || ['slicer']).filter((x) => x !== 'smart');
-  v = v.includes(k) ? v.filter((x) => x !== k) : [...v, k];
-  state.settings[key] = v.length ? v : ['slicer'];
+function selectedMethod(key) {
+  return key === 'progressCalc' ? state.settings[key] : state.settings[key][0];
+}
+function selectMethod(key, method) {
+  state.settings[key] = key === 'progressCalc' ? method : [method];
 }
 // Cameras: the sound stream's noise filter, read when the tab opens (null: no go2rtc sound on this printer)
 const noise = ref(null);
@@ -482,14 +480,7 @@ async function apply(data, label, layoutChanges = {}, shared = null) {
     prev.value = previous;
     await applyDeviceLayouts(api, layoutChanges);
     if (shared) restoreSharedLayout(shared);
-    const def = DEFAULT_SETTINGS();
-    state.settings = {
-      ...def,
-      ...compactStoredHistories(data),
-      devices: { ...def.devices, ...(data.devices || {}) },
-      strip: { ...def.strip, ...(data.strip || {}) },
-      control: { ...def.control, ...(data.control || {}) },
-    };
+    state.settings = mergeSettings(compactStoredHistories(data));
     saveSettings();
     toast(label);
   } catch (e) {
@@ -637,38 +628,18 @@ const consoleSample = (() => {
                 </div>
               </div>
               <h3 class="sec">{{ t('Printing') }}</h3>
-              <div class="rw">
-                <div class="k">
-                  <b>{{ t('Print progress') }}</b
-                  ><span>{{
-                    t(
-                      'File: the position in the file, as Klipper counts it. Relative: in the G-code only, without the slicer header. Filament: the filament used of the file total. Slicer: what the file reports with M73.',
-                    )
-                  }}</span>
-                </div>
-                <div class="seg v">
-                  <button
-                    v-for="[k, l] in CALC"
-                    :key="k"
-                    :class="{ on: (state.settings.progressCalc || 'slicer') === k }"
-                    @click="state.settings.progressCalc = k"
-                  >
-                    {{ t(l) }}
-                  </button>
-                </div>
-              </div>
-              <div v-for="[key, label, note] in ESTIMATES" :key="key" class="rw">
+              <div v-for="[key, label, note, methods] in PRINT_CALCULATIONS" :key="key" class="rw">
                 <div class="k">
                   <b>{{ t(label) }}</b
                   ><span>{{ t(note) }}</span>
                 </div>
-                <div class="seg v multi" role="group" :aria-label="t(label)">
+                <div class="seg v" role="group" :aria-label="t(label)">
                   <button
-                    v-for="[k, l] in [['smart', 'Smart'], ...CALC.filter(([m]) => m !== 'relative')]"
+                    v-for="[k, l] in methods"
                     :key="k"
-                    :class="{ on: calcOn(key, k) }"
-                    :aria-pressed="calcOn(key, k)"
-                    @click="pickCalc(key, k)"
+                    :class="{ on: selectedMethod(key) === k }"
+                    :aria-pressed="selectedMethod(key) === k"
+                    @click="selectMethod(key, k)"
                   >
                     {{ t(l) }}
                   </button>

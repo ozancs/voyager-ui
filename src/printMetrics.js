@@ -1,3 +1,27 @@
+// Print progress and time-estimate sources, saved choices, and layer tracking.
+export const PROGRESS_METHODS = [
+  ['file', 'File'],
+  ['relative', 'Relative'],
+  ['filament', 'Filament'],
+  ['slicer', 'Slicer'],
+];
+export const TIME_METHODS = [['smart', 'Smart'], ...PROGRESS_METHODS.filter(([id]) => id !== 'relative')];
+
+function savedPrintMethod(value, methods) {
+  // Older versions appended each newly selected method. Keep the most recent valid choice.
+  const choices = Array.isArray(value) ? [...value].reverse() : [value];
+  return choices.find((choice) => methods.some(([id]) => id === choice)) ?? 'slicer';
+}
+
+export function savedPrintMethods(settings) {
+  // Older clients sharing this printer expect both time settings to be arrays.
+  return {
+    progressCalc: savedPrintMethod(settings.progressCalc, PROGRESS_METHODS),
+    estimateCalc: [savedPrintMethod(settings.estimateCalc, TIME_METHODS)],
+    etaCalc: [savedPrintMethod(settings.etaCalc, TIME_METHODS)],
+  };
+}
+
 // File position and slicer progress are different clocks. Never feed the selected display method
 // back into the File estimator, otherwise selecting Slicer silently changes both estimators.
 export function fileRemaining(progress, duration) {

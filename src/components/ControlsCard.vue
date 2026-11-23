@@ -11,7 +11,7 @@ import Rng from './Rng.vue';
 import { state, gcode, toast, APP } from '../store';
 import { perPrinterKey } from '../printers';
 import { badParamValue, withArgs } from '../macros';
-import { readState, isOn } from '../controls';
+import { readState, isOn, selectedPosition } from '../controls';
 import { t } from '../i18n';
 const props = defineProps({ id: String });
 const c = computed(() => state.settings.customCards?.[props.id] || { type: 'ctl', controls: [] });
@@ -61,12 +61,23 @@ function typed(ct, e) {
 // a switch without a state source remembers what it sent last, so its off command stays reachable
 const local = ref({});
 const toggleOn = (ct) => (ct.obj ? isOn(readState(ct.obj, ct.field), ct.when) : !!local.value[ct.id]);
-const multiVal = (ct) => {
-  const raw = readState(ct.obj, ct.field);
-  return raw === undefined || raw === null
-    ? null
-    : String(typeof raw === 'number' ? Math.round(raw * 1000) / 1000 : raw);
-};
+const chosen = ref({});
+let choiceOrder = 0;
+const positions = computed(() => {
+  const selected = {};
+  for (const ct of controls.value) {
+    if (ct.kind === 'multi') {
+      selected[ct.id] = selectedPosition(ct.options || [], readState(ct.obj, ct.field), chosen.value[ct.id]?.option);
+    }
+  }
+  return selected;
+});
+async function pickPosition(ct, option) {
+  const order = ++choiceOrder;
+  if ((await run(option.cmd, ct.id)) && order > (chosen.value[ct.id]?.order || 0)) {
+    chosen.value[ct.id] = { option, order };
+  }
+}
 function flip(ct, on) {
   if (!ct.obj) local.value = { ...local.value, [ct.id]: on };
   run(on ? ct.on : ct.off, ct.id);
@@ -76,11 +87,12 @@ async function run(cmd, key) {
   if (state.editDash || !cmd) return;
   busy.value = key;
   try {
-    await gcode(cmd);
+    return await gcode(cmd);
   } catch (e) {
     toast(e.message, 'error');
+  } finally {
+    busy.value = null;
   }
-  busy.value = null;
 }
 // {v} in a slider command is the slider value divided by the scale (50 on a 0..100 fan slider -> 0.5)
 function slide(ct, v) {
@@ -162,13 +174,14 @@ function runForm(ct) {
         <!-- several positions -->
         <template v-else-if="ct.kind === 'multi'">
           <span class="nl"><Icon v-if="ct.icon" :name="ct.icon" :size="15" />{{ ct.label }}</span>
-          <div class="seg">
+          <div class="seg" role="group" :aria-label="ct.label">
             <button
               v-for="(o, k) in ct.options || []"
               :key="k"
-              :class="{ on: multiVal(ct) !== null && String(o.value) === multiVal(ct) }"
+              :class="{ on: positions[ct.id] === o }"
+              :aria-pressed="positions[ct.id] === o"
               :data-tip="o.cmd"
-              @click="run(o.cmd, ct.id)"
+              @click="pickPosition(ct, o)"
             >
               {{ o.label || o.value }}
             </button>

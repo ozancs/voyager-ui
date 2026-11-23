@@ -827,6 +827,8 @@ async function estop() {
   font: 500 14px var(--fd);
 }
 .seg {
+  --seg-selected: rgba(255, 255, 255, 0.16);
+  --seg-idle: rgba(255, 255, 255, 0.04);
   display: flex;
   gap: 4px;
 }
@@ -841,13 +843,11 @@ async function estop() {
   height: 34px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
   color: #c9cbcf;
   font: 600 12px var(--fd);
   cursor: pointer;
 }
 .seg button.on {
-  background: rgba(255, 255, 255, 0.16);
   color: #fff;
 }
 .opt {

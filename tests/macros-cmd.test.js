@@ -21,7 +21,7 @@ describe('macro command editing', () => {
     expect(withArgs('my_macro value=1', { VALUE: '9' })).toBe('my_macro value=9');
   });
 });
-const { isOn } = await import('../src/controls.js');
+const { isOn, selectedPosition } = await import('../src/controls.js');
 describe('switch state test', () => {
   it('compares', () => {
     expect(isOn(0.5)).toBe(true);
@@ -32,6 +32,19 @@ describe('switch state test', () => {
     expect(isOn(1, '!= 0')).toBe(true);
     expect(isOn(undefined)).toBe(false);
   });
+});
+
+it('uses one configured position for the reported state even when commands share a value', () => {
+  const off = { value: 0, cmd: 'OFF' };
+  const first = { value: '0.3', cmd: 'FIRST' };
+  const second = { value: '0.3', cmd: 'SECOND' };
+  const options = [off, first, second];
+  expect(selectedPosition(options, 0.30001)).toBe(first);
+  expect(selectedPosition(options, '0.3', second)).toBe(second);
+  expect(selectedPosition(options, 0, second)).toBe(off);
+  expect(selectedPosition([off, first], 0.3, second)).toBe(first);
+  expect(selectedPosition(options, undefined, second)).toBeUndefined();
+  expect(selectedPosition(options, 1, second)).toBeUndefined();
 });
 
 const { pyLiteral, typedLiteral, setVarCommand } = await import('../src/macros.js');

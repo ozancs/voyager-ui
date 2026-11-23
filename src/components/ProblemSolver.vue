@@ -852,8 +852,8 @@ h3 {
   background: color-mix(in srgb, var(--ac) 22%, var(--s3));
   color: color-mix(in srgb, var(--ac) 50%, var(--tx));
 }
-.panel .seg button.on {
-  background: var(--s1);
+.panel .seg {
+  --seg-selected: var(--s1);
 }
 .grp {
   display: flex;

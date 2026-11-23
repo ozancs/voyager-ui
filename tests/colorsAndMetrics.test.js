@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { normalizeHex, hexToHsl, hslHex, hexRgb, rgbHex } from '../src/colorMath';
-import { fileRemaining, slicerRemaining, createLayerTracker, layers } from '../src/printMetrics';
+import { savedPrintMethods, fileRemaining, slicerRemaining, createLayerTracker, layers } from '../src/printMetrics';
 describe('shared colour editor conversions', () => {
   it('round-trips primaries, greys and dark colours through HSL', () => {
     for (const hex of ['#440000', '#222222', '#ff8000', '#00ffff', '#ffffff', '#000000', '#123456']) {
@@ -16,6 +16,25 @@ describe('shared colour editor conversions', () => {
   });
 });
 describe('print progress and layer fallback', () => {
+  it('keeps the last valid method in each older print calculation setting', () => {
+    const settings = { progressCalc: 'relative', estimateCalc: ['slicer', 'file', 'unknown'], etaCalc: ['filament'] };
+    const saved = savedPrintMethods(settings);
+    expect(saved).toEqual({ progressCalc: 'relative', estimateCalc: ['file'], etaCalc: ['filament'] });
+    expect(savedPrintMethods(saved)).toEqual(saved);
+    expect(settings.estimateCalc).toEqual(['slicer', 'file', 'unknown']);
+  });
+  it('accepts scalar backups and writes time methods as single-item arrays for older clients', () => {
+    expect(savedPrintMethods({ progressCalc: ['slicer', 'file'], estimateCalc: 'smart', etaCalc: 'file' })).toEqual({
+      progressCalc: 'file',
+      estimateCalc: ['smart'],
+      etaCalc: ['file'],
+    });
+  });
+  it('defaults missing or unsupported methods independently', () => {
+    const defaults = { progressCalc: 'slicer', estimateCalc: ['slicer'], etaCalc: ['slicer'] };
+    expect(savedPrintMethods({})).toEqual(defaults);
+    expect(savedPrintMethods({ progressCalc: 'smart', estimateCalc: [], etaCalc: ['relative'] })).toEqual(defaults);
+  });
   it('does not report zero time forever when slicer duration overruns', () => {
     expect(slicerRemaining(3600, 1200, 99)).toBe(2400);
     expect(slicerRemaining(3600, 3700, 99)).toBe(99);

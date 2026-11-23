@@ -2679,7 +2679,6 @@ export default {
   "Relative": "相対",
   "Smart": "スマート",
   "Time left": "残り時間",
-  "Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.": "スマート：過去の印刷で補正したスライサーの時間が、印刷が進むにつれて実測のペースに置き換わります。ほかを複数選ぶとその平均を表示します。",
   "When the print ends, worked out the same way.": "印刷が終わる時刻も同じ方法で計算します。",
   "Klipper restart method": "Klipper の再起動方法",
   "What Save & Restart in the config editor sends.": "設定エディターの「保存して再起動」が送るコマンド。",
@@ -2723,4 +2722,5 @@ export default {
   "Could not copy": "コピーできませんでした",
   "Click to edit": "クリックして編集",
   "Command {n}": "コマンド {n}",
+  "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "スマートは過去の印刷結果でスライサーの推定時間を補正し、印刷が進むにつれて実測速度を重視します。",
 }

@@ -2679,7 +2679,6 @@ export default {
   "Relative": "Relatief",
   "Smart": "Slim",
   "Time left": "Resterende tijd",
-  "Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.": "Slim: de slicertijd, bijgesteld door eerdere prints, maakt plaats voor het gemeten tempo naarmate de print vordert. Meerdere van de andere gekozen: hun gemiddelde.",
   "When the print ends, worked out the same way.": "Wanneer de print klaar is, op dezelfde manier berekend.",
   "Klipper restart method": "Herstartmethode van Klipper",
   "What Save & Restart in the config editor sends.": "Wat Opslaan en herstarten in de configuratie-editor stuurt.",
@@ -2723,4 +2722,5 @@ export default {
   "Could not copy": "Kopiëren mislukt",
   "Click to edit": "Klik om te bewerken",
   "Command {n}": "Opdracht {n}",
+  "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Slim stelt de schatting van de slicer bij op basis van eerdere prints en laat het gemeten tempo zwaarder meewegen naarmate de print vordert.",
 }

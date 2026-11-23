@@ -11,6 +11,13 @@ export function readState(obj, field) {
   }
   return v;
 }
+// Two separately configured commands may report the same position. Prefer the one chosen here if it still matches.
+export function selectedPosition(options, raw, preferred) {
+  if (raw == null) return;
+  const value = String(typeof raw === 'number' ? Math.round(raw * 1000) / 1000 : raw);
+  if (preferred && options.includes(preferred) && String(preferred.value) === value) return preferred;
+  return options.find((option) => String(option.value) === value);
+}
 const norm = (x) => {
   if (typeof x === 'boolean') return x ? 1 : 0;
   if (typeof x === 'number') return x;

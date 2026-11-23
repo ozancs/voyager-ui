@@ -5,6 +5,7 @@ const server = await createServer({ mode: 'demo', logLevel: 'error', server: { h
 await server.listen();
 const browser = await chromium.launch({ args: ['--use-angle=gl'] });
 const page = await browser.newPage({ viewport: { width: 1366, height: 950 } });
+await page.emulateMedia({ reducedMotion: 'no-preference' });
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 const base = `http://127.0.0.1:${server.httpServer.address().port}`;
@@ -26,6 +27,49 @@ try {
   await row.click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Rename', exact: true }).click();
   await page.getByRole('button', { name: 'Cancel', exact: true }).last().click();
+  await tab('general');
+  for (const label of ['Print progress', 'Time left', 'ETA']) {
+    const group = page
+      .locator('.rw')
+      .filter({ has: page.getByText(label, { exact: true }) })
+      .locator('.seg');
+    const selections = await group.evaluate(async (el) => {
+      const selected = [];
+      const pixel = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+      for (const name of ['File', 'Filament', 'File', 'File']) {
+        const button = [...el.querySelectorAll('button')].find((b) => b.textContent.trim() === name);
+        button.click();
+        await new Promise(requestAnimationFrame);
+        const highlights = el.querySelectorAll('.seg-pill');
+        let visible = false;
+        if (highlights.length) {
+          pixel.clearRect(0, 0, 1, 1);
+          pixel.fillStyle = getComputedStyle(highlights[0]).backgroundColor;
+          pixel.fillRect(0, 0, 1, 1);
+          visible = pixel.getImageData(0, 0, 1, 1).data[3] > 0;
+        }
+        selected.push({
+          active: [...el.querySelectorAll('button.on')].map((b) => b.textContent.trim()),
+          moving: highlights.length,
+          visible,
+        });
+      }
+      return selected;
+    });
+    assert.deepEqual(
+      selections.map((s) => s.active),
+      [['File'], ['Filament'], ['File'], ['File']],
+      label,
+    );
+    assert(
+      selections.every((s) => s.moving <= 1),
+      label + ' drew overlapping selection highlights',
+    );
+    assert(
+      selections.some((s) => s.visible),
+      label + ' never drew a visible moving highlight',
+    );
+  }
   await tab('appearance');
   const img = page.locator('.printer-icon-controls img');
   assert(await img.evaluate((el) => el.complete && el.naturalWidth > 0));

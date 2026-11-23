@@ -2679,7 +2679,6 @@ export default {
   "Relative": "相对",
   "Smart": "智能",
   "Time left": "剩余时间",
-  "Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.": "智能：经过往打印校正的切片时间，随打印进行逐渐让位于实测速度。选择其他多项时显示它们的平均值。",
   "When the print ends, worked out the same way.": "打印结束时间也用同样的方法计算。",
   "Klipper restart method": "Klipper 重启方式",
   "What Save & Restart in the config editor sends.": "配置编辑器中“保存并重启”发送的命令。",
@@ -2723,4 +2722,5 @@ export default {
   "Could not copy": "无法复制",
   "Click to edit": "点击编辑",
   "Command {n}": "命令 {n}",
+  "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "智能模式会根据以往的打印记录修正切片软件的预计时间，并随着打印推进逐步提高实测速度的权重。",
 }

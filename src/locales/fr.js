@@ -2679,7 +2679,6 @@ export default {
   "Relative": "Relatif",
   "Smart": "Intelligent",
   "Time left": "Temps restant",
-  "Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.": "Intelligent : le temps du trancheur, corrigé par les impressions passées, laisse place au rythme mesuré au fil de l’impression. Plusieurs des autres choisis : leur moyenne.",
   "When the print ends, worked out the same way.": "La fin de l’impression, calculée de la même façon.",
   "Klipper restart method": "Méthode de redémarrage de Klipper",
   "What Save & Restart in the config editor sends.": "Ce qu’envoie Enregistrer et redémarrer dans l’éditeur de configuration.",
@@ -2723,4 +2722,5 @@ export default {
   "Could not copy": "Copie impossible",
   "Click to edit": "Cliquer pour modifier",
   "Command {n}": "Commande {n}",
+  "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Le mode Intelligent ajuste l’estimation du trancheur à partir des impressions précédentes et accorde plus de poids à la vitesse mesurée à mesure que l’impression avance.",
 }

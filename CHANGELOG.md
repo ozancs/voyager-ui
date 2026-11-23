@@ -2,6 +2,9 @@
 
 ## 0.38.64
 
+- Printing settings: Print progress, Time left and ETA each use one source. For an older selection with several sources, Voyager keeps the last one selected.
+- Selection controls: the highlight glides to the chosen option, including when you change direction or click again before it arrives.
+- Custom controls: when two positions report the same printer value, only one is highlighted. Voyager remembers which matching command you last sent from the card.
 - Console: in a pasted list of commands, click a line to edit it before Send all (Enter keeps it, Escape drops the change, an emptied line leaves the list)
 - Bug fixes and improvements
 

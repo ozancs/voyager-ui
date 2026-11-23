@@ -1,56 +1,67 @@
-// Option groups (.seg): the highlight slides from the old option to the picked one instead of jumping. Works for
-// every .seg in the app without touching the components: on a click inside one, the highlighted option is noted;
-// once Vue has moved the `on` class, a stand-in with the same background is drawn over the old place and moved to
-// the new one, then removed, and the picked option shows its own background again. Nothing is left behind, so a
-// group that changes some other way (a setting restored, another browser) just switches as before.
-const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+// Keep the real selection on the button. A single highlight moves behind its label until it arrives.
+const moving = new WeakMap();
 
-function slide(seg, from) {
-  const to = seg.querySelector(':scope > button.on');
-  if (!to || to === from || !from.isConnected) return;
-  const box = seg.getBoundingClientRect();
-  const zoom = box.width / (seg.offsetWidth || box.width) || 1; // the interface scale zooms the page
-  const a = from.getBoundingClientRect(),
-    b = to.getBoundingClientRect();
-  if (!a.width || !b.width) return;
-  const cs = getComputedStyle(to);
+function bounds(button) {
+  // Offsets use the positioned group's own CSS pixels, even inside a zoomed page or a transformed dialog.
+  return {
+    left: button.offsetLeft + 'px',
+    top: button.offsetTop + 'px',
+    width: button.offsetWidth + 'px',
+    height: button.offsetHeight + 'px',
+  };
+}
+
+function slide(group, from) {
+  const to = group.querySelector(':scope > button.on');
+  const previous = moving.get(group);
+  const start = bounds(from);
+  if (previous) {
+    // A second choice starts at the visible highlight, which may be between two buttons.
+    const style = getComputedStyle(previous.pill);
+    for (const key of Object.keys(start)) start[key] = style[key];
+    previous.stop();
+  }
+  if (!to || !to.offsetWidth || !from.offsetWidth || window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    return;
+
+  const end = bounds(to);
   const pill = document.createElement('span');
   pill.className = 'seg-pill';
-  const at = (r) => ({
-    left: (r.left - box.left) / zoom - seg.clientLeft + 'px',
-    top: (r.top - box.top) / zoom - seg.clientTop + 'px',
-    width: r.width / zoom + 'px',
-    height: r.height / zoom + 'px',
+  pill.setAttribute('aria-hidden', 'true');
+  Object.assign(pill.style, end, { borderRadius: getComputedStyle(to).borderRadius });
+  group.append(pill);
+  group.setAttribute('data-seg-sliding', '');
+  const animation = pill.animate([start, end], { duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  const resize = new ResizeObserver(() => {
+    const box = bounds(to);
+    if (Object.keys(end).some((key) => box[key] !== end[key])) stop();
   });
-  Object.assign(pill.style, at(a), { background: cs.backgroundColor, borderRadius: cs.borderRadius });
-  const staticPos = getComputedStyle(seg).position === 'static';
-  if (staticPos) seg.style.position = 'relative';
-  seg.prepend(pill);
-  to.classList.add('seg-to');
-  const done = () => {
+  resize.observe(group);
+  for (const button of group.querySelectorAll(':scope > button')) resize.observe(button);
+  function stop() {
+    if (moving.get(group)?.pill !== pill) return;
+    moving.delete(group);
+    resize.disconnect();
+    animation.cancel();
     pill.remove();
-    to.classList.remove('seg-to');
-    if (staticPos) seg.style.position = '';
-  };
-  const anim = pill.animate([at(a), at(b)], { duration: 320, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' });
-  anim.onfinish = done;
-  anim.oncancel = done;
+    group.removeAttribute('data-seg-sliding');
+  }
+  moving.set(group, { pill, stop });
+  animation.onfinish = animation.oncancel = stop;
 }
 
 export function startSegSlide() {
-  document.addEventListener(
-    'click',
-    (e) => {
-      if (reduced()) return;
-      const btn = e.target.closest?.('.seg > button');
-      const seg = btn?.parentElement;
-      // a group where several options can be on at once (.multi) has nothing to slide
-      if (seg?.classList.contains('multi')) return;
-      const from = seg?.querySelector(':scope > button.on');
-      if (!from || from === btn) return;
-      // Vue updates the classes in its next tick, after this click's handlers ran
-      requestAnimationFrame(() => slide(seg, from));
-    },
-    true,
-  );
+  if (!Element.prototype.animate) return;
+  // Vue may switch the active class after a click, a keyboard action, or an asynchronous printer update.
+  // Read the final selection once after the DOM update and before the browser paints.
+  new MutationObserver((changes) => {
+    const groups = new Map();
+    for (const { target, oldValue } of changes) {
+      if (target.localName !== 'button' || !oldValue?.split(/\s+/).includes('on') || target.classList.contains('on'))
+        continue;
+      const group = target.parentElement;
+      if (group?.matches('.seg:not(.multi)') && group.isConnected && !groups.has(group)) groups.set(group, target);
+    }
+    for (const [group, from] of groups) slide(group, from);
+  }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
 }

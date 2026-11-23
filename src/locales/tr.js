@@ -2697,7 +2697,6 @@ export default {
   "Relative": "Göreli",
   "Smart": "Akıllı",
   "Time left": "Kalan süre",
-  "Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.": "Akıllı: geçmiş baskılarla düzeltilmiş dilimleyici süresi, baskı ilerledikçe yerini ölçülen hıza bırakır. Diğerlerinden birkaçı seçilirse ortalamaları gösterilir.",
   "When the print ends, worked out the same way.": "Baskının ne zaman biteceği, aynı yolla hesaplanır.",
   "Klipper restart method": "Klipper yeniden başlatma yöntemi",
   "What Save & Restart in the config editor sends.": "Yapılandırma düzenleyicisindeki Kaydet ve Yeniden Başlat'ın gönderdiği komut.",
@@ -2741,4 +2740,5 @@ export default {
   "Could not copy": "Kopyalanamadı",
   "Click to edit": "Düzenlemek için tıkla",
   "Command {n}": "Komut {n}",
+  "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Akıllı yöntem, dilimleyicinin tahminini geçmiş baskılara göre düzeltir. Baskı ilerledikçe ölçülen hıza daha fazla ağırlık verir.",
 }

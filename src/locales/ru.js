@@ -2679,7 +2679,6 @@ export default {
   "Relative": "Относительно",
   "Smart": "Умный",
   "Time left": "Осталось",
-  "Smart: the slicer time, corrected by past prints, gives way to the measured pace as the print goes on. Picking several of the others shows their average.": "Умный: время слайсера, поправленное по прошлым печатям, по ходу печати уступает измеренному темпу. Если выбрать несколько других, показывается их среднее.",
   "When the print ends, worked out the same way.": "Когда печать закончится, считается так же.",
   "Klipper restart method": "Способ перезапуска Klipper",
   "What Save & Restart in the config editor sends.": "Что отправляет «Сохранить и перезапустить» в редакторе конфигурации.",
@@ -2723,4 +2722,5 @@ export default {
   "Could not copy": "Не удалось скопировать",
   "Click to edit": "Нажмите, чтобы изменить",
   "Command {n}": "Команда {n}",
+  "Smart uses past prints to correct the slicer estimate and gives more weight to the measured pace as the print progresses.": "Умный режим корректирует прогноз слайсера по предыдущим печатям и по мере печати придаёт больший вес измеренной скорости.",
 }

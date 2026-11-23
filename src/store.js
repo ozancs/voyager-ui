@@ -1,4 +1,4 @@
-import { fileRemaining, slicerRemaining, createLayerTracker, layers } from './printMetrics';
+import { savedPrintMethods, fileRemaining, slicerRemaining, createLayerTracker, layers } from './printMetrics';
 // The app state and the connection to Moonraker.
 //  - state: everything the UI shows (printer objects, settings, console, files cache...), reactive
 //  - start(): connects the websocket, subscribes to all printer objects and keeps state.status up to date
@@ -505,6 +505,7 @@ export function mergeSettings(v) {
   return {
     ...def,
     ...v,
+    ...savedPrintMethods(v),
     devices: { ...def.devices, ...(v.devices || {}) },
     strip: { ...def.strip, ...(v.strip || {}) },
     control: { ...def.control, ...(v.control || {}) },
@@ -708,8 +709,8 @@ export const printTimes = computed(() => {
     w = Math.min(1, Math.max(0, (p - 0.03) / 0.5));
     left = slicerLeft * (1 - w) + fileLeft * w;
   }
-  // Time left and ETA, by Settings > General: Smart (the above), or the average of the chosen plain methods
-  const plain = {
+  // Time left and the finish clock each use their own selected method.
+  const remaining = {
     smart: left,
     file: fileLeft,
     filament: (() => {
@@ -719,12 +720,8 @@ export const printTimes = computed(() => {
     })(),
     slicer: slicerRemaining(meta, dur, left),
   };
-  const pick = (ms) => {
-    const vs = (Array.isArray(ms) && ms.length ? ms : ['slicer']).map((k) => plain[k]).filter((v) => v != null);
-    return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null;
-  };
-  const shown = pick(state.settings.estimateCalc),
-    toEnd = pick(state.settings.etaCalc);
+  const shown = remaining[state.settings.estimateCalc[0]],
+    toEnd = remaining[state.settings.etaCalc[0]];
   return {
     elapsed: ps.total_duration || 0,
     print: dur,
@@ -1027,6 +1024,7 @@ export const gcode = async (script, { quiet = false, force = false, repeat = fal
   const tm = setTimeout(() => (state.running = run), 500);
   try {
     await api.gcode(script);
+    return true;
   } catch (e) {
     if (lastSent === mine) lastSent = { s: '', at: 0 }; // a failed send can be retried at once
     if (!quiet) toast(e.message, 'error');

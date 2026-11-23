@@ -427,10 +427,10 @@ a.btn {
 }
 
 .seg {
+  --seg-selected: color-mix(in srgb, var(--ac) var(--ac-sel), var(--s3));
+  position: relative;
+  isolation: isolate;
   display: flex;
-  gap: 4px;
-}
-.seg {
   background: var(--s2);
   border-radius: 10px;
   padding: 3px;
@@ -444,7 +444,7 @@ a.btn {
   flex: 1;
   height: 28px;
   padding: 0 10px;
-  background: transparent;
+  background: var(--seg-idle, transparent);
   color: var(--mu);
   border: none;
   border-radius: 7px;
@@ -456,18 +456,21 @@ a.btn {
   color: var(--tx);
 }
 .seg button.on {
-  background: color-mix(in srgb, var(--ac) var(--ac-sel), var(--s3));
+  background: var(--seg-selected);
   color: color-mix(in srgb, var(--ac) var(--ac-ink), var(--tx));
 }
-/* while the highlight slides over (segSlide.js) the picked option leaves its own background to the slider */
-.seg button.seg-to {
+/* A single selection has one moving fill. A background fade would leave a second fill on the old button. */
+.seg:not(.multi) > button {
+  transition-property: color;
+}
+.seg[data-seg-sliding] > button.on {
   background: transparent;
-  transition: none;
 }
 .seg-pill {
   position: absolute;
   z-index: 0;
   pointer-events: none;
+  background: var(--seg-selected);
 }
 .seg > button {
   position: relative;
