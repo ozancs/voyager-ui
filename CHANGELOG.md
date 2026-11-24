@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.65
+
+- The update window now recognizes Git file listings. A filename such as `test/stream_bus_errors.py` can appear in a successful update without triggering a failure badge.
+
 ## 0.38.64
 
 - Printing settings: Print progress, Time left and ETA each use one source. For an older selection with several sources, Voyager keeps the last one selected.

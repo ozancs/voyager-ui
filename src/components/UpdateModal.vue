@@ -6,6 +6,7 @@ import Icon from './Icon.vue';
 import { state } from '../store';
 import { t } from '../i18n';
 import { copyText } from '../clipboard';
+import { isUpdateError } from '../updateLog';
 const box = ref(null);
 const u = computed(() => state.update);
 watch(
@@ -33,7 +34,7 @@ onBeforeUnmount(() => clearInterval(tick));
 const title = computed(() =>
   ['all', 'full'].includes(u.value?.app) ? t('Updating everything') : t('Updating {name}', { name: u.value?.app }),
 );
-const failed = computed(() => u.value?.lines.some((l) => /^!!|error|failed/i.test(l)));
+const failed = computed(() => u.value?.lines.some(isUpdateError));
 // PackageKit gives up when an upgrade needs other packages removed (a new libcamera taking the old camera streamer
 // and old kernels with it) and Moonraker only says "Exit Failed". Nothing is removed from here: the user runs apt
 // over SSH and checks what it wants to remove.
@@ -94,7 +95,7 @@ async function copy() {
       <details v-if="sysFail" class="det">
         <summary>{{ t('Details') }}</summary>
         <div class="log mono sm">
-          <div v-for="(l, i) in u.lines" :key="i" :class="{ e: /^!!|error|failed/i.test(l) }">{{ l }}</div>
+          <div v-for="(l, i) in u.lines" :key="i" :class="{ e: isUpdateError(l) }">{{ l }}</div>
         </div>
       </details>
       <div v-else ref="box" class="log mono">
@@ -108,7 +109,7 @@ async function copy() {
             }}</template
           >
         </div>
-        <div v-for="(l, i) in u.lines" :key="i" :class="{ e: /^!!|error|failed/i.test(l) }">{{ l }}</div>
+        <div v-for="(l, i) in u.lines" :key="i" :class="{ e: isUpdateError(l) }">{{ l }}</div>
       </div>
       <div v-if="!u.complete" class="bar"><div class="ind"></div></div>
       <div class="row" style="justify-content: flex-end">
