@@ -1930,6 +1930,13 @@ function detachCard(i) {
 .page.dash > :first-child {
   margin-top: -12px;
 }
+/* under 1100 px the page has only 10 px above it (App.vue), so pulling the first row up would push the tiles'
+   top edge under the favorites bar */
+@media (max-width: 1100px) {
+  .page.dash > :first-child {
+    margin-top: 0;
+  }
+}
 .cell {
   position: relative;
   height: 100%;

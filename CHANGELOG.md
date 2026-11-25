@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.38.66
+
+- Dashboard: on screens narrower than 1100 px the top edge of the first row of tiles is no longer cut off under the favorites bar
+
 ## 0.38.65
 
 - The update window now recognizes Git file listings. A filename such as `test/stream_bus_errors.py` can appear in a successful update without triggering a failure badge.
