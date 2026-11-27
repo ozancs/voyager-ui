@@ -2,6 +2,8 @@
 
 ## 0.38.67
 
+- Extruder card: Retract and Extrude work while a print is paused (purge, filament change); they stay off only while it is printing
+
 ## 0.38.66
 
 - Dashboard: on screens narrower than 1100 px the top edge of the first row of tiles is no longer cut off under the favorites bar
