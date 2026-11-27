@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.38.67
+
 ## 0.38.66
 
 - Dashboard: on screens narrower than 1100 px the top edge of the first row of tiles is no longer cut off under the favorites bar
