@@ -18,6 +18,7 @@ import { api } from '../api/moonraker';
 import { t } from '../i18n';
 import { state, toast } from '../store';
 import { findCamAudio } from '../camAudio';
+import { iframePageUrl } from '../camUrl';
 const props = defineProps({ cam: Object, overlay: { type: Boolean, default: true }, audio: Boolean });
 const src = ref('');
 const fps = ref(0);
@@ -78,7 +79,10 @@ function measure(el) {
   const h = el?.naturalHeight || el?.videoHeight;
   if (w && h) aspect.value = w / h;
 }
-const streamUrl = computed(() => api.url(props.cam?.stream_url || '/webcam/?action=stream'));
+const streamUrl = computed(() => {
+  const u = props.cam?.stream_url || '/webcam/?action=stream';
+  return mode.value === 'iframe' ? iframePageUrl(u, api) : api.url(u);
+});
 function snapUrl() {
   const u = api.url(props.cam?.snapshot_url || '/webcam/?action=snapshot');
   return u + (u.includes('?') ? '&' : '?') + 't=' + Date.now();
