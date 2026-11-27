@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "파일의 기본 레이아웃",
   "Keep its current layout": "현재 레이아웃 유지",
   "(this device)": "(이 기기)",
+  "Live Z arrows follow the Z offset value": "Live Z 화살표가 Z 오프셋 값을 따름",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "켜짐: 무엇이 움직이든 위는 Z 오프셋을 높이고 아래는 낮춥니다. 꺼짐: Z 조그 버튼처럼 화살표가 움직이는 부분을 따릅니다.",
+  "Lower the Z offset (nozzle closer to the bed)": "Z 오프셋 낮추기 (노즐이 베드에 가까워짐)",
+  "Raise the Z offset (nozzle farther from the bed)": "Z 오프셋 높이기 (노즐이 베드에서 멀어짐)",
+  "Reset the Z offset to 0": "Z 오프셋을 0으로 재설정",
 }

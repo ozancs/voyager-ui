@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "Hoofdindeling van het bestand",
   "Keep its current layout": "Huidige indeling behouden",
   "(this device)": "(dit apparaat)",
+  "Live Z arrows follow the Z offset value": "Live Z-pijlen volgen de Z-offsetwaarde",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "Aan: omhoog verhoogt de Z-offset, omlaag verlaagt hem, wat er ook beweegt. Uit: de pijlen volgen het bewegende deel, zoals de Z-knoppen.",
+  "Lower the Z offset (nozzle closer to the bed)": "Z-offset verlagen (spuitmond dichter bij het bed)",
+  "Raise the Z offset (nozzle farther from the bed)": "Z-offset verhogen (spuitmond verder van het bed)",
+  "Reset the Z offset to 0": "Z-offset terugzetten naar 0",
 }

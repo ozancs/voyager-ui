@@ -33,10 +33,27 @@ const step = ref(null);
 const cur = computed(() =>
   steps.value.includes(step.value) ? step.value : steps.value[Math.min(1, steps.value.length - 1)] || 0.01,
 );
-// d > 0: nozzle farther from the bed (Z offset up). The arrows follow the Invert Z setting like the Toolhead card:
-// with a moving bed (Invert Z on) the up arrow lifts the bed, which brings it closer to the nozzle.
+// d > 0: nozzle farther from the bed (Z offset up). By default the arrows change the value: up raises the Z offset,
+// down lowers it, on any printer. With "Live Z arrows follow the Z offset value" off they follow the Invert Z
+// setting like the Toolhead card: with a moving bed the up arrow lifts the bed, closer to the nozzle.
 const adj = (d) => gcode(`SET_GCODE_OFFSET Z_ADJUST=${d > 0 ? '' : '-'}${cur.value} MOVE=1`);
-const bedMoves = computed(() => !!state.settings.invertZ);
+const byValue = computed(() => state.settings.liveZValue !== false);
+const bedMoves = computed(() => !byValue.value && !!state.settings.invertZ);
+const downTip = computed(() =>
+  byValue.value
+    ? t('Lower the Z offset (nozzle closer to the bed)')
+    : bedMoves.value
+      ? t('Bed down, farther from the nozzle')
+      : t('Nozzle down, closer to the bed'),
+);
+const upTip = computed(() =>
+  byValue.value
+    ? t('Raise the Z offset (nozzle farther from the bed)')
+    : bedMoves.value
+      ? t('Bed up, closer to the nozzle')
+      : t('Nozzle up, farther from the bed'),
+);
+const reset = () => gcode('SET_GCODE_OFFSET Z=0 MOVE=1');
 const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APPLY_ENDSTOP');
 </script>
 <template>
@@ -44,8 +61,7 @@ const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
     <div class="card-h">
       <CardTitle :text="t('Live Z')" />
       <div class="acts">
-        <button class="btn" :disabled="!zoff" @click="gcode('SET_GCODE_OFFSET Z=0 MOVE=1')">{{ t('Clear') }}</button
-        ><button
+        <button
           class="btn"
           :disabled="!zoff"
           :data-tip="t('Write the offset to the config (needs SAVE_CONFIG)')"
@@ -63,26 +79,17 @@ const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
       >
     </div>
     <div class="zo">
-      <button
-        class="btn big"
-        :aria-label="bedMoves ? t('Bed down, farther from the nozzle') : t('Nozzle down, closer to the bed')"
-        :data-tip="bedMoves ? t('Bed down, farther from the nozzle') : t('Nozzle down, closer to the bed')"
-        @click="adj(bedMoves ? 1 : -1)"
-      >
+      <button class="btn big" :aria-label="downTip" :data-tip="downTip" @click="adj(bedMoves ? 1 : -1)">
         <Icon name="down" :size="18" :stroke="2.6" />
       </button>
       <div class="zv">
         <span class="lbl">{{ t('Z offset') }}</span
-        ><b class="mono" :style="{ color: zoff ? 'var(--ac)' : null }">{{
-          (zoff >= 0 ? '+' : '') + zoff.toFixed(3)
-        }}</b>
+        ><b class="mono" :style="{ color: zoff ? 'var(--ac)' : null }">{{ (zoff >= 0 ? '+' : '') + zoff.toFixed(3) }}</b
+        ><button class="btn sm rst" :disabled="!zoff" :data-tip="t('Reset the Z offset to 0')" @click="reset">
+          <Icon name="refresh" :size="13" />{{ t('Reset') }}
+        </button>
       </div>
-      <button
-        class="btn big"
-        :aria-label="bedMoves ? t('Bed up, closer to the nozzle') : t('Nozzle up, farther from the bed')"
-        :data-tip="bedMoves ? t('Bed up, closer to the nozzle') : t('Nozzle up, farther from the bed')"
-        @click="adj(bedMoves ? -1 : 1)"
-      >
+      <button class="btn big" :aria-label="upTip" :data-tip="upTip" @click="adj(bedMoves ? -1 : 1)">
         <Icon name="up" :size="18" :stroke="2.6" />
       </button>
     </div>
@@ -133,6 +140,12 @@ const save = () => gcode(hasProbe.value ? 'Z_OFFSET_APPLY_PROBE' : 'Z_OFFSET_APP
 }
 .zv b {
   font-size: 22px;
+}
+.zv .rst {
+  height: 24px;
+  padding: 0 8px;
+  gap: 4px;
+  font-size: 11.5px;
 }
 .st {
   width: 100%;

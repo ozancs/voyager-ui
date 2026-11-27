@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "Основная раскладка из файла",
   "Keep its current layout": "Оставить текущую раскладку",
   "(this device)": "(это устройство)",
+  "Live Z arrows follow the Z offset value": "Стрелки Live Z меняют значение Z-смещения",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "Вкл.: вверх увеличивает Z-смещение, вниз уменьшает, что бы ни двигалось. Выкл.: стрелки следуют за движущейся частью, как кнопки Z.",
+  "Lower the Z offset (nozzle closer to the bed)": "Уменьшить Z-смещение (сопло ближе к столу)",
+  "Raise the Z offset (nozzle farther from the bed)": "Увеличить Z-смещение (сопло дальше от стола)",
+  "Reset the Z offset to 0": "Сбросить Z-смещение до 0",
 }

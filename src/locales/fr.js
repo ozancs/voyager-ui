@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "Disposition principale du fichier",
   "Keep its current layout": "Garder sa disposition actuelle",
   "(this device)": "(cet appareil)",
+  "Live Z arrows follow the Z offset value": "Les flèches Live Z suivent la valeur du décalage Z",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "Activé : haut augmente le décalage Z, bas le diminue, quelle que soit la pièce qui bouge. Désactivé : les flèches suivent la pièce qui bouge, comme les boutons Z.",
+  "Lower the Z offset (nozzle closer to the bed)": "Diminuer le décalage Z (buse plus près du plateau)",
+  "Raise the Z offset (nozzle farther from the bed)": "Augmenter le décalage Z (buse plus loin du plateau)",
+  "Reset the Z offset to 0": "Remettre le décalage Z à 0",
 }

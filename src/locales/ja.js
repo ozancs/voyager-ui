@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "ファイルのメインレイアウト",
   "Keep its current layout": "現在のレイアウトを維持",
   "(this device)": "（このデバイス）",
+  "Live Z arrows follow the Z offset value": "Live Zの矢印をZオフセット値に合わせる",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "オン: 上でZオフセットを増やし、下で減らします（どちらが動くかに関係なく）。オフ: Zジョグボタンと同様に、動く部分に合わせます。",
+  "Lower the Z offset (nozzle closer to the bed)": "Zオフセットを下げる（ノズルがベッドに近づく）",
+  "Raise the Z offset (nozzle farther from the bed)": "Zオフセットを上げる（ノズルがベッドから離れる）",
+  "Reset the Z offset to 0": "Zオフセットを0に戻す",
 }

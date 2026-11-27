@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "Hauptlayout der Datei",
   "Keep its current layout": "Aktuelles Layout behalten",
   "(this device)": "(dieses Gerät)",
+  "Live Z arrows follow the Z offset value": "Live-Z-Pfeile folgen dem Z-Offset-Wert",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "An: hoch erhöht den Z-Offset, runter senkt ihn, egal was sich bewegt. Aus: die Pfeile folgen dem bewegten Teil, wie die Z-Tipptasten.",
+  "Lower the Z offset (nozzle closer to the bed)": "Z-Offset senken (Düse näher am Bett)",
+  "Raise the Z offset (nozzle farther from the bed)": "Z-Offset erhöhen (Düse weiter vom Bett)",
+  "Reset the Z offset to 0": "Z-Offset auf 0 zurücksetzen",
 }
