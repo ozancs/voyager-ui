@@ -3,6 +3,10 @@
 ## 0.38.66
 
 - Dashboard: on screens narrower than 1100 px the top edge of the first row of tiles is no longer cut off under the favorites bar
+- Settings backup: the file name includes the printer (its name, or its address), so backups of several printers can share one folder
+- Settings > Backup & reset: "Back up all printers" saves every printer in your printer list to one file. Restore from file lists the printers in it and restores the ones you tick.
+- Restore: "Layout on this device" brings back a layout saved under another device id, for example after reinstalling the app or in a new browser
+- Spool card: the remaining weight stays current during a print, and the card matches the other cards
 
 ## 0.38.65
 
