@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "Основна розкладка з файлу",
   "Keep its current layout": "Залишити поточну розкладку",
   "(this device)": "(цей пристрій)",
+  "Live Z arrows follow the Z offset value": "Стрілки Live Z змінюють значення Z-зміщення",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "Увімк.: вгору збільшує Z-зміщення, вниз зменшує, що б не рухалося. Вимк.: стрілки слідують за рухомою частиною, як кнопки Z.",
+  "Lower the Z offset (nozzle closer to the bed)": "Зменшити Z-зміщення (сопло ближче до столу)",
+  "Raise the Z offset (nozzle farther from the bed)": "Збільшити Z-зміщення (сопло далі від столу)",
+  "Reset the Z offset to 0": "Скинути Z-зміщення до 0",
 }

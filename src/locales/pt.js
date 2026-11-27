@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "Layout principal do arquivo",
   "Keep its current layout": "Manter o layout atual",
   "(this device)": "(este dispositivo)",
+  "Live Z arrows follow the Z offset value": "As setas do Live Z seguem o valor do offset Z",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "Ligado: cima aumenta o offset Z, baixo diminui, seja o que for que se mova. Desligado: as setas seguem a peça que se move, como os botões de Z.",
+  "Lower the Z offset (nozzle closer to the bed)": "Diminuir o offset Z (bico mais perto da mesa)",
+  "Raise the Z offset (nozzle farther from the bed)": "Aumentar o offset Z (bico mais longe da mesa)",
+  "Reset the Z offset to 0": "Repor o offset Z a 0",
 }

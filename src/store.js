@@ -84,6 +84,7 @@ export const DEFAULT_SETTINGS = () => ({
   layout: null,
   hiddenCards: [],
   invertZ: true,
+  liveZValue: true, // Live Z arrows: up raises the Z offset, down lowers it (off: they follow the moving part)
   toolheadStyle: 'circle', // Toolhead card jog: circle (round pad, as Mainsail's) | buttons (rows per axis and a D-pad)
   tempsStyle: 'classic', // Temperatures card: classic (a table) | compact (rows with target chips, sensors as chips)
   hiddenCfgs: [],

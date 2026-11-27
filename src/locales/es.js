@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "Diseño principal del archivo",
   "Keep its current layout": "Mantener su diseño actual",
   "(this device)": "(este dispositivo)",
+  "Live Z arrows follow the Z offset value": "Las flechas de Live Z siguen el valor del offset Z",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "Activado: arriba aumenta el offset Z y abajo lo reduce, se mueva lo que se mueva. Desactivado: las flechas siguen a la pieza que se mueve, como los botones de Z.",
+  "Lower the Z offset (nozzle closer to the bed)": "Reducir el offset Z (boquilla más cerca de la cama)",
+  "Raise the Z offset (nozzle farther from the bed)": "Aumentar el offset Z (boquilla más lejos de la cama)",
+  "Reset the Z offset to 0": "Restablecer el offset Z a 0",
 }

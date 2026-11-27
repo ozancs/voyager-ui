@@ -2735,4 +2735,9 @@ export default {
   "The file's main layout": "文件的主布局",
   "Keep its current layout": "保留当前布局",
   "(this device)": "（此设备）",
+  "Live Z arrows follow the Z offset value": "Live Z 箭头跟随 Z 偏移值",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "开：无论哪个部件移动，向上增加 Z 偏移，向下减少。关：箭头跟随移动的部件，与 Z 点动按钮相同。",
+  "Lower the Z offset (nozzle closer to the bed)": "降低 Z 偏移（喷嘴更靠近热床）",
+  "Raise the Z offset (nozzle farther from the bed)": "提高 Z 偏移（喷嘴远离热床）",
+  "Reset the Z offset to 0": "将 Z 偏移重置为 0",
 }

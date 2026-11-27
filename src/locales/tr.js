@@ -2753,4 +2753,9 @@ export default {
   "The file's main layout": "Dosyanın ana düzeni",
   "Keep its current layout": "Mevcut düzeni koru",
   "(this device)": "(bu cihaz)",
+  "Live Z arrows follow the Z offset value": "Live Z okları Z ofset değerini izler",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.": "Açık: yukarı Z ofsetini artırır, aşağı azaltır, hangi parça hareket ederse etsin. Kapalı: oklar, Z düğmeleri gibi hareket eden parçayı izler.",
+  "Lower the Z offset (nozzle closer to the bed)": "Z ofsetini düşür (nozul tablaya daha yakın)",
+  "Raise the Z offset (nozzle farther from the bed)": "Z ofsetini artır (nozul tabladan daha uzak)",
+  "Reset the Z offset to 0": "Z ofsetini 0'a sıfırla",
 }

@@ -1076,6 +1076,21 @@ const consoleSample = (() => {
                 </div>
                 <ChipList v-model="ctl.zOffset" class="v" :max="5" :label="t('Z-Offset increments (in mm)')" />
               </div>
+              <div class="rw">
+                <div class="k">
+                  <b>{{ t('Live Z arrows follow the Z offset value') }}</b
+                  ><span>{{
+                    t(
+                      'On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.',
+                    )
+                  }}</span>
+                </div>
+                <Toggle
+                  :model-value="state.settings.liveZValue !== false"
+                  :label="t('Live Z arrows follow the Z offset value')"
+                  @update:model-value="state.settings.liveZValue = $event"
+                />
+              </div>
               <h3 class="sec"><Icon name="load" :size="16" />{{ t('Extruder') }}</h3>
               <div class="rw">
                 <div class="k">

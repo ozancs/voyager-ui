@@ -2725,5 +2725,10 @@
   "Layout on this device",
   "The file's main layout",
   "Keep its current layout",
-  "(this device)"
+  "(this device)",
+  "Live Z arrows follow the Z offset value",
+  "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.",
+  "Lower the Z offset (nozzle closer to the bed)",
+  "Raise the Z offset (nozzle farther from the bed)",
+  "Reset the Z offset to 0"
 ]
