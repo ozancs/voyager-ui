@@ -9,7 +9,7 @@ import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import NumField from './NumField.vue';
 import SpeedFlow from './SpeedFlow.vue';
-import { state, S, gcode, isPrinting, extruders, activeExtruder, prettyName } from '../store';
+import { state, S, gcode, printState, extruders, activeExtruder, prettyName } from '../store';
 import { t } from '../i18n';
 const amounts = computed(() =>
   [...(state.settings.control?.extAmounts || [5, 10, 25, 50, 100])]
@@ -58,6 +58,8 @@ const out = computed(() => {
     nd,
   };
 });
+// Retract and Extrude stay off while the print is moving, but work while it is paused (purge, filament change)
+const moving = computed(() => printState.value === 'printing');
 function move(dir) {
   gcode(
     `SAVE_GCODE_STATE NAME=_ui_ext\nM83\nG1 E${dir * len.value} F${feed.value * 60}\nRESTORE_GCODE_STATE NAME=_ui_ext`,
@@ -140,7 +142,7 @@ function move(dir) {
       <button
         class="btn lg"
         style="height: 42px; font-size: 15px"
-        :disabled="!e.can_extrude || isPrinting"
+        :disabled="!e.can_extrude || moving"
         @click="move(-1)"
       >
         <Icon name="unload" :stroke="2.4" style="color: var(--ac)" />{{ t('Retract') }}
@@ -148,7 +150,7 @@ function move(dir) {
       <button
         class="btn lg acc"
         style="height: 42px; font-size: 15px"
-        :disabled="!e.can_extrude || isPrinting"
+        :disabled="!e.can_extrude || moving"
         @click="move(1)"
       >
         <Icon name="load" :stroke="2.4" />{{ t('Extrude') }}
