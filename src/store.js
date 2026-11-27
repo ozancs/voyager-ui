@@ -503,6 +503,9 @@ export function mergeSettings(v) {
   // auto made the UI larger than expected on big monitors, so 100 % became the default. Settings saved before
   // that still say auto (the whole object is saved, not only what was changed): move them to 100 % once.
   if (!v.scale100) v = { ...v, scale100: true, uiScale: v.uiScale === 'auto' || v.uiScale == null ? 100 : v.uiScale };
+  // Live Z arrows changing the value came after the arrows followed the moving part. Settings saved before that
+  // keep the arrows as their owner knows them; only a new setup starts with the new way.
+  if (Object.keys(v).length && v.liveZValue === undefined) v = { ...v, liveZValue: false };
   return {
     ...def,
     ...v,

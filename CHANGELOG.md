@@ -2,6 +2,9 @@
 
 ## 0.38.68
 
+- Live Z: a new setting, Settings > Control > "Live Z arrows follow the Z offset value", makes up raise the Z offset and down lower it on any printer. It is on for new setups; existing setups keep their arrows as they were. Clear becomes a Reset button under the value.
+- Webcams: an iframe webcam with a printer path (e.g. /belay-gauge) loads from the printer's main web server, found on its port (80, 81, 4408, ...), instead of showing Voyager inside the card
+
 ## 0.38.67
 
 - Extruder card: Retract and Extrude work while a print is paused (purge, filament change); they stay off only while it is printing
