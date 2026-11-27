@@ -39,6 +39,7 @@ import {
   deviceLayout,
   sharedLayoutSnapshot,
   restoreSharedLayout,
+  printerName,
 } from '../store';
 import { api } from '../api/moonraker';
 import { playSound, speak, desktopPermission, askDesktop } from '../features';
@@ -48,10 +49,11 @@ import { sync, detect, importFrom, push } from '../sync';
 import { go } from '../router';
 import { iconUrl, readIcon, LOGOS, probeMainsailLogos } from '../printerIcon';
 import { t, LANGS } from '../i18n';
-import { PARTS, partsIn, restoreParts } from '../settingsParts';
+import { PARTS, partsIn, restoreParts, backupFileName } from '../settingsParts';
 import { compactStoredHistories } from '../deviceLayout';
 import { previousDeviceLayouts, applyDeviceLayouts } from '../deviceLayoutStorage';
 import { PROGRESS_METHODS, TIME_METHODS } from '../printMetrics';
+import { currentHost } from '../printers';
 
 const TABS = [
   ['general', 'gear', 'General'],
@@ -438,12 +440,14 @@ async function download() {
     app: APP,
     version: VERSION,
     date: new Date().toISOString(),
+    // which printer it came from, shown in the file name too
+    printer: { name: printerName.value, host: currentHost() || location.host },
     settings,
     sharedLayout: sharedLayoutSnapshot(),
   };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-  a.download = `${APP}-settings-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = backupFileName(APP, printerName.value || currentHost() || location.hostname);
   a.click();
 }
 async function pickFile(e) {

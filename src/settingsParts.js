@@ -81,3 +81,15 @@ export function restoreParts(cur, data, picked, def) {
   }
   return out;
 }
+
+// A backup's file name says which printer it is from, so backups of several printers can sit side by side:
+// voyager-ui-settings-<printer>-<date>.json, the printer as its name in the UI, or its address when it has none.
+// Characters a file name cannot hold become '-'.
+export function backupFileName(app, printer, date = new Date()) {
+  const who = String(printer || '')
+    .trim()
+    .replace(/[\\/:*?"<>|\s]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+  return `${app}-settings-${who ? who + '-' : ''}${date.toISOString().slice(0, 10)}.json`;
+}

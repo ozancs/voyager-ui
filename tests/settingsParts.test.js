@@ -49,3 +49,18 @@ describe('selective restore', () => {
     expect(partOf('somethingNew')).toBe('other');
   });
 });
+
+import { backupFileName } from '../src/settingsParts.js';
+describe('backupFileName', () => {
+  const d = new Date('2026-11-19T10:00:00Z');
+  it('names the printer', () => {
+    expect(backupFileName('voyager-ui', 'Salad Fork', d)).toBe('voyager-ui-settings-Salad-Fork-2026-11-19.json');
+    expect(backupFileName('voyager-ui', '192.168.0.208:1977', d)).toBe(
+      'voyager-ui-settings-192.168.0.208-1977-2026-11-19.json',
+    );
+  });
+  it('drops characters a file name cannot hold, and works without a name', () => {
+    expect(backupFileName('voyager-ui', ' a/b\\\\c?* ', d)).toBe('voyager-ui-settings-a-b-c-2026-11-19.json');
+    expect(backupFileName('voyager-ui', '', d)).toBe('voyager-ui-settings-2026-11-19.json');
+  });
+});
