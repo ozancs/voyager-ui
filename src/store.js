@@ -1921,6 +1921,17 @@ export function start() {
     checkKlippy();
   });
   api.on('notify_active_spool_set', () => loadSpool());
+  // Moonraker reports the filament used to Spoolman as the print goes, but the spool shown was only read at
+  // connect and on a spool change: read it again every 30 s while printing, and once when the print stops
+  setInterval(() => {
+    if (state.connected && state.spoolman.spool && S('print_stats').state === 'printing') loadSpool();
+  }, 30000);
+  watch(
+    () => S('print_stats').state,
+    (now, was) => {
+      if (was === 'printing' && now !== 'printing') setTimeout(loadSpool, 3000);
+    },
+  );
   api.on('notify_power_changed', ([d]) => {
     const x = state.power.find((p) => p.device === d?.device);
     if (x) Object.assign(x, d);
@@ -1956,7 +1967,12 @@ export function start() {
   // the last minutes should be, drawn as jumps and zigzags. After such a gap, and when the tab shows again, the
   // buffers are read anew from Moonraker's own store, which kept a sample every second meanwhile.
   let lastTick = Date.now();
-  const resync = () => state.connected && state.klippy === 'ready' && loadTempHistory();
+  // back from sleep or a hidden tab: catch up on what was missed (temperature history, the spool's weight)
+  const resync = () => {
+    if (!state.connected || state.klippy !== 'ready') return;
+    loadTempHistory();
+    loadSpool();
+  };
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') resync();
   });
