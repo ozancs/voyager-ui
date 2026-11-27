@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.38.69
+
 ## 0.38.68
 
 - Live Z: a new setting, Settings > Control > "Live Z arrows follow the Z offset value", makes up raise the Z offset and down lower it on any printer. It is on for new setups; existing setups keep their arrows as they were. Clear becomes a Reset button under the value.
