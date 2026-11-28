@@ -7,7 +7,7 @@ import Icon from './Icon.vue';
 import CardCollapse from './CardCollapse.vue';
 import CircleJog from './CircleJog.vue';
 import ToolheadStyle from './ToolheadStyle.vue';
-import { state, S, gcode, isPrinting, toast } from '../store';
+import { state, S, gcode, isPrinting, printState, toast } from '../store';
 import { t } from '../i18n';
 const th = computed(() => S('toolhead'));
 const gm = computed(() => S('gcode_move'));
@@ -37,6 +37,10 @@ const AX = computed(() => [
 ]);
 const dpadSteps = computed(() => desc(ctl.value.dpad));
 const feedOf = (axis) => Math.max(1, Math.round((axis === 'Z' ? ctl.value.feedZ || 25 : ctl.value.feedXY || 100) * 60));
+// jogging is off while the print moves, but works while it is paused (park, clear a blob, check the nozzle).
+// Homing, levelling and Motors off stay off for the whole print, paused included: they would lose the position
+// the print resumes from, or drive the nozzle into the part.
+const moving = computed(() => printState.value === 'printing');
 function jog(axis, d) {
   const i = 'XYZ'.indexOf(axis);
   const cur = th.value.position?.[i] ?? 0;
@@ -211,7 +215,7 @@ onBeforeUnmount(() => {
             :data-tip="
               !can(a)
                 ? t('{axis} must be homed first', { axis: a })
-                : isPrinting
+                : moving
                   ? t('Not while printing')
                   : t('Type a position and press Enter')
             "
@@ -220,7 +224,7 @@ onBeforeUnmount(() => {
             <input
               class="mono pin"
               :value="edit[a] ?? (pos[i] ?? 0).toFixed(a === 'Z' ? 3 : 2)"
-              :disabled="!can(a) || isPrinting"
+              :disabled="!can(a) || moving"
               :aria-label="t('Move {axis} to position', { axis: a })"
               @focus="onFocus(a, i, $event)"
               @input="edit[a] = $event.target.value"
@@ -238,7 +242,8 @@ onBeforeUnmount(() => {
             :steps-x-y="ctl.circleXY || []"
             :steps-z="ctl.circleZ || []"
             :homed="homed"
-            :busy="isPrinting"
+            :busy="moving"
+            :no-home="isPrinting"
             :zdir="zdir"
             @jog="jog"
             @home="gcode"
@@ -257,7 +262,7 @@ onBeforeUnmount(() => {
             >
               <!-- prettier-ignore -->
               <!-- prettier-ignore -->
-              <button v-for="st in r.steps" :key="'-' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, -st)">−{{ st }}</button>
+              <button v-for="st in r.steps" :key="'-' + st" class="jb" :disabled="!can(r.a) || moving" @click="jog(r.a, -st)">−{{ st }}</button>
               <button
                 class="axb"
                 :class="{ homed: can(r.a) }"
@@ -269,25 +274,25 @@ onBeforeUnmount(() => {
               </button>
               <!-- prettier-ignore -->
               <!-- prettier-ignore -->
-              <button v-for="st in [...r.steps].reverse()" :key="'+' + st" class="jb" :disabled="!can(r.a) || isPrinting" @click="jog(r.a, st)">+{{ st }}</button>
+              <button v-for="st in [...r.steps].reverse()" :key="'+' + st" class="jb" :disabled="!can(r.a) || moving" @click="jog(r.a, st)">+{{ st }}</button>
             </div>
           </div>
           <div class="grp dpad" :data-tip="!can('X') || !can('Y') ? t('Home X and Y first') : ''">
             <span></span
-            ><button class="jb" aria-label="Y+" :disabled="!can('Y') || isPrinting" @click="jog('Y', dstep)">
+            ><button class="jb" aria-label="Y+" :disabled="!can('Y') || moving" @click="jog('Y', dstep)">
               <Icon name="up" :stroke="2.6" /></button
             ><span></span>
-            <button class="jb" aria-label="X-" :disabled="!can('X') || isPrinting" @click="jog('X', -dstep)">
+            <button class="jb" aria-label="X-" :disabled="!can('X') || moving" @click="jog('X', -dstep)">
               <Icon name="left" :stroke="2.6" />
             </button>
             <button class="axb homed" :aria-label="t('Home X Y')" :disabled="isPrinting" @click="gcode('G28 X Y')">
               <Icon name="home" :size="18" :stroke="2.6" />
             </button>
-            <button class="jb" aria-label="X+" :disabled="!can('X') || isPrinting" @click="jog('X', dstep)">
+            <button class="jb" aria-label="X+" :disabled="!can('X') || moving" @click="jog('X', dstep)">
               <Icon name="right" :stroke="2.6" />
             </button>
             <span></span
-            ><button class="jb" aria-label="Y-" :disabled="!can('Y') || isPrinting" @click="jog('Y', -dstep)">
+            ><button class="jb" aria-label="Y-" :disabled="!can('Y') || moving" @click="jog('Y', -dstep)">
               <Icon name="down" :stroke="2.6" /></button
             ><span></span>
           </div>
@@ -295,7 +300,7 @@ onBeforeUnmount(() => {
             <button
               class="jb"
               :aria-label="state.settings.invertZ ? t('Bed up (Z-{n})', { n: dstep }) : 'Z+' + dstep"
-              :disabled="!can('Z') || isPrinting"
+              :disabled="!can('Z') || moving"
               @click="jog('Z', zdir * Math.min(dstep, 25))"
             >
               <Icon name="up" :stroke="2.6" />
@@ -305,7 +310,7 @@ onBeforeUnmount(() => {
             <button
               class="jb"
               :aria-label="state.settings.invertZ ? t('Bed down (Z+{n})', { n: dstep }) : 'Z-' + dstep"
-              :disabled="!can('Z') || isPrinting"
+              :disabled="!can('Z') || moving"
               @click="jog('Z', -zdir * Math.min(dstep, 25))"
             >
               <Icon name="down" :stroke="2.6" />
