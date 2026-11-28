@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "降低 Z 偏移（喷嘴更靠近热床）",
   "Raise the Z offset (nozzle farther from the bed)": "提高 Z 偏移（喷嘴远离热床）",
   "Reset the Z offset to 0": "将 Z 偏移重置为 0",
+  "Chosen icon": "已选图标",
 }

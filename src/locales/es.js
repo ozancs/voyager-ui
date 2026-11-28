@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Reducir el offset Z (boquilla más cerca de la cama)",
   "Raise the Z offset (nozzle farther from the bed)": "Aumentar el offset Z (boquilla más lejos de la cama)",
   "Reset the Z offset to 0": "Restablecer el offset Z a 0",
+  "Chosen icon": "Icono elegido",
 }

@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Уменьшить Z-смещение (сопло ближе к столу)",
   "Raise the Z offset (nozzle farther from the bed)": "Увеличить Z-смещение (сопло дальше от стола)",
   "Reset the Z offset to 0": "Сбросить Z-смещение до 0",
+  "Chosen icon": "Выбранный значок",
 }

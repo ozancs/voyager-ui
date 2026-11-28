@@ -2,7 +2,7 @@
 import ColorField from './ColorField.vue';
 // Icon picker for favorites and custom cards: the app's own icons plus ~750 Lucide ones that fit a printer UI,
 // searchable by name and by keyword (search "temperature" finds thermometers), and an optional icon colour.
-import { computed, ref, onMounted, nextTick } from 'vue';
+import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
 import { ICON_NAMES } from '../icons';
@@ -26,10 +26,15 @@ const ICON_COLORS = [
 ];
 const q = ref('');
 const inp = ref(null);
+const scr = ref(null);
+// the chosen icon is scrolled into view, also when it is one of the Lucide icons that load a moment later
+const showChosen = () => nextTick(() => scr.value?.querySelector('.sel')?.scrollIntoView({ block: 'nearest' }));
 onMounted(() => {
   loadExtra();
   nextTick(() => inp.value?.focus());
+  showChosen();
 });
+watch(extra, showChosen);
 const words = computed(() => q.value.trim().toLowerCase().split(/\s+/).filter(Boolean));
 const hit = (hay) => words.value.every((w) => hay.includes(w));
 const basic = computed(() => ICON_NAMES.filter((n) => !words.value.length || hit(n)));
@@ -55,6 +60,14 @@ function pick(n) {
       :aria-label="t('Search icons')"
     />
     <div v-if="withColor" class="cr">
+      <!-- the icon as it will look: the chosen one in the chosen colour -->
+      <span v-if="icon" class="pv" :data-tip="t('Chosen icon')"
+        ><Icon
+          :name="icon"
+          :size="22"
+          :stroke="icon.startsWith('l:') ? 2 : undefined"
+          :style="{ color: cur || 'var(--ac)' }"
+      /></span>
       <span class="lbl">{{ t('Icon colour') }}</span>
       <button
         class="dot none"
@@ -77,7 +90,7 @@ function pick(n) {
         @update:model-value="emit('color', $event)"
       />
     </div>
-    <div class="scr">
+    <div ref="scr" class="scr">
       <template v-if="basic.length">
         <span class="lbl">{{ t('Basic') }}</span>
         <div class="ig">
@@ -85,12 +98,12 @@ function pick(n) {
             v-for="n in basic"
             :key="n"
             class="btn"
-            :class="{ acc: icon === n }"
+            :class="{ sel: icon === n }"
             :aria-label="n"
             :data-tip="n"
             @click="pick(n)"
           >
-            <Icon :name="n" :size="22" :style="cur && icon !== n ? { color: cur } : null" />
+            <Icon :name="n" :size="22" :style="cur ? { color: cur } : null" />
           </button>
         </div>
       </template>
@@ -104,12 +117,12 @@ function pick(n) {
           v-for="n in more"
           :key="n"
           class="btn"
-          :class="{ acc: icon === n }"
+          :class="{ sel: icon === n }"
           :aria-label="n.slice(2)"
           :data-tip="n.slice(2)"
           @click="pick(n)"
         >
-          <Icon :name="n" :size="22" :stroke="2" :style="cur && icon !== n ? { color: cur } : null" />
+          <Icon :name="n" :size="22" :stroke="2" :style="cur ? { color: cur } : null" />
         </button>
       </div>
     </div>
@@ -132,6 +145,24 @@ function pick(n) {
 .ig .btn {
   height: 46px;
   padding: 0;
+}
+/* the chosen icon keeps its own colour on a plain cell, ringed in the accent, so it stays visible whatever colour
+   is picked (a filled accent cell hid an icon in a similar colour) */
+.ig .btn.sel {
+  background: var(--s3);
+  box-shadow: inset 0 0 0 2px var(--ac);
+}
+.pv {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--s2);
+  box-shadow: inset 0 0 0 1px var(--bd);
+  margin-right: 4px;
+  flex-shrink: 0;
 }
 .cr {
   display: flex;

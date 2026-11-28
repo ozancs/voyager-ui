@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Zオフセットを下げる（ノズルがベッドに近づく）",
   "Raise the Z offset (nozzle farther from the bed)": "Zオフセットを上げる（ノズルがベッドから離れる）",
   "Reset the Z offset to 0": "Zオフセットを0に戻す",
+  "Chosen icon": "選択中のアイコン",
 }

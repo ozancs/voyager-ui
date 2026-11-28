@@ -2758,4 +2758,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Z ofsetini düşür (nozul tablaya daha yakın)",
   "Raise the Z offset (nozzle farther from the bed)": "Z ofsetini artır (nozul tabladan daha uzak)",
   "Reset the Z offset to 0": "Z ofsetini 0'a sıfırla",
+  "Chosen icon": "Seçili ikon",
 }

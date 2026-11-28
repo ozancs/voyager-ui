@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Zmniejsz offset Z (dysza bliżej stołu)",
   "Raise the Z offset (nozzle farther from the bed)": "Zwiększ offset Z (dysza dalej od stołu)",
   "Reset the Z offset to 0": "Zresetuj offset Z do 0",
+  "Chosen icon": "Wybrana ikona",
 }

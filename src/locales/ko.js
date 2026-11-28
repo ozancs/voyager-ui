@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Z 오프셋 낮추기 (노즐이 베드에 가까워짐)",
   "Raise the Z offset (nozzle farther from the bed)": "Z 오프셋 높이기 (노즐이 베드에서 멀어짐)",
   "Reset the Z offset to 0": "Z 오프셋을 0으로 재설정",
+  "Chosen icon": "선택한 아이콘",
 }

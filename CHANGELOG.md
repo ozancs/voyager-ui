@@ -2,6 +2,8 @@
 
 ## 0.38.71
 
+- Icon picker: the chosen icon stays visible in its colour (it disappeared when the colour was close to the accent), with a preview next to the colours, and the list opens at it
+
 ## 0.38.70
 
 - Toolhead card: jogging and typed positions work while a print is paused (park, clear a blob, check the nozzle). Homing, gantry levelling and Motors off stay off for the whole print.

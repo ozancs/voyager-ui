@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Diminuer le décalage Z (buse plus près du plateau)",
   "Raise the Z offset (nozzle farther from the bed)": "Augmenter le décalage Z (buse plus loin du plateau)",
   "Reset the Z offset to 0": "Remettre le décalage Z à 0",
+  "Chosen icon": "Icône choisie",
 }

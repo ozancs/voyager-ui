@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Z-Offset senken (Düse näher am Bett)",
   "Raise the Z offset (nozzle farther from the bed)": "Z-Offset erhöhen (Düse weiter vom Bett)",
   "Reset the Z offset to 0": "Z-Offset auf 0 zurücksetzen",
+  "Chosen icon": "Gewähltes Symbol",
 }

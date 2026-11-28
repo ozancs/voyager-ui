@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Abbassa l'offset Z (ugello più vicino al piatto)",
   "Raise the Z offset (nozzle farther from the bed)": "Alza l'offset Z (ugello più lontano dal piatto)",
   "Reset the Z offset to 0": "Riporta l'offset Z a 0",
+  "Chosen icon": "Icona scelta",
 }

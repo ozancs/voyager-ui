@@ -2730,5 +2730,6 @@
   "On: up raises the Z offset, down lowers it, whatever moves. Off: the arrows follow the moving part, like the Z jog buttons.",
   "Lower the Z offset (nozzle closer to the bed)",
   "Raise the Z offset (nozzle farther from the bed)",
-  "Reset the Z offset to 0"
+  "Reset the Z offset to 0",
+  "Chosen icon"
 ]

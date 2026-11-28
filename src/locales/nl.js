@@ -2740,4 +2740,5 @@ export default {
   "Lower the Z offset (nozzle closer to the bed)": "Z-offset verlagen (spuitmond dichter bij het bed)",
   "Raise the Z offset (nozzle farther from the bed)": "Z-offset verhogen (spuitmond verder van het bed)",
   "Reset the Z offset to 0": "Z-offset terugzetten naar 0",
+  "Chosen icon": "Gekozen pictogram",
 }
