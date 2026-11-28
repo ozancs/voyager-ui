@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.38.70
+
 ## 0.38.69
 
 - Favorites: a favorite that runs a macro with parameters can ask for the values when it is pressed ("Ask when clicked", e.g. CHAMBER TEMP=?). This also works for commands over several lines (M104 S0, then a macro with MAX=?), on the favorites bar and on custom card buttons.
