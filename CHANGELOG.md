@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.38.71
+
 ## 0.38.70
 
 - Toolhead card: jogging and typed positions work while a print is paused (park, clear a blob, check the nozzle). Homing, gantry levelling and Motors off stay off for the whole print.
