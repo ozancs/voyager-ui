@@ -10,6 +10,7 @@ const props = defineProps({
   stepsZ: { type: Array, default: () => [] },
   homed: { type: String, default: '' },
   busy: Boolean, // printing: nothing here moves or homes
+  noHome: Boolean, // paused print: jogging works, homing does not
   zdir: { type: Number, default: 1 },
 });
 const emit = defineEmits(['jog', 'home']);
@@ -139,12 +140,12 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
     <!-- Home all in the middle, as Mainsail's -->
     <g
       class="hm"
-      :class="{ homed: can('X') && can('Y') && can('Z'), off: busy }"
+      :class="{ homed: can('X') && can('Y') && can('Z'), off: busy || noHome }"
       role="button"
-      :tabindex="busy ? -1 : 0"
+      :tabindex="busy || noHome ? -1 : 0"
       :aria-label="t('Home All')"
-      @click="!busy && emit('home', 'G28')"
-      @keydown="key(() => !busy && emit('home', 'G28'))($event)"
+      @click="!busy && !noHome && emit('home', 'G28')"
+      @keydown="key(() => !busy && !noHome && emit('home', 'G28'))($event)"
     >
       <title>{{ t('Home All') }}</title>
       <circle :cx="C" :cy="C" :r="RC" />
@@ -155,12 +156,12 @@ const HOUSE = 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z';
       v-for="c in CORNERS"
       :key="c.key"
       class="hm"
-      :class="{ homed: c.homed, off: busy }"
+      :class="{ homed: c.homed, off: busy || noHome }"
       role="button"
-      :tabindex="busy ? -1 : 0"
+      :tabindex="busy || noHome ? -1 : 0"
       :aria-label="c.tip"
-      @click="!busy && emit('home', c.cmd)"
-      @keydown="key(() => !busy && emit('home', c.cmd))($event)"
+      @click="!busy && !noHome && emit('home', c.cmd)"
+      @keydown="key(() => !busy && !noHome && emit('home', c.cmd))($event)"
     >
       <title>{{ c.tip }}</title>
       <rect :x="c.x" :y="c.y" width="12" height="12" rx="3" />
