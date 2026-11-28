@@ -10,7 +10,7 @@ import MacroParamsDialog from './MacroParamsDialog.vue';
 import TabsCard from './TabsCard.vue';
 import ControlsCard from './ControlsCard.vue';
 import { state, gcode } from '../store';
-import { macroParams, parseCmd } from '../macros';
+import { askLines } from '../macros';
 import { t } from '../i18n';
 const props = defineProps({ id: String });
 const emit = defineEmits(['edit']);
@@ -19,14 +19,12 @@ const busy = ref(null);
 // the name on a button: what the user typed, or the macro / command it runs
 const label = (b) => (b.name || '').trim() || (b.gcode || '').trim().split(/\s/)[0].replace(/_/g, ' ') || '?';
 // a button set to "ask when clicked" opens the parameters of its macro first
-const ask = ref(null); // { word, params, values, cmd, k }
+const ask = ref(null); // { groups, cmd, k }
 function press(b, k, e) {
   if (state.editDash || !b.gcode) return;
   if (b.ask) {
-    const c = parseCmd(b.gcode);
-    const params = c.word ? macroParams(c.word) : [];
-    if (params.length)
-      return (ask.value = { word: c.word, params, values: c.args, cmd: b.gcode, k, el: e?.currentTarget });
+    const groups = askLines(b.gcode);
+    if (groups.length) return (ask.value = { groups, cmd: b.gcode, k, el: e?.currentTarget });
   }
   run(b.gcode, k);
 }
@@ -86,9 +84,7 @@ async function run(g, k) {
   </section>
   <MacroParamsDialog
     v-if="ask"
-    :word="ask.word"
-    :params="ask.params"
-    :values="ask.values"
+    :groups="ask.groups"
     :cmd="ask.cmd"
     :anchor="ask.el"
     @close="ask = null"

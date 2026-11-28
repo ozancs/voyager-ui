@@ -126,6 +126,26 @@ export function withArgs(line, updates) {
   return [...tokens.map((t) => t.raw), tail].filter(Boolean).join(' ');
 }
 
+// The lines of a command that call a macro with parameters, for "ask when clicked": a button can run several lines
+// ("M104 S0" then "_NOZZLE_COOL_WAIT MAX=60") and only the macro lines have values to ask for.
+export function askLines(text) {
+  const out = [];
+  String(text || '')
+    .split(/\r?\n/)
+    .forEach((line, i) => {
+      const c = parseCmd(line);
+      const params = c.word ? macroParams(c.word) : [];
+      if (params.length) out.push({ i, word: c.word, params, args: c.args });
+    });
+  return out;
+}
+// the command with the parameters of line i changed, the other lines as they were
+export function withLineArgs(text, i, updates) {
+  const lines = String(text || '').split(/\r?\n/);
+  lines[i] = withArgs(lines[i], updates);
+  return lines.join('\n');
+}
+
 // a value from Klipper's status (JSON) written back as the Python literal SET_GCODE_VARIABLE expects
 export function pyLiteral(v) {
   if (v === null || v === undefined) return 'None';

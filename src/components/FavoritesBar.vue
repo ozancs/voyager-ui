@@ -10,6 +10,9 @@ import { state, gcode, macroList, isPrinting, dangerIn } from '../store';
 // while printing, buttons whose command homes, probes or levels look locked (clicking still asks, see GuardDialog)
 const locked = (g) => isPrinting.value && !!dangerIn(g);
 import IconPicker from './IconPicker.vue';
+import ButtonParams from './ButtonParams.vue';
+import MacroParamsDialog from './MacroParamsDialog.vue';
+import { askLines } from '../macros';
 import { t } from '../i18n';
 
 defineProps({ card: Boolean }); // card: the same buttons as a dashboard card instead of the bar
@@ -23,14 +26,23 @@ const scale = computed(() => Math.min(SC_MAX, Math.max(SC_MIN, Number(state.sett
 const setScale = (d) =>
   (state.settings.favScale = Math.round(Math.min(SC_MAX, Math.max(SC_MIN, scale.value + d)) * 10) / 10);
 const isz = (n) => Math.round(n * scale.value);
-async function run(f) {
+// a favorite set to "ask when clicked" opens its macros' parameters under the button first (CHAMBER TEMP=?)
+const ask = ref(null); // { f, groups, el }
+async function run(f, e) {
   if (state.favEdit) {
     edit(f);
     return;
   }
+  if (f.ask) {
+    const groups = askLines(f.gcode);
+    if (groups.length) return (ask.value = { f, groups, el: e?.currentTarget });
+  }
+  send(f, f.gcode);
+}
+async function send(f, cmd) {
   busy.value = f.id;
   try {
-    await gcode(f.gcode);
+    await gcode(cmd);
   } catch {}
   busy.value = null;
 }
@@ -139,11 +151,12 @@ function dragEnter(i) {
         @dragenter.prevent="dragEnter(i)"
         @dragover.prevent
         @drop.prevent="dragI = null"
-        @click="run(f)"
+        @click="run(f, $event)"
       >
         <Icon v-if="state.favEdit" name="grip" :size="14" :stroke="3" class="gr" />
         <Icon :name="f.icon" :size="isz(17)" :stroke="2.3" class="fi" :style="f.color ? { color: f.color } : null" />
-        <span>{{ f.name }}</span>
+        <span>{{ f.name }}</span
+        ><Icon v-if="f.ask && !state.favEdit" name="chev" :size="isz(12)" class="ak" />
         <Icon v-if="state.favEdit" name="pencil" :size="11" class="pe" />
       </button>
       <div v-if="!favs.length" key="hint" class="hint">
@@ -217,6 +230,7 @@ function dragEnter(i) {
         :placeholder="t('Command or macro, e.g. CHAMBER TEMP=50')"
         :aria-label="t('Command')"
       />
+      <ButtonParams :b="form" />
       <div class="row" style="flex-wrap: wrap; gap: 6px">
         <span class="lbl">{{ t('Your macros:') }}</span
         ><button v-for="m in macroList.slice(0, 40)" :key="m" class="chip mb" @click="fromMacro(m)">{{ m }}</button>
@@ -229,6 +243,20 @@ function dragEnter(i) {
         <button class="btn lg acc" :disabled="!form.gcode.trim()" @click="save">{{ t('Save') }}</button>
       </template>
     </Modal>
+    <MacroParamsDialog
+      v-if="ask"
+      :groups="ask.groups"
+      :cmd="ask.f.gcode"
+      :anchor="ask.el"
+      @close="ask = null"
+      @run="
+        (cmd) => {
+          const f = ask.f;
+          ask = null;
+          send(f, cmd);
+        }
+      "
+    />
   </component>
 </template>
 
@@ -298,6 +326,12 @@ function dragEnter(i) {
 }
 .fav.hot .fi {
   color: var(--ac);
+}
+/* asks for values first: a small chevron after the name, like the custom card's buttons */
+.fav .ak {
+  color: var(--mu);
+  margin-left: -3px;
+  flex-shrink: 0;
 }
 .fav.busy {
   opacity: 0.6;

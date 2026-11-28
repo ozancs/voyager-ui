@@ -2,6 +2,8 @@
 
 ## 0.38.69
 
+- Favorites: a favorite that runs a macro with parameters can ask for the values when it is pressed ("Ask when clicked", e.g. CHAMBER TEMP=?). This also works for commands over several lines (M104 S0, then a macro with MAX=?), on the favorites bar and on custom card buttons.
+
 ## 0.38.68
 
 - Live Z: a new setting, Settings > Control > "Live Z arrows follow the Z offset value", makes up raise the Z offset and down lower it on any printer. It is on for new setups; existing setups keep their arrows as they were. Clear becomes a Reset button under the value.
